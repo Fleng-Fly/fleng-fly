@@ -1,33 +1,56 @@
 # backend/
 
-API and business logic of Fleng. **Not implemented yet** — this directory
-currently holds documentation only.
+API and business logic of Fleng. Built with **Python + FastAPI**.
 
-## Planned stack
+## Stack
 
-- **NestJS** (TypeScript) as the modular-monolith framework
-- **Prisma ORM** + **PostgreSQL**
-- **JWT** access tokens + rotating refresh tokens (`argon2id` password hashing)
-- **class-validator / class-transformer** for input validation
-- **Pino** structured logging
-- **Vitest** unit tests + **Supertest** API tests
+- **FastAPI** + Pydantic for HTTP, validation and OpenAPI.
+- **SQLAlchemy 2 (async)** + **asyncpg** for PostgreSQL.
+- **Alembic** for migrations.
+- **pydantic-settings** for configuration.
+- **pytest** for tests; **Ruff** + **mypy** for quality.
 
-## Modules
+## Layout
 
-`auth`, `users`, `catalog`, `content`, `exercises`, `vocabulary`, `progress`,
-`gamification`, `challenges`, `recommendations`, `ai`, `notifications`,
-`subscriptions`, `analytics`.
+```
+app/
+├── main.py          # create_app: CORS, error handlers, /api/v1 router
+├── core/            # config, error handlers, shared schemas
+├── db/              # SQLAlchemy base, models, async session
+├── api/             # aggregate router + dependencies (dev auth stub)
+└── modules/         # health/, users/
+alembic/             # migrations
+tests/               # pytest
+pyproject.toml
+```
 
-Each module owns its controllers, services, repositories/DTOs and is imported
-explicitly. No cross-module access to another module's repository.
+## Setup
+
+```bash
+pnpm setup            # from the repo root: creates .venv + installs deps
+pnpm backend:dev      # uvicorn --reload on :3001
+```
+
+Or directly:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -e ".[dev]"
+.venv/bin/uvicorn app.main:app --reload --port 3001
+```
+
+## Quality gates
+
+```bash
+pnpm backend:lint       # ruff check
+pnpm backend:typecheck  # mypy app
+pnpm backend:test       # pytest
+```
 
 ## Where to look
 
+- Docs: `docs/backend.md`, `docs/database.md`, `docs/api.md`, `docs/security.md`
 - Plan: `plans/backend-plan.md`
-- Architecture: `docs/backend.md`, `docs/architecture.md`
-- Database: `docs/database.md`
-- API: `docs/api.md`
-- Security: `docs/security.md`
 
-> When the app is scaffolded, replace this file with a real project README
-> (scripts, structure, environment variables).
+> The development auth dependency (`app/api/deps.py`) is a stub, not
+> authentication, and refuses to run when `APP_ENV=production`.
