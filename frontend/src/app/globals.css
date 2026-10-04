@@ -1,0 +1,51 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Single source for color/typography values, matching
+ * design/colors.md and design/typography.md. Components must not use raw hex.
+ */
+@theme {
+  --color-ink-950: #0a0a12;
+  --color-ink-900: #0f0f1a;
+  --color-ink-850: #14141f;
+  --color-ink-800: #1a1a28;
+  --color-ink-700: #24243a;
+  --color-ink-600: #32324d;
+
+  --color-slate-100: #f1f1f7;
+  --color-slate-300: #c3c3da;
+  --color-slate-400: #9a9ab8;
+
+  --color-violet-400: #a78bfa;
+  --color-violet-500: #8b5cf6;
+  --color-violet-600: #7c3aed;
+
+  --color-cyan-400: #22d3ee;
+  --color-blue-400: #60a5fa;
+
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--color-ink-950);
+  background-image:
+    radial-gradient(60rem 40rem at 80% -10%, rgba(139, 92, 246, 0.14), transparent 60%),
+    radial-gradient(50rem 35rem at 0% 5%, rgba(34, 211, 238, 0.08), transparent 55%);
+  background-attachment: fixed;
+  color: var(--color-slate-100);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-violet-400);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
