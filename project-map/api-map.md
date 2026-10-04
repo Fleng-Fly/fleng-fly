@@ -1,34 +1,43 @@
 # Project Map — API Map
 
-> Status: 🔴 documented only. Full contracts: `docs/api.md`. Keep this summary in
+> Status: M1 implemented. Full contracts: `docs/api.md`. Keep this summary in
 > sync when endpoints are added/changed.
+> Legend: ✅ implemented · ⬜ planned.
 
 Base: `/api/v1` · Auth: `Bearer` access token unless noted · Errors: standard
 envelope (`docs/api.md §1`).
 
+## Health
+
+| Method | Path | Auth | Status |
+| ------ | ---- | ---- | ------ |
+| GET | `/health` | public | ✅ |
+
+Response: `{ status: "ok", service: "backend", timestamp, database: "up" | "down" }`.
+
 ## Auth
 
-| Method | Path | Auth |
-| ------ | ---- | ---- |
-| POST | `/auth/register` | public |
-| POST | `/auth/login` | public |
-| POST | `/auth/refresh` | refresh cookie |
-| POST | `/auth/logout` | refresh cookie |
-| POST | `/auth/verify-email` | token |
-| POST | `/auth/forgot-password` | public |
-| POST | `/auth/reset-password` | token |
-| GET | `/auth/me` | bearer |
+| Method | Path | Auth | Status |
+| ------ | ---- | ---- | ------ |
+| POST | `/auth/register` | public | ⬜ |
+| POST | `/auth/login` | public | ⬜ |
+| POST | `/auth/refresh` | refresh cookie | ⬜ |
+| POST | `/auth/logout` | refresh cookie | ⬜ |
+| POST | `/auth/verify-email` | token | ⬜ |
+| POST | `/auth/forgot-password` | public | ⬜ |
+| POST | `/auth/reset-password` | token | ⬜ |
+| GET | `/auth/me` | bearer | ⬜ |
 
 ## Users
 
-| Method | Path | Auth |
-| ------ | ---- | ---- |
-| GET | `/users/me` | bearer |
-| PATCH | `/users/me` | bearer |
-| DELETE | `/users/me` | bearer |
-| GET | `/users/:id` | bearer (limited) |
-| GET | `/users/me/settings` | bearer |
-| PATCH | `/users/me/settings` | bearer |
+| Method | Path | Auth | Status |
+| ------ | ---- | ---- | ------ |
+| GET | `/users/me` | dev stub (prod: none) | ✅ |
+| PATCH | `/users/me` | bearer | ⬜ |
+| DELETE | `/users/me` | bearer | ⬜ |
+| GET | `/users/:id` | bearer (limited) | ⬜ |
+| GET | `/users/me/settings` | bearer | ⬜ |
+| PATCH | `/users/me/settings` | bearer | ⬜ |
 
 ## Courses
 

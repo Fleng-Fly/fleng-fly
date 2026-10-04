@@ -27,11 +27,19 @@ docs, project map, plans, design language, README, gitignore.
 **Exit criteria:** docs consistent with each other; project map present; no
 application code; clean commit.
 
-### Stage 1 — Backend core (in progress next)
+### Stage 1 — Minimal Frontend + Backend ✅ completed
 
-Postgres + Prisma schema for identity, users, catalog; NestJS bootstrap with
-config, logging, validation, error envelope; authentication (register/login/
-refresh/logout) and profiles; tests.
+pnpm workspace + Python/FastAPI backend; SQLAlchemy async `User` + `Profile`
+with an Alembic migration; health + users (dev auth stub) endpoints; Next.js
+landing/learn/login with a live backend-status indicator.
+
+**Exit criteria met:** `pnpm lint`, `typecheck`, `test`, `build` pass; the
+frontend calls the real API; the database workflow is documented.
+
+### Stage 1b — Backend core (in progress next)
+
+Authentication (register/login/refresh/logout) and profiles, replacing the dev
+auth stub; argon2id hashing; rate limiting; integration tests.
 
 **Exit criteria:** auth and profile API tested end-to-end against a test DB;
 security checklist applied to every endpoint.
@@ -62,8 +70,8 @@ and mobile.
 
 ### Stage 5 — AI tutor
 
-`@fleng/ai` provider abstraction with `mock` + one real provider; tutor
-conversations; writing correction; recommendations; guardrails and rate limits.
+Python AI layer with a `mock` + one real provider; tutor conversations; writing
+correction; recommendations; guardrails and rate limits.
 
 **Exit criteria:** AI features tested with the mock provider; provider is
 swappable by configuration; prompt-injection mitigations documented and tested.

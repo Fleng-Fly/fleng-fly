@@ -9,20 +9,25 @@ when a module, flow, API or dependency changes, update the relevant file here
 | File | Answers |
 | ---- | ------- |
 | `architecture.md` | How the system is shaped and how layers interact |
-| `modules.md` | What each backend/frontend module is and its dependencies |
+| `modules.md` | What each module is and its dependencies |
 | `data-flow.md` | How data moves through key flows |
 | `api-map.md` | Condensed endpoint map |
-| `dependencies.md` | Dependency rules and external libraries |
+| `dependencies.md` | Dependency rules, installed and planned libraries |
 
 ## Status legend
 
 - 🟢 implemented · 🟡 partially implemented · 🔴 documented only (not built)
 
-At the foundation stage, **every component is 🔴 documented only**.
+## Current status at a glance — M1
 
-## Current status at a glance
+Implemented and verified:
 
-```
-Foundation stage — documentation only. No runtime code, no dependencies,
-no database, no secrets.
-```
+- pnpm workspace (frontend) + Python virtualenv (backend) + Docker-compose PostgreSQL.
+- FastAPI app at `/api/v1` with CORS, Pydantic settings, error handlers.
+- SQLAlchemy async `User` + `Profile` models with an Alembic migration.
+- `GET /api/v1/health` and `GET /api/v1/users/me` (dev-only auth stub).
+- Next.js app (`/`, `/learn`, `/login`) with a typed API client, TanStack Query
+  and a live backend-status indicator.
+
+Not built: authentication, catalog/lessons, vocabulary, gamification, AI,
+notifications, analytics, deployments.

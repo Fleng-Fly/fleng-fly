@@ -1,58 +1,81 @@
 # Project Map — Dependencies
 
-> Status: 🔴 documented only. No `package.json` files exist yet, so this file
-> records the **intended** dependency policy and graph. Update when packages land.
+> Status: M1 implemented. Records the dependency policy and the **actually
+> installed** libraries. Update when dependencies change.
 
 ## Dependency rules
 
 1. Use what is already in the project; new dependencies need a real need
    (`AGENTS.md` rules 1–2).
-2. Keep dependencies within their package; the root is orchestration only.
+2. Keep dependencies within their package; the root has orchestration tooling only.
 3. The backend must never import frontend code, and vice versa.
-4. `@fleng/ai` must not import backend code, NestJS or Prisma.
+4. The AI layer must not import FastAPI, SQLAlchemy or the database.
 5. Prefer a small, well-maintained dependency over a bespoke solution — and a
-   standard-library/built-in solution over a dependency.
+   standard-library/framework feature over a dependency.
 
-## Package graph (target)
+## Components
 
 ```
-frontend (@fleng/frontend)
-  └── (external) next, react, tailwind, framer-motion, @tanstack/react-query
+frontend/ (@fleng/frontend — pnpm workspace)
+  (external) next, react, react-dom, @tanstack/react-query, framer-motion,
+             tailwindcss, @tailwindcss/postcss
+  (dev)      typescript, eslint, eslint-config-next, @eslint/eslintrc,
+             vitest, @types/*
 
-backend (@fleng/backend)
-  ├── @fleng/ai           # workspace dependency
-  └── (external) @nestjs/*, @prisma/client, argon2, class-validator,
-                 class-transformer, passport, passport-jwt, pino, helmet
+backend/ (fleng-backend — pip / venv)
+  (runtime)  fastapi, uvicorn[standard], sqlalchemy[asyncio], asyncpg,
+             pydantic-settings, alembic
+  (dev)      pytest, pytest-asyncio, httpx, ruff, mypy
 
-ai (@fleng/ai)
-  └── (external) provider SDK(s), zod (output schema validation)
+root/ (private)
+  (dev)      prettier
+  (scripts)  setup.mjs, dev.mjs  # Node stdlib only, no deps
 
-root (private)
-  └── orchestration scripts only; no runtime dependencies
+ai/ (future Python package)
+  (runtime)  provider SDK(s); schema validation  — not installed yet
 ```
 
-Internal dependency direction is one-way: `backend → ai`. There is no
-`ai → backend` or cross-app dependency.
+## External dependencies (installed at M1)
 
-## External dependencies (planned)
+### Backend
 
-| Package | Package | Purpose | Introduced |
-| ------- | ------- | ------- | ---------- |
-| next, react, react-dom | frontend | app framework/UI | Stage 4 |
-| tailwindcss | frontend | styling | Stage 4 |
-| framer-motion | frontend | animation | Stage 4 |
-| @tanstack/react-query | frontend | server state | Stage 4 |
-| @nestjs/common, core | backend | framework | Stage 1 |
-| @prisma/client, prisma | backend | ORM + migrations | Stage 1 |
-| argon2 | backend | password hashing | Stage 1 |
-| class-validator, class-transformer | backend | DTO validation | Stage 1 |
-| @nestjs/passport, passport, passport-jwt | backend | auth | Stage 1 |
-| pino, nestjs-pino | backend | logging | Stage 1 |
-| helmet | backend | security headers | Stage 1 |
-| @nestjs/throttler | backend | rate limiting | Stage 1/2 |
-| zod | ai | response schema validation | Stage 5 |
-| openai | ai | first provider | Stage 5 |
-| vitest, supertest, playwright | dev | testing | Stage 1/4 |
+| Package | Purpose |
+| ------- | ------- |
+| fastapi | HTTP framework + validation + OpenAPI |
+| uvicorn[standard] | ASGI server (`uvloop`, `httptools`, `watchfiles`) |
+| sqlalchemy[asyncio] | ORM / SQL toolkit (async) |
+| asyncpg | PostgreSQL async driver |
+| pydantic-settings | Typed env configuration |
+| alembic | Database migrations |
+
+Dev: `pytest`, `pytest-asyncio`, `httpx` (TestClient transport), `ruff`
+(lint + format), `mypy` (types).
+
+### Frontend
+
+| Package | Purpose |
+| ------- | ------- |
+| next, react, react-dom | App framework + UI |
+| tailwindcss, @tailwindcss/postcss | Styling / design tokens |
+| @tanstack/react-query | Server-state cache |
+| framer-motion | Restrained animation |
+
+Dev: `typescript`, `eslint`, `eslint-config-next`, `@eslint/eslintrc`, `vitest`,
+`@types/node`, `@types/react`, `@types/react-dom`.
+
+### Root
+
+`prettier` (formatting JS/TS/Markdown). The `scripts/*.mjs` use only Node
+built-ins (`child_process`, `fs`, `path`, `url`) — no concurrency dependency.
+
+## Planned (not installed)
+
+| Package | Component | Purpose | Introduced |
+| ------- | --------- | ------- | ---------- |
+| argon2-cffi | backend | password hashing | auth milestone |
+| pyjwt | backend | access/refresh tokens | auth milestone |
+| (AI provider SDK) | ai | LLM calls | AI milestone |
+| playwright | frontend | browser e2e | later |
 
 ## Explicitly not used (yet)
 
@@ -61,8 +84,9 @@ Internal dependency direction is one-way: `backend → ai`. There is no
 | Microservice framework / message broker | No proven need |
 | GraphQL | REST suffices |
 | Redis | Introduce only when caching/multi-instance rate limiting requires it |
-| ORM alternates (TypeORM/Drizzle) | Prisma chosen once; avoid churn |
-| State libraries (Redux) | React + TanStack Query suffice until proven otherwise |
+| Celery / ARQ | No background jobs yet |
+| Turborepo / Nx | Root Node scripts orchestrate the two packages |
+| Prisma / an ORM for Python other than SQLAlchemy | SQLAlchemy 2 async is the chosen toolkit |
 
 ## Adding a dependency checklist
 

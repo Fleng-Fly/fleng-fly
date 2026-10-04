@@ -4,38 +4,40 @@
 > Legend: ✅ completed · 🚧 in progress · ⛔ blocked · ⬜ next/not started ·
 > ❌ cancelled.
 
-Last updated: Stage 0 (Foundation).
+Last updated: M1 — Frontend + FastAPI backend.
 
 | # | Milestone | Status | Notes |
 | - | --------- | ------ | ----- |
-| M0 | Repository foundation (docs, map, plans, design) | ✅ completed | This commit; no app code |
-| M1 | Monorepo + backend bootstrap | ⬜ next | pnpm workspaces, NestJS skeleton, config, logging, validation, error filter |
-| M2 | Database model (identity, users, catalog) | ⬜ next | Prisma schema + migrations for MVP entities only |
-| M3 | Authentication & profiles | ⬜ next | register/login/refresh/logout, `/users/me` |
+| M0 | Repository foundation (docs, map, plans, design) | ✅ completed | |
+| M1 | Frontend + FastAPI backend vertical slice | ✅ completed | pnpm workspace, FastAPI, SQLAlchemy/Alembic, health + users (dev stub), Next.js status indicator |
+| M2 | Database: full identity + auth | ⬜ next | `RefreshToken`, auth fields, argon2 |
+| M3 | Authentication & profiles | ⬜ next | register/login/refresh/logout, replace dev stub |
 | M4 | Catalog & learning | ⬜ | courses, lessons, exercises, submissions, progress |
 | M5 | Vocabulary + SRS | ⬜ | words, user vocabulary, flashcards |
 | M6 | Gamification | ⬜ | XP, levels, streaks, achievements |
 | M7 | Frontend MVP | ⬜ | app shell + core screens + design system |
-| M8 | AI tutor | ⬜ | provider abstraction + tutor + writing correction |
+| M8 | AI tutor | ⬜ | Python AI layer + tutor + writing correction |
 | M9 | Polish & launch | ⬜ | practice depth, notifications, analytics, deploy |
 
 ## Blocked
 
 Nothing is blocked.
 
-## Immediate next actions (M1–M3)
+## Immediate next actions (M2–M3)
 
-1. Create root workspace manifests (`package.json`, `pnpm-workspace.yaml`) and
-   the three package skeletons.
-2. Bootstrap the NestJS backend with `config/`, `prisma/`, `common/`.
-3. Implement the identity/user/catalog Prisma schema and migrations.
-4. Implement auth + profile endpoints with tests and the security checklist.
+1. Add `RefreshToken` + auth fields (`role`, `email_verified_at`) with a new
+   Alembic migration.
+2. Implement the `auth` module (register/login/refresh/logout) with argon2id.
+3. Replace the development auth dependency with a real `get_current_user`.
+4. Add integration tests against a test PostgreSQL database.
 
 ## Decisions log
 
 | Date | Decision | Rationale |
 | ---- | -------- | --------- |
-| Foundation | Modular monolith, TypeScript everywhere | Simplicity, shared types, team consistency (`AGENTS.md` 9) |
-| Foundation | AI as a library, not a service | No proven scaling/language need; avoid premature microservice |
-| Foundation | PostgreSQL + Prisma | Relational integrity + strong DX |
-| Foundation | pnpm workspaces | Efficient monorepo without extra orchestration tooling |
+| Foundation | Modular monolith | Simplicity, team consistency (`AGENTS.md` 9) |
+| Foundation | PostgreSQL | Relational integrity + JSONB flexibility |
+| Foundation | pnpm workspace (frontend) | Efficient JS monorepo without extra tooling |
+| M1 | **Backend rewritten in Python / FastAPI** | Explicit product decision; SQLAlchemy 2 async + Alembic + Pydantic |
+| M1 | Backend runs in its own virtualenv, orchestrated by root Node scripts | Polyglot repo without adding Turborepo/Nx |
+| M1 | Database-unavailable errors map to `503` (including asyncpg `OSError`) | Honest availability signal; keeps `/health` informative |

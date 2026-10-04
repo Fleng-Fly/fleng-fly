@@ -1,42 +1,44 @@
 # Testing Plan
 
-> Strategy: `docs/testing.md`. This plan sequences test adoption.
+> Strategy: `docs/testing.md`. Legend: ✅ done · ⬜ next · 🔴 planned.
 
-## Stage 0 — Foundation
+## Stage 0 — Foundation ✅
 
-- [x] Define the testing strategy and critical flows (this document + docs).
-- [ ] Choose and document exact tool config when packages are created.
+- [x] Define the testing strategy and critical flows.
+- [x] pytest (backend) and Vitest (frontend) configured.
 
-## Stage 1 — Backend bootstrap
+## Stage 1 — Bootstrap ✅
 
-- [ ] Vitest configured per package; `pnpm test` runs unit + integration.
-- [ ] Test Postgres via docker compose; migrate before integration runs.
-- [ ] Factories for `User`/`Profile`; first API e2e for `/health`.
+- [x] Backend API tests for `/health` and `/users/me` (dependency overrides; no
+      database required).
+- [x] Frontend unit tests for the API client.
+- [x] `pnpm test` runs both suites.
 
-## Stage 2 — Auth & users
+## Stage 2 — Database integration ⬜
+
+- [ ] Integration tests against a test PostgreSQL database (apply Alembic
+      migrations before the run).
+- [ ] Factories for `User`/`Profile`.
+- [ ] CI service container for PostgreSQL.
+
+## Stage 3 — Auth ⬜
 
 - [ ] Unit: password hashing/verification, token issue/rotation, reuse detection.
-- [ ] API e2e: register → login → refresh → logout; forgot/reset; validation errors.
-- [ ] Authorization tests: cross-user access denied.
+- [ ] API: register → login → refresh → logout; forgot/reset; validation errors.
+- [ ] Authorization: cross-user access denied.
 
-## Stage 3 — Learning
+## Stage 4 — Learning ⬜
 
 - [ ] Unit: exercise grading per type; progress transitions.
-- [ ] Integration: lesson completion transaction updates progress/XP/streak.
-- [ ] API e2e: course/lesson/exercise flows.
+- [ ] Integration: lesson completion updates progress/XP/streak.
+- [ ] API: course/lesson/exercise flows.
 
-## Stage 4 — Vocabulary & gamification
-
-- [ ] Unit: SRS scheduling; XP → level; achievement idempotency.
-- [ ] Integration: review recording + scheduling update in one transaction.
-
-## Stage 5 — Frontend & e2e
+## Stage 5 — Frontend e2e ⬜
 
 - [ ] Playwright: auth, lesson completion, vocabulary review, AI tutor turn.
 - [ ] Accessibility checks (axe) on key screens.
-- [ ] Visual smoke on desktop + mobile viewports.
 
-## Stage 6 — AI
+## Stage 6 — AI 🔴
 
 - [ ] All AI tests use the `mock` provider.
 - [ ] Unit: prompt builders, output-schema validation, error normalisation.
@@ -46,7 +48,7 @@
 
 - [ ] CI runs lint + typecheck + test on every change.
 - [ ] Coverage reported but not gated.
-- [ ] Flaky tests are fixed or removed, never ignored.
+- [ ] Flaky tests fixed or removed, never ignored.
 
 ## Risks / watch-items
 

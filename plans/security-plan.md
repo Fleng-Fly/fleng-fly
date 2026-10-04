@@ -22,7 +22,7 @@
 
 ## Stage 3 — Authorization
 
-- [ ] Default-deny guards; `RolesGuard` for admin routes.
+- [ ] Default-deny dependencies; `require_role(...)` for admin routes.
 - [ ] Ownership enforced in queries; `404` over `403` where sensitive.
 - [ ] Tests that user A cannot read/modify user B's resources.
 
