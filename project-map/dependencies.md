@@ -86,7 +86,8 @@ built-ins (`child_process`, `fs`, `path`, `url`) — no concurrency dependency.
 | Redis | Introduce only when caching/multi-instance rate limiting requires it |
 | Celery / ARQ | No background jobs yet |
 | Turborepo / Nx | Root Node scripts orchestrate the two packages |
-| Prisma / an ORM for Python other than SQLAlchemy | SQLAlchemy 2 async is the chosen toolkit |
+| NestJS / Express / any Node.js backend framework | Backend is Python + FastAPI; TypeScript lives only in the frontend |
+| An ORM other than SQLAlchemy (backend is Python) | SQLAlchemy 2 async is the chosen toolkit |
 
 ## Adding a dependency checklist
 

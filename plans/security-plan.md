@@ -5,8 +5,8 @@
 ## Stage 1 — Foundations (with backend bootstrap)
 
 - [ ] Validated configuration; secrets only from env; fail fast in production.
-- [ ] `helmet`, strict CORS, request size limits.
-- [ ] Global `ValidationPipe` (whitelist + forbid unknown).
+- [ ] Security headers, strict CORS, request size limits.
+- [ ] Global Pydantic validation that rejects unknown fields.
 - [ ] Standard error envelope that never leaks internals; `requestId`.
 - [ ] Structured logging with redaction of secrets/tokens.
 - [ ] `.env.example` only; `.gitignore` covers env/key files.

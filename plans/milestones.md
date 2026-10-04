@@ -39,5 +39,6 @@ Nothing is blocked.
 | Foundation | PostgreSQL | Relational integrity + JSONB flexibility |
 | Foundation | pnpm workspace (frontend) | Efficient JS monorepo without extra tooling |
 | M1 | **Backend rewritten in Python / FastAPI** | Explicit product decision; SQLAlchemy 2 async + Alembic + Pydantic |
+| M1 | **FastAPI + Python is the only backend stack finalized** | NestJS/Express/TypeScript backend is forbidden; TypeScript stays frontend-only (`AGENTS.md` backend stack rules) |
 | M1 | Backend runs in its own virtualenv, orchestrated by root Node scripts | Polyglot repo without adding Turborepo/Nx |
 | M1 | Database-unavailable errors map to `503` (including asyncpg `OSError`) | Honest availability signal; keeps `/health` informative |

@@ -6,8 +6,8 @@
 ## Approach
 
 - Versioned REST at `/api/v1`; additive changes within a version.
-- Each endpoint lands with: DTO validation, ownership/role checks, the standard
-  error envelope, rate-limit decision, and API e2e tests.
+- Each endpoint lands with: Pydantic schema validation, ownership/role checks,
+  the standard error envelope, rate-limit decision, and API e2e tests.
 - Document every endpoint in `docs/api.md` and summarise in
   `project-map/api-map.md` in the same commit.
 
@@ -46,7 +46,7 @@
 
 ## Cross-cutting
 
-- [ ] Shared pagination/filter DTOs.
+- [ ] Shared pagination/filter Pydantic schemas.
 - [ ] Consistent error codes registry (single source).
 - [ ] OpenAPI generation once the surface stabilises (optional; not a priority).
 - [ ] Rate-limit policy per endpoint class (`docs/security.md §9`).

@@ -78,9 +78,9 @@ Errors: `401 INVALID_CREDENTIALS`, `409 EMAIL_TAKEN`, `429 TOO_MANY_ATTEMPTS`,
 ### 2.2 Users & profiles — `/api/v1/users`
 
 `GET /users/me` is implemented. It is protected by the **development-only**
-`DevAuthGuard`, which attaches a fixed user id (`DEV_USER_ID`) when
-`APP_ENV !== production` and returns `401` in production. Real authentication is
-not implemented.
+`get_current_user_id` FastAPI dependency, which attaches a fixed user id
+(`DEV_USER_ID`) when `APP_ENV !== production` and returns `401` in production.
+Real authentication is not implemented.
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
@@ -178,7 +178,7 @@ built server-side (never trust client-supplied system prompts). See
 ## 3. Authorization model
 
 - `USER` may only act on resources they own (`userId` scoping enforced in
-  queries, not only in guards).
+  queries, not only in dependencies).
 - `ADMIN` may manage catalog/content definitions.
 - Ownership violations return `404` (not `403`) where revealing existence would
   leak data.

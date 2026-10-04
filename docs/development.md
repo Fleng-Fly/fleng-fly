@@ -28,8 +28,9 @@
 - **Redis** — introduce only when caching/multi-instance rate limiting requires it.
 - **GraphQL** — REST is sufficient for the resource model.
 - **An async task queue (Celery/ARQ)** — not needed until background jobs exist.
-- **A second language** — the frontend is TypeScript, the backend is Python; no
-  further split.
+- **A Node.js backend framework (NestJS/Express)** — the backend is Python +
+  FastAPI; TypeScript is used only on the frontend and the backend must not
+  depend on Node.
 
 Adding any of these requires a written justification in the relevant plan.
 

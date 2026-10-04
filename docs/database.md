@@ -123,7 +123,7 @@ on lessons; `user_vocabulary` unique `(user_id, word_id)` and `(user_id, due_at)
 
 - **Health**: `SELECT 1` in a try/except; never fails the request.
 - **Profile read**: `get_or_create_user` upserts the dev user + profile and
-  returns a camelCase DTO.
+  returns a camelCase Pydantic response schema.
 - **Lesson completion** (planned): submissions, then `LessonProgress`, `XpEvent`,
   `Streak`, achievements — ideally in one transaction.
 

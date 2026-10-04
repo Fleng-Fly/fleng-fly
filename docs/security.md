@@ -2,8 +2,8 @@
 
 > Status: **partial**. The M1 foundation implements strict CORS (explicit
 > origins, credentials), global input validation, a non-leaking error envelope,
-> a production-guarded dev-auth stub, and env-only configuration. Auth, rate
-> limiting, headers (helmet) and AI guardrails are not implemented yet. This
+> a production-gated dev-auth dependency, and env-only configuration. Auth, rate
+> limiting, security headers and AI guardrails are not implemented yet. This
 > document defines the baseline every feature must respect.
 
 ## 1. Threat model (initial)
@@ -33,15 +33,16 @@ rotating refresh tokens stored hashed, reuse detection, session revocation.
 ## 3. Authorization
 
 - Default deny: every non-public endpoint requires authentication.
-- Role checks (`require_role(...)` dependency) for admin-only operations.
+- Role checks (`require_role(...)` FastAPI dependency) for admin-only operations.
 - **Ownership checks in queries** (`WHERE userId = :currentUser`), not only in
-  guards. Prefer `404` over `403` when existence itself is sensitive.
+  dependencies. Prefer `404` over `403` when existence itself is sensitive.
 - Never trust a `userId` from the request body; derive it from the token.
 
 ## 4. Input validation
 
-- Validate every request body/query/param at the edge with DTOs.
-- `whitelist: true` + `forbidNonWhitelisted: true` to drop unexpected fields.
+- Validate every request body/query/param at the edge with Pydantic schemas.
+- Reject unexpected fields with strict models
+  (`model_config = ConfigDict(extra="forbid")`) and explicit response models.
 - Bound list sizes, string lengths and numeric ranges.
 - Validate AI structured output against a schema before persisting/using it.
 
@@ -80,7 +81,8 @@ rotating refresh tokens stored hashed, reuse detection, session revocation.
 ## 8. Transport and headers
 
 - HTTPS only in production; HSTS.
-- `helmet` for sensible security headers.
+- Security headers (`X-Content-Type-Options`, `Referrer-Policy`, HSTS, …) via
+  Starlette middleware or the reverse proxy; not implemented yet.
 - CORS restricted to configured frontend origins; no wildcard with credentials.
 - Cookies: `httpOnly`, `Secure`, `SameSite`, scoped path.
 
@@ -112,9 +114,9 @@ Responses return `429` with `Retry-After`.
 ## 12. Checklist for new endpoints
 
 - [ ] Requires auth (or is explicitly public by design).
-- [ ] Ownership/role enforced in the query, not only the guard.
+- [ ] Ownership/role enforced in the query, not only the dependency.
 - [ ] Input validated and bounded.
-- [ ] Output is a DTO (no internal fields leaked).
+- [ ] Output is a Pydantic response schema (no internal fields leaked).
 - [ ] Rate limited if abusable or expensive.
 - [ ] Errors use the standard envelope; no internals leaked.
 - [ ] No secrets/PII logged.

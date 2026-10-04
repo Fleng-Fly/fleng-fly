@@ -8,6 +8,26 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
 
 ---
 
+## Backend stack rules (non-negotiable)
+
+- **Backend MUST use the existing Python + FastAPI stack.** Do not introduce
+  NestJS, Express, Node.js backend frameworks, or TypeScript backend code.
+- **TypeScript is allowed in the frontend. TypeScript is NOT allowed inside the
+  backend.**
+- The backend is `backend/`: Python, FastAPI, Pydantic, SQLAlchemy 2 (async),
+  Alembic, pytest, Ruff, mypy. It has no Node/TypeScript dependency and is not a
+  pnpm workspace member.
+- The frontend is `frontend/`: Next.js (App Router), React, TypeScript, Tailwind
+  CSS, TanStack Query, Framer Motion. Frontend TypeScript must **not** be
+  converted to JavaScript.
+- The frontend talks to the backend only over REST/JSON at `/api/v1`; the backend
+  is the only place allowed to touch the database or AI providers.
+- Historical note: the backend was originally sketched as NestJS + TypeScript but
+  was implemented as FastAPI + Python. NestJS/TypeScript backend references must
+  not be reintroduced into code, docs, project-map or plans.
+
+---
+
 ## Project Agent Rules
 
 ### 1. Используй существующий стек

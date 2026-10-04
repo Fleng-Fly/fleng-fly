@@ -58,6 +58,8 @@ PostgreSQL                             docker-compose.yml
 ```
 
 - One frontend deployable and one backend deployable.
+- **FastAPI is the only backend framework**; TypeScript is used only in the
+  frontend. The backend (`backend/`) has no Node/TypeScript dependency.
 - The backend owns all data decisions; the frontend contains no business rules.
 - The AI layer (`ai/`) will be a Python library consumed by the backend, not a
   separate service.

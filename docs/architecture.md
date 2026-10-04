@@ -26,7 +26,8 @@ Non-goals for the MVP:
 - **Frontend** (Next.js / TypeScript) is a single deployable that renders the
   product and talks to the backend over HTTP/JSON.
 - **Backend** (FastAPI / Python) is a single deployable, internally split into
-  modules with explicit dependencies.
+  modules with explicit dependencies. FastAPI is the **only** backend framework:
+  there is no NestJS/Express/Node.js or TypeScript code in `backend/`.
 - **AI layer** is a Python package consumed by the backend. It isolates
   provider-specific code and prompt/response handling. It is *not* a service.
 - **PostgreSQL** is the single source of persistent truth, accessed only through
