@@ -1,124 +1,150 @@
 # Backend
 
-> Status: **design** (pre-implementation). Stack: NestJS + Prisma + PostgreSQL.
+> Status: **M1 implemented**. Stack: Python 3.11+ / FastAPI / SQLAlchemy 2
+> (async) / Alembic / Pydantic. Implemented modules: `health`, `users`
+> (development-only auth stub). Auth, catalog, exercises, AI and the rest are
+> not built yet.
 
 ## 1. Responsibilities
 
 The backend is the only part of the system allowed to make decisions about data:
-validation, authorization, business rules, persistence and AI orchestration.
-The frontend and AI library never reach the database.
+validation, authorization, business rules, persistence and (later) AI
+orchestration. The frontend never reaches the database.
 
-## 2. Project structure (planned)
+## 2. Project structure (current)
+
+Feature modules live under `app/modules/<name>/`. Future modules follow the same
+shape; they are added only when the feature exists.
 
 ```
 backend/
-├── src/
-│   ├── main.ts                 # bootstrap, global pipes/filters, helmet, CORS
-│   ├── app.module.ts           # composes feature modules
-│   ├── config/                 # typed, validated configuration
-│   ├── common/                 # cross-cutting: guards, filters, pipes,
-│   │                           # interceptors, decorators, base errors, DTOs
-│   ├── prisma/                 # PrismaModule + PrismaService (connection lifecycle)
+├── app/
+│   ├── main.py                 # create_app: CORS, error handlers, /api/v1 router
+│   ├── core/
+│   │   ├── config.py           # pydantic-settings Settings + get_settings()
+│   │   ├── errors.py           # exception handlers → standard envelope
+│   │   └── schemas.py          # CamelModel (snake_case Python → camelCase JSON)
+│   ├── db/
+│   │   ├── base.py             # DeclarativeBase
+│   │   ├── models.py           # User, Profile
+│   │   ├── session.py          # async engine, SessionLocal, get_db dependency
+│   │   └── __init__.py
+│   ├── api/
+│   │   ├── deps.py             # get_current_user_id (DEV ONLY)
+│   │   └── router.py           # aggregates module routers under /api/v1
 │   └── modules/
-│       ├── auth/
-│       ├── users/
-│       ├── catalog/            # courses, lessons
-│       ├── content/            # grammar, reading, listening materials
-│       ├── exercises/          # exercise definitions, submissions, grading
-│       ├── vocabulary/         # words, user vocabulary, flashcards/reviews
-│       ├── progress/
-│       ├── gamification/       # streaks, XP, levels, achievements
-│       ├── challenges/
-│       ├── recommendations/
-│       ├── ai/                 # wraps @fleng/ai, owns AI persistence
-│       ├── notifications/
-│       ├── subscriptions/
-│       └── analytics/
-├── prisma/
-│   ├── schema.prisma
-│   └── migrations/
-└── test/                       # API e2e (Supertest)
+│       ├── health/
+│       │   ├── router.py       # GET /health
+│       │   ├── schemas.py
+│       │   └── service.py
+│       └── users/
+│           ├── router.py       # GET /users/me
+│           ├── schemas.py
+│           └── service.py
+├── alembic/
+│   ├── env.py                  # async migrations; URL from app settings
+│   ├── script.py.mako
+│   └── versions/20261004_1200_init.py
+├── tests/                      # pytest (health, users)
+├── alembic.ini
+└── pyproject.toml
 ```
 
 ### Module internal structure
 
 ```
 modules/<name>/
-├── <name>.module.ts
-├── <name>.controller.ts        # HTTP only
-├── <name>.service.ts           # business rules, transaction boundaries
-├── <name>.repository.ts        # Prisma access, returns domain objects
-├── dto/                        # request/response DTOs + validation
-├── entities/ (optional)        # domain types if Prisma models are not enough
-└── <name>.service.spec.ts      # unit tests
+├── router.py       # HTTP only
+├── service.py      # business rules, transaction boundaries
+├── schemas.py      # Pydantic request/response models
+└── ...
 ```
-
-Feature modules are only added when the feature exists. The list above is the
-target, not a mandate to scaffold empty modules.
 
 ## 3. Request lifecycle
 
 ```
 HTTP request
- → helmet / CORS (main.ts)
- → global ValidationPipe (whitelist, transform)
- → AuthGuard (JWT) + RolesGuard
- → controller (thin) → service (business logic)
- → repository → Prisma → PostgreSQL
- → interceptor (logging, serialization)
- → exception filter (on error)
- → JSON response
+ → CORS middleware (origins from settings)
+ → FastAPI routing (/api/v1)
+ → dependency injection (get_db, get_current_user_id)
+ → router (thin) → service (business logic)
+ → SQLAlchemy async session → asyncpg → PostgreSQL
+ → response_model serialization (camelCase)
+ → exception handlers on error → standard JSON envelope
 ```
-
-Every response uses the same envelope conventions and every error maps to the
-standard error shape described in `docs/api.md`.
 
 ## 4. Cross-cutting concerns
 
-- **Configuration** — `config/` validates env vars on startup (fail fast). No
-  `process.env` reads scattered through modules.
-- **Validation** — DTOs with `class-validator`; `whitelist: true`,
-  `forbidNonWhitelisted: true`, `transform: true`.
-- **Errors** — domain exceptions (`NotFoundError`, `ConflictError`,
-  `ForbiddenError`, `ValidationError`) mapped centrally. No leaking stack traces
-  or provider errors.
-- **Logging** — Pino structured logs; a request correlation id per request; never
-  log passwords, tokens or raw AI prompts containing PII.
-- **Auth** — see `docs/authentication.md`.
-- **Rate limiting** — global baseline plus stricter limits on auth and AI.
+- **Configuration** — `app/core/config.py` uses `pydantic-settings`; values come
+  from the environment / root `.env`. Feature modules receive a `Settings`
+  instance via `Depends(get_settings)`; there are no scattered `os.environ` reads.
+  `DATABASE_URL` accepts plain `postgresql://` and is normalized to the asyncpg
+  driver.
+- **Validation** — FastAPI validates request models automatically with Pydantic.
+  Invalid requests return `422` in the standard envelope (code
+  `VALIDATION_FAILED`).
+- **Errors** — `app/core/errors.py` maps exceptions to the envelope in
+  `docs/api.md`: `HTTPException` → its status; `RequestValidationError` → `422`;
+  `SQLAlchemyError` and connection `OSError`s (asyncpg raises a raw
+  `ConnectionRefusedError` when the database is unreachable) → `503
+  DATABASE_UNAVAILABLE`; anything else → `500 INTERNAL_ERROR` (traceback logged
+  server-side, never returned).
+- **Database availability** — the async engine connects lazily, so the process
+  starts even when PostgreSQL is down. `/health` reports `database: "down"` and
+  data endpoints return `503`.
+- **Logging** — Python's `logging` (uvicorn's logger). Structured logging and
+  request correlation ids are deferred.
+- **Auth** — not implemented. `get_current_user_id` (in `app/api/deps.py`) is a
+  development-only dependency that returns a fixed user id from `DEV_USER_ID`
+  and raises `401` when `APP_ENV=production`. It is **not** authentication and
+  must be replaced by a JWT dependency.
+- **Rate limiting** — deferred (arrives with auth/AI).
 
-## 5. Transactions and consistency
+## 5. HTTP conventions
 
-- Writes that span aggregates (e.g. lesson completion touching progress,
-  gamification and analytics) run in a Prisma transaction or are coordinated by
-  the owning service with an explicit, documented sequence.
-- Services define transaction boundaries; repositories accept a transaction
-  client so they can participate without opening nested transactions.
+- Global prefix `/api/v1` applied once when including the aggregate router.
+- Routers return Pydantic models, never ORM objects directly.
+- JSON uses camelCase via `CamelModel` (alias generator); Python stays snake_case.
+- Errors use the envelope in `docs/api.md`.
 
-## 6. Testing
+## 6. Database access
 
-| Level       | Tool              | Scope |
-| ----------- | ----------------- | ----- |
-| Unit        | Vitest            | services, pure logic, guards |
-| Integration | Vitest + test DB  | repositories, transactions |
-| API e2e     | Supertest         | endpoints, auth, validation |
+- `app/db/session.py` exposes `get_db()` (an async session dependency) and the
+  engine.
+- Services take an `AsyncSession` and use SQLAlchemy 2.0 style selects.
+- Migrations are managed by Alembic (`alembic/`); the URL comes from settings.
 
-Rules: no network calls to real AI providers in tests (use `mock` provider),
-tests must be deterministic, and each module ships tests with its first feature.
+## 7. Testing
 
-## 7. Conventions
+| Level | Tool | Scope |
+| ----- | ---- | ----- |
+| Unit / API | pytest + FastAPI TestClient | routers, services, dependencies |
 
-- Controllers return DTOs, never Prisma models directly.
-- One exported service class per module; do not create pass-through wrappers.
-- Prefer explicit code over clever abstractions (see `AGENTS.md` rule 2/9).
-- No cross-module repository imports.
+Current tests (`backend/tests/`):
 
-## 8. Build & run (intended)
+- `test_health.py` — health reports database up/down and never fails.
+- `test_users.py` — `/users/me` returns a camelCase profile; production rejects
+  the dev stub with a `401` envelope.
 
+Database access is overridden through FastAPI dependency overrides, so tests run
+without PostgreSQL.
+
+## 8. Conventions
+
+- Routers are thin; services own rules.
+- One service module per feature; no pass-through wrappers.
+- Prefer explicit code over clever abstractions (`AGENTS.md` rules 2/9).
+- No cross-module direct DB access that bypasses services.
+
+## 9. Build & run
+
+```bash
+pnpm setup                 # create .venv and install dependencies
+pnpm backend:dev           # uvicorn --reload on :3001
+pnpm backend:lint          # ruff
+pnpm backend:typecheck     # mypy
+pnpm backend:test          # pytest
+pnpm db:migrate            # alembic upgrade head
 ```
-pnpm --filter @fleng/backend dev
-pnpm --filter @fleng/backend build
-pnpm --filter @fleng/backend test
-```
 
-See `plans/backend-plan.md` for implementation order.
+See `plans/backend-plan.md` for what comes next.

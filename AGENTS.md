@@ -3,7 +3,8 @@
 This file is the working contract for every agent and developer contributing to Fleng.
 Read it before making any change, then read `README.md`, `docs/`, `project-map/`, and `plans/`.
 
-> Project status: **foundation / pre-MVP** (documentation and architecture only).
+> Project status: **M1 — minimal working Frontend + Backend** (Next.js + FastAPI).
+> Authentication, the learning catalog and AI are not implemented yet.
 
 ---
 
@@ -179,16 +180,17 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
 ## Project Context (quick reference)
 
 - **Product:** Fleng — a premium dark English-learning web platform.
-- **Architecture:** modular monolith. One backend deployable, one frontend deployable, one shared AI library. No microservices yet.
-- **Language:** TypeScript across frontend, backend, and AI layer.
-- **Monorepo:** pnpm workspaces (`frontend/`, `backend/`, `ai/`).
-- **Stack:** Next.js (App Router) + Tailwind CSS / NestJS + Prisma + PostgreSQL.
-- **AI:** provider-agnostic TypeScript package `@fleng/ai`, consumed by the backend `ai` module. Not a separate service yet.
+- **Architecture:** modular monolith. One backend deployable, one frontend deployable, one shared AI layer. No microservices.
+- **Frontend:** TypeScript — Next.js (App Router), Tailwind CSS, TanStack Query, Framer Motion.
+- **Backend:** Python — FastAPI, SQLAlchemy 2 (async), Alembic, Pydantic.
+- **Monorepo:** pnpm workspace for the frontend; the backend is a Python project with its own virtualenv. Orchestrated by root Node scripts.
+- **Database:** PostgreSQL.
+- **AI:** a future Python layer consumed by the backend AI module. Not a separate service.
 - **Source of truth:**
   - Architecture → `docs/architecture.md`
   - Stack + rationale → `docs/development.md`
   - Modules → `project-map/modules.md`
-  - Data model → `docs/database.md` (entities, relationships, indexes)
+  - Data model → `docs/database.md`
   - API → `docs/api.md` + `project-map/api-map.md`
   - Roadmap/status → `plans/roadmap.md` + `plans/milestones.md`
   - Visual language → `design/`
@@ -197,13 +199,14 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
 
 ```
 /
-├── frontend/     # Next.js user interface
-├── backend/      # NestJS API (modular monolith)
-├── ai/           # @fleng/ai provider-agnostic AI layer
+├── frontend/     # @fleng/frontend — Next.js user interface
+├── backend/      # FastAPI API (Python, modular monolith)
+├── ai/           # future Python AI layer (docs only)
 ├── docs/         # durable architecture + engineering documentation
 ├── plans/        # roadmap, per-area plans, milestones
 ├── design/       # design system + UX documentation
 ├── project-map/  # living map of modules and flows
+├── scripts/      # root tooling (dev orchestration, backend setup)
 ├── AGENTS.md     # this file
 ├── README.md     # entry point for newcomers
 └── .gitignore

@@ -1,7 +1,8 @@
 # Architecture
 
-> Status: **design** (pre-implementation). This document is the canonical
-> description of how Fleng is intended to be built. Update it whenever the real
+> Status: **M1 implemented** for the frontend↔backend↔database foundation
+> (`/health`, `/users/me`). Auth, catalog and AI are design-only. This document
+> is the canonical description of how Fleng is built; update it when the real
 > architecture diverges.
 
 ## 1. Goals and constraints
@@ -11,7 +12,7 @@
 - Built and maintained by several agents/developers → strong conventions,
   explicit boundaries, small commits.
 - Start simple and extensible. **No premature microservices.**
-- TypeScript on every surface to share types and mental models.
+- TypeScript on the frontend, Python on the backend — each where it fits best.
 
 Non-goals for the MVP:
 
@@ -22,14 +23,14 @@ Non-goals for the MVP:
 
 **Modular monolith.**
 
-- **Frontend** (Next.js) is a single deployable that renders the product and
-  talks to the backend over HTTP/JSON.
-- **Backend** (NestJS) is a single deployable, internally split into modules with
-  explicit interfaces and dependency direction.
-- **AI layer** (`@fleng/ai`) is a library imported by the backend. It isolates
+- **Frontend** (Next.js / TypeScript) is a single deployable that renders the
+  product and talks to the backend over HTTP/JSON.
+- **Backend** (FastAPI / Python) is a single deployable, internally split into
+  modules with explicit dependencies.
+- **AI layer** is a Python package consumed by the backend. It isolates
   provider-specific code and prompt/response handling. It is *not* a service.
 - **PostgreSQL** is the single source of persistent truth, accessed only through
-  Prisma from the backend.
+  SQLAlchemy (async) from the backend; schema changes go through Alembic.
 
 ```
 Browser
@@ -41,10 +42,10 @@ Browser
               │ HTTPS · REST /api/v1
               ▼
 ┌──────────────────────────────────────────────────────────┐
-│ Backend — NestJS (modular monolith)                      │
+│ Backend — FastAPI (modular monolith)                     │
 │                                                          │
-│  Cross-cutting: auth guard · validation pipe · logging   │
-│                 error filter · rate limiting             │
+│  Cross-cutting: dependencies · validation · logging      │
+│                 error handlers · rate limiting           │
 │                                                          │
 │  ┌────────┐ ┌────────┐ ┌──────────┐ ┌─────────────┐      │
 │  │ auth   │ │ users  │ │ catalog  │ │ content     │      │
@@ -59,17 +60,17 @@ Browser
 │  │ ai     │ │ notifications │ │ analytics │              │
 │  └───┬────┘ └───────────────┘ └───────────┘              │
 └──────┼───────────────────────────────────────────────────┘
-       │ imports (in-process)
+       │ imports (in-process, Python)
        ▼
 ┌──────────────────────────┐
-│ @fleng/ai                │  providers · prompts · parsing · guardrails
+│ AI layer                 │  providers · prompts · parsing · guardrails
 └─────────────┬────────────┘
               │ HTTPS
               ▼
       External AI providers
 
               ▲
-              │ Prisma
+              │ SQLAlchemy (async) → asyncpg
 ┌──────────────────────────┐
 │ PostgreSQL               │
 └──────────────────────────┘
@@ -81,25 +82,33 @@ Browser
 | -------- | ----------------------------------------------------------- | -------- |
 | Frontend | Rendering, routing, forms, client cache, design system      | Contain business rules, call AI providers directly, store secrets |
 | Backend  | Business rules, validation, authz, persistence, orchestration | Contain UI concerns, expose provider-specific AI payloads |
-| AI lib   | Provider clients, prompts, response parsing, guardrails      | Know about HTTP, NestJS, Prisma, or the database |
-| Database | Data integrity, constraints, indexes                         | Be bypassed by raw SQL outside controlled migrations |
+| AI layer | Provider clients, prompts, response parsing, guardrails      | Know about HTTP, FastAPI, SQLAlchemy, or the database |
+| Database | Data integrity, constraints, indexes                         | Be bypassed by ad-hoc SQL outside migrations |
 
 ## 4. Backend module boundaries
 
 Each module owns its data and exposes a service. Rules:
 
-1. A module may import another module's **service**, never its repository.
-2. Controllers do HTTP + auth + validation only; no business logic.
-3. Repositories are thin Prisma wrappers; complex queries may live in a
-   dedicated query service inside the module.
+1. A module may import another module's **service**, never reach into its
+   internals.
+2. Routers do HTTP + auth + validation only; no business logic.
+3. Persistence lives in services (or thin repositories); complex queries may
+   live in a dedicated query function inside the module.
 4. Cross-cutting concerns (auth, logging, validation, errors, rate limits) are
-   implemented as guards/pipes/filters/interceptors, not per-module copies.
+   implemented once as dependencies/handlers, not per-module copies.
 
 Modules, responsibilities and dependencies: `project-map/modules.md`.
 
 ## 5. Data flow (representative)
 
-### 5.1 Completing a lesson
+### 5.1 Health check
+
+```
+GET /api/v1/health
+  → HealthResponse: `SELECT 1` (database up/down), never fails while the API is up
+```
+
+### 5.2 Completing a lesson (planned)
 
 ```
 Frontend
@@ -112,14 +121,14 @@ Backend
   → responds with updated progress summary
 ```
 
-### 5.2 AI tutor turn
+### 5.3 AI tutor turn (planned)
 
 ```
 Frontend
   → POST /api/v1/ai/conversations/:id/messages
 Backend (ai module)
   → loads conversation + learner context from DB
-  → @fleng/ai builds prompt, selects provider, calls provider
+  → AI layer builds prompt, selects provider, calls provider
   → validates structured output, persists AIMessage
   → returns assistant message
 ```
@@ -128,13 +137,15 @@ Details: `project-map/data-flow.md`.
 
 ## 6. Cross-cutting concerns
 
-- **Authentication/authorization** — JWT access + rotating refresh; RBAC
-  (`USER`, `ADMIN`). See `docs/authentication.md`.
-- **Validation** — DTO validation at the edge; domain invariants in services.
-- **Error handling** — a single exception filter maps domain errors to a stable
-  JSON error envelope.
-- **Logging** — structured JSON logs with request/correlation IDs.
-- **Rate limiting** — tight on auth and AI endpoints.
+- **Authentication/authorization** — not implemented. Planned: JWT access +
+  rotating refresh; RBAC (`USER`, `ADMIN`). See `docs/authentication.md`.
+- **Validation** — Pydantic/FastAPI at the edge; domain invariants in services.
+- **Error handling** — exception handlers map errors to a stable JSON envelope
+  (`app/core/errors.py`).
+- **Logging** — Python `logging` via uvicorn. Structured logging and request
+  correlation ids are deferred. Never log passwords, tokens or raw AI prompts
+  containing PII.
+- **Rate limiting** — planned with auth/AI; not present yet.
 - **Security** — see `docs/security.md`.
 - **Testing** — see `docs/testing.md` and `plans/testing-plan.md`.
 

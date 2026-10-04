@@ -1,7 +1,10 @@
 # Security
 
-> Status: **design** (pre-implementation). This document defines the security
-> baseline every feature must respect.
+> Status: **partial**. The M1 foundation implements strict CORS (explicit
+> origins, credentials), global input validation, a non-leaking error envelope,
+> a production-guarded dev-auth stub, and env-only configuration. Auth, rate
+> limiting, headers (helmet) and AI guardrails are not implemented yet. This
+> document defines the baseline every feature must respect.
 
 ## 1. Threat model (initial)
 
@@ -17,8 +20,8 @@ Primary threats:
 - Credential stuffing / brute force on auth endpoints.
 - Token theft/replay.
 - Broken access control (accessing another user's data).
-- Injection: SQL (mitigated by Prisma), input validation bypass, **prompt
-  injection** against the AI tutor.
+- Injection: SQL (mitigated by SQLAlchemy parameterised queries), input validation
+  bypass, **prompt injection** against the AI tutor.
 - Secret leakage via git, logs, error messages, or the frontend bundle.
 - Abuse of AI endpoints to run up provider cost.
 
@@ -30,7 +33,7 @@ rotating refresh tokens stored hashed, reuse detection, session revocation.
 ## 3. Authorization
 
 - Default deny: every non-public endpoint requires authentication.
-- Role checks (`RolesGuard`) for admin-only operations.
+- Role checks (`require_role(...)` dependency) for admin-only operations.
 - **Ownership checks in queries** (`WHERE userId = :currentUser`), not only in
   guards. Prefer `404` over `403` when existence itself is sensitive.
 - Never trust a `userId` from the request body; derive it from the token.
@@ -44,8 +47,8 @@ rotating refresh tokens stored hashed, reuse detection, session revocation.
 
 ## 5. Injection and data access
 
-- All database access goes through Prisma parameterised queries. Raw SQL only if
-  unavoidable, always parameterised, and reviewed.
+- All database access goes through SQLAlchemy (parameterised queries). Raw SQL
+  only if unavoidable, always parameterised, and reviewed.
 - Escape/sanitise any user content rendered where XSS is possible; rely on React
   escaping and avoid `dangerouslySetInnerHTML` without sanitisation.
 - Validate file/uploads (none yet) before use.

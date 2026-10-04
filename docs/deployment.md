@@ -1,7 +1,7 @@
 # Deployment
 
-> Status: **design** (pre-implementation). No runtime exists yet. This document
-> defines the intended deployment shape so it can be adopted without rework.
+> Status: **planned**. No deployment exists yet. This document defines the
+> intended shape so it can be adopted without rework.
 
 ## 1. Topology (initial)
 
@@ -11,16 +11,16 @@ Two deployables plus a database:
 [ CDN / edge ] → frontend (Next.js)
                     │  /api/v1 (HTTPS)
                     ▼
-                 backend (NestJS)  ──HTTPS──► AI providers
-                    │ Prisma
+                 backend (FastAPI)  ──HTTPS──► AI providers
+                    │ SQLAlchemy/asyncpg
                     ▼
                  PostgreSQL (managed)
 ```
 
 - **Frontend**: Next.js — static assets on a CDN; server rendering on a Node
   runtime (or a managed platform).
-- **Backend**: NestJS — horizontally scalable stateless instances behind a load
-  balancer.
+- **Backend**: FastAPI/uvicorn — horizontally scalable stateless instances behind
+  a load balancer.
 - **Database**: managed PostgreSQL with automated backups.
 - **AI**: external provider APIs; the backend holds the keys.
 
@@ -40,8 +40,9 @@ branches.
 
 ```bash
 docker compose up -d db   # PostgreSQL
-pnpm install
-pnpm db:migrate
+pnpm install              # frontend dependencies
+pnpm setup                # backend virtualenv + Python dependencies
+pnpm db:migrate           # Alembic
 pnpm dev
 ```
 
@@ -50,11 +51,12 @@ apps are containerised.
 
 ## 4. Build and release
 
-1. `pnpm install --frozen-lockfile`
+1. `pnpm install --frozen-lockfile && pnpm setup`
 2. `pnpm lint && pnpm typecheck && pnpm test`
 3. `pnpm build`
-4. Run migrations `pnpm db:migrate deploy` (never `migrate dev` in production).
-5. Deploy frontend and backend; smoke-test `/health`.
+4. Run migrations `cd backend && .venv/bin/alembic upgrade head` (never
+   `--autogenerate` in production).
+5. Deploy frontend and backend; smoke-test `/api/v1/health`.
 
 Rollbacks: backwards-compatible migrations by default; if a migration is
 irreversible, document the forward fix.
@@ -63,8 +65,9 @@ irreversible, document the forward fix.
 
 - Injected via the platform's secret store into environment variables.
 - `.env` never ships in images; `.env.example` documents names only.
-- Required production secrets: `DATABASE_URL`, `JWT_ACCESS_SECRET`,
-  `JWT_REFRESH_SECRET`, `AI_API_KEY`, `CORS_ORIGIN`.
+- Required production secrets: `APP_ENV=production`, `DATABASE_URL`,
+  `CORS_ORIGIN`, and (once auth lands) `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`,
+  plus `AI_API_KEY` for the AI milestone.
 
 ## 6. Observability
 

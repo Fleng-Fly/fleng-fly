@@ -1,8 +1,8 @@
 # API
 
-> Status: **design** (pre-implementation). Base path: `/api/v1`. Auth: JWT bearer
-> unless stated otherwise. The machine-readable map lives in
-> `project-map/api-map.md`.
+> Status: **M1 implemented** for `GET /api/v1/health` and `GET /api/v1/users/me`
+> (the latter via a development-only auth stub). All other endpoints below are
+> designed but not built. Base path: `/api/v1`.
 
 ## 1. Conventions
 
@@ -47,7 +47,19 @@ Common status codes: `400` validation, `401` unauthenticated, `403` forbidden,
 
 ## 2. Endpoint map
 
-### 2.1 Auth — `/api/v1/auth`
+Legend: ✅ implemented · ⬜ planned.
+
+### 2.0 Health — `/api/v1/health`
+
+| Method | Path | Purpose | Auth | Request | Response |
+| ------ | ---- | ------- | ---- | ------- | -------- |
+| GET ✅ | `/health` | Service + database status | none | — | `200 { status, service, timestamp, database }` |
+
+`status` is always `"ok"` when the API is reachable. `database` is `"up"` or
+`"down"`; the endpoint returns `200` even when the database is down so clients
+can distinguish "API down" from "database down".
+
+### 2.1 Auth — `/api/v1/auth` ⬜ not implemented
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
@@ -65,10 +77,15 @@ Errors: `401 INVALID_CREDENTIALS`, `409 EMAIL_TAKEN`, `429 TOO_MANY_ATTEMPTS`,
 
 ### 2.2 Users & profiles — `/api/v1/users`
 
+`GET /users/me` is implemented. It is protected by the **development-only**
+`DevAuthGuard`, which attaches a fixed user id (`DEV_USER_ID`) when
+`APP_ENV !== production` and returns `401` in production. Real authentication is
+not implemented.
+
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
-| GET | `/me` | Read own profile | bearer | — | `200 Profile` |
-| PATCH | `/me` | Update own profile | bearer | partial profile | `200 Profile` |
+| GET ✅ | `/me` | Read own profile | dev stub | — | `200 { id, email, displayName, level, xp, createdAt }` |
+| PATCH ⬜ | `/me` | Update own profile | bearer | partial profile | `200 Profile` |
 | DELETE | `/me` | Delete/anonymise account | bearer | — | `204` |
 | GET | `/:id` | Public profile (limited) | bearer | — | `200 PublicProfile` |
 | GET | `/me/settings` | Read settings | bearer | — | `200 Settings` |

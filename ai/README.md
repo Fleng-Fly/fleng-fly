@@ -1,24 +1,26 @@
 # ai/
 
-Provider-agnostic AI layer of Fleng (`@fleng/ai`). **Not implemented yet** —
-this directory currently holds documentation only.
+Provider-agnostic AI layer of Fleng. **Not implemented yet** — this directory
+currently holds documentation only.
 
 ## Why a separate directory
 
-AI is a distinct logical layer with its own concerns: provider selection,
-prompt construction, context assembly, response parsing and safety. Keeping it
-isolated from NestJS controllers makes it testable without HTTP and keeps AI
-providers swappable.
+AI is a distinct logical layer with its own concerns: provider selection, prompt
+construction, context assembly, response parsing and safety. Keeping it isolated
+from FastAPI routers makes it testable without HTTP and keeps providers
+swappable. With a Python backend, it is a Python package (either `ai/` or
+`backend/app/ai/`).
 
-It is **not** a microservice. `@fleng/ai` is a TypeScript library imported by the
-backend `ai` module. A network boundary is not justified at this stage — see
-`docs/ai.md` for the conditions under which that could change.
+It is **not** a microservice. It is imported in-process by the backend. A network
+boundary is not justified at this stage — see `docs/ai.md` for the conditions
+under which that could change.
 
 ## Planned contents
 
-- A minimal `AIProvider` interface (chat/completion + embeddings).
+- A minimal `AIProvider` protocol (completion request/response).
 - A provider registry configured via environment variables.
-- Prompt builders for each capability (tutor, grammar, correction, feedback, recommendations).
+- Prompt builders per capability (tutor, grammar, correction, feedback,
+  recommendations).
 - Output schemas + validation for structured responses.
 - Prompt-injection and PII guardrails (see `docs/security.md`).
 

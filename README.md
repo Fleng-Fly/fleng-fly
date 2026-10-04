@@ -1,122 +1,167 @@
 # Fleng
 
 Fleng is a web platform for learning English: structured courses, interactive
-exercises, spaced-repetition vocabulary, speaking/listening/reading/writing
-practice, gamified progress, and an AI tutor.
+exercises, spaced-repetition vocabulary, practice, gamified progress, and an AI
+tutor.
 
-This repository is in its **foundation stage**. The current commit establishes
-the engineering groundwork — structure, architecture, documentation, plans and
-design language. Application code is intentionally not implemented yet.
+This repository currently contains the **M1 vertical slice**: a real Next.js
+frontend talking to a real **Python / FastAPI** backend, backed by PostgreSQL via
+SQLAlchemy and Alembic. It is an engineering foundation, not a finished product —
+authentication, the learning catalog and AI are not implemented yet.
+
+## What works today
+
+- `pnpm install` + `pnpm setup` + `pnpm dev` starts the frontend (3000) and backend (3001).
+- `GET /api/v1/health` returns service + database status.
+- The landing page calls the API and shows a live **Backend ● Online / Offline**
+  indicator.
+- `GET /api/v1/users/me` returns a learner profile from PostgreSQL (through a
+  development-only auth stub; see `docs/backend.md`).
+- `/learn` shows the learner's level/XP from the API; `/login` is a UI scaffold
+  (no auth yet).
 
 ## Vision
 
 Make serious English practice feel premium and focused: a dark, calm interface;
-short daily sessions; measurable progress; and an AI tutor that explains, corrects
-and adapts to the learner instead of replacing them.
+short daily sessions; measurable progress; and an AI tutor that explains,
+corrects and adapts to the learner instead of replacing them.
 
 ## Features (target scope)
 
 - **Auth & accounts** — email/password, sessions, profiles, settings.
 - **Learning** — courses → lessons → exercises, with grammar, reading, listening,
   writing and speaking practice.
-- **Vocabulary** — word lists, personal vocabulary, flashcards and review scheduling.
+- **Vocabulary** — word lists, personal vocabulary, flashcards, review scheduling.
 - **Progress** — per-skill tracking, streaks, XP, levels, achievements.
 - **Challenges** — time-boxed goals and leaderboards.
 - **AI Tutor** — grammar explanations, writing correction, conversation practice,
-  speaking feedback and personalised recommendations.
+  speaking feedback, personalised recommendations.
 - **Platform** — subscriptions, notifications, analytics.
 
-See `plans/roadmap.md` for a realistic, staged rollout and
-`plans/milestones.md` for current status.
+See `plans/roadmap.md` for the staged rollout and `plans/milestones.md` for the
+current status board.
 
 ## Architecture
 
-Fleng is a **modular monolith**, not microservices.
+Fleng is a **modular monolith** — not microservices.
 
 ```
-User
- ↓
-Frontend (Next.js)          ← presentational + client state
- ↓  HTTPS / JSON
-Backend (NestJS, modular)   ← auth, learning, progress, vocabulary,
- ↓                            challenges, gamification, AI, notifications
-PostgreSQL (Prisma)
- ↑
-AI layer (@fleng/ai)         ← provider-agnostic; consumed by backend, not public
+Browser
+   ↓
+Next.js frontend (App Router)          frontend/            (TypeScript)
+   ↓  fetch via typed API client        frontend/src/lib/api
+REST API  /api/v1                      backend/             (Python)
+   ↓
+FastAPI app (health, users)            backend/app
+   ↓  SQLAlchemy 2 (async) + asyncpg
+PostgreSQL                             docker-compose.yml
 ```
 
-- One backend deployable exposes a versioned REST API under `/api`.
-- Modules talk through explicit service interfaces, never by reaching into each
-  other's repositories.
-- The AI layer is a library, not a service: it is easy to extract later, but a
-  network hop is not justified yet.
+- One frontend deployable and one backend deployable.
+- The backend owns all data decisions; the frontend contains no business rules.
+- The AI layer (`ai/`) will be a Python library consumed by the backend, not a
+  separate service.
 
-Full details: `docs/architecture.md` and `project-map/architecture.md`.
+Details: `docs/architecture.md` and `project-map/architecture.md`.
 
 ## Repository structure
 
 ```
 /
-├── frontend/     # Next.js user interface
-├── backend/      # NestJS API (modular monolith)
-├── ai/           # @fleng/ai provider-agnostic AI layer
-├── docs/         # architecture and engineering documentation
-├── plans/        # roadmap, per-area plans, milestones
-├── design/       # design system, colors, typography, UX flows
-├── project-map/  # living map of modules, data flow and API
-├── AGENTS.md     # rules for agents and contributors
+├── frontend/          # @fleng/frontend — Next.js (App Router)
+│   └── src/
+│       ├── app/       # routes: /, /learn, /login
+│       ├── components/# app shell, status, UI primitives
+│       ├── config/    # navigation
+│       └── lib/api/   # typed API client + endpoints
+├── backend/           # FastAPI API (Python)
+│   ├── app/
+│   │   ├── core/      # config, error handlers, shared schemas
+│   │   ├── db/        # SQLAlchemy base, models, session
+│   │   ├── api/       # aggregate router + dependencies
+│   │   └── modules/   # health/, users/
+│   ├── alembic/       # migrations
+│   ├── tests/         # pytest
+│   └── pyproject.toml
+├── ai/                # future Python AI layer (docs only)
+├── docs/              # architecture and engineering docs
+├── plans/             # roadmap, per-area plans, milestones
+├── design/            # design system and UX docs
+├── project-map/       # living map of modules, flows and API
+├── scripts/           # dev orchestration + backend setup
+├── docker-compose.yml # local PostgreSQL
+├── AGENTS.md          # rules for agents and contributors
 └── README.md
 ```
 
 ## Technology stack
 
-| Area       | Choice                                             |
-| ---------- | -------------------------------------------------- |
-| Language   | TypeScript (everywhere)                            |
-| Monorepo   | pnpm workspaces                                    |
-| Frontend   | Next.js (App Router), React, Tailwind CSS, Framer Motion |
-| Backend    | NestJS, Prisma ORM                                 |
-| Database   | PostgreSQL                                         |
-| Auth       | JWT access token + rotating refresh token, argon2id |
-| AI         | `@fleng/ai` provider abstraction (OpenAI/Anthropic/…) |
-| Tests      | Vitest, Supertest, Playwright                      |
-| Tooling    | ESLint, Prettier, Docker                           |
+| Area       | Choice                                                              |
+| ---------- | ------------------------------------------------------------------- |
+| Frontend   | Next.js (App Router), React, Tailwind CSS v4, TanStack Query, Framer Motion |
+| Backend    | Python 3.11+, FastAPI, SQLAlchemy 2 (async), Alembic, Pydantic       |
+| Database   | PostgreSQL (asyncpg driver)                                         |
+| Frontend tests | Vitest                                                          |
+| Backend tests  | pytest                                                          |
+| Backend lint/type | Ruff (lint + format), mypy                                  |
+| Tooling    | pnpm workspace (frontend), Python virtualenv (backend), Docker (database only) |
 
-Rationale and alternatives: `docs/development.md`.
+Rationale and deliberate omissions: `docs/development.md`.
 
-## Development setup
+## Getting started
 
-> Not runnable yet — no package manifests exist. This section describes the
-> intended workflow and will be validated when the first modules land.
+Prerequisites: Node.js >= 20, pnpm >= 9, Python >= 3.11, and either Docker or a
+local PostgreSQL.
 
 ```bash
-git clone <repo>
-cd fleng
-pnpm install
-cp .env.example .env        # fill in secrets locally; never commit .env
-pnpm db:migrate             # Prisma
-pnpm dev                    # frontend + backend
+pnpm install          # install frontend dependencies
+pnpm setup            # create backend/.venv and install Python dependencies
+
+docker compose up -d db   # start PostgreSQL (or set DATABASE_URL)
+cp .env.example .env      # optional; sensible development defaults exist
+pnpm db:migrate           # apply Alembic migrations
+
+pnpm dev              # frontend :3000, backend :3001
 ```
 
-Full setup, environment variables and conventions live in
-`docs/development.md`.
+Then open http://localhost:3000. The backend is at http://localhost:3001, with
+all routes under `/api/v1`.
+
+> `pnpm dev` starts even without PostgreSQL: `/api/v1/health` reports
+> `database: "down"`, and `/api/v1/users/me` returns `503`. `DATABASE_URL` is
+> required in production.
+
+## Scripts
+
+| Script                 | Effect |
+| ---------------------- | ------ |
+| `pnpm setup`           | Create the backend venv and install Python dependencies |
+| `pnpm dev`             | Run frontend + backend (auto-runs setup if needed) |
+| `pnpm build`           | Build the frontend |
+| `pnpm lint`            | ESLint (frontend) + Ruff (backend) |
+| `pnpm typecheck`       | `tsc` (frontend) + mypy (backend) |
+| `pnpm test`            | Vitest (frontend) + pytest (backend) |
+| `pnpm format`          | Prettier (frontend) + Ruff format (backend) |
+| `pnpm db:migrate`      | Apply Alembic migrations |
+| `pnpm db:sql`          | Emit migration SQL without a database |
 
 ## Roadmap
 
 High level (details in `plans/roadmap.md`):
 
-1. **Foundation** — structure, docs, project map, design system. *(current)*
-2. **Backend core** — database, auth, users, validation, error handling.
-3. **Learning MVP** — courses, lessons, exercises, progress.
-4. **Vocabulary & gamification** — flashcards, streaks, XP, achievements.
-5. **Frontend MVP** — app shell and core screens consuming the API.
-6. **AI tutor** — provider abstraction, explanations, writing feedback.
-7. **Polish & launch** — speaking practice, notifications, analytics, billing.
+1. **Foundation** — structure, docs, project map, design system. *(done)*
+2. **M1 — Frontend + FastAPI backend** — workspace, health/users API, database. *(current)*
+3. **Authentication** — real register/login/refresh/logout, replacing the dev stub.
+4. **Learning MVP** — courses, lessons, exercises, progress.
+5. **Vocabulary & gamification** — flashcards, streaks, XP, achievements.
+6. **Frontend MVP** — full app shell and screens.
+7. **AI tutor** — Python AI layer, explanations, writing feedback.
+8. **Polish & launch** — speaking practice, notifications, analytics, billing.
 
 ## Current status
 
-Foundation. No application code, no runtime dependencies, no secrets.
-See `plans/milestones.md` for the live status board.
+M1. `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` all pass. See
+`plans/milestones.md` for the live status board and known limitations.
 
 ## Contributing
 
