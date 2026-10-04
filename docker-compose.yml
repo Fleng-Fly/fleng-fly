@@ -1,0 +1,27 @@
+# Local PostgreSQL for development.
+# Only the database runs in Docker; the frontend and backend run on the host.
+#
+#   docker compose up -d db
+#   pnpm db:migrate
+#
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fleng-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fleng
+      POSTGRES_PASSWORD: fleng
+      POSTGRES_DB: fleng
+    ports:
+      - '5432:5432'
+    volumes:
+      - fleng-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fleng -d fleng']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  fleng-db-data:
