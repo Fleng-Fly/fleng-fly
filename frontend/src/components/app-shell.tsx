@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { navItems } from '@/config/nav';
 import { BackendStatus } from './backend-status';
+import { UserMenu } from './user-menu';
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -27,8 +28,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          <div className="hidden sm:block">
-            <BackendStatus compact />
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block">
+              <BackendStatus compact />
+            </div>
+            <UserMenu />
           </div>
         </div>
       </header>

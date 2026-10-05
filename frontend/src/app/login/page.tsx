@@ -1,19 +1,33 @@
 'use client';
 
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
+import { describeApiError } from '@/lib/api/errors';
+import { useAuth } from '@/lib/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // Authentication is not implemented yet. This deliberately does not fake a
-    // session: see plans/backend-plan.md phase 2.
-    setSubmitted(true);
+    setError(null);
+    setSubmitting(true);
+    try {
+      await login(email, password);
+      router.push('/learn');
+    } catch (cause) {
+      setError(describeApiError(cause));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -59,24 +73,27 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Log in
+          {error && (
+            <p
+              role="alert"
+              className="rounded-xl border border-danger/40 bg-danger/10 px-3 py-2 text-xs text-danger"
+            >
+              {error}
+            </p>
+          )}
+
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? 'Logging in…' : 'Log in'}
           </Button>
         </form>
-
-        {submitted && (
-          <p
-            role="status"
-            className="mt-4 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning"
-          >
-            Authentication is not implemented yet. This form is a UI scaffold and no session was
-            created.
-          </p>
-        )}
       </Card>
 
       <p className="mt-4 text-center text-xs text-slate-400">
-        Registration and password reset arrive with the auth milestone.
+        No account yet?{' '}
+        <Link href="/register" className="text-violet-400 hover:text-violet-300">
+          Create one
+        </Link>
+        .
       </p>
     </div>
   );
