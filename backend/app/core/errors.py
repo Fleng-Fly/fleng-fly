@@ -16,6 +16,30 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger("fleng")
 
+
+class ApiError(Exception):
+    """Domain/HTTP error with an explicit envelope `code`.
+
+    Use this instead of `HTTPException` when the status alone does not carry the
+    right code (e.g. `401 INVALID_CREDENTIALS` or `409 EMAIL_TAKEN`).
+    """
+
+    def __init__(
+        self,
+        status_code: int,
+        code: str,
+        message: str,
+        details: object | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.code = code
+        self.message = message
+        self.details = details
+        self.headers = headers
+
+
 _STATUS_CODES = {
     400: "VALIDATION_FAILED",
     401: "UNAUTHORIZED",
@@ -48,6 +72,16 @@ def _envelope(
 
 
 def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(ApiError)
+    async def api_error_handler(request: Request, exc: ApiError) -> JSONResponse:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=jsonable_encoder(
+                _envelope(exc.status_code, exc.code, exc.message, request.url.path, exc.details)
+            ),
+            headers=exc.headers,
+        )
+
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(
         request: Request, exc: StarletteHTTPException

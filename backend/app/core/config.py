@@ -5,13 +5,14 @@ repository root. No `os.environ` reads live in feature modules.
 """
 
 from functools import lru_cache
-from uuid import UUID
+from typing import Literal
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_DATABASE_URL = "postgresql+asyncpg://fleng:fleng@localhost:5432/fleng"
-DEFAULT_DEV_USER_ID = UUID("00000000-0000-0000-0000-000000000001")
+# Only acceptable in development; `model_validator` refuses it in production.
+DEV_ACCESS_SECRET = "dev-insecure-access-secret-change-me"
 
 
 class Settings(BaseSettings):
@@ -25,7 +26,17 @@ class Settings(BaseSettings):
     port: int = 3001
     database_url: str = DEFAULT_DATABASE_URL
     cors_origin: str = "http://localhost:3000"
-    dev_user_id: UUID = DEFAULT_DEV_USER_ID
+
+    # ── Authentication ──────────────────────────────────────────────────────
+    jwt_access_secret: str = DEV_ACCESS_SECRET
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 30
+    refresh_cookie_name: str = "fleng_refresh"
+    refresh_cookie_path: str = "/api/v1/auth"
+    # `None` derives from `APP_ENV`: secure cookies in production only.
+    cookie_secure: bool | None = None
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
     @field_validator("database_url")
     @classmethod
@@ -39,6 +50,12 @@ class Settings(BaseSettings):
             return value.replace("postgres://", "postgresql+asyncpg://", 1)
         return value
 
+    @model_validator(mode="after")
+    def _reject_dev_secrets_in_production(self) -> "Settings":
+        if self.app_env == "production" and self.jwt_access_secret == DEV_ACCESS_SECRET:
+            raise ValueError("JWT_ACCESS_SECRET must be set in production")
+        return self
+
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origin.split(",") if origin.strip()]
@@ -46,6 +63,10 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"
+
+    @property
+    def secure_cookies(self) -> bool:
+        return self.is_production if self.cookie_secure is None else self.cookie_secure
 
 
 @lru_cache
