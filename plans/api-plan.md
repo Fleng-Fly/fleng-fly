@@ -13,12 +13,13 @@
 
 ## Stage 1 — Auth & users
 
-- [ ] `POST /auth/register`, `/login`, `/refresh`, `/logout`
+- [x] `POST /auth/register`, `/login`, `/refresh`, `/logout`
+- [x] `GET /users/me` (read-only, bearer)
+- [x] `GET /health`
 - [ ] `POST /auth/verify-email`, `/forgot-password`, `/reset-password`
-- [ ] `GET /auth/me`
-- [ ] `GET/PATCH /users/me`, `/users/me/settings`, `DELETE /users/me`
+- [ ] `GET /auth/me` (superseded by `GET /users/me`)
+- [ ] `PATCH /users/me`, `/users/me/settings`, `DELETE /users/me`
 - [ ] `GET /users/:id` (limited public profile)
-- [ ] `GET /health`
 
 ## Stage 2 — Learning
 
@@ -31,8 +32,10 @@
 
 - [ ] `GET /vocabulary/words`, `GET/POST/PATCH/DELETE /vocabulary/me`
 - [ ] `GET /vocabulary/reviews/due`, `POST /vocabulary/reviews`
+- [x] `GET /progress/me` (own aggregate progress)
 - [ ] `GET /progress/summary`, `/progress/courses/:courseId`, `/progress/skills`,
       `/progress/activity`
+- [ ] Progress write endpoints, recorded server-side on lesson completion
 
 ## Stage 4 — AI, challenges, notifications
 

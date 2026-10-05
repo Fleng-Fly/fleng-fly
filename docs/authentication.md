@@ -1,98 +1,100 @@
 # Authentication & Authorization
 
-> Status: **not implemented**. This is the design for the auth milestone. Today
-> the only identity mechanism is the development-only `get_current_user_id`
-> dependency described in `docs/backend.md`, which refuses to run when
-> `APP_ENV=production`. Do not treat any of the flows below as existing.
+> Status: **implemented** (M2). Email/password authentication, rotating refresh
+> sessions and the `get_current_user` dependency work end to end. Roles/RBAC,
+> email verification and password reset are not implemented yet. Design notes for
+> the deferred parts are marked below.
 
 ## 1. Model
 
 - Credentials: email + password.
-- Passwords hashed with **argon2id** (memory-hard). Never log or return hashes.
-- Sessions: short-lived **JWT access token** (memory on the client) + **rotating
-  refresh token** in an httpOnly, `Secure`, `SameSite` cookie.
-- Refresh tokens are stored **hashed** (SHA-256) in `refresh_tokens`
-  (`docs/database.md`), enabling revocation without storing bearer secrets.
-- Authorization: role-based (`USER`, `ADMIN`) plus **ownership scoping** in
-  queries.
+- Passwords hashed with **argon2id** (`argon2-cffi` defaults). Hashes are never
+  logged or returned.
+- Sessions: a short-lived **access JWT** (kept in frontend memory) plus an opaque
+  **rotating refresh token** in an HttpOnly, `SameSite`, path-scoped cookie.
+- Refresh tokens are stored **hashed** (SHA-256 hex) in `refresh_tokens`
+  (`docs/database.md`), so the database never holds a usable bearer secret.
+- Authorization today is simply "authenticated user". Role-based access control
+  and ownership-scoped resources arrive with the learning catalog.
 
-## 2. Token flow
-
-```
-Register/Login
-  → verify credentials
-  → issue access token (JWT, ~15m) + refresh token (~30d)
-  → refresh token hashed + persisted; raw value set as httpOnly cookie
-
-Authenticated request
-  → Authorization: Bearer <access>
-  → get_current_user dependency verifies signature + expiry + user status
-
-Access token expired
-  → frontend calls POST /auth/refresh (cookie sent automatically)
-  → server validates hash, not revoked, not expired
-  → rotates: revokes old, issues new refresh token (reuse detection)
-  → returns new access token + rotated cookie
-
-Logout
-  → revoke refresh token server-side, clear cookie
-```
-
-### Refresh token rotation and reuse detection
-
-Each refresh token belongs to a chain (`replaced_by_id`). On refresh, the old
-token is revoked and a new one issued. If a **revoked** token is presented
-(replay), the entire chain is revoked and the user must re-authenticate.
-
-### Token claims
-
-Access JWT: `sub` (user id), `role`, `iat`, `exp`, `jti`. No PII beyond
-`sub`/`role`. Secrets (`JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`) are distinct and
-env-provided; add them to `Settings` when the milestone starts.
-
-## 3. Account lifecycle
+## 2. Endpoints
 
 | Flow | Endpoint | Notes |
 | ---- | -------- | ----- |
-| Register | `POST /auth/register` | Rate limited; sends verification email (provider deferred) |
-| Verify email | `POST /auth/verify-email` | Token single-use, time-limited |
-| Login | `POST /auth/login` | Generic error; no account enumeration |
-| Refresh | `POST /auth/refresh` | Rotation + reuse detection |
-| Logout | `POST /auth/logout` | Revokes the presented refresh token |
-| Forgot password | `POST /auth/forgot-password` | Always `202`; no enumeration |
-| Reset password | `POST /auth/reset-password` | Revokes all refresh tokens on success |
-| Delete account | `DELETE /users/me` | Revokes all sessions; deletion policy TBD |
+| Register | `POST /api/v1/auth/register` | `201`; creates User + Profile + Progress; sets the refresh cookie |
+| Login | `POST /api/v1/auth/login` | `200`; generic error, no account enumeration |
+| Refresh | `POST /api/v1/auth/refresh` | rotates the refresh token; sets a new cookie |
+| Logout | `POST /api/v1/auth/logout` | revokes the presented token and clears the cookie |
+| Current user | `GET /api/v1/users/me` | Bearer access token; read-only |
 
-## 4. Authorization
+## 3. Token flow
 
-- A `get_current_user` FastAPI dependency authenticates via JWT and returns the
-  `User`; a `require_role("ADMIN")` dependency enforces coarse roles.
-- Fine-grained ownership is enforced in services/queries via `user_id`
-  predicates. A dependency alone is insufficient.
-- Admins can manage catalog/content but not read user AI conversations or
-  private data without an explicit, logged reason.
+```
+Register/Login
+  → verify credentials (argon2id; dummy verify when the email is unknown)
+  → issue access token (HS256 JWT, ~15m)
+  → generate opaque refresh token; store SHA-256 hash; set raw value as cookie
 
-## 5. Security controls tied to auth
+Authenticated request
+  → Authorization: Bearer <access>
+  → get_current_user verifies signature + expiry (+ type) and loads the User
 
-- Rate limiting on login/register/refresh/forgot-password.
-- Timing-consistent login (always run a hash comparison) to avoid enumeration.
-- Cookies: `httpOnly`, `Secure` in production, `SameSite=Lax` (or `Strict` where
-  CSRF risk requires), scoped path for the refresh endpoint.
-- CSRF: refresh relies on a cookie; the endpoint is POST-only, checks `Origin`,
-  and returns only an access token.
-- Password policy: minimum length + breach guidance.
+Access token expired
+  → frontend calls POST /auth/refresh (cookie sent automatically)
+  → server looks up the hash, checks expiry and revocation
+  → rotates: revokes the old token, issues a new one (linked via replaced_by_id)
+  → returns a new access token + rotated cookie
 
-See `docs/security.md` for the full security model.
+Logout
+  → revoke the presented refresh token server-side, clear the cookie
+```
+
+### Access token claims
+
+`sub` (user id), `type` ("access"), `jti`, `iat`, `exp`. No PII beyond `sub`.
+Signed with `JWT_ACCESS_SECRET` (HS256). The token is rejected if `type` is not
+`access`.
+
+### Refresh tokens and reuse detection
+
+Refresh tokens are **opaque** random strings (`secrets.token_urlsafe(48)`), not
+JWTs: the server only needs to look up their hash. Each token belongs to a chain
+(`replaced_by_id`). On refresh the old token is revoked and a new one issued. If a
+**revoked** token is presented (a replay), the entire user session set is revoked
+and the client must re-authenticate (`401 REFRESH_TOKEN_REUSED`).
+
+## 4. Cookies and CSRF
+
+- Cookie: `fleng_refresh`, `HttpOnly`, `SameSite=Lax`, `Secure` in production,
+  `path=/api/v1/auth`, `max-age` = refresh lifetime (30 days by default).
+- `SameSite=Lax` prevents the cookie from being sent on cross-site POSTs.
+- Cookie-backed endpoints (`login`, `refresh`, `logout`) additionally reject
+  requests whose `Origin` header is not in `CORS_ORIGIN`.
+- The frontend never stores the access token in `localStorage`; it lives in
+  memory and is re-obtained via `/auth/refresh` on reload.
+
+## 5. Configuration
+
+| Variable | Meaning |
+| -------- | ------- |
+| `JWT_ACCESS_SECRET` | Access-token signing secret; **required in production** (startup fails with the development default) |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Access-token lifetime (default 15) |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | Refresh-token/session lifetime (default 30) |
+| `COOKIE_SECURE` / `COOKIE_SAMESITE` | Cookie flags (secure defaults to `APP_ENV == production`) |
 
 ## 6. Frontend handling
 
-- Access token in memory only (never `localStorage`).
-- Refresh via the httpOnly cookie; the API client retries a single request after
-  a successful refresh.
-- On refresh failure, redirect to login and clear client state.
+- Access token in memory only (`src/lib/api/client.ts`).
+- `apiFetch` attaches `Authorization: Bearer`; on `401` it attempts **one**
+  refresh and retries the request once, de-duplicating concurrent refreshes.
+- `AuthProvider` (`src/lib/auth/auth-context.tsx`) resolves the session on load
+  and exposes `login`/`register`/`logout`; `/learn` redirects to `/login` when
+  unauthenticated.
 
-## 7. Open questions
+## 7. Not implemented yet
 
-- Multi-device session listing / "log out everywhere" (schema already supports it).
-- OAuth providers (Google/Apple) — deferred.
-- MFA — deferred.
+- Email verification and password reset (email provider deferred).
+- Role-based access control (`ADMIN`) and public profiles.
+- Rate limiting on auth endpoints (`plans/security-plan.md` Stage 2).
+- Multi-device session listing / "log out everywhere" (the schema supports it).
+- OAuth providers and MFA.

@@ -5,17 +5,18 @@
 
 ## Phase 1 — Scaffold
 
-- [ ] `@fleng/frontend` package with Next.js (App Router) + TypeScript strict.
-- [ ] Tailwind configured with design tokens from `design/`.
-- [ ] Base layout, fonts (`next/font`), theme provider (dark default).
-- [ ] `components/ui` primitives: Button, Input, Card, Badge, Dialog, Skeleton.
-- [ ] Typed API client + error normalisation + auth/refresh handling.
+- [x] `@fleng/frontend` package with Next.js (App Router) + TypeScript strict.
+- [x] Tailwind configured with design tokens from `design/`.
+- [x] Base layout, fonts (`next/font`), dark default.
+- [x] `components/ui` primitives: Button, Card, Badge. *(Input, Dialog,
+      Skeleton still to add when needed.)*
+- [x] Typed API client + error normalisation + auth/refresh handling.
 
 ## Phase 2 — Auth & shell
 
-- [ ] `(auth)` routes: login, register, forgot/reset password.
+- [x] Auth routes: login, register. *(Forgot/reset password pending.)*
+- [x] Route protection based on session state; redirect on missing session.
 - [ ] `(app)` shell: sidebar/topbar navigation, profile menu, responsive.
-- [ ] Route protection based on session state; redirect on refresh failure.
 
 ## Phase 3 — Core learning screens
 

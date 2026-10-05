@@ -3,8 +3,9 @@
 This file is the working contract for every agent and developer contributing to Fleng.
 Read it before making any change, then read `README.md`, `docs/`, `project-map/`, and `plans/`.
 
-> Project status: **M1 — minimal working Frontend + Backend** (Next.js + FastAPI).
-> Authentication, the learning catalog and AI are not implemented yet.
+> Project status: **M2 — authentication + progress vertical slice** (Next.js +
+> FastAPI). Email/password auth, profiles and progress storage work end to end.
+> The learning catalog and AI are not implemented yet.
 
 ---
 
@@ -212,6 +213,8 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
   - Modules → `project-map/modules.md`
   - Data model → `docs/database.md`
   - API → `docs/api.md` + `project-map/api-map.md`
+  - Auth → `docs/authentication.md`
+  - Security → `docs/security.md`
   - Roadmap/status → `plans/roadmap.md` + `plans/milestones.md`
   - Visual language → `design/`
 

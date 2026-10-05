@@ -18,8 +18,10 @@
 - [x] `User`, `Profile` models.
 - [x] Unique `users.email`; unique `profiles.user_id`; FK with `ON DELETE CASCADE`.
 - [x] Initial Alembic migration `20261004_1200_init`.
-- [ ] Auth fields on `User` (`role`, `email_verified_at`).
-- [ ] `RefreshToken` (`token_hash` unique, chain via `replaced_by_id`).
+- [x] `RefreshToken` (`token_hash` unique, chain via `replaced_by_id`) +
+      `Progress` aggregate; migration `20261005_1000_auth_progress`.
+- [ ] Auth fields on `User` (`role`, `email_verified_at`) — deferred until RBAC
+      or email verification is needed.
 - [ ] Seed: one admin user for local development (dev only, not production).
 
 ## Stage 2 — Learning ⬜

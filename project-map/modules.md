@@ -1,6 +1,6 @@
 # Project Map — Modules
 
-> Status: M1 implemented. Durable design: `docs/backend.md`, `docs/frontend.md`.
+> Status: M2/M3 implemented. Durable design: `docs/backend.md`, `docs/frontend.md`.
 > Update when a module is created, renamed or gains a dependency.
 > Legend: 🟢 implemented · 🟡 partial · 🔴 documented only.
 
@@ -12,13 +12,13 @@ other modules import that service, not its internals.
 | Module | Status | Owns | Depends on |
 | ------ | ------ | ---- | ---------- |
 | `health` | 🟢 | `/health` status + database check | db |
-| `users` | 🟢 | `/users/me` profile read (dev stub) | db |
-| `auth` | 🔴 | credentials, sessions, tokens | users |
+| `auth` | 🟢 | register/login/refresh/logout, credentials, sessions, tokens | db, users |
+| `users` | 🟢 | `GET /users/me` profile read | db, auth |
+| `progress` | 🟢 | `GET /progress/me` aggregate progress | db, auth |
 | `catalog` | 🔴 | courses, lessons | — |
 | `content` | 🔴 | grammar/reading/listening materials | catalog |
 | `exercises` | 🔴 | exercise definitions, submissions, grading | catalog |
 | `vocabulary` | 🔴 | words, user vocabulary, flashcards/SRS | users |
-| `progress` | 🔴 | lesson/course progress | catalog, exercises, gamification |
 | `gamification` | 🔴 | XP, levels, streaks, achievements | progress |
 | `challenges` | 🔴 | challenge definitions, participation | progress, gamification |
 | `recommendations` | 🔴 | next-step suggestions | progress, vocabulary, ai |
@@ -31,28 +31,31 @@ other modules import that service, not its internals.
 
 | Component | Status | Purpose |
 | --------- | ------ | ------- |
-| `app/core/config.py` | 🟢 | pydantic-settings configuration |
-| `app/core/errors.py` | 🟢 | exception handlers → standard envelope |
+| `app/core/config.py` | 🟢 | pydantic-settings configuration (+ auth settings) |
+| `app/core/errors.py` | 🟢 | `ApiError` + exception handlers → standard envelope |
 | `app/core/schemas.py` | 🟢 | `CamelModel` base |
-| `app/db/models.py` | 🟢 | SQLAlchemy models (`User`, `Profile`) |
+| `app/db/models.py` | 🟢 | SQLAlchemy models (`User`, `Profile`, `RefreshToken`, `Progress`) |
 | `app/db/session.py` | 🟢 | async engine + `get_db` dependency |
-| `app/api/deps.py` | 🟢 | `get_current_user_id` (DEV ONLY) |
+| `app/api/deps.py` | 🟢 | `get_current_user` (Bearer access JWT) |
 | `app/api/router.py` | 🟢 | aggregate `/api/v1` router |
 
 ### Current dependency direction (allowed)
 
 ```
-health ──► db
-users  ──► db
-db     ──► core/config
-api    ──► core/config
+health   ──► db
+auth     ──► db, users.service
+users    ──► db, auth.security
+progress ──► db, auth (dependency)
+db       ──► core/config
+api      ──► core/config, auth.security
 ```
 
 ### Planned direction (do not create cycles)
 
 ```
-auth ──► users
-progress ──► gamification
+catalog/content ──► db
+exercises ──► catalog
+progress  ──► gamification
 recommendations ──► ai ──► AI layer
 challenges ──► progress/gamification
 ```
@@ -62,8 +65,9 @@ challenges ──► progress/gamification
 | Area | Route | Status | Notes |
 | ---- | ----- | ------ | ----- |
 | Landing | `/` | 🟢 | hero + live backend status |
-| Learn | `/learn` | 🟢 | profile from API + placeholder lessons |
-| Login | `/login` | 🟡 | UI scaffold; no auth |
+| Learn | `/learn` | 🟢 | protected; profile + progress from API |
+| Login | `/login` | 🟢 | real session |
+| Register | `/register` | 🟢 | account creation |
 | Lessons | `/lessons/[id]` | 🔴 | needs catalog + lesson player |
 | Vocabulary | `/vocabulary` | 🔴 | |
 | Practice (hub, speaking, listening, reading, writing, grammar) | `/practice/*`, `/grammar` | 🔴 | |

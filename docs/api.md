@@ -1,8 +1,9 @@
 # API
 
-> Status: **M1 implemented** for `GET /api/v1/health` and `GET /api/v1/users/me`
-> (the latter via a development-only auth stub). All other endpoints below are
-> designed but not built. Base path: `/api/v1`.
+> Status: **M2 implemented** for `GET /api/v1/health`, the auth endpoints
+> (`/auth/register`, `/login`, `/refresh`, `/logout`), `GET /api/v1/users/me` and
+> `GET /api/v1/progress/me`. All other endpoints below are designed but not
+> built. Base path: `/api/v1`.
 
 ## 1. Conventions
 
@@ -36,14 +37,18 @@ pagination/metadata is needed):
   "error": {
     "code": "VALIDATION_FAILED",
     "message": "Human-readable summary",
-    "details": [{ "field": "email", "issue": "must be an email" }],
-    "requestId": "..."
+    "statusCode": 422,
+    "timestamp": "2026-10-05T12:00:00+00:00",
+    "path": "/api/v1/auth/register",
+    "details": [{ "loc": ["body", "email"], "msg": "value is not a valid email address" }]
   }
 }
 ```
 
-Common status codes: `400` validation, `401` unauthenticated, `403` forbidden,
-`404` not found, `409` conflict, `429` rate limited, `500` internal.
+`details` is present only for validation errors. Common status codes: `400`
+validation, `401` unauthenticated, `403` forbidden, `404` not found, `409`
+conflict, `429` rate limited, `500` internal, `503` database/service
+unavailable.
 
 ## 2. Endpoint map
 
@@ -59,32 +64,31 @@ Legend: ✅ implemented · ⬜ planned.
 `"down"`; the endpoint returns `200` even when the database is down so clients
 can distinguish "API down" from "database down".
 
-### 2.1 Auth — `/api/v1/auth` ⬜ not implemented
+### 2.1 Auth — `/api/v1/auth`
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
-| POST | `/register` | Create account | none | `{ email, password, displayName }` | `201 { user, accessToken }` + refresh cookie |
-| POST | `/login` | Authenticate | none | `{ email, password }` | `200 { user, accessToken }` + refresh cookie |
-| POST | `/refresh` | Rotate session | refresh cookie | — | `200 { accessToken }` + rotated cookie |
-| POST | `/logout` | Revoke session | refresh cookie | — | `204` |
-| POST | `/verify-email` | Confirm email | token | `{ token }` | `204` |
-| POST | `/forgot-password` | Start reset | none | `{ email }` | `202` (always, to avoid enumeration) |
-| POST | `/reset-password` | Complete reset | token | `{ token, password }` | `204` |
-| GET | `/me` | Current identity | bearer | — | `200 { id, email, role, profile }` |
+| POST ✅ | `/register` | Create account | none | `{ email, password, displayName }` | `201 { accessToken, tokenType, expiresIn, user }` + refresh cookie |
+| POST ✅ | `/login` | Authenticate | none | `{ email, password }` | `200 { accessToken, tokenType, expiresIn, user }` + refresh cookie |
+| POST ✅ | `/refresh` | Rotate session | refresh cookie | — | `200 { accessToken, tokenType, expiresIn }` + rotated cookie |
+| POST ✅ | `/logout` | Revoke session | refresh cookie | — | `204` |
+| POST ⬜ | `/verify-email` | Confirm email | token | `{ token }` | `204` |
+| POST ⬜ | `/forgot-password` | Start reset | none | `{ email }` | `202` (always, to avoid enumeration) |
+| POST ⬜ | `/reset-password` | Complete reset | token | `{ token, password }` | `204` |
 
-Errors: `401 INVALID_CREDENTIALS`, `409 EMAIL_TAKEN`, `429 TOO_MANY_ATTEMPTS`,
-`400 VALIDATION_FAILED`.
+The refresh token is set as an HttpOnly cookie scoped to `/api/v1/auth`; it is
+never returned in the response body. Errors: `401 INVALID_CREDENTIALS`,
+`401 INVALID_REFRESH_TOKEN`, `401 REFRESH_TOKEN_REUSED`, `409 EMAIL_TAKEN`,
+`403 FORBIDDEN` (untrusted Origin), `422 VALIDATION_FAILED`.
 
 ### 2.2 Users & profiles — `/api/v1/users`
 
-`GET /users/me` is implemented. It is protected by the **development-only**
-`get_current_user_id` FastAPI dependency, which attaches a fixed user id
-(`DEV_USER_ID`) when `APP_ENV !== production` and returns `401` in production.
-Real authentication is not implemented.
+`GET /users/me` requires a valid Bearer access token (`Authorization: Bearer
+<accessToken>`). It is strictly read-only: it never creates a user.
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
-| GET ✅ | `/me` | Read own profile | dev stub | — | `200 { id, email, displayName, level, xp, createdAt }` |
+| GET ✅ | `/me` | Read own profile | bearer | — | `200 { id, email, displayName, level, xp, createdAt }` |
 | PATCH ⬜ | `/me` | Update own profile | bearer | partial profile | `200 Profile` |
 | DELETE | `/me` | Delete/anonymise account | bearer | — | `204` |
 | GET | `/:id` | Public profile (limited) | bearer | — | `200 PublicProfile` |
@@ -137,10 +141,15 @@ exercise domain in `docs/database.md`.
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
+| GET ✅ | `/me` | Own aggregate progress | bearer | — | `200 { userId, lessonsStarted, lessonsCompleted, studyMinutes, lastActivityAt, updatedAt }` |
 | GET | `/summary` | Dashboard summary | bearer | — | `200 { xp, level, streak, skills, recent }` |
 | GET | `/courses/:courseId` | Progress in a course | bearer | — | `200 { lessons: LessonProgress[] }` |
 | GET | `/skills` | Per-skill breakdown | bearer | `?range` | `200 SkillProgress[]` |
 | GET | `/activity` | Activity timeline | bearer | `?range&cursor` | `200 { items, nextCursor }` |
+
+Progress is server-derived; there is deliberately no client-writable `PATCH`
+yet. Write endpoints arrive with lesson completion, where the backend records
+progress from graded activity (`docs/security.md`).
 
 ### 2.8 Challenges — `/api/v1/challenges`
 

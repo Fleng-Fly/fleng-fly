@@ -11,18 +11,21 @@
 - [x] `pydantic-settings` configuration (`app/core/config.py`).
 - [x] Standard error envelope handlers (`app/core/errors.py`).
 - [x] `GET /api/v1/health` (service + database status).
-- [x] `GET /api/v1/users/me` with a development-only auth dependency.
+- [x] `GET /api/v1/users/me` (initially with a development-only auth dependency;
+      replaced with real authentication in Phase 2).
 - [x] pytest tests for health and users (no database required).
 - [x] Ruff + mypy passing.
 
 ## Phase 2 — Database & auth
 
 - [x] SQLAlchemy models `User`, `Profile`; Alembic initial migration.
-- [ ] Expand models with auth fields (`role`, `email_verified_at`) and
-      `RefreshToken`.
-- [ ] `auth` module: register, login, refresh (rotation + reuse detection),
-      logout. Argon2id hashing; rate limiting.
-- [ ] Replace the dev dependency with a real `get_current_user` + `require_role`.
+- [x] `RefreshToken` and `Progress` models + migration `20261005_1000`.
+- [x] `auth` module: register, login, refresh (rotation + reuse detection),
+      logout. Argon2id hashing; opaque refresh tokens stored hashed.
+- [x] Replace the dev dependency with a real `get_current_user`.
+- [x] `GET /progress/me` (read-only, server-derived).
+- [ ] Auth fields `role`, `email_verified_at` (+ `require_role`) — deferred.
+- [ ] Rate limiting on login/register/refresh.
 - [ ] `users` module: `PATCH /users/me`, settings.
 - [ ] Integration tests against a test PostgreSQL database.
 

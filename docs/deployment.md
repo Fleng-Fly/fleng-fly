@@ -66,8 +66,7 @@ irreversible, document the forward fix.
 - Injected via the platform's secret store into environment variables.
 - `.env` never ships in images; `.env.example` documents names only.
 - Required production secrets: `APP_ENV=production`, `DATABASE_URL`,
-  `CORS_ORIGIN`, and (once auth lands) `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`,
-  plus `AI_API_KEY` for the AI milestone.
+  `CORS_ORIGIN`, `JWT_ACCESS_SECRET`, plus `AI_API_KEY` for the AI milestone.
 
 ## 6. Observability
 

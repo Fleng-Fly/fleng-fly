@@ -4,27 +4,32 @@
 
 ## Stage 1 — Foundations (with backend bootstrap)
 
-- [ ] Validated configuration; secrets only from env; fail fast in production.
-- [ ] Security headers, strict CORS, request size limits.
+- [x] Validated configuration; secrets only from env; fail fast in production
+      (`JWT_ACCESS_SECRET`).
+- [x] Strict CORS (explicit origins with credentials).
+- [ ] Security headers, request size limits.
 - [ ] Global Pydantic validation that rejects unknown fields.
-- [ ] Standard error envelope that never leaks internals; `requestId`.
+- [x] Standard error envelope that never leaks internals (`requestId` pending).
 - [ ] Structured logging with redaction of secrets/tokens.
-- [ ] `.env.example` only; `.gitignore` covers env/key files.
+- [x] `.env.example` only; `.gitignore` covers env/key files.
 
 ## Stage 2 — Auth hardening (with auth module)
 
-- [ ] Argon2id password hashing; password policy.
-- [ ] Access JWT + rotating refresh tokens stored hashed.
-- [ ] Refresh reuse detection revokes the token chain.
+- [x] Argon2id password hashing; minimum password length (8) enforced.
+- [x] Access JWT + rotating refresh tokens stored hashed (SHA-256).
+- [x] Refresh reuse detection revokes the whole session set.
 - [ ] Rate limiting on login/register/refresh/forgot-password.
-- [ ] No account enumeration (generic responses, timing-consistent login).
-- [ ] Cookies: httpOnly, Secure, SameSite, scoped path.
+- [x] No account enumeration (generic errors, timing-consistent login).
+- [x] Cookies: HttpOnly, Secure, SameSite, scoped path; Origin check on
+      cookie-backed endpoints.
 
 ## Stage 3 — Authorization
 
-- [ ] Default-deny dependencies; `require_role(...)` for admin routes.
-- [ ] Ownership enforced in queries; `404` over `403` where sensitive.
-- [ ] Tests that user A cannot read/modify user B's resources.
+- [x] Authenticated-user dependency; `/users/me` and `/progress/me` are default
+      protected.
+- [x] Ownership enforced by scoping queries to the authenticated user id.
+- [x] Tests that user A cannot read user B's data.
+- [ ] `require_role(...)` for admin routes (no admin routes yet).
 
 ## Stage 4 — AI security
 

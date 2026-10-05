@@ -16,16 +16,19 @@
 
 ## Stage 2 — Database integration ⬜
 
+- [x] In-memory SQLite fixture exercising models, constraints and transactions
+      (no server needed; `backend/tests/conftest.py`).
 - [ ] Integration tests against a test PostgreSQL database (apply Alembic
       migrations before the run).
 - [ ] Factories for `User`/`Profile`.
 - [ ] CI service container for PostgreSQL.
 
-## Stage 3 — Auth ⬜
+## Stage 3 — Auth ✅
 
-- [ ] Unit: password hashing/verification, token issue/rotation, reuse detection.
-- [ ] API: register → login → refresh → logout; forgot/reset; validation errors.
-- [ ] Authorization: cross-user access denied.
+- [x] Unit: password hashing/verification, token issue/rotation, reuse detection.
+- [x] API: register → login → refresh → logout; wrong password; validation.
+- [x] Authorization: cross-user access denied.
+- [ ] Forgot/reset password flows (endpoints not implemented yet).
 
 ## Stage 4 — Learning ⬜
 

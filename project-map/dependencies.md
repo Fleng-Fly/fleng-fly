@@ -1,6 +1,6 @@
 # Project Map — Dependencies
 
-> Status: M1 implemented. Records the dependency policy and the **actually
+> Status: M2/M3 implemented. Records the dependency policy and the **actually
 > installed** libraries. Update when dependencies change.
 
 ## Dependency rules
@@ -24,8 +24,8 @@ frontend/ (@fleng/frontend — pnpm workspace)
 
 backend/ (fleng-backend — pip / venv)
   (runtime)  fastapi, uvicorn[standard], sqlalchemy[asyncio], asyncpg,
-             pydantic-settings, alembic
-  (dev)      pytest, pytest-asyncio, httpx, ruff, mypy
+             alembic, pydantic-settings, email-validator, argon2-cffi, pyjwt
+  (dev)      pytest, pytest-asyncio, httpx, aiosqlite, ruff, mypy
 
 root/ (private)
   (dev)      prettier
@@ -45,11 +45,14 @@ ai/ (future Python package)
 | uvicorn[standard] | ASGI server (`uvloop`, `httptools`, `watchfiles`) |
 | sqlalchemy[asyncio] | ORM / SQL toolkit (async) |
 | asyncpg | PostgreSQL async driver |
-| pydantic-settings | Typed env configuration |
 | alembic | Database migrations |
+| pydantic-settings | Typed env configuration |
+| email-validator | Email format validation for `EmailStr` schemas |
+| argon2-cffi | argon2id password hashing |
+| pyjwt | Access-token (JWT) signing/verification |
 
-Dev: `pytest`, `pytest-asyncio`, `httpx` (TestClient transport), `ruff`
-(lint + format), `mypy` (types).
+Dev: `pytest`, `pytest-asyncio`, `httpx` (ASGI client), `aiosqlite` (in-memory
+test database), `ruff` (lint + format), `mypy` (types).
 
 ### Frontend
 
@@ -72,8 +75,6 @@ built-ins (`child_process`, `fs`, `path`, `url`) — no concurrency dependency.
 
 | Package | Component | Purpose | Introduced |
 | ------- | --------- | ------- | ---------- |
-| argon2-cffi | backend | password hashing | auth milestone |
-| pyjwt | backend | access/refresh tokens | auth milestone |
 | (AI provider SDK) | ai | LLM calls | AI milestone |
 | playwright | frontend | browser e2e | later |
 

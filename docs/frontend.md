@@ -1,7 +1,8 @@
 # Frontend
 
-> Status: **M1 implemented**. Stack: Next.js 15 (App Router) + Tailwind CSS v4 +
-> TanStack Query + Framer Motion. Routes: `/`, `/learn`, `/login`.
+> Status: **M2 implemented**. Stack: Next.js 15 (App Router) + Tailwind CSS v4 +
+> TanStack Query + Framer Motion. Routes: `/`, `/learn`, `/login`, `/register`.
+> Authentication and progress are wired to the FastAPI backend.
 
 ## 1. Responsibilities
 
@@ -16,21 +17,28 @@ frontend/
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx          # shell, fonts, providers, metadata
-│   │   ├── providers.tsx       # TanStack Query client
+│   │   ├── providers.tsx       # TanStack Query + AuthProvider
 │   │   ├── globals.css         # Tailwind import + design tokens
 │   │   ├── page.tsx            # landing + live backend status
-│   │   ├── learn/page.tsx      # profile (API) + placeholder lessons
-│   │   └── login/page.tsx      # UI scaffold, no auth yet
+│   │   ├── learn/page.tsx      # protected: profile + progress from API
+│   │   ├── login/page.tsx      # real login
+│   │   └── register/page.tsx   # account creation
 │   ├── components/
 │   │   ├── app-shell.tsx       # header/nav/footer
 │   │   ├── backend-status.tsx  # live GET /health indicator
+│   │   ├── user-menu.tsx       # session-aware login/logout
 │   │   ├── fade-in.tsx         # reduced-motion-aware entrance animation
 │   │   └── ui/                 # button, card, badge primitives
 │   ├── config/nav.ts
+│   ├── lib/auth/
+│   │   └── auth-context.tsx    # session state + login/register/logout
 │   └── lib/api/
-│       ├── client.ts           # typed fetch wrapper + ApiError
+│       ├── client.ts           # typed fetch + tokens + 401 refresh/retry
 │       ├── client.spec.ts      # Vitest unit tests
+│       ├── errors.ts           # user-facing error messages
+│       ├── auth.ts             # register/login/logout
 │       ├── health.ts
+│       ├── progress.ts
 │       └── users.ts
 ├── next.config.ts
 ├── postcss.config.mjs
@@ -49,12 +57,13 @@ there is more than a couple of routes.
   client data fetching requires it (`BackendStatus`, `/learn`, `/login`).
 - **Data fetching**: TanStack Query for client screens. The `/health` query
   refetches every 15s and drives the Online/Offline badge; `/learn` queries
-  `/users/me`.
-- **State**: server state in TanStack Query; local UI state in React. No global
-  store until a concrete need appears.
-- **Auth session**: not implemented. The login form is a scaffold and
-  deliberately does not fake a session. When auth lands, the access token stays
-  in memory and refresh uses an httpOnly cookie.
+  `/users/me` (via the session) and `/progress/me`.
+- **State**: server state in TanStack Query; local UI state in React. Session
+  state lives in `AuthProvider`. No global store until a concrete need appears.
+- **Auth session**: the access token is held in memory only. On load,
+  `AuthProvider` calls `/users/me`; if the access token is missing/expired the
+  client transparently refreshes from the HttpOnly cookie and retries. `/learn`
+  redirects to `/login` when there is no session.
 
 ## 4. API client
 
@@ -62,14 +71,20 @@ there is more than a couple of routes.
 
 - reads the base URL from `NEXT_PUBLIC_API_URL` (default
   `http://localhost:3001/api/v1`);
-- returns parsed JSON on success;
-- normalises failures into `ApiError { status, code }`:
+- keeps the access token in memory and attaches `Authorization: Bearer`;
+- sends `credentials: 'include'` so the refresh cookie is used;
+- on `401` performs one refresh (`POST /auth/refresh`) and retries the request
+  once (concurrent refreshes are de-duplicated);
+- returns parsed JSON on success (and `undefined` for `204`);
+- normalises failures into `ApiError { status, code, details }`:
   `NETWORK_ERROR` (status `0`) when the backend is unreachable,
   the backend error `code` for HTTP errors, and `INVALID_RESPONSE` for a
   non-JSON body.
 
-Endpoint functions (`getHealth`, `getCurrentUser`) and query hooks use this
-client. Components never call `fetch` directly.
+`describeApiError` (`errors.ts`) turns those into user-facing messages for 401,
+403, 422, 500, backend-unavailable and database-unavailable (503). Endpoint
+functions (`getHealth`, `getCurrentUser`, `register`, `login`, `logout`,
+`getMyProgress`) use this client; components never call `fetch` directly.
 
 ## 5. Design system
 
@@ -84,15 +99,16 @@ desktop + mobile.
 ## 6. Accessibility
 
 - Focus is always visible (global `:focus-visible` ring).
-- Form controls are labelled; the login notice uses `role="status"`.
+- Form controls are labelled; form errors use `role="alert"`.
 - `FadeIn` respects `prefers-reduced-motion`.
 - Layout works from small mobile widths up.
 
 ## 7. Testing
 
-Unit tests with **Vitest** for non-visual logic — currently the API client
-(success, HTTP error with backend code, network error, invalid response).
-Playwright end-to-end tests are planned.
+Unit tests with **Vitest** for non-visual logic — the API client (success, HTTP
+error with backend code, network error, invalid response, token attachment, 401
+refresh-and-retry) and the auth/progress request shapes. Playwright end-to-end
+tests are planned.
 
 ## 8. Conventions
 

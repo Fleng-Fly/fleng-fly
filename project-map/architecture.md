@@ -1,6 +1,6 @@
 # Project Map — Architecture
 
-> Status: M1 implemented. Canonical detail: `docs/architecture.md`.
+> Status: M2/M3 implemented. Canonical detail: `docs/architecture.md`.
 
 ## System diagram (current)
 
@@ -8,20 +8,21 @@
 User
  ↓
 Frontend (Next.js, TypeScript) 🟢
-  • routes: /, /learn, /login
-  • API client: src/lib/api/client.ts
+  • routes: /, /learn, /login, /register
+  • API client: src/lib/api/client.ts (in-memory access token, 401 refresh)
+  • session: src/lib/auth/auth-context.tsx
   • state: TanStack Query
  ↓  HTTPS · REST /api/v1   (default http://localhost:3001/api/v1)
 FastAPI (Python) 🟢
   • main.py: CORS, error handlers, /api/v1 router
-  • modules: health 🟢, users 🟢 (dev auth stub)
+  • modules: health 🟢, auth 🟢, users 🟢, progress 🟢
   • infrastructure: core (config, errors, schemas) 🟢, db (models, session) 🟢,
     api (router, deps) 🟢
-  • planned modules (all 🔴): auth, catalog, content, exercises, vocabulary,
-             progress, gamification, challenges, recommendations, ai,
+  • planned modules (all 🔴): catalog, content, exercises, vocabulary,
+             gamification, challenges, recommendations, ai,
              notifications, subscriptions, analytics
  ↓  SQLAlchemy 2 (async) → asyncpg
-PostgreSQL 🟢 (models + Alembic migration committed; runtime needs a running instance)
+PostgreSQL 🟢 (models + 2 Alembic migrations committed; runtime needs a running instance)
 
 Backend ↔ AI  (Python AI layer) 🔴  — not built; no AI module or dependency yet
 ```

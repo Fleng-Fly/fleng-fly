@@ -1,25 +1,34 @@
 # Database
 
-> Status: **M1 implemented** for `User` + `Profile`. Other entities below are
-> designed, not built. Engine: PostgreSQL. Access: SQLAlchemy 2 (async) from the
-> backend only; migrations via Alembic.
+> Status: **M2 implemented** for `User`, `Profile`, `RefreshToken` and `Progress`.
+> Other entities below are designed, not built. Engine: PostgreSQL. Access:
+> SQLAlchemy 2 (async) from the backend only; migrations via Alembic.
 
-## 0. Implemented in M1
+## 0. Implemented
 
-Only identity/profile tables exist so far (SQLAlchemy models in
-`backend/app/db/models.py`):
+Identity, authentication sessions and aggregate progress exist (SQLAlchemy models
+in `backend/app/db/models.py`):
 
-- **`User`** (`users`) — `id` (UUID PK), `email` (unique), `password_hash`,
-  `created_at`, `updated_at`.
+- **`User`** (`users`) — `id` (UUID PK), `email` (unique), `password_hash`
+  (argon2id), `created_at`, `updated_at`.
 - **`Profile`** (`profiles`) — `id` (UUID PK), `user_id` (unique FK → `users`,
   `ON DELETE CASCADE`), `display_name`, `level` (int, default 1), `xp` (int,
   default 0), `created_at`, `updated_at`.
-- Relation: `User 1──1 Profile` (SQLAlchemy `relationship`, cascade delete).
-- Initial migration:
-  `backend/alembic/versions/20261004_1200_init.py`.
+- **`RefreshToken`** (`refresh_tokens`) — `id` (UUID PK), `user_id` (FK → `users`,
+  `ON DELETE CASCADE`, indexed), `token_hash` (unique, SHA-256 hex), `expires_at`,
+  `revoked_at`, `replaced_by_id` (self FK → `refresh_tokens`, `SET NULL`),
+  `created_at`.
+- **`Progress`** (`progress`) — `id` (UUID PK), `user_id` (unique FK → `users`,
+  `ON DELETE CASCADE`), `lessons_started`, `lessons_completed`, `study_minutes`,
+  `last_activity_at`, `created_at`, `updated_at`.
+- Relations: `User 1──1 Profile`, `User 1──1 Progress`,
+  `User 1──* RefreshToken` (SQLAlchemy relationships, cascade delete).
+- Migrations: `20261004_1200_init` (users, profiles) and
+  `20261005_1000_auth_progress` (refresh_tokens, progress).
 
-`password_hash` is currently only populated by the development auth stub with a
-non-login placeholder value; real hashing arrives with authentication.
+`password_hash` stores argon2id hashes only; plaintext passwords are never
+persisted. Refresh tokens are stored as SHA-256 hashes; the raw token only ever
+lives in the client's HttpOnly cookie.
 
 ## 1. Principles
 
@@ -38,9 +47,10 @@ non-login placeholder value; real hashing arrives with authentication.
 
 | Entity | Owner | Key fields | Status |
 | ------ | ----- | ---------- | ------ |
-| `User` | auth | `id`, `email` (unique), `passwordHash`, `role`, `emailVerifiedAt`, `createdAt` | 🟡 partial (no `role`/`emailVerifiedAt` yet) |
+| `User` | auth | `id`, `email` (unique), `passwordHash`, `role`, `emailVerifiedAt`, `createdAt` | 🟢 implemented (no `role`/`emailVerifiedAt` yet) |
 | `Profile` | users | `id`, `userId` (unique FK), `displayName`, `level`, `xp`, `avatarUrl`, `nativeLanguage`, `targetLevel`, `timezone`, `dailyGoalMinutes`, `locale` | 🟡 partial (`displayName`, `level`, `xp`) |
-| `RefreshToken` | auth | `id`, `userId` FK, `tokenHash` (unique), `expiresAt`, `revokedAt`, `replacedById`, `userAgent`, `ip` | 🔴 planned |
+| `RefreshToken` | auth | `id`, `userId` FK, `tokenHash` (unique), `expiresAt`, `revokedAt`, `replacedById`, `userAgent`, `ip` | 🟢 implemented (no `userAgent`/`ip` yet) |
+| `Progress` | progress | `id`, `userId` (unique FK), `lessonsStarted`, `lessonsCompleted`, `studyMinutes`, `lastActivityAt` | 🟢 implemented |
 
 ### Catalog and content
 
@@ -63,8 +73,7 @@ non-login placeholder value; real hashing arrives with authentication.
 
 | Entity | Owner | Key fields | Status |
 | ------ | ----- | ---------- | ------ |
-| `LessonProgress` | progress | `id`, `userId` FK, `lessonId` FK, `status`, `score`, `completedAt` | 🔴 |
-| `XpEvent` | gamification | `id`, `userId` FK, `amount`, `source`, `sourceId`, `createdAt` | 🔴 |
+| `LessonProgress` | progress | `id`, `userId` FK, `lessonId` FK, `status`, `score`, `completedAt` | 🔴 || `XpEvent` | gamification | `id`, `userId` FK, `amount`, `source`, `sourceId`, `createdAt` | 🔴 |
 | `Streak` | gamification | `userId` PK/FK, `current`, `longest`, `lastActivityDate` | 🔴 |
 | `Achievement` | gamification | `id`, `code` (unique), `title`, `description`, `criteria`, `points` | 🔴 |
 | `UserAchievement` | gamification | `id`, `userId` FK, `achievementId` FK, `earnedAt` | 🔴 |
@@ -84,7 +93,8 @@ non-login placeholder value; real hashing arrives with authentication.
 
 ```
 User 1──1 Profile                 (implemented)
-User 1──* RefreshToken
+User 1──1 Progress                (implemented)
+User 1──* RefreshToken            (implemented)
 User 1──* ExerciseSubmission *──1 Exercise *──1 Lesson *──1 Course
 User 1──* UserVocabulary *──1 VocabularyWord
 User 1──* FlashcardReview *──1 UserVocabulary
@@ -98,9 +108,19 @@ User 1──* Subscription
 User 1──* Notification
 ```
 
+### Why `Progress` is one table
+
+`Progress` is the per-user aggregate (`lessonsStarted`, `lessonsCompleted`,
+`studyMinutes`, `lastActivityAt`). When lessons exist, per-lesson rows will go in
+a separate `LessonProgress` table referencing `lessons(id)`. Splitting now would
+mean a `lessonId` FK with no `lessons` table; keeping the aggregate separate means
+the per-lesson table can be added later without migrating `progress`.
+
 ## 4. Indexes (target)
 
-Implemented: unique `users.email`, unique `profiles.user_id`.
+Implemented: unique `users.email`, unique `profiles.user_id`, unique
+`refresh_tokens.token_hash`, index `refresh_tokens.user_id`, unique
+`progress.user_id`.
 
 Planned: `refresh_tokens.token_hash`; `courses.slug`; unique `(course_id, slug)`
 on lessons; `user_vocabulary` unique `(user_id, word_id)` and `(user_id, due_at)`;
@@ -113,17 +133,24 @@ on lessons; `user_vocabulary` unique `(user_id, word_id)` and `(user_id, due_at)
 
 - Managed by **Alembic**; migration files live in `backend/alembic/versions/`
   and are committed.
-- The initial migration was hand-written (no live database was required) and its
-  SQL is verified with `pnpm db:sql` (offline mode).
+- Migrations are hand-written (no live database was required to author them) and
+  their SQL is verified with `pnpm db:sql` (offline mode).
 - Apply migrations with `pnpm db:migrate` (`alembic upgrade head`); this needs a
   running PostgreSQL.
+- The current environment has no PostgreSQL/Docker, so the migrations have been
+  verified offline only. Applying them to a real database remains a task in
+  `plans/testing-plan.md` and `plans/david-work.md`.
 - Never edit an applied migration; add a new one.
 
 ## 6. Data flow highlights
 
 - **Health**: `SELECT 1` in a try/except; never fails the request.
-- **Profile read**: `get_or_create_user` upserts the dev user + profile and
-  returns a camelCase Pydantic response schema.
+- **Registration**: creates `User`, `Profile` and an empty `Progress` row in one
+  transaction; the password is hashed with argon2id first.
+- **Session**: login/refresh write `RefreshToken` rows (hashed); rotation links
+  tokens through `replaced_by_id`, and replay of a revoked token revokes the set.
+- **Profile read**: `GET /users/me` loads the authenticated user with
+  `selectinload(profile)` and returns a camelCase Pydantic response.
 - **Lesson completion** (planned): submissions, then `LessonProgress`, `XpEvent`,
   `Streak`, achievements — ideally in one transaction.
 

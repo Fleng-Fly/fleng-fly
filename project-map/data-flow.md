@@ -1,6 +1,6 @@
 # Project Map — Data Flow
 
-> Status: M1 implemented. Details: `docs/architecture.md §5`, `docs/api.md`,
+> Status: M2/M3 implemented. Details: `docs/architecture.md §5`, `docs/api.md`,
 > `docs/database.md`.
 
 ## Flow 1 — Frontend loads backend status (implemented)
@@ -17,33 +17,41 @@ Browser mounts BackendStatus (client component)
 Refetches every 15s. When the backend is unreachable, the client throws
 `ApiError(status 0, NETWORK_ERROR)` and the UI shows Offline — it never crashes.
 
-## Flow 2 — Frontend reads the learner profile (implemented)
+## Flow 2 — Authentication & session (implemented)
 
 ```
-/learn mounts → TanStack Query ['currentUser'] → getCurrentUser()
-  → GET /api/v1/users/me
-  → get_current_user_id (APP_ENV != production) returns DEV_USER_ID
-  → users router → get_or_create_user(db, user_id)
-  → SQLAlchemy select with selectinload(profile) → PostgreSQL
-  → 200 { id, email, displayName, level, xp, createdAt } (camelCase)
-  → UI shows level/XP; DB down → 503 DATABASE_UNAVAILABLE → error card + retry
+Register/Login form
+  → AuthProvider.login() → apiFetch('/auth/login')
+  → POST /api/v1/auth/login {email,password}
+  → auth service: argon2id verify → access JWT + opaque refresh token
+  → refresh token stored SHA-256-hashed; raw value set as HttpOnly cookie
+  → 200 { accessToken, user } → token kept in memory, user in AuthProvider
+
+Reload / expired access token
+  → GET /users/me returns 401
+  → client POSTs /auth/refresh (cookie) → server rotates the token
+  → 200 { accessToken } → original request retried once
+
+Reuse of a revoked refresh token
+  → all of the user's active refresh tokens are revoked → 401 REFRESH_TOKEN_REUSED
 ```
 
-`get_or_create_user` is a development convenience so the slice returns real rows
-without a seed step; it is only reachable behind the dev dependency.
-
-## Flow 3 — Authenticated request (planned)
+## Flow 3 — Authenticated profile & progress (implemented)
 
 ```
-Browser (access token in memory)
-  → GET /api/v1/... (Authorization: Bearer)
-  → get_current_user dependency verifies JWT → require_role if needed
-  → router → service → SQLAlchemy → PostgreSQL
-  → Pydantic response model
+/learn mounts → AuthProvider resolved, access token in memory
+  → GET /api/v1/users/me   (Authorization: Bearer)
+  → get_current_user verifies the JWT → loads User + Profile
+  → 200 { id, email, displayName, level, xp, createdAt }
+  → GET /api/v1/progress/me
+  → progress service reads the user's aggregate row (scoped to the token subject)
+  → 200 { userId, lessonsStarted, lessonsCompleted, studyMinutes, ... }
+  → UI shows name/level/XP and the progress counters; no fake data
+  → DB down → 503 DATABASE_UNAVAILABLE → error card + retry
 ```
 
-On `401`: browser calls `POST /auth/refresh` (httpOnly cookie) → server rotates
-refresh token → returns new access token → original request retried once.
+Identity always comes from the access token subject; a user can only ever read
+their own profile and progress.
 
 ## Flow 4 — Lesson completion (planned)
 
@@ -68,8 +76,9 @@ POST /ai/conversations/:id/messages
 
 | Data | Writer | Reader |
 | ---- | ------ | ------ |
-| Credentials, tokens | auth 🔴 | auth 🔴 |
-| User / Profile | users 🟢 | users 🟢, others later |
+| Credentials, sessions/tokens | auth 🟢 | auth 🟢 |
+| User / Profile | auth 🟢 (registration) | users 🟢 |
+| Progress (aggregate) | server-side / progress 🟢 | progress 🟢 |
 | Catalog/content | catalog 🔴 | all users later |
-| Progress/XP/vocabulary | progress/gamification/vocabulary 🔴 | dashboards later |
+| XP/vocabulary | gamification/vocabulary 🔴 | dashboards later |
 | AI conversations | ai 🔴 | ai 🔴 |

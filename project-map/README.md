@@ -18,16 +18,24 @@ when a module, flow, API or dependency changes, update the relevant file here
 
 - 🟢 implemented · 🟡 partially implemented · 🔴 documented only (not built)
 
-## Current status at a glance — M1
+## Current status at a glance — M2/M3
 
 Implemented and verified:
 
 - pnpm workspace (frontend) + Python virtualenv (backend) + Docker-compose PostgreSQL.
 - FastAPI app at `/api/v1` with CORS, Pydantic settings, error handlers.
-- SQLAlchemy async `User` + `Profile` models with an Alembic migration.
-- `GET /api/v1/health` and `GET /api/v1/users/me` (dev-only auth stub).
-- Next.js app (`/`, `/learn`, `/login`) with a typed API client, TanStack Query
-  and a live backend-status indicator.
+- SQLAlchemy async `User`, `Profile`, `RefreshToken`, `Progress` models with two
+  Alembic migrations.
+- `GET /api/v1/health`.
+- Authentication: `POST /auth/register`, `/login`, `/refresh`, `/logout` with
+  argon2id, rotating hashed refresh tokens and reuse detection.
+- `GET /api/v1/users/me` and `GET /api/v1/progress/me` (Bearer-protected,
+  read-only).
+- Next.js app (`/`, `/learn`, `/login`, `/register`) with a typed API client,
+  in-memory access token, automatic refresh, and a live backend-status indicator.
 
-Not built: authentication, catalog/lessons, vocabulary, gamification, AI,
-notifications, analytics, deployments.
+Not built: catalog/lessons, vocabulary, gamification, AI, notifications,
+analytics, deployments.
+
+> Environment note: migrations were verified offline (`pnpm db:sql`); applying
+> them to a real PostgreSQL and running DB integration tests remain tasks.

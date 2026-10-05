@@ -4,10 +4,11 @@ Fleng is a web platform for learning English: structured courses, interactive
 exercises, spaced-repetition vocabulary, practice, gamified progress, and an AI
 tutor.
 
-This repository currently contains the **M1 vertical slice**: a real Next.js
-frontend talking to a real **Python / FastAPI** backend, backed by PostgreSQL via
-SQLAlchemy and Alembic. It is an engineering foundation, not a finished product —
-authentication, the learning catalog and AI are not implemented yet.
+This repository currently contains an **M1 + authentication vertical slice**: a
+real Next.js frontend talking to a real **Python / FastAPI** backend, backed by
+PostgreSQL via SQLAlchemy and Alembic. Email/password authentication, user
+profiles and learning-progress storage work end to end. The learning catalog and
+AI are not implemented yet.
 
 ## What works today
 
@@ -15,10 +16,13 @@ authentication, the learning catalog and AI are not implemented yet.
 - `GET /api/v1/health` returns service + database status.
 - The landing page calls the API and shows a live **Backend ● Online / Offline**
   indicator.
-- `GET /api/v1/users/me` returns a learner profile from PostgreSQL (through a
-  development-only auth stub; see `docs/backend.md`).
-- `/learn` shows the learner's level/XP from the API; `/login` is a UI scaffold
-  (no auth yet).
+- **Authentication**: `POST /api/v1/auth/register`, `/login`, `/refresh` and
+  `/logout` — argon2id hashing, short-lived access JWTs and rotating refresh
+  tokens in an HttpOnly cookie (with reuse detection).
+- `GET /api/v1/users/me` returns the authenticated learner's profile; `GET
+  /api/v1/progress/me` returns their progress. Both require a Bearer token.
+- `/login` and `/register` create a real session; `/learn` shows the signed-in
+  learner's name, level, XP and progress from the API.
 
 ## Vision
 
@@ -52,7 +56,7 @@ Next.js frontend (App Router)          frontend/            (TypeScript)
    ↓  fetch via typed API client        frontend/src/lib/api
 REST API  /api/v1                      backend/             (Python)
    ↓
-FastAPI app (health, users)            backend/app
+FastAPI app (health, auth, users, progress)  backend/app
    ↓  SQLAlchemy 2 (async) + asyncpg
 PostgreSQL                             docker-compose.yml
 ```
@@ -72,16 +76,17 @@ Details: `docs/architecture.md` and `project-map/architecture.md`.
 /
 ├── frontend/          # @fleng/frontend — Next.js (App Router)
 │   └── src/
-│       ├── app/       # routes: /, /learn, /login
-│       ├── components/# app shell, status, UI primitives
+│       ├── app/       # routes: /, /learn, /login, /register
+│       ├── components/# app shell, status, user menu, UI primitives
 │       ├── config/    # navigation
-│       └── lib/api/   # typed API client + endpoints
+│       ├── lib/api/   # typed API client + endpoint functions
+│       └── lib/auth/  # session context (access token in memory)
 ├── backend/           # FastAPI API (Python)
 │   ├── app/
 │   │   ├── core/      # config, error handlers, shared schemas
 │   │   ├── db/        # SQLAlchemy base, models, session
 │   │   ├── api/       # aggregate router + dependencies
-│   │   └── modules/   # health/, users/
+│   │   └── modules/   # health/, auth/, users/, progress/
 │   ├── alembic/       # migrations
 │   ├── tests/         # pytest
 │   └── pyproject.toml
@@ -152,9 +157,9 @@ all routes under `/api/v1`.
 High level (details in `plans/roadmap.md`):
 
 1. **Foundation** — structure, docs, project map, design system. *(done)*
-2. **M1 — Frontend + FastAPI backend** — workspace, health/users API, database. *(current)*
-3. **Authentication** — real register/login/refresh/logout, replacing the dev stub.
-4. **Learning MVP** — courses, lessons, exercises, progress.
+2. **M1 — Frontend + FastAPI backend** — workspace, health/users API, database. *(done)*
+3. **M2 — Authentication & progress** — real register/login/refresh/logout, `/users/me`, `/progress/me`, frontend session. *(current)*
+4. **Learning MVP** — courses, lessons, exercises, progress recording.
 5. **Vocabulary & gamification** — flashcards, streaks, XP, achievements.
 6. **Frontend MVP** — full app shell and screens.
 7. **AI tutor** — Python AI layer, explanations, writing feedback.
@@ -162,8 +167,9 @@ High level (details in `plans/roadmap.md`):
 
 ## Current status
 
-M1. `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` all pass. See
-`plans/milestones.md` for the live status board and known limitations.
+M2. `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` all pass, and the
+backend auth/progress test suite is green. See `plans/milestones.md` for the live
+status board and `plans/david-work.md` for the storage/login/progress assignment.
 
 ## Contributing
 

@@ -1,9 +1,10 @@
 # Architecture
 
-> Status: **M1 implemented** for the frontend↔backend↔database foundation
-> (`/health`, `/users/me`). Auth, catalog and AI are design-only. This document
-> is the canonical description of how Fleng is built; update it when the real
-> architecture diverges.
+> Status: **M2 implemented** — the frontend↔backend↔database foundation plus
+> authentication and progress (`/auth/*`, `/users/me`, `/progress/me`). The
+> learning catalog and AI are design-only. This document is the canonical
+> description of how Fleng is built; update it when the real architecture
+> diverges.
 
 ## 1. Goals and constraints
 
@@ -109,7 +110,27 @@ GET /api/v1/health
   → HealthResponse: `SELECT 1` (database up/down), never fails while the API is up
 ```
 
-### 5.2 Completing a lesson (planned)
+### 5.2 Authentication and progress (implemented)
+
+```
+POST /api/v1/auth/register | /login
+  → auth module validates input, hashes/verifies the password (argon2id)
+  → issues a short-lived access JWT + an opaque refresh token
+  → refresh token stored hashed; raw value set in an HttpOnly cookie
+  → response: { accessToken, user }
+
+Authenticated request
+  → Authorization: Bearer <access>
+  → get_current_user verifies the JWT and loads the User (+ Profile)
+  → GET /users/me returns the profile; GET /progress/me returns progress
+
+POST /api/v1/auth/refresh
+  → validate the cookie token, rotate it (revoke old, issue new)
+  → replay of a revoked token revokes the whole session set (reuse detection)
+  → response: { accessToken } + rotated cookie
+```
+
+### 5.3 Completing a lesson (planned)
 
 ```
 Frontend
@@ -122,7 +143,7 @@ Backend
   → responds with updated progress summary
 ```
 
-### 5.3 AI tutor turn (planned)
+### 5.4 AI tutor turn (planned)
 
 ```
 Frontend
@@ -138,8 +159,11 @@ Details: `project-map/data-flow.md`.
 
 ## 6. Cross-cutting concerns
 
-- **Authentication/authorization** — not implemented. Planned: JWT access +
-  rotating refresh; RBAC (`USER`, `ADMIN`). See `docs/authentication.md`.
+- **Authentication/authorization** — email/password authentication is
+  implemented: argon2id hashing, short-lived HS256 access JWTs, rotating refresh
+  tokens stored hashed in an HttpOnly cookie, with reuse detection. `auth`,
+  `users` and `progress` modules exist; RBAC (`ADMIN`) and ownership-scoped
+  resources arrive with the learning catalog. See `docs/authentication.md`.
 - **Validation** — Pydantic/FastAPI at the edge; domain invariants in services.
 - **Error handling** — exception handlers map errors to a stable JSON envelope
   (`app/core/errors.py`).

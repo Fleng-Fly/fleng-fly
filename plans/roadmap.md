@@ -36,15 +36,21 @@ landing/learn/login with a live backend-status indicator.
 **Exit criteria met:** `pnpm lint`, `typecheck`, `test`, `build` pass; the
 frontend calls the real API; the database workflow is documented.
 
-### Stage 1b — Backend core (in progress next)
+### Stage 1b — Backend core: authentication & progress ✅ completed
 
-Authentication (register/login/refresh/logout) and profiles, replacing the dev
-auth stub; argon2id hashing; rate limiting; integration tests.
+Email/password authentication (`POST /auth/register`, `/login`, `/refresh`,
+`/logout`) with argon2id hashing, short-lived access JWTs and rotating refresh
+tokens stored hashed (reuse detection). `GET /users/me` is read-only and
+authenticated; `GET /progress/me` returns aggregate progress. Refresh tokens and
+progress are persisted with an Alembic migration. The dev auth stub is removed.
 
-**Exit criteria:** auth and profile API tested end-to-end against a test DB;
-security checklist applied to every endpoint.
+**Exit criteria met:** auth and progress are exercised by an automated test suite
+(register/login/refresh/rotation/reuse/logout/protected/cross-user isolation).
 
-### Stage 2 — Learning MVP
+**Deferred within this stage:** profile editing (`PATCH /users/me`), email
+verification, password reset and rate limiting (see `plans/security-plan.md`).
+
+### Stage 2 — Learning MVP (next)
 
 Courses, lessons, exercises, submissions, grading; lesson start/complete;
 progress recording.

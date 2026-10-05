@@ -1,10 +1,10 @@
 # Security
 
-> Status: **partial**. The M1 foundation implements strict CORS (explicit
-> origins, credentials), global input validation, a non-leaking error envelope,
-> a production-gated dev-auth dependency, and env-only configuration. Auth, rate
-> limiting, security headers and AI guardrails are not implemented yet. This
-> document defines the baseline every feature must respect.
+> Status: **partial (auth implemented)**. Authentication now implements argon2id
+> hashing, short-lived access JWTs, rotating refresh tokens stored hashed,
+> reuse detection, production-gated secrets and CSRF-conscious cookies. Rate
+> limiting, security headers, RBAC and AI guardrails are not implemented yet.
+> This document defines the baseline every feature must respect.
 
 ## 1. Threat model (initial)
 
@@ -27,8 +27,10 @@ Primary threats:
 
 ## 2. Authentication
 
-See `docs/authentication.md`. Summary: argon2id hashing, short-lived access JWT,
-rotating refresh tokens stored hashed, reuse detection, session revocation.
+Implemented: argon2id hashing, short-lived access JWTs, rotating refresh tokens
+stored hashed, reuse detection, session revocation, production-gated
+`JWT_ACCESS_SECRET`. See `docs/authentication.md`. Remaining: rate limiting,
+email verification, password reset.
 
 ## 3. Authorization
 
@@ -76,7 +78,7 @@ rotating refresh tokens stored hashed, reuse detection, session revocation.
 - `.env.example` contains only names/placeholders.
 - Secrets are validated on startup (fail fast if missing in production).
 - Never log secrets; never expose them to the frontend.
-- Rotate `JWT_*` and `AI_API_KEY` on suspected compromise.
+- Rotate `JWT_ACCESS_SECRET` and `AI_API_KEY` on suspected compromise.
 
 ## 8. Transport and headers
 
@@ -99,9 +101,9 @@ Responses return `429` with `Retry-After`.
 
 ## 10. Logging, monitoring, privacy
 
-- Structured logs with correlation ids; no secrets/PII in logs.
-- Errors are logged server-side; clients receive a safe error envelope with a
-  `requestId` for correlation.
+- Structured logs with correlation ids; no secrets/PII in logs (planned).
+- Errors are logged server-side; clients receive a safe error envelope. A
+  `requestId` field for correlation is planned.
 - Personal data: collect the minimum, allow account deletion/anonymisation
   (policy pending — see `docs/database.md` open questions).
 
