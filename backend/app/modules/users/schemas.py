@@ -1,3 +1,5 @@
+"""User/profile read dependency and endpoint schemas."""
+
 from datetime import datetime
 from uuid import UUID
 
