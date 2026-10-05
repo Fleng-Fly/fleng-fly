@@ -79,11 +79,6 @@ function refreshOnce(): Promise<string | null> {
   return refreshInFlight;
 }
 
-/** Convenience helper for code that needs a fresh access token (e.g. reconnect). */
-export function refreshSession(): Promise<string | null> {
-  return refreshAccessToken();
-}
-
 export async function apiFetch<T>(
   path: string,
   init?: RequestInit,

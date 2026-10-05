@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.db.models import RefreshToken, User
 from app.modules.auth.security import hash_refresh_token
+from app.modules.auth.service import _normalize_email
 
 REGISTER = "/api/v1/auth/register"
 LOGIN = "/api/v1/auth/login"
@@ -216,8 +217,6 @@ async def test_users_cannot_see_each_other(client: AsyncClient) -> None:
 
 def test_email_normalization() -> None:
     # Duplicate detection is case-insensitive: emails are lower-cased on the way in.
-    from app.modules.auth.service import _normalize_email
-
     assert _normalize_email("  Learner@Example.COM  ") == "learner@example.com"
 
 
