@@ -5,22 +5,23 @@
 
 ## 1. Topology (initial)
 
-Two deployables plus a database:
+One application deployable plus a database:
 
 ```
-[ CDN / edge ] → frontend (Next.js)
-                    │  /api/v1 (HTTPS)
-                    ▼
-                 backend (FastAPI)  ──HTTPS──► AI providers
+[ CDN / edge ] → backend (FastAPI)  ──HTTPS──► AI providers
+                    │  serves the static frontend at /
+                    │  serves REST at /api/v1
                     │ SQLAlchemy/asyncpg
                     ▼
                  PostgreSQL (managed)
 ```
 
-- **Frontend**: Next.js — static assets on a CDN; server rendering on a Node
-  runtime (or a managed platform).
-- **Backend**: FastAPI/uvicorn — horizontally scalable stateless instances behind
+- **Backend**: FastAPI/uvicorn — serves both the REST API (`/api/v1`) and the
+  static HTML/CSS/JS frontend (`/`) from the same origin, so the HttpOnly
+  refresh cookie is first-party. Horizontally scalable stateless instances behind
   a load balancer.
+- **Frontend**: static files shipped with the backend (no separate Node/CDN
+  deployable is required; a CDN may still front the static assets).
 - **Database**: managed PostgreSQL with automated backups.
 - **AI**: external provider APIs; the backend holds the keys.
 
@@ -51,9 +52,10 @@ apps are containerised.
 
 ## 4. Build and release
 
-1. `pnpm install --frozen-lockfile && pnpm setup`
+1. `pnpm setup` (backend virtualenv + dependencies)
 2. `pnpm lint && pnpm typecheck && pnpm test`
-3. `pnpm build`
+3. No frontend build step — the static files ship as-is and are served by the
+   backend.
 4. Run migrations `cd backend && .venv/bin/alembic upgrade head` (never
    `--autogenerate` in production).
 5. Deploy frontend and backend; smoke-test `/api/v1/health`.
@@ -89,6 +91,7 @@ surface before launch.
 
 ## 9. Open questions
 
-- Hosting provider and whether to use managed Next.js hosting.
+- Hosting provider for the single FastAPI deployable (and whether to front the
+  static assets with a CDN).
 - Container registry and CI platform.
 - Blue/green vs. rolling deploys — revisit at launch scale.

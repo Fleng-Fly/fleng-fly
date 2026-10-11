@@ -1,10 +1,11 @@
 # Architecture
 
-> Status: **M2 implemented** — the frontend↔backend↔database foundation plus
-> authentication and progress (`/auth/*`, `/users/me`, `/progress/me`). The
-> learning catalog and AI are design-only. This document is the canonical
-> description of how Fleng is built; update it when the real architecture
-> diverges.
+> Status: **M2 implemented** — a plain HTML/CSS/JS frontend served by the backend,
+> plus authentication and progress (`/auth/*`, `/users/me`, `/progress/me`) and
+> the read-only learning catalog (`/courses`, `/courses/{slug}`,
+> `/lessons/{slug}`). Exercises, progress writes and AI are design-only. This
+> document is the canonical description of how Fleng is built; update it when the
+> real architecture diverges.
 
 ## 1. Goals and constraints
 
@@ -24,11 +25,13 @@ Non-goals for the MVP:
 
 **Modular monolith.**
 
-- **Frontend** (Next.js / TypeScript) is a single deployable that renders the
-  product and talks to the backend over HTTP/JSON.
-- **Backend** (FastAPI / Python) is a single deployable, internally split into
-  modules with explicit dependencies. FastAPI is the **only** backend framework:
-  there is no NestJS/Express/Node.js or TypeScript code in `backend/`.
+- **Frontend** is plain **HTML/CSS/vanilla JavaScript** with no build step. The
+  FastAPI backend serves the static files from the same origin as `/api/v1`, so
+  there is one deployable.
+- **Backend** (FastAPI / Python) is a single deployable that serves both the API
+  and the static frontend, internally split into modules with explicit
+  dependencies. FastAPI is the **only** backend framework: there is no
+  NestJS/Express/Node.js or TypeScript code in `backend/`.
 - **AI layer** is a Python package consumed by the backend. It isolates
   provider-specific code and prompt/response handling. It is *not* a service.
 - **PostgreSQL** is the single source of persistent truth, accessed only through
@@ -36,15 +39,13 @@ Non-goals for the MVP:
 
 ```
 Browser
-  │
+  │  HTTPS
   ▼
-┌──────────────────────────┐
-│ Frontend — Next.js       │  UI, routing, client state, server-state cache
-└─────────────┬────────────┘
-              │ HTTPS · REST /api/v1
-              ▼
 ┌──────────────────────────────────────────────────────────┐
-│ Backend — FastAPI (modular monolith)                     │
+│ Backend — FastAPI (modular monolith, one deployable)     │
+│                                                          │
+│  Serves: static frontend (HTML/CSS/JS) at /              │
+│          REST /api/v1                                    │
 │                                                          │
 │  Cross-cutting: dependencies · validation · logging      │
 │                 error handlers · rate limiting           │
@@ -82,7 +83,7 @@ Browser
 
 | Layer    | Owns                                                        | Must not |
 | -------- | ----------------------------------------------------------- | -------- |
-| Frontend | Rendering, routing, forms, client cache, design system      | Contain business rules, call AI providers directly, store secrets |
+| Frontend | Rendering, navigation, forms, client state, design system   | Contain business rules, call AI providers directly, store secrets |
 | Backend  | Business rules, validation, authz, persistence, orchestration | Contain UI concerns, expose provider-specific AI payloads |
 | AI layer | Provider clients, prompts, response parsing, guardrails      | Know about HTTP, FastAPI, SQLAlchemy, or the database |
 | Database | Data integrity, constraints, indexes                         | Be bypassed by ad-hoc SQL outside migrations |
@@ -130,7 +131,23 @@ POST /api/v1/auth/refresh
   → response: { accessToken } + rotated cookie
 ```
 
-### 5.3 Completing a lesson (planned)
+### 5.3 Catalog read (implemented)
+
+```
+GET /api/v1/courses
+  → catalog module lists published courses (ordered by position) with a count of
+    published lessons → 200 [CourseSummary]
+GET /api/v1/courses/{slug}
+  → published course + its published lessons (ordered) → 200 CourseDetail
+GET /api/v1/lessons/{slug}
+  → published lesson of a published course + theory → 200 LessonDetail
+  → missing or unpublished resource → 404 NOT_FOUND (never reveals drafts)
+```
+
+Content is read-only from the API; it is populated by the idempotent seed
+(`backend/app/db/seed.py`).
+
+### 5.4 Completing a lesson (planned)
 
 ```
 Frontend
@@ -143,7 +160,7 @@ Backend
   → responds with updated progress summary
 ```
 
-### 5.4 AI tutor turn (planned)
+### 5.5 AI tutor turn (planned)
 
 ```
 Frontend

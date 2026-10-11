@@ -35,13 +35,13 @@
 
 | Task | Status | Where |
 | ---- | ------ | ----- |
-| API client | `[x]` | `frontend/src/lib/api/client.ts` (centralised fetch, in-memory access token, 401 refresh-and-retry) |
-| Authentication state | `[x]` | `frontend/src/lib/auth/auth-context.tsx` (`AuthProvider`, `useAuth`) |
-| Protected requests | `[x]` | `client.ts` retry + `frontend/src/app/learn/page.tsx` redirect to `/login` |
-| Profile | `[x]` | `frontend/src/app/learn/page.tsx` shows name/level/XP from `GET /users/me` |
-| Progress | `[x]` | `frontend/src/lib/api/progress.ts` + `/learn` shows counters from `GET /progress/me` |
-| Login / register pages | `[x]` | `frontend/src/app/login/page.tsx`, `/register/page.tsx` |
-| Session-aware nav | `[x]` | `frontend/src/components/user-menu.tsx`, `app-shell.tsx` |
+| API client | `[x]` | `frontend/js/api.js` (centralised fetch, in-memory access token, 401 refresh-and-retry) |
+| Session state | `[x]` | `frontend/js/session.js` (`loadSession`, `requireSession`) |
+| Protected pages | `[x]` | `js/api.js` retry + `requireSession()` redirect to `/login.html` |
+| Profile | `[x]` | `frontend/dashboard.html` + `js/dashboard.js` show name/level/XP from `GET /users/me` |
+| Progress | `[x]` | `frontend/js/dashboard.js` shows counters from `GET /progress/me` |
+| Login / register pages | `[x]` | `frontend/login.html`, `frontend/register.html` (+ their scripts) |
+| Session-aware nav | `[x]` | `frontend/js/layout.js` (`mountHeader`) |
 
 ## Definition of Done (this assignment)
 
@@ -50,9 +50,10 @@
 - [x] Refresh tokens stored hashed, with rotation and reuse detection.
 - [x] `GET /users/me` resolves the real user and is read-only.
 - [x] `GET /progress/me` returns the user's progress (no fake data).
-- [x] Frontend has real `/login` and `/register`, keeps the access token in
-      memory and restores the session via the refresh cookie.
-- [x] `/learn` shows the signed-in user's name, level, XP and progress from the API.
+- [x] Frontend has real `login.html` and `register.html`, keeps the access token
+      in memory and restores the session via the refresh cookie.
+- [x] `dashboard.html` shows the signed-in user's name, level, XP and progress
+      from the API; the static UI is served by FastAPI.
 - [x] Automated tests cover the security-critical auth cases and cross-user isolation.
 - [x] `ruff`, `mypy`, `pytest`, `pnpm lint`, `typecheck`, `test`, `build` pass.
 - [x] Docs, project-map and plans updated.

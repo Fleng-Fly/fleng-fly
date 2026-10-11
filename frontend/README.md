@@ -1,33 +1,58 @@
 # frontend/
 
-User interface of Fleng. **Not implemented yet** — this directory currently
-holds documentation only.
+Static user interface of Fleng: **plain HTML, CSS and vanilla JavaScript**, with
+no framework and no build step. FastAPI serves these files from the same origin
+as the API (`/api/v1`).
 
-## Planned stack
+## Stack
 
-- **Next.js (App Router)** + React + TypeScript
-- **Tailwind CSS** for styling, with design tokens from `design/`
-- **Framer Motion** for restrained, purposeful animation
-- **TanStack Query** for server state; minimal local UI state (React state / Zustand only when truly needed)
-- **Playwright** for end-to-end tests
+- HTML5, CSS3 and browser JavaScript (ES modules).
+- `fetch` for HTTP.
+- No React/Next.js/Vue/Angular, no TypeScript, no bundler, no UI library.
 
-## Sections
+## Layout
 
-Home/Dashboard, Learn, Lessons, Vocabulary, Practice, Speaking, Listening,
-Reading, Writing, Grammar, Challenges, Progress, Profile, AI Tutor, Settings.
+```
+frontend/
+├── index.html          # landing
+├── login.html          # sign in
+├── register.html       # create account
+├── dashboard.html      # protected: profile + progress
+├── courses.html        # protected: course catalog
+├── course.html         # protected: course detail (?slug=...)
+├── lesson.html         # protected: lesson theory (?slug=...)
+├── settings.html       # protected: profile display
+├── css/app.css         # design tokens + shared styles
+└── js/
+    ├── api.js          # fetch wrapper, in-memory access token, refresh-on-401
+    ├── errors.js       # user-facing error messages
+    ├── session.js      # loadSession / requireSession guard
+    ├── layout.js       # shared header, backend-status badge, DOM helpers
+    ├── home.js
+    ├── login.js
+    ├── register.js
+    ├── dashboard.js
+    ├── courses.js      # catalog list
+    ├── course.js       # course detail + lesson list
+    ├── lesson.js       # lesson theory (safe markup renderer)
+    └── settings.js
+```
 
-## Visual concept
+## Conventions
 
-Premium dark English-learning platform: dark base, purple/violet with blue/cyan
-accents, subtle gradients, glassmorphism, responsive, modern typography, smooth
-animations. See `design/`.
+- `.html` links are explicit (`/login.html`); the static server does not rewrite
+  `/login` to `login.html`.
+- All user-controlled or server-provided text is rendered with `textContent`,
+  never `innerHTML`.
+- The access token lives in a JavaScript variable only (never
+  `localStorage`/`sessionStorage`); the refresh token stays in the HttpOnly
+  cookie. Protected pages call `requireSession()` and redirect to `login.html`
+  when there is no session.
+- The API base URL is the relative `/api/v1`, so there is no environment
+  configuration and the frontend is same-origin with the API.
 
 ## Where to look
 
-- Plan: `plans/frontend-plan.md`
-- Docs: `docs/frontend.md`
-- Design system: `design/design-system.md`
+- Serving/architecture: `docs/frontend.md`, `project-map/architecture.md`
+- Design tokens: `design/colors.md`, `design/typography.md`
 - Pages/UX: `design/pages.md`, `design/ux-flow.md`
-
-> When the app is scaffolded, replace this file with a real project README
-> (scripts, structure, environment variables).

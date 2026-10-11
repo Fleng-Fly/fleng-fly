@@ -3,9 +3,10 @@
 This file is the working contract for every agent and developer contributing to Fleng.
 Read it before making any change, then read `README.md`, `docs/`, `project-map/`, and `plans/`.
 
-> Project status: **M2 — authentication + progress vertical slice** (Next.js +
-> FastAPI). Email/password auth, profiles and progress storage work end to end.
-> The learning catalog and AI are not implemented yet.
+> Project status: **M2 + catalog read** (plain HTML/CSS/JS frontend served by
+> FastAPI). Email/password auth, profiles and progress storage work end to end,
+> as does a read-only course/lesson catalog. Exercises, progress writes and AI
+> are not implemented yet.
 
 ---
 
@@ -13,16 +14,20 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
 
 - **Backend MUST use the existing Python + FastAPI stack.** Do not introduce
   NestJS, Express, Node.js backend frameworks, or TypeScript backend code.
-- **TypeScript is allowed in the frontend. TypeScript is NOT allowed inside the
-  backend.**
+- **TypeScript is not used anywhere.** The frontend is plain JavaScript; the
+  backend is Python. Do not introduce TypeScript, a build step or a JS
+  type-checker.
 - The backend is `backend/`: Python, FastAPI, Pydantic, SQLAlchemy 2 (async),
-  Alembic, pytest, Ruff, mypy. It has no Node/TypeScript dependency and is not a
-  pnpm workspace member.
-- The frontend is `frontend/`: Next.js (App Router), React, TypeScript, Tailwind
-  CSS, TanStack Query, Framer Motion. Frontend TypeScript must **not** be
-  converted to JavaScript.
+  Alembic, pytest, Ruff, mypy. It has no Node/TypeScript dependency and also
+  serves the static frontend files.
+- The frontend is `frontend/`: plain **HTML5, CSS3 and vanilla JavaScript**
+  (browser ES modules, `fetch`). It has **no** framework, **no** TypeScript,
+  **no** build system and no bundler. It is served as static files by the
+  FastAPI backend from the same origin as `/api/v1`. Do not reintroduce React,
+  Next.js, Vue, Angular, Tailwind or a build step.
 - The frontend talks to the backend only over REST/JSON at `/api/v1`; the backend
-  is the only place allowed to touch the database or AI providers.
+  is the only place allowed to touch the database or AI providers. The backend
+  also serves the static frontend files.
 - Historical note: the backend was originally sketched as NestJS + TypeScript but
   was implemented as FastAPI + Python. NestJS/TypeScript backend references must
   not be reintroduced into code, docs, project-map or plans.
@@ -202,9 +207,9 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
 
 - **Product:** Fleng — a premium dark English-learning web platform.
 - **Architecture:** modular monolith. One backend deployable, one frontend deployable, one shared AI layer. No microservices.
-- **Frontend:** TypeScript — Next.js (App Router), Tailwind CSS, TanStack Query, Framer Motion.
+- **Frontend:** plain HTML5, CSS3 and vanilla JavaScript (ES modules, `fetch`), served statically by the backend.
 - **Backend:** Python — FastAPI, SQLAlchemy 2 (async), Alembic, Pydantic.
-- **Monorepo:** pnpm workspace for the frontend; the backend is a Python project with its own virtualenv. Orchestrated by root Node scripts.
+- **Repository:** one backend deployable that also serves the static frontend; the backend is a Python project with its own virtualenv. Orchestrated by root Node scripts.
 - **Database:** PostgreSQL.
 - **AI:** a future Python layer consumed by the backend AI module. Not a separate service.
 - **Source of truth:**
@@ -222,7 +227,7 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
 
 ```
 /
-├── frontend/     # @fleng/frontend — Next.js user interface
+├── frontend/     # static HTML/CSS/JS user interface (served by FastAPI)
 ├── backend/      # FastAPI API (Python, modular monolith)
 ├── ai/           # future Python AI layer (docs only)
 ├── docs/         # durable architecture + engineering documentation

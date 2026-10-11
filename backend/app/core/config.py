@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     port: int = 3001
     database_url: str = DEFAULT_DATABASE_URL
     cors_origin: str = "http://localhost:3000"
+    # Static frontend directory served by this app. `None` uses the repository
+    # `frontend/` directory (resolved relative to this file).
+    frontend_dir: str | None = None
 
     # ── Authentication ──────────────────────────────────────────────────────
     jwt_access_secret: str = DEV_ACCESS_SECRET

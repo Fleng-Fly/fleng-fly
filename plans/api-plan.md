@@ -23,10 +23,11 @@
 
 ## Stage 2 — Learning
 
-- [ ] `GET /courses`, `/courses/:idOrSlug`; admin `POST/PATCH/DELETE`
-- [ ] `GET /lessons/:idOrSlug`, `POST /lessons/:id/start`, `/complete`,
-      `GET /lessons/:id/progress`
-- [ ] `GET /exercises/:id`, `POST /exercises/:id/submit`, `GET /exercises/submissions`
+- [x] `GET /courses`, `GET /courses/{slug}` (public read)
+- [x] `GET /lessons/{slug}` (public read, theory)
+- [ ] Admin `POST/PATCH/DELETE` for courses and lessons
+- [ ] `POST /lessons/{slug}/start`, `/complete`, `GET /lessons/{slug}/progress`
+- [ ] `GET /exercises/{id}`, `POST /exercises/{id}/submit`, `GET /exercises/submissions`
 
 ## Stage 3 — Vocabulary & progress
 

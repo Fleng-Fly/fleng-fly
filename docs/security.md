@@ -52,8 +52,9 @@ email verification, password reset.
 
 - All database access goes through SQLAlchemy (parameterised queries). Raw SQL
   only if unavoidable, always parameterised, and reviewed.
-- Escape/sanitise any user content rendered where XSS is possible; rely on React
-  escaping and avoid `dangerouslySetInnerHTML` without sanitisation.
+- Escape/sanitise any user content rendered where XSS is possible. The frontend
+  renders all server/user text with `textContent` (never `innerHTML`) and never
+  executes model output as HTML.
 - Validate file/uploads (none yet) before use.
 
 ## 6. AI / LLM specifics

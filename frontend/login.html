@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Log in — Fleng</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <header id="site-header" class="site-header"></header>
+
+    <main class="container page">
+      <div class="auth-wrap">
+        <header style="text-align: center; margin-bottom: 1.5rem">
+          <h1>Welcome back</h1>
+          <p class="muted text-sm">Log in to continue your learning.</p>
+        </header>
+
+        <div class="card">
+          <p id="form-error" class="alert alert-error hidden" role="alert"></p>
+          <form id="login-form">
+            <label class="field" for="email">
+              Email
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+
+            <label class="field" for="password">
+              Password
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="••••••••"
+                required
+              />
+            </label>
+
+            <button id="submit-button" class="btn btn-primary btn-block" type="submit">
+              Log in
+            </button>
+          </form>
+        </div>
+
+        <p class="text-sm muted" style="text-align: center; margin-top: 1rem">
+          No account yet? <a href="/register.html">Create one</a>.
+        </p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">Fleng — learn English, every day.</div>
+    </footer>
+
+    <script type="module" src="/js/login.js"></script>
+  </body>
+</html>

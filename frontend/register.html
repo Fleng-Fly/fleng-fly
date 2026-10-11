@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Create account — Fleng</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <header id="site-header" class="site-header"></header>
+
+    <main class="container page">
+      <div class="auth-wrap">
+        <header style="text-align: center; margin-bottom: 1.5rem">
+          <h1>Create your account</h1>
+          <p class="muted text-sm">Start learning English today.</p>
+        </header>
+
+        <div class="card">
+          <p id="form-error" class="alert alert-error hidden" role="alert"></p>
+          <form id="register-form">
+            <label class="field" for="displayName">
+              Display name
+              <input
+                id="displayName"
+                name="displayName"
+                type="text"
+                autocomplete="nickname"
+                maxlength="80"
+                placeholder="Alex"
+                required
+              />
+            </label>
+
+            <label class="field" for="email">
+              Email
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+
+            <label class="field" for="password">
+              Password
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                minlength="8"
+                placeholder="At least 8 characters"
+                required
+              />
+            </label>
+
+            <button id="submit-button" class="btn btn-primary btn-block" type="submit">
+              Create account
+            </button>
+          </form>
+        </div>
+
+        <p class="text-sm muted" style="text-align: center; margin-top: 1rem">
+          Already have an account? <a href="/login.html">Log in</a>.
+        </p>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">Fleng — learn English, every day.</div>
+    </footer>
+
+    <script type="module" src="/js/register.js"></script>
+  </body>
+</html>

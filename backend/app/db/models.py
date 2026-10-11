@@ -1,13 +1,25 @@
 """Database models.
 
 Identity (`User`), learner profile (`Profile`), authentication sessions
-(`RefreshToken`) and learning progress (`Progress`).
+(`RefreshToken`), learning progress (`Progress`) and the learning catalog
+(`Course`, `Lesson`).
 """
 
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Uuid, func
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Uuid,
+    false,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -123,3 +135,80 @@ class RefreshToken(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="refresh_tokens")
+
+
+class Course(Base):
+    """A learning track. `slug` is stable and globally unique.
+
+    `level` is one of the CEFR bands (A1–C2), enforced by a check constraint.
+    Only `is_published` courses are exposed by the API.
+    """
+
+    __tablename__ = "courses"
+    __table_args__ = (
+        CheckConstraint(
+            "level IN ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')",
+            name="courses_level_check",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    slug: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    level: Mapped[str] = mapped_column(String(2), nullable=False)
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    is_published: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    lessons: Mapped[list["Lesson"]] = relationship(
+        back_populates="course",
+        cascade="all, delete-orphan",
+        order_by="Lesson.position",
+    )
+
+
+class Lesson(Base):
+    """A lesson within a course.
+
+    `theory` is plain text with a deliberately small, documented markup that the
+    static frontend renders safely (never `innerHTML`): blocks are separated by
+    blank lines; a block starting with `## ` is a heading; consecutive lines
+    starting with `- ` are a list; anything else is a paragraph.
+
+    `slug` is globally unique so `GET /lessons/{slug}` resolves without a course
+    context. Only `is_published` lessons of `is_published` courses are exposed.
+    """
+
+    __tablename__ = "lessons"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    course_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("courses.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    slug: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    summary: Mapped[str] = mapped_column(String, nullable=False)
+    theory: Mapped[str] = mapped_column(Text, nullable=False)
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    estimated_minutes: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    is_published: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    course: Mapped[Course] = relationship(back_populates="lessons")

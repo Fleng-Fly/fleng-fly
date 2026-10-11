@@ -1,59 +1,52 @@
 # Frontend Plan
 
-> Aligns with `plans/roadmap.md` Stages 4 and 6. Stack: Next.js (App Router) +
-> Tailwind + TanStack Query + Framer Motion. See `docs/frontend.md`.
+> Stack: plain HTML5 + CSS3 + vanilla JavaScript, served statically by FastAPI
+> (same origin as `/api/v1`). No framework, no TypeScript, no build step.
+> See `docs/frontend.md`.
+> Legend: ✅ done · 🚧 in progress · ⬜ next.
 
-## Phase 1 — Scaffold
+## Phase A — Static delivery + auth ✅
 
-- [x] `@fleng/frontend` package with Next.js (App Router) + TypeScript strict.
-- [x] Tailwind configured with design tokens from `design/`.
-- [x] Base layout, fonts (`next/font`), dark default.
-- [x] `components/ui` primitives: Button, Card, Badge. *(Input, Dialog,
-      Skeleton still to add when needed.)*
-- [x] Typed API client + error normalisation + auth/refresh handling.
+- [x] Convert `frontend/` to static HTML/CSS/JS (no Next.js/React/TypeScript).
+- [x] Serve the static files from FastAPI (`StaticFiles`); single server.
+- [x] Shared layout, navigation and design tokens in `css/app.css`.
+- [x] `js/api.js` API client: in-memory access token, 401 refresh-and-retry,
+      de-duplicated refresh, `credentials: 'include'`, error normalisation.
+- [x] `js/session.js` session restore + protected-page redirect.
+- [x] Pages: landing, login, register, dashboard (profile + progress), settings.
+- [x] Same-origin CSRF origin acceptance in the backend.
+- [x] Root tooling runs one server (no Next.js); static-serving tests added.
 
-## Phase 2 — Auth & shell
+## Phase B — Catalog & lessons 🚧
 
-- [x] Auth routes: login, register. *(Forgot/reset password pending.)*
-- [x] Route protection based on session state; redirect on missing session.
-- [ ] `(app)` shell: sidebar/topbar navigation, profile menu, responsive.
+- [x] Course catalogue page (`courses.html`) and course detail page
+      (`course.html`) consuming `/courses` and `/courses/{slug}`.
+- [x] Lesson page (`lesson.html`) rendering theory from `/lessons/{slug}`.
+- [ ] Exercises + quiz submission and results view (needs the exercises API).
 
-## Phase 3 — Core learning screens
+## Phase C — Progress & profile ⬜
 
-- [ ] Dashboard: streak, XP/level, continue-learning, daily goal.
-- [ ] Learn: course list + course detail.
-- [ ] Lessons: lesson player with exercise components per type; submit/grade.
-- [ ] Progress: summary, per-course and per-skill views.
-- [ ] Vocabulary: word list, add/remove, review session.
+- [ ] Progress summary / per-course views.
+- [ ] Profile editing (settings form) once `PATCH /users/me` exists.
 
-## Phase 4 — AI tutor
+## Phase D — AI tutor ⬜
 
-- [ ] AI Tutor chat UI (streaming deferred; simple request/response first).
-- [ ] Writing correction view.
-- [ ] Recommendations surfaced on dashboard.
+- [ ] "Ask the tutor" panel with structured lesson/question context.
+- [ ] Error/loading states; AI failure never blocks the lesson.
 
-## Phase 5 — Remaining sections
+## Later sections ⬜
 
-- [ ] Practice, Speaking, Listening, Reading, Writing, Grammar landing views.
-- [ ] Challenges + leaderboard.
-- [ ] Profile & Settings (profile, goals, language, theme, account).
-
-## Phase 6 — Quality
-
-- [ ] Playwright critical flows: auth, lesson completion, vocabulary review,
-      AI turn.
-- [ ] Accessibility pass (WCAG AA): focus, contrast, reduced motion.
-- [ ] Performance pass: fonts/images, bundle review.
+- [ ] Vocabulary, practice, challenges, gamification surfaces.
+- [ ] Browser e2e (Playwright) and accessibility pass.
 
 ## Visual direction
 
-Premium dark, purple/violet + blue/cyan accents, subtle gradients,
-glassmorphism, modern typography, smooth motion. Tokens and rules live in
-`design/`; no ad-hoc colors or spacing in components.
+Premium dark, purple/violet + blue/cyan accents, subtle gradients, rounded
+cards, responsive layouts. Tokens live in `frontend/css/app.css` and align with
+`design/`; no ad-hoc colors.
 
 ## Risks / watch-items
 
-- Avoid over-componentising early; build screens, extract shared UI when reused.
-- Keep server/client component boundaries intentional (`"use client"` only where
-  needed).
-- Streaming and voice are deferred; do not build abstractions for them now.
+- Keep the API client the single HTTP chokepoint (`js/api.js`).
+- Render untrusted text with `textContent`, never `innerHTML`.
+- Avoid reintroducing a framework or build step; keep pages small.

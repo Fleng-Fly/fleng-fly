@@ -84,12 +84,14 @@ and the client must re-authenticate (`401 REFRESH_TOKEN_REUSED`).
 
 ## 6. Frontend handling
 
-- Access token in memory only (`src/lib/api/client.ts`).
+- Access token in memory only (`frontend/js/api.js`), never in
+  `localStorage`/`sessionStorage`.
 - `apiFetch` attaches `Authorization: Bearer`; on `401` it attempts **one**
   refresh and retries the request once, de-duplicating concurrent refreshes.
-- `AuthProvider` (`src/lib/auth/auth-context.tsx`) resolves the session on load
-  and exposes `login`/`register`/`logout`; `/learn` redirects to `/login` when
-  unauthenticated.
+- `js/session.js` resolves the session on load (`loadSession`); protected pages
+  call `requireSession()`, which redirects to `/login.html` when unauthenticated.
+- The static frontend is served by the backend on the same origin, so the
+  refresh cookie is first-party and no CORS is involved.
 
 ## 7. Not implemented yet
 

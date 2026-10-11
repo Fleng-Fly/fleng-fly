@@ -157,6 +157,35 @@ async def test_logout_revokes_and_clears_cookie(client: AsyncClient) -> None:
     assert (await client.post(REFRESH)).status_code == 401
 
 
+async def test_login_accepts_same_origin(client: AsyncClient) -> None:
+    # The static frontend is served by this app, so browsers send this Origin on
+    # same-origin POSTs. It must not be rejected by the CSRF origin check.
+    await register(client)
+    response = await client.post(
+        LOGIN,
+        json={"email": "learner@example.com", "password": PASSWORD},
+        headers={"Origin": "http://testserver"},
+    )
+    assert response.status_code == 200
+
+
+async def test_login_rejects_untrusted_origin(client: AsyncClient) -> None:
+    await register(client)
+    response = await client.post(
+        LOGIN,
+        json={"email": "learner@example.com", "password": PASSWORD},
+        headers={"Origin": "http://evil.example"},
+    )
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "FORBIDDEN"
+
+
+async def test_logout_accepts_same_origin(client: AsyncClient) -> None:
+    await register(client)
+    response = await client.post(LOGOUT, headers={"Origin": "http://testserver"})
+    assert response.status_code == 204
+
+
 async def test_users_me_requires_authentication(client: AsyncClient) -> None:
     response = await client.get(ME)
     assert response.status_code == 401

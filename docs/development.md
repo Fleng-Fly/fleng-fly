@@ -1,17 +1,18 @@
 # Development
 
-> Status: **M2 implemented** — pnpm workspace (frontend), Python/FastAPI backend,
-> PostgreSQL via SQLAlchemy + Alembic, and email/password authentication with
-> progress storage. Catalog and AI are not implemented yet.
+> Status: **M2 + catalog read implemented** — static HTML/CSS/JS frontend served
+> by the Python/FastAPI backend, PostgreSQL via SQLAlchemy + Alembic,
+> email/password authentication with progress storage, and a read-only
+> course/lesson catalog. Exercises, progress writes and AI are not implemented
+> yet.
 
 ## 1. Technology stack and rationale
 
 | Area            | Choice                                                | Why |
 | --------------- | ----------------------------------------------------- | --- |
-| Frontend        | Next.js (App Router) + TypeScript                     | Routing, SSR/RSC, good DX; matches SEO + app needs |
-| Styling         | Tailwind CSS v4 (`@theme` tokens)                     | Token-driven design system matching `design/` |
-| Animation       | Framer Motion                                         | Declarative, restrained motion (used sparingly) |
-| Server state    | TanStack Query                                        | Caching, retries, request de-duplication |
+| Frontend        | Plain HTML5 + CSS3 + vanilla JavaScript (ES modules)  | Small, understandable, no build step |
+| HTTP client     | Browser `fetch`                                      | Native; no dependency |
+| Static serving  | FastAPI `StaticFiles` (same origin as the API)        | One deployable; first-party cookies |
 | Backend         | Python + FastAPI                                      | Async-first, typed via Pydantic, fast to build |
 | ORM             | SQLAlchemy 2 (async) + asyncpg                        | Mature async SQL toolkit; explicit models |
 | Migrations      | Alembic                                               | Standard SQLAlchemy migration tool |
@@ -20,19 +21,24 @@
 | Tokens          | PyJWT (access) + opaque hashed refresh tokens         | Simple, revocable sessions |
 | Backend tests   | pytest + httpx ASGI client (in-memory SQLite)         | Native to the stack; no server required |
 | Backend quality | Ruff (lint + format), mypy                            | One fast linter/formatter; static type checks |
-| Frontend tests  | Vitest                                                | Light; no DOM needed for API-client tests |
-| Tooling         | pnpm (frontend), venv (backend), Docker (database only) | Reproducible local environment |
+| Tooling         | venv (backend), Docker (database only), Node (scripts) | Reproducible local environment |
 
 ### Rejected for now (deliberately not added)
 
-- **Turborepo / Nx** — root Node scripts orchestrate the two packages fine.
+- **A frontend framework (Next.js / React / Vue / Angular) or a build system** —
+  the UI is plain HTML/CSS/JS served by FastAPI. A framework and a Node build
+  step were removed deliberately; do not reintroduce them.
+- **Tailwind / UI component libraries** — shared styles live in one hand-written
+  stylesheet (`frontend/css/app.css`) with CSS custom-property tokens.
+- **A JS state manager / query library** — the API client and page scripts are
+  small; no cache layer is needed.
+- **Turborepo / Nx** — root Node scripts orchestrate the repo fine.
 - **Microservices / message broker** — no proven need; adds operational cost.
 - **Redis** — introduce only when caching/multi-instance rate limiting requires it.
 - **GraphQL** — REST is sufficient for the resource model.
 - **An async task queue (Celery/ARQ)** — not needed until background jobs exist.
 - **A Node.js backend framework (NestJS/Express)** — the backend is Python +
-  FastAPI; TypeScript is used only on the frontend and the backend must not
-  depend on Node.
+  FastAPI and must not depend on Node.
 
 Adding any of these requires a written justification in the relevant plan.
 
@@ -40,8 +46,8 @@ Adding any of these requires a written justification in the relevant plan.
 
 ```
 /
-├── frontend/     # @fleng/frontend — Next.js app (pnpm workspace member)
-├── backend/      # FastAPI app (Python, own virtualenv)
+├── frontend/     # static HTML/CSS/JS UI (served by FastAPI; no build step)
+├── backend/      # FastAPI app (Python, own virtualenv) + static serving
 │   ├── app/      # application package
 │   ├── alembic/  # migrations
 │   ├── tests/    # pytest
@@ -50,13 +56,13 @@ Adding any of these requires a written justification in the relevant plan.
 ├── docs/ plans/ design/ project-map/
 ├── scripts/      # setup.mjs, dev.mjs (root orchestration)
 ├── package.json          # root scripts (private)
-├── pnpm-workspace.yaml   # frontend workspace + allowed build scripts
 ├── docker-compose.yml    # local PostgreSQL
 └── .env.example
 ```
 
-The backend is **not** a pnpm workspace member: it is a Python project managed by
-pip inside `backend/.venv`. Root Node scripts (`scripts/`) start both dev servers.
+The backend is a Python project managed by pip inside `backend/.venv` and is
+started by the root Node scripts (`scripts/`). It also serves the static
+frontend, so there is a single server to run.
 
 ## 3. Prerequisites
 
@@ -71,22 +77,23 @@ pip inside `backend/.venv`. Root Node scripts (`scripts/`) start both dev server
 git clone <repo>
 cd fleng
 
-pnpm install              # frontend dependencies
 pnpm setup                # create backend/.venv + install Python deps
 
 docker compose up -d db   # or set DATABASE_URL to an existing database
 cp .env.example .env      # optional in development (defaults exist)
 pnpm db:migrate           # apply Alembic migrations
+pnpm db:seed              # load the demo courses and lessons (idempotent)
 
-pnpm dev                  # frontend :3000, backend :3001
+pnpm dev                  # FastAPI on :3001 (serves the API and the frontend)
 ```
 
-Open http://localhost:3000. All API routes live under http://localhost:3001/api/v1.
+Open http://localhost:3001. The UI is served at `/`; all API routes live under
+http://localhost:3001/api/v1.
 
 `pnpm dev` runs `scripts/dev.mjs`, which runs the backend setup automatically if
-`.venv` is missing, then starts uvicorn and Next.js together.
+`.venv` is missing, then starts uvicorn. There is no separate frontend server.
 
-If PostgreSQL is not running, the stack still starts: the frontend shows
+If PostgreSQL is not running, the app still starts: the landing page shows
 `Backend ● Online` with `db down`, unauthenticated requests return `401`, and
 auth/registration requests return `503`.
 
@@ -100,42 +107,40 @@ placeholders. The backend loads `.env` from `backend/` or the repository root.
 | `APP_ENV`             | backend  | `development`         | Runtime mode; `production` requires real secrets and secure cookies |
 | `PORT`                | backend  | `3001`                | API port (used by docs; uvicorn is started with `--port`) |
 | `DATABASE_URL`        | backend  | local compose URL     | PostgreSQL connection (plain `postgresql://` is normalized to asyncpg) |
-| `CORS_ORIGIN`         | backend  | `http://localhost:3000` | Allowed frontend origin(s), comma-separated |
+| `CORS_ORIGIN`         | backend  | `http://localhost:3000` | Extra allowed origin(s), comma-separated (the app's own origin is always trusted) |
+| `FRONTEND_DIR`        | backend  | repository `frontend/` | Override the served static frontend directory |
 | `JWT_ACCESS_SECRET`   | backend  | insecure dev value    | Access-token signing secret; **required in production** |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | backend | `15`         | Access-token lifetime |
 | `REFRESH_TOKEN_EXPIRE_DAYS`   | backend | `30`         | Refresh-token/session lifetime |
 | `COOKIE_SECURE`       | backend  | derived (`production`) | Force the refresh cookie's `Secure` flag |
 | `COOKIE_SAMESITE`     | backend  | `lax`                 | Refresh cookie `SameSite` policy |
-| `NEXT_PUBLIC_API_URL` | frontend | `http://localhost:3001/api/v1` | API base URL (public) |
 
 `DATABASE_URL` is required in production; in development it falls back to the
-docker-compose connection so `pnpm dev` works out of the box. Never expose
-secrets to the frontend — only `NEXT_PUBLIC_*` values ship to the browser. Next.js
-reads its env from `frontend/.env.local` (git-ignored); the app has a working
-default.
+docker-compose connection so `pnpm dev` works out of the box. The frontend has no
+environment configuration of its own: it is served from the same origin as the
+API and calls the relative `/api/v1`. No secrets are exposed to the browser.
 
 ## 6. Scripts
 
 | Script             | Effect |
 | ------------------ | ------ |
 | `pnpm setup`       | Create the backend venv and install dependencies |
-| `pnpm dev`         | Run FastAPI + Next.js together (auto-setup if needed) |
-| `pnpm build`       | Build the frontend |
-| `pnpm lint`        | ESLint (frontend) + Ruff (backend) |
-| `pnpm typecheck`   | `tsc` (frontend) + mypy (backend) |
-| `pnpm test`        | Vitest (frontend) + pytest (backend) |
-| `pnpm format`      | Prettier (frontend) + Ruff format (backend) |
+| `pnpm dev`         | Run FastAPI (serves the API and the static frontend) |
+| `pnpm lint`        | Ruff (backend) |
+| `pnpm typecheck`   | mypy (backend) |
+| `pnpm test`        | pytest (backend) |
+| `pnpm format`      | Prettier (HTML/CSS/JS/Markdown) + Ruff format (backend) |
 | `pnpm db:migrate`  | `alembic upgrade head` |
+| `pnpm db:seed`     | Insert/update the demo catalog (idempotent) |
 | `pnpm db:sql`      | Emit migration SQL offline (no database needed) |
 
 Package-level commands:
 
 ```bash
-pnpm backend:dev        # uvicorn --reload
+pnpm backend:dev        # uvicorn --reload (API + static frontend on :3001)
 pnpm backend:lint       # ruff check
 pnpm backend:typecheck  # mypy
 pnpm backend:test       # pytest
-pnpm --filter @fleng/frontend dev
 ```
 
 ## 7. Database workflow
@@ -150,8 +155,9 @@ pnpm --filter @fleng/frontend dev
 
 ## 8. Code conventions
 
-- Frontend: TypeScript `strict`; Prettier + ESLint; no `fetch` outside
-  `frontend/src/lib/api`; server components by default.
+- Frontend: plain ES-module JavaScript; no `fetch` outside `frontend/js/api.js`;
+  render untrusted text with `textContent` (never `innerHTML`); no tokens in
+  `localStorage`/`sessionStorage`.
 - Backend: Python type hints everywhere; Ruff enforces import order and common
   bugs; mypy checks types. Pydantic models at every boundary; services own rules;
   routers stay thin. JSON is camelCase via `CamelModel`.

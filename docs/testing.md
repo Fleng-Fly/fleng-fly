@@ -1,9 +1,9 @@
 # Testing
 
 > Status: **auth + progress tested**. Backend auth/progress flows run against an
-> in-memory SQLite database; frontend API-client/auth tests run with Vitest.
-> Integration tests against real PostgreSQL and browser e2e tests are planned.
-> Rollout order: `plans/testing-plan.md`.
+> in-memory SQLite database; the static frontend is served and asserted over the
+> ASGI app. Integration tests against real PostgreSQL and browser e2e tests are
+> planned. Rollout order: `plans/testing-plan.md`.
 
 ## 1. Principles
 
@@ -19,7 +19,7 @@
 | -------------- | ----------------------------- | ----- | ------ |
 | Backend unit/API | pytest + httpx ASGI client | routers, services, dependencies | ✅ |
 | Database-backed API | pytest + in-memory SQLite | auth/users/progress flows, constraints | ✅ |
-| Frontend unit  | Vitest                        | API client, auth requests, non-visual logic | ✅ |
+| Static frontend | pytest + httpx ASGI client | pages/assets served, same-origin API access | ✅ |
 | Integration    | pytest + test PostgreSQL      | migrations, SQLAlchemy models/repositories | ⬜ |
 | Browser e2e    | Playwright                    | critical user journeys | ⬜ |
 
@@ -37,13 +37,17 @@ Backend (`backend/tests/`):
   cross-user isolation.
 - `test_users.py` — `/users/me` is authenticated and read-only.
 - `test_progress.py` — `/progress/me` requires auth and starts at zero.
+- `test_catalog.py` — published-only listing, ordering, course detail, lesson
+  theory, missing/unpublished 404s and seed idempotency.
 
-Frontend (`frontend/src`):
+Static frontend (`backend/tests/test_frontend.py`):
 
-- `lib/api/client.spec.ts` — success, HTTP error with backend `code`, network
-  error (`status 0`), invalid response, token attachment, 401 refresh-and-retry,
-  refresh failure, `204` handling.
-- `lib/api/auth.spec.ts` — login/register/logout/progress request shapes.
+- pages (`/`, `/login.html`, `/dashboard.html`, `/courses.html`, `/course.html`,
+  `/lesson.html`, `/settings.html`) and JS assets are served with the expected
+  content types;
+- `/api/v1/health` is reachable alongside the frontend on the same origin;
+- `test_auth.py` additionally asserts same-origin requests are accepted and
+  untrusted origins are rejected (CSRF origin check).
 
 ## 4. Critical flows
 
@@ -58,9 +62,8 @@ cannot read another user's data. Still to cover as features land:
 ## 5. Commands
 
 ```bash
-pnpm test                       # both packages
-pnpm backend:test               # pytest
-pnpm --filter @fleng/frontend test   # vitest
+pnpm test             # pytest (backend; also covers static frontend serving)
+pnpm backend:test     # pytest
 ```
 
 ## 6. CI expectations (when CI exists)

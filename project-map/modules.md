@@ -15,7 +15,7 @@ other modules import that service, not its internals.
 | `auth` | 🟢 | register/login/refresh/logout, credentials, sessions, tokens | db, users |
 | `users` | 🟢 | `GET /users/me` profile read | db, auth |
 | `progress` | 🟢 | `GET /progress/me` aggregate progress | db, auth |
-| `catalog` | 🔴 | courses, lessons | — |
+| `catalog` | 🟢 | read-only courses & lessons (`GET /courses`, `/courses/{slug}`, `/lessons/{slug}`) | db |
 | `content` | 🔴 | grammar/reading/listening materials | catalog |
 | `exercises` | 🔴 | exercise definitions, submissions, grading | catalog |
 | `vocabulary` | 🔴 | words, user vocabulary, flashcards/SRS | users |
@@ -38,6 +38,8 @@ other modules import that service, not its internals.
 | `app/db/session.py` | 🟢 | async engine + `get_db` dependency |
 | `app/api/deps.py` | 🟢 | `get_current_user` (Bearer access JWT) |
 | `app/api/router.py` | 🟢 | aggregate `/api/v1` router |
+| `app/main.py` | 🟢 | app factory + `StaticFiles` mount serving `frontend/` |
+| `frontend/` | 🟢 | static HTML/CSS/JS UI (no build step) |
 
 ### Current dependency direction (allowed)
 
@@ -46,6 +48,7 @@ health   ──► db
 auth     ──► db, users.service
 users    ──► db, auth.security
 progress ──► db, auth (dependency)
+catalog  ──► db
 db       ──► core/config
 api      ──► core/config, auth.security
 ```
@@ -60,22 +63,23 @@ recommendations ──► ai ──► AI layer
 challenges ──► progress/gamification
 ```
 
-## Frontend (Next.js / TypeScript)
+## Frontend (static HTML / CSS / vanilla JavaScript)
 
-| Area | Route | Status | Notes |
-| ---- | ----- | ------ | ----- |
-| Landing | `/` | 🟢 | hero + live backend status |
-| Learn | `/learn` | 🟢 | protected; profile + progress from API |
-| Login | `/login` | 🟢 | real session |
-| Register | `/register` | 🟢 | account creation |
-| Lessons | `/lessons/[id]` | 🔴 | needs catalog + lesson player |
-| Vocabulary | `/vocabulary` | 🔴 | |
-| Practice (hub, speaking, listening, reading, writing, grammar) | `/practice/*`, `/grammar` | 🔴 | |
-| Challenges | `/challenges` | 🔴 | |
-| Progress | `/progress` | 🔴 | |
-| Profile | `/profile/[id]` | 🔴 | |
-| AI Tutor | `/ai-tutor` | 🔴 | |
-| Settings | `/settings` | 🔴 | |
+Served by FastAPI from `frontend/`; no framework and no build step. HTTP goes
+through `frontend/js/api.js`; protected pages use `requireSession()`.
+
+| Area | Page | Status | Notes |
+| ---- | ---- | ------ | ----- |
+| Landing | `/index.html` | 🟢 | hero + live backend status |
+| Login | `/login.html` | 🟢 | real session |
+| Register | `/register.html` | 🟢 | account creation |
+| Dashboard | `/dashboard.html` | 🟢 | protected; profile + progress from the API |
+| Courses | `/courses.html` | 🟢 | protected; catalog list (`GET /courses`) |
+| Course | `/course.html?slug=` | 🟢 | protected; course detail + lesson list |
+| Lesson | `/lesson.html?slug=` | 🟢 | protected; theory (`GET /lessons/{slug}`) |
+| Settings | `/settings.html` | 🟢 | protected; profile display |
+| Lesson player (quiz) | — | 🔴 | needs exercises + grading |
+| Vocabulary / Practice / Challenges / Progress / AI Tutor | — | 🔴 | |
 
 ## AI layer
 

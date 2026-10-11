@@ -10,10 +10,9 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "dev": "node scripts/dev.mjs",
-    "build": "pnpm --filter @fleng/frontend build",
-    "lint": "pnpm --filter @fleng/frontend lint && pnpm backend:lint",
-    "typecheck": "pnpm --filter @fleng/frontend typecheck && pnpm backend:typecheck",
-    "test": "pnpm --filter @fleng/frontend test && pnpm backend:test",
+    "lint": "pnpm backend:lint",
+    "typecheck": "pnpm backend:typecheck",
+    "test": "pnpm backend:test",
     "format": "prettier --write . && pnpm backend:format",
     "format:check": "prettier --check .",
     "backend:dev": "cd backend && .venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port ${PORT:-3001}",
@@ -22,7 +21,8 @@
     "backend:typecheck": "cd backend && .venv/bin/mypy app",
     "backend:test": "cd backend && .venv/bin/pytest",
     "db:migrate": "cd backend && .venv/bin/alembic upgrade head",
-    "db:sql": "cd backend && .venv/bin/alembic upgrade head --sql"
+    "db:sql": "cd backend && .venv/bin/alembic upgrade head --sql",
+    "db:seed": "cd backend && .venv/bin/python -m app.db.seed"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

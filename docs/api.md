@@ -1,9 +1,10 @@
 # API
 
-> Status: **M2 implemented** for `GET /api/v1/health`, the auth endpoints
-> (`/auth/register`, `/login`, `/refresh`, `/logout`), `GET /api/v1/users/me` and
-> `GET /api/v1/progress/me`. All other endpoints below are designed but not
-> built. Base path: `/api/v1`.
+> Status: **M2 + catalog read implemented** for `GET /api/v1/health`, the auth
+> endpoints (`/auth/register`, `/login`, `/refresh`, `/logout`),
+> `GET /api/v1/users/me`, `GET /api/v1/progress/me` and the read-only catalog
+> (`GET /courses`, `GET /courses/{slug}`, `GET /lessons/{slug}`). All other
+> endpoints below are designed but not built. Base path: `/api/v1`.
 
 ## 1. Conventions
 
@@ -99,20 +100,32 @@ never returned in the response body. Errors: `401 INVALID_CREDENTIALS`,
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
-| GET | `/` | List published courses | optional | `?level&cursor&limit` | `200 { items, nextCursor }` |
-| GET | `/:idOrSlug` | Course detail + lessons | optional | — | `200 Course` |
+| GET ✅ | `/` | List published courses (ordered by position) | none | — | `200 CourseSummary[]` |
+| GET ✅ | `/{slug}` | Published course + its published lessons | none | — | `200 CourseDetail` |
 | POST | `/` | Create course | admin | course body | `201 Course` |
-| PATCH | `/:id` | Update course | admin | partial | `200 Course` |
-| DELETE | `/:id` | Archive course | admin | — | `204` |
+| PATCH | `/{slug}` | Update course | admin | partial | `200 Course` |
+| DELETE | `/{slug}` | Archive course | admin | — | `204` |
+
+`CourseSummary` = `{ id, slug, title, description, level, lessonCount }`.
+`CourseDetail` = `{ id, slug, title, description, level, lessons: LessonSummary[] }`
+where `LessonSummary` = `{ id, slug, title, summary, position, estimatedMinutes }`.
+`level` is a CEFR band (`A1`–`C2`). Only `is_published` courses and lessons are
+returned; missing and unpublished resources both return `404 NOT_FOUND`.
+Pagination is deliberately deferred for the small MVP catalog.
 
 ### 2.4 Lessons — `/api/v1/lessons`
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
-| GET | `/:idOrSlug` | Lesson + exercises | bearer | — | `200 Lesson` |
-| POST | `/:id/start` | Mark in progress | bearer | — | `200 LessonProgress` |
-| POST | `/:id/complete` | Submit completion | bearer | `{ answers? }` | `200 { progress, xp, streak, newAchievements }` |
-| GET | `/:id/progress` | Progress for lesson | bearer | — | `200 LessonProgress` |
+| GET ✅ | `/{slug}` | Published lesson with theory + course context | none | — | `200 LessonDetail` |
+| POST | `/{slug}/start` | Mark in progress | bearer | — | `200 LessonProgress` |
+| POST | `/{slug}/complete` | Submit completion | bearer | `{ answers? }` | `200 { progress, xp, streak, newAchievements }` |
+| GET | `/{slug}/progress` | Progress for lesson | bearer | — | `200 LessonProgress` |
+
+`LessonDetail` = `{ id, slug, title, summary, theory, position, estimatedMinutes,
+courseSlug, courseTitle, level }`. `theory` is plain text with light markup
+(see `docs/database.md`). Lesson slugs are globally unique, so no course context
+is needed in the path.
 
 ### 2.5 Exercises — `/api/v1/exercises`
 

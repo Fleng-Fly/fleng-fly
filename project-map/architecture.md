@@ -1,37 +1,52 @@
 # Project Map — Architecture
 
-> Status: M2/M3 implemented. Canonical detail: `docs/architecture.md`.
+> Status: M2/M3 implemented (Phase A: static frontend served by FastAPI).
+> Canonical detail: `docs/architecture.md`.
 
 ## System diagram (current)
 
 ```
 User
- ↓
-Frontend (Next.js, TypeScript) 🟢
-  • routes: /, /learn, /login, /register
-  • API client: src/lib/api/client.ts (in-memory access token, 401 refresh)
-  • session: src/lib/auth/auth-context.tsx
-  • state: TanStack Query
- ↓  HTTPS · REST /api/v1   (default http://localhost:3001/api/v1)
-FastAPI (Python) 🟢
-  • main.py: CORS, error handlers, /api/v1 router
+ ↓  HTTPS
+FastAPI (Python) 🟢  — one deployable on :3001
+  • serves the static frontend at /  🟢  (frontend/: HTML, CSS, vanilla JS)
+  • serves REST /api/v1              🟢
+  • main.py: CORS, error handlers, /api/v1 router, StaticFiles mount 🟢
   • modules: health 🟢, auth 🟢, users 🟢, progress 🟢
   • infrastructure: core (config, errors, schemas) 🟢, db (models, session) 🟢,
     api (router, deps) 🟢
   • planned modules (all 🔴): catalog, content, exercises, vocabulary,
              gamification, challenges, recommendations, ai,
              notifications, subscriptions, analytics
- ↓  SQLAlchemy 2 (async) → asyncpg
+  ↓  SQLAlchemy 2 (async) → asyncpg
 PostgreSQL 🟢 (models + 2 Alembic migrations committed; runtime needs a running instance)
 
 Backend ↔ AI  (Python AI layer) 🔴  — not built; no AI module or dependency yet
 ```
 
+## Frontend (static)
+
+```
+frontend/ (no build step)
+  • pages:  index.html, login.html, register.html, dashboard.html, settings.html
+  • styles: css/app.css (design tokens from design/)
+  • scripts (ES modules):
+      js/api.js       — fetch wrapper, in-memory access token, 401 refresh
+      js/errors.js    — user-facing error messages
+      js/session.js   — loadSession / requireSession
+      js/layout.js    — shared header, backend-status badge, DOM helper
+      js/{home,login,register,dashboard,settings}.js
+```
+
+Served by `app.main` via `StaticFiles(html=True)` mounted at `/` after the API
+router, so `/api/v1` and `/docs` take precedence. The browser talks only to the
+relative `/api/v1`; there is no frontend environment configuration.
+
 ## Layer boundaries
 
 | From → To | Allowed? | Notes |
 | --------- | -------- | ----- |
-| Frontend → Backend API | ✅ | HTTP/JSON only, via `src/lib/api` |
+| Browser (static pages) → Backend API | ✅ | HTTP/JSON only, via `frontend/js/api.js` |
 | Frontend → Database | ❌ | Never |
 | Frontend → AI provider | ❌ | Keys are server-side |
 | Backend → Database | ✅ | Only via SQLAlchemy |
@@ -43,14 +58,15 @@ Backend ↔ AI  (Python AI layer) 🔴  — not built; no AI module or dependenc
 ## Trust boundaries
 
 - Browser is untrusted: validate everything at the API edge (Pydantic).
+- The static frontend renders server/user text with `textContent` (never
+  `innerHTML`).
 - AI provider output will be untrusted: validate against a schema before use.
 - The database is trusted but access is least-privilege.
 
 ## Deployment units (target)
 
-1. `frontend` — Next.js app.
-2. `backend` — FastAPI app.
-3. AI layer — Python package inside the backend (not deployed separately).
+1. `backend` — FastAPI app serving the API **and** the static frontend.
+2. AI layer — Python package inside the backend (not deployed separately).
 
 ## Evolution rules
 

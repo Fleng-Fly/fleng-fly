@@ -51,10 +51,20 @@ def _delete_refresh_cookie(response: Response, settings: Settings) -> None:
 
 
 def _assert_trusted_origin(request: Request, settings: Settings) -> None:
-    """CSRF defence for cookie-backed endpoints: reject untrusted origins."""
+    """CSRF defence for cookie-backed endpoints: reject untrusted origins.
+
+    The static frontend is served by this same app, so same-origin requests are
+    trusted in addition to the explicitly configured CORS origins. Browsers send
+    an `Origin` header on same-origin POSTs, so rejecting it would break login,
+    refresh and logout. Cross-site origins remain rejected.
+    """
     origin = request.headers.get("origin")
-    if origin is not None and origin not in settings.cors_origins:
-        raise ApiError(403, "FORBIDDEN", "Origin not allowed")
+    if origin is None:
+        return
+    same_origin = f"{request.url.scheme}://{request.url.netloc}"
+    if origin == same_origin or origin in settings.cors_origins:
+        return
+    raise ApiError(403, "FORBIDDEN", "Origin not allowed")
 
 
 def _read_refresh_cookie(request: Request, settings: Settings) -> str:

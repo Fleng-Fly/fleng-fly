@@ -1,8 +1,9 @@
 # Database
 
-> Status: **M2 implemented** for `User`, `Profile`, `RefreshToken` and `Progress`.
-> Other entities below are designed, not built. Engine: PostgreSQL. Access:
-> SQLAlchemy 2 (async) from the backend only; migrations via Alembic.
+> Status: **M2 implemented** for `User`, `Profile`, `RefreshToken` and `Progress`,
+> plus the read-only catalog (`Course`, `Lesson`). Other entities below are
+> designed, not built. Engine: PostgreSQL. Access: SQLAlchemy 2 (async) from the
+> backend only; migrations via Alembic.
 
 ## 0. Implemented
 
@@ -21,10 +22,32 @@ in `backend/app/db/models.py`):
 - **`Progress`** (`progress`) — `id` (UUID PK), `user_id` (unique FK → `users`,
   `ON DELETE CASCADE`), `lessons_started`, `lessons_completed`, `study_minutes`,
   `last_activity_at`, `created_at`, `updated_at`.
+- **`Course`** (`courses`) — `id` (UUID PK), `slug` (unique), `title`,
+  `description`, `level` (CEFR `A1`–`C2`, check constraint), `position`,
+  `is_published` (default false), `created_at`, `updated_at`.
+- **`Lesson`** (`lessons`) — `id` (UUID PK), `course_id` (FK → `courses`,
+  `ON DELETE CASCADE`, indexed), `slug` (unique, global), `title`, `summary`,
+  `theory` (text), `position`, `estimated_minutes`, `is_published` (default
+  false), `created_at`, `updated_at`.
 - Relations: `User 1──1 Profile`, `User 1──1 Progress`,
-  `User 1──* RefreshToken` (SQLAlchemy relationships, cascade delete).
-- Migrations: `20261004_1200_init` (users, profiles) and
-  `20261005_1000_auth_progress` (refresh_tokens, progress).
+  `User 1──* RefreshToken`, `Course 1──* Lesson` (cascade delete).
+- Migrations: `20261004_1200_init` (users, profiles),
+  `20261005_1000_auth_progress` (refresh_tokens, progress) and
+  `20261011_1200_catalog` (courses, lessons).
+
+### Catalog content notes
+
+- **Lesson slugs are globally unique.** `GET /lessons/{slug}` has no course
+  context, so a per-course-unique slug would be ambiguous. The stricter global
+  constraint is intentional.
+- **`theory` markup.** Lesson theory is plain text. Blocks are separated by blank
+  lines; a block beginning with `## ` is a heading; consecutive lines beginning
+  with `- ` are a list; anything else is a paragraph. The frontend renders this
+  into DOM nodes with `textContent`. There is no HTML in stored content.
+- **Publication.** Only `is_published` courses and `is_published` lessons of
+  published courses are returned by the API; drafts are invisible (`404`).
+- **Seeding.** `backend/app/db/seed.py` (`pnpm db:seed`) is idempotent: courses
+  and lessons are matched by `slug` and updated in place.
 
 `password_hash` stores argon2id hashes only; plaintext passwords are never
 persisted. Refresh tokens are stored as SHA-256 hashes; the raw token only ever
@@ -56,8 +79,8 @@ lives in the client's HttpOnly cookie.
 
 | Entity | Owner | Key fields | Status |
 | ------ | ----- | ---------- | ------ |
-| `Course` | catalog | `id`, `slug` (unique), `title`, `description`, `level` (`A1`–`C2`), `position`, `isPublished` | 🔴 |
-| `Lesson` | catalog | `id`, `courseId` FK, `slug`, `title`, `summary`, `type`, `position`, `estimatedMinutes`, `isPublished` | 🔴 |
+| `Course` | catalog | `id`, `slug` (unique), `title`, `description`, `level` (`A1`–`C2`), `position`, `isPublished` | 🟢 implemented |
+| `Lesson` | catalog | `id`, `courseId` FK, `slug` (unique, global), `title`, `summary`, `theory`, `position`, `estimatedMinutes`, `isPublished` | 🟢 implemented |
 | `Exercise` | exercises | `id`, `lessonId` FK, `type`, `prompt`, `payload`, `answer`, `position`, `points` | 🔴 |
 | `ExerciseSubmission` | exercises | `id`, `userId` FK, `exerciseId` FK, `answer`, `isCorrect`, `score`, `feedback`, `submittedAt` | 🔴 |
 
@@ -95,6 +118,7 @@ lives in the client's HttpOnly cookie.
 User 1──1 Profile                 (implemented)
 User 1──1 Progress                (implemented)
 User 1──* RefreshToken            (implemented)
+Course 1──* Lesson                (implemented)
 User 1──* ExerciseSubmission *──1 Exercise *──1 Lesson *──1 Course
 User 1──* UserVocabulary *──1 VocabularyWord
 User 1──* FlashcardReview *──1 UserVocabulary
@@ -120,10 +144,10 @@ the per-lesson table can be added later without migrating `progress`.
 
 Implemented: unique `users.email`, unique `profiles.user_id`, unique
 `refresh_tokens.token_hash`, index `refresh_tokens.user_id`, unique
-`progress.user_id`.
+`progress.user_id`, unique `courses.slug`, unique `lessons.slug`, index
+`lessons.course_id`.
 
-Planned: `refresh_tokens.token_hash`; `courses.slug`; unique `(course_id, slug)`
-on lessons; `user_vocabulary` unique `(user_id, word_id)` and `(user_id, due_at)`;
+Planned: `user_vocabulary` unique `(user_id, word_id)` and `(user_id, due_at)`;
 `lesson_progress` unique `(user_id, lesson_id)`; `xp_events (user_id, created_at)`;
 `user_achievements` unique `(user_id, achievement_id)`;
 `challenge_participants` unique `(challenge_id, user_id)`; `ai_messages
@@ -151,6 +175,10 @@ on lessons; `user_vocabulary` unique `(user_id, word_id)` and `(user_id, due_at)
   tokens through `replaced_by_id`, and replay of a revoked token revokes the set.
 - **Profile read**: `GET /users/me` loads the authenticated user with
   `selectinload(profile)` and returns a camelCase Pydantic response.
+- **Catalog read**: `GET /courses` lists published courses with a published
+  lesson count (one grouped query); `GET /courses/{slug}` and `GET /lessons/{slug}`
+  scope every query to `is_published` rows, so drafts and unpublished parents are
+  never returned. Seed content comes from `app/db/seed.py`.
 - **Lesson completion** (planned): submissions, then `LessonProgress`, `XpEvent`,
   `Streak`, achievements — ideally in one transaction.
 

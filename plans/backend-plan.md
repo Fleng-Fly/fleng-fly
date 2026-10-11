@@ -31,12 +31,14 @@
 
 ## Phase 3 — Catalog & learning
 
-- [ ] Models: `Course`, `Lesson`, `Exercise`, `ExerciseSubmission`,
-      `LessonProgress`.
-- [ ] `catalog` module: list/detail courses and lessons (public read, admin
-      write).
+- [x] Models `Course`, `Lesson` + migration `20261011_1200_catalog`.
+- [x] Idempotent seed (`app/db/seed.py`, `pnpm db:seed`).
+- [x] `catalog` module: list/detail courses and lesson read (published-only,
+      public read). Admin write and pagination deferred.
+- [x] Tests: catalog listing/publication/ordering/404 behaviour.
+- [ ] Models `Exercise`, `ExerciseSubmission`, `LessonProgress`.
 - [ ] `exercises` module: exercise detail (answer hidden), submit + grade per
-      type (start with `MULTIPLE_CHOICE`, `FILL_BLANK`, `MATCH`).
+      type (start with `MULTIPLE_CHOICE`, `FILL_BLANK`).
 - [ ] `progress` module: lesson start/complete, course progress, summary.
 - [ ] Tests for grading, ownership and progress transitions.
 

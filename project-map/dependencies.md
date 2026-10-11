@@ -16,11 +16,9 @@
 ## Components
 
 ```
-frontend/ (@fleng/frontend — pnpm workspace)
-  (external) next, react, react-dom, @tanstack/react-query, framer-motion,
-             tailwindcss, @tailwindcss/postcss
-  (dev)      typescript, eslint, eslint-config-next, @eslint/eslintrc,
-             vitest, @types/*
+frontend/ (static HTML/CSS/JS)
+  (runtime)  none — no framework, no build step, no dependencies
+  (dev)      none — no linter/bundler/test runner
 
 backend/ (fleng-backend — pip / venv)
   (runtime)  fastapi, uvicorn[standard], sqlalchemy[asyncio], asyncpg,
@@ -56,15 +54,9 @@ test database), `ruff` (lint + format), `mypy` (types).
 
 ### Frontend
 
-| Package | Purpose |
-| ------- | ------- |
-| next, react, react-dom | App framework + UI |
-| tailwindcss, @tailwindcss/postcss | Styling / design tokens |
-| @tanstack/react-query | Server-state cache |
-| framer-motion | Restrained animation |
-
-Dev: `typescript`, `eslint`, `eslint-config-next`, `@eslint/eslintrc`, `vitest`,
-`@types/node`, `@types/react`, `@types/react-dom`.
+None. The frontend is plain HTML5 + CSS3 + vanilla JavaScript (browser ES
+modules and `fetch`), served statically by the backend. There is no bundler,
+linter, test runner or runtime dependency.
 
 ### Root
 
@@ -87,7 +79,9 @@ built-ins (`child_process`, `fs`, `path`, `url`) — no concurrency dependency.
 | Redis | Introduce only when caching/multi-instance rate limiting requires it |
 | Celery / ARQ | No background jobs yet |
 | Turborepo / Nx | Root Node scripts orchestrate the two packages |
-| NestJS / Express / any Node.js backend framework | Backend is Python + FastAPI; TypeScript lives only in the frontend |
+| NestJS / Express / any Node.js backend framework | Backend is Python + FastAPI |
+| Next.js / React / Vue / Angular / Tailwind / TanStack Query / Framer Motion | Frontend is plain HTML/CSS/JS served statically; no framework or build step |
+| TypeScript anywhere | Not used: frontend is vanilla JS, backend is Python |
 | An ORM other than SQLAlchemy (backend is Python) | SQLAlchemy 2 async is the chosen toolkit |
 
 ## Adding a dependency checklist

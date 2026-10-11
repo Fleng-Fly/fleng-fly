@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Settings — Fleng</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <header id="site-header" class="site-header"></header>
+
+    <main class="container page">
+      <div class="stack" style="max-width: 40rem; margin: 0 auto">
+        <header>
+          <h1>Settings</h1>
+          <p class="muted text-sm">Your profile information, as stored on the server.</p>
+        </header>
+
+        <section class="card">
+          <h2 class="section-title">Profile</h2>
+          <dl class="definition">
+            <dt>Display name</dt>
+            <dd id="user-name">—</dd>
+            <dt>Email</dt>
+            <dd id="user-email">—</dd>
+            <dt>Level</dt>
+            <dd id="user-level">—</dd>
+            <dt>XP</dt>
+            <dd id="user-xp">—</dd>
+          </dl>
+          <p class="text-sm muted" style="margin: 1rem 0 0">
+            Editing your profile is not available yet; it arrives with the profile
+            settings milestone.
+          </p>
+        </section>
+
+        <div class="actions">
+          <a class="btn btn-ghost" href="/dashboard.html">Back to dashboard</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">Fleng — learn English, every day.</div>
+    </footer>
+
+    <script type="module" src="/js/settings.js"></script>
+  </body>
+</html>

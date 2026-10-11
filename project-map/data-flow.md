@@ -6,12 +6,12 @@
 ## Flow 1 — Frontend loads backend status (implemented)
 
 ```
-Browser mounts BackendStatus (client component)
-  → TanStack Query ['health'] → getHealth() → apiFetch('/health')
-  → GET http://localhost:3001/api/v1/health
+Browser loads index.html → js/home.js
+  → mountBackendStatus() → getHealth() → apiFetch('/health')
+  → GET /api/v1/health  (same origin as the page)
   → FastAPI router → get_health(db) → `SELECT 1` in try/except
   → 200 { status, service, timestamp, database: up|down }
-  → badge shows "Backend ● Online" (with db state) or "● Offline" on error
+  → badge shows "Backend ● Online · db up|down" or "● Offline" on error
 ```
 
 Refetches every 15s. When the backend is unreachable, the client throws
@@ -20,12 +20,12 @@ Refetches every 15s. When the backend is unreachable, the client throws
 ## Flow 2 — Authentication & session (implemented)
 
 ```
-Register/Login form
-  → AuthProvider.login() → apiFetch('/auth/login')
+Register/Login form (register.html / login.html + js/*.js)
+  → login() → apiFetch('/auth/login')
   → POST /api/v1/auth/login {email,password}
   → auth service: argon2id verify → access JWT + opaque refresh token
   → refresh token stored SHA-256-hashed; raw value set as HttpOnly cookie
-  → 200 { accessToken, user } → token kept in memory, user in AuthProvider
+  → 200 { accessToken, user } → access token kept in memory (js/api.js)
 
 Reload / expired access token
   → GET /users/me returns 401
@@ -39,8 +39,10 @@ Reuse of a revoked refresh token
 ## Flow 3 — Authenticated profile & progress (implemented)
 
 ```
-/learn mounts → AuthProvider resolved, access token in memory
-  → GET /api/v1/users/me   (Authorization: Bearer)
+/dashboard.html loads → js/dashboard.js main()
+  → requireSession(): js/session.js → GET /api/v1/users/me (Authorization: Bearer)
+      → on 401, api.js refreshes once from the HttpOnly cookie and retries
+      → no session → redirect to /login.html
   → get_current_user verifies the JWT → loads User + Profile
   → 200 { id, email, displayName, level, xp, createdAt }
   → GET /api/v1/progress/me
@@ -53,7 +55,25 @@ Reuse of a revoked refresh token
 Identity always comes from the access token subject; a user can only ever read
 their own profile and progress.
 
-## Flow 4 — Lesson completion (planned)
+## Flow 4 — Catalog read (implemented)
+
+```
+courses.html → js/courses.js → listCourses() → GET /api/v1/courses
+  → catalog service: published courses + published-lesson counts, ordered → 200
+  → cards (title, CEFR level, description, lesson count)
+
+course.html?slug=... → getCourse(slug) → GET /api/v1/courses/{slug}
+  → published course + published lessons (ordered) → 200 CourseDetail
+  → missing/unpublished → 404 NOT_FOUND → friendly "not found" state
+
+lesson.html?slug=... → getLesson(slug) → GET /api/v1/lessons/{slug}
+  → published lesson of a published course → 200 LessonDetail (theory)
+  → theory rendered with textContent (headings / lists / paragraphs only)
+```
+
+Content is read-only and seeded by `backend/app/db/seed.py`.
+
+## Flow 5 — Lesson completion (planned)
 
 ```
 POST /lessons/:id/complete
@@ -63,7 +83,7 @@ POST /lessons/:id/complete
   → analytics records event (best-effort)
 ```
 
-## Flow 5 — AI tutor turn (planned)
+## Flow 6 — AI tutor turn (planned)
 
 ```
 POST /ai/conversations/:id/messages
@@ -79,6 +99,6 @@ POST /ai/conversations/:id/messages
 | Credentials, sessions/tokens | auth 🟢 | auth 🟢 |
 | User / Profile | auth 🟢 (registration) | users 🟢 |
 | Progress (aggregate) | server-side / progress 🟢 | progress 🟢 |
-| Catalog/content | catalog 🔴 | all users later |
+| Catalog/content (courses, lessons) | catalog 🟢 (seed) | logged-in users 🟢 |
 | XP/vocabulary | gamification/vocabulary 🔴 | dashboards later |
 | AI conversations | ai 🔴 | ai 🔴 |

@@ -5,14 +5,14 @@
 ## Stage 0 — Foundation ✅
 
 - [x] Define the testing strategy and critical flows.
-- [x] pytest (backend) and Vitest (frontend) configured.
+- [x] pytest (backend) configured; the static frontend is tested via ASGI.
 
 ## Stage 1 — Bootstrap ✅
 
 - [x] Backend API tests for `/health` and `/users/me` (dependency overrides; no
       database required).
-- [x] Frontend unit tests for the API client.
-- [x] `pnpm test` runs both suites.
+- [x] Static frontend serving tests (pages/assets served, API on the same origin).
+- [x] `pnpm test` runs the suite.
 
 ## Stage 2 — Database integration ⬜
 
@@ -36,8 +36,10 @@
 - [ ] Integration: lesson completion updates progress/XP/streak.
 - [ ] API: course/lesson/exercise flows.
 
-## Stage 5 — Frontend e2e ⬜
+## Stage 5 — Browser e2e ⬜
 
+- [x] Static frontend served and asserted over the ASGI app
+      (`backend/tests/test_frontend.py`); same-origin CSRF origin behaviour.
 - [ ] Playwright: auth, lesson completion, vocabulary review, AI tutor turn.
 - [ ] Accessibility checks (axe) on key screens.
 

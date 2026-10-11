@@ -1,4 +1,4 @@
-// Runs the FastAPI backend and the Next.js frontend together.
+// Runs the FastAPI backend, which also serves the static frontend.
 // Ensures the backend virtualenv exists first. Dependency-free by design.
 import { execFileSync, spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -47,5 +47,6 @@ process.on('SIGTERM', shutdown);
 
 const port = process.env.PORT ?? '3001';
 
+// One server: FastAPI serves both /api/v1 and the static frontend on the same
+// port, so the HttpOnly refresh cookie stays first-party.
 start('backend', venvUvicorn, ['app.main:app', '--reload', '--host', '0.0.0.0', '--port', port], backendDir);
-start('frontend', 'pnpm', ['--filter', '@fleng/frontend', 'dev'], root);

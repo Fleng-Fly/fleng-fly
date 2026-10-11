@@ -1,8 +1,0 @@
-packages:
-  - frontend
-
-# Packages allowed to run install/build scripts. Kept to the minimum required
-# by the current stack (Next's resolver and esbuild's binary check).
-allowBuilds:
-  esbuild: true
-  unrs-resolver: true

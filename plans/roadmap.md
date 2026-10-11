@@ -50,10 +50,30 @@ progress are persisted with an Alembic migration. The dev auth stub is removed.
 **Deferred within this stage:** profile editing (`PATCH /users/me`), email
 verification, password reset and rate limiting (see `plans/security-plan.md`).
 
-### Stage 2 — Learning MVP (next)
+### Stage 1c — Static frontend served by FastAPI ✅ completed
+
+The Next.js/React/TypeScript frontend was replaced by plain **HTML/CSS/vanilla
+JavaScript** served from the backend (`frontend/`, no build step). One server
+(FastAPI) serves both `/api/v1` and the UI on the same origin; the CSRF origin
+check accepts same-origin requests. Landing, register, login, logout, a
+protected dashboard (profile + progress) and a profile/settings view are wired
+to the existing auth/progress API.
+
+**Exit criteria met:** the app runs from one `uvicorn` process; the auth journey
+works; static-serving, same-origin and existing auth/progress tests pass.
+
+### Stage 2 — Learning MVP (in progress)
 
 Courses, lessons, exercises, submissions, grading; lesson start/complete;
 progress recording.
+
+- ✅ `Course`/`Lesson` models + migration `20261011_1200_catalog`; idempotent seed.
+- ✅ Read-only catalog API (`GET /courses`, `/courses/{slug}`, `/lessons/{slug}`),
+  published-only, with tests.
+- ✅ Frontend catalog, course detail and lesson-theory pages.
+- ⬜ Exercises, submissions and server-side grading.
+- ⬜ Lesson start/complete and progress recording.
+- ⬜ Per-course progress.
 
 **Exit criteria:** the lesson flow works from the API with tests; progress is
 queryable per course.
@@ -68,8 +88,8 @@ XP/streak/achievements idempotently.
 
 ### Stage 4 — Frontend MVP
 
-Next.js app shell, auth screens, dashboard, learn/lessons, vocabulary, progress,
-AI tutor; design system implemented; critical Playwright flows.
+Static pages for dashboard, learn/lessons, quizzes, vocabulary, progress and the
+AI tutor; shared layout and design tokens; critical Playwright flows.
 
 **Exit criteria:** the MVP definition above is usable in a browser on desktop
 and mobile.

@@ -41,22 +41,28 @@ Response: `{ status: "ok", service: "backend", timestamp, database: "up" | "down
 
 ## Courses
 
-| Method | Path | Auth |
-| ------ | ---- | ---- |
-| GET | `/courses` | optional |
-| GET | `/courses/:idOrSlug` | optional |
-| POST | `/courses` | admin |
-| PATCH | `/courses/:id` | admin |
-| DELETE | `/courses/:id` | admin |
+| Method | Path | Auth | Status |
+| ------ | ---- | ---- | ------ |
+| GET | `/courses` | public | ✅ |
+| GET | `/courses/{slug}` | public | ✅ |
+| POST | `/courses` | admin | ⬜ |
+| PATCH | `/courses/{slug}` | admin | ⬜ |
+| DELETE | `/courses/{slug}` | admin | ⬜ |
+
+List returns `CourseSummary[]` ordered by position; detail returns the course and
+its published lessons. Drafts and unpublished lessons are invisible (`404`).
 
 ## Lessons
 
-| Method | Path | Auth |
-| ------ | ---- | ---- |
-| GET | `/lessons/:idOrSlug` | bearer |
-| POST | `/lessons/:id/start` | bearer |
-| POST | `/lessons/:id/complete` | bearer |
-| GET | `/lessons/:id/progress` | bearer |
+| Method | Path | Auth | Status |
+| ------ | ---- | ---- | ------ |
+| GET | `/lessons/{slug}` | public | ✅ |
+| POST | `/lessons/{slug}/start` | bearer | ⬜ |
+| POST | `/lessons/{slug}/complete` | bearer | ⬜ |
+| GET | `/lessons/{slug}/progress` | bearer | ⬜ |
+
+`GET /lessons/{slug}` returns theory + course context. Lesson slugs are globally
+unique.
 
 ## Exercises
 

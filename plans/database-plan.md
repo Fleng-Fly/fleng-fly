@@ -24,11 +24,14 @@
       or email verification is needed.
 - [ ] Seed: one admin user for local development (dev only, not production).
 
-## Stage 2 — Learning ⬜
+## Stage 2 — Learning 🚧
 
-- [ ] `Course`, `Lesson`, `Exercise`, `ExerciseSubmission`, `LessonProgress`.
-- [ ] Unique `(course_id, slug)`, `(user_id, lesson_id)`; ordered indexes.
-- [ ] Seed: a small sample course with mixed exercise types.
+- [x] `Course`, `Lesson` (migration `20261011_1200_catalog`).
+- [x] Unique `courses.slug`, globally unique `lessons.slug`, index
+      `lessons.course_id`, CEFR `level` check constraint.
+- [x] Seed: two sample courses (A1, B1) with three lessons each.
+- [ ] `Exercise`, `ExerciseSubmission`, `LessonProgress`.
+- [ ] Unique `(user_id, lesson_id)`; ordered indexes for exercises.
 
 ## Stage 3 — Vocabulary & gamification ⬜
 

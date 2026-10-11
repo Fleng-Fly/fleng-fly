@@ -22,7 +22,7 @@ when a module, flow, API or dependency changes, update the relevant file here
 
 Implemented and verified:
 
-- pnpm workspace (frontend) + Python virtualenv (backend) + Docker-compose PostgreSQL.
+- Python virtualenv (backend) + Docker-compose PostgreSQL; root Node scripts.
 - FastAPI app at `/api/v1` with CORS, Pydantic settings, error handlers.
 - SQLAlchemy async `User`, `Profile`, `RefreshToken`, `Progress` models with two
   Alembic migrations.
@@ -31,11 +31,17 @@ Implemented and verified:
   argon2id, rotating hashed refresh tokens and reuse detection.
 - `GET /api/v1/users/me` and `GET /api/v1/progress/me` (Bearer-protected,
   read-only).
-- Next.js app (`/`, `/learn`, `/login`, `/register`) with a typed API client,
-  in-memory access token, automatic refresh, and a live backend-status indicator.
+- Read-only catalog: `GET /api/v1/courses`, `/courses/{slug}` and `/lessons/{slug}`
+  (published content only), with `Course`/`Lesson` models, migration
+  `20261011_1200_catalog` and an idempotent seed (`app/db/seed.py`).
+- A static HTML/CSS/JS frontend (`frontend/`) served by the same FastAPI app:
+  `/index.html`, `/login.html`, `/register.html`, `/dashboard.html`,
+  `/courses.html`, `/course.html`, `/lesson.html`, `/settings.html`. In-memory
+  access token, automatic refresh, `requireSession` redirect guard, and a live
+  backend-status indicator.
 
-Not built: catalog/lessons, vocabulary, gamification, AI, notifications,
-analytics, deployments.
+Not built: exercises/grading, lesson completion, vocabulary, gamification, AI,
+notifications, analytics, deployments.
 
 > Environment note: migrations were verified offline (`pnpm db:sql`); applying
 > them to a real PostgreSQL and running DB integration tests remain tasks.
