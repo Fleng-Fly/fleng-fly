@@ -50,3 +50,6 @@ cards, responsive layouts. Tokens live in `frontend/css/app.css` and align with
 - Keep the API client the single HTTP chokepoint (`js/api.js`).
 - Render untrusted text with `textContent`, never `innerHTML`.
 - Avoid reintroducing a framework or build step; keep pages small.
+
+
+- [x] Integrate `CSS.star4life` gradients and auth cards into the existing API-connected static pages, with valid CSS and responsive sizing.

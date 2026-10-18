@@ -85,3 +85,6 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 
 Not built (Python, inside the backend). Planned: provider protocol, `mock`
 provider, `registry`, `prompts/*`, `safety`. See `plans/ai-plan.md`.
+
+
+`frontend/css/star4life.css` adapts the `CSS.star4life/CSS/` visual reference for the static pages; FastAPI serves it at `/css/star4life.css` alongside `/api/v1`.
