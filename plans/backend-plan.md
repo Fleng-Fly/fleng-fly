@@ -36,11 +36,14 @@
 - [x] `catalog` module: list/detail courses and lesson read (published-only,
       public read). Admin write and pagination deferred.
 - [x] Tests: catalog listing/publication/ordering/404 behaviour.
-- [ ] Models `Exercise`, `ExerciseSubmission`, `LessonProgress`.
-- [ ] `exercises` module: exercise detail (answer hidden), submit + grade per
-      type (start with `MULTIPLE_CHOICE`, `FILL_BLANK`).
-- [ ] `progress` module: lesson start/complete, course progress, summary.
-- [ ] Tests for grading, ownership and progress transitions.
+- [x] Models `Exercise`, `ExerciseSubmission`, `LessonProgress` + migration
+      `20261011_1400_exercises`; exercise seed content.
+- [x] `exercises` module: public exercises (answer hidden), submit + grade for
+      `single_choice` and `text`; explicit `self_check` (no server grading).
+- [x] `exercises`/`progress`: lesson start/submit/progress, once-only XP,
+      derived exercise and per-course counters on `/progress/me`.
+- [x] Tests for grading, answer secrecy, ownership, completion rules and
+      idempotency.
 
 ## Phase 4 — Vocabulary & gamification
 
@@ -72,3 +75,12 @@
 - SRS correctness — add focused unit tests before tuning parameters.
 - Rate-limit storage — in-process is fine for dev; revisit with Redis only when
   multi-instance rate limiting is required.
+
+## Implementation checkpoint — 2026-10-18
+
+Backend vocabulary/review workflow, streak/achievement logic, profile updates,
+password reset and OpenRouter AI APIs are now implemented. These use simpler
+VocabularyItem/Review and daily-activity tables rather than the older proposed
+schema names above. Advanced SRS/dictionary search/XP ledger remain future scope.
+Tests/static checks pass; live PostgreSQL and OpenRouter integration remain
+blocked. See ai-plan.md for completed/blocked/next work. No automatic commits.

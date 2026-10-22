@@ -1,63 +1,28 @@
-# AI Plan
+# AI and backend completion plan
 
-> Aligns with `plans/roadmap.md` (AI milestone). Durable design: `docs/ai.md`.
-> Guardrails: `docs/security.md`. Legend: ⬜ next · 🔴 planned.
+Status at 2026-10-18:
 
-## Principles
+- **Completed:** architectural/Git audit; preserve incoming changes and frontend design.
+- **Completed:** compose loopback binding, native PostgreSQL instructions, connectivity
+  helper, one valid migration chain and offline PostgreSQL SQL compilation.
+- **Completed:** vocabulary/review history, daily streak policy, deterministic
+  achievements, authenticated profile PATCH, secure SMTP-capable password reset.
+- **Completed:** async OpenRouter adapter, server configuration/limits, tutor,
+  conversations/history/delete, grammar explanation, validated practice generation.
+- **Completed:** deterministic recommendations, optional incremental SSE,
+  persistent rate/budget/concurrency reservations, bounded inputs/history/output.
+- **Completed:** mocked provider and ORM/API tests, Ruff/mypy, independent self-review,
+  documentation and project map updates.
+- **Blocked by infrastructure:** real PostgreSQL migration/registration/auth/XP/
+  persistence verification. Docker/PostgreSQL tools absent, localhost:5432 refuses
+  IPv4/IPv6 connections. No runtime SQLite substitution.
+- **Blocked by infrastructure/credentials:** manual paid OpenRouter integration
+  with a real configured model/key and database. Tests never use paid requests.
+- **Next:** start PostgreSQL using docs/development.md, migrate and seed development
+  catalog, run TEST_DATABASE_URL suite, configure SMTP inbox and OpenRouter,
+  complete the documented manual integration checks.
+- **Next:** wire existing frontend pages to new APIs in a separate UI task; advanced
+  SRS, full mistake-attempt history, speaking and subscriptions remain future work.
+- **Commits:** intentionally not created; user explicitly prohibited automatic commits.
 
-- Provider-agnostic, but only as abstract as the current capabilities require.
-- Server-side only; keys never reach the browser.
-- Structured, validated outputs over free-form text where possible.
-- Testable offline through a `mock` provider.
-
-## Phase 1 — Layer skeleton 🔴
-
-- [ ] AI package (`ai/` or `backend/app/ai/`) with `types.py` (provider protocol,
-      message/result types).
-- [ ] `MockProvider` (deterministic, used in all tests).
-- [ ] `registry.py` resolving the provider from `Settings`.
-- [ ] Unit tests for registry + mock.
-
-## Phase 2 — First real provider 🔴
-
-- [ ] Implement one provider (e.g. OpenAI) behind the protocol.
-- [ ] Timeouts, retries with backoff, normalized errors
-      (`AI_UNAVAILABLE`, `AI_TIMEOUT`, `AI_INVALID_RESPONSE`).
-- [ ] Token-usage capture into result metadata.
-- [ ] Keep the second provider unimplemented until needed.
-
-## Phase 3 — Backend `ai` module 🔴
-
-- [ ] Models `AIConversation`, `AIMessage`.
-- [ ] Endpoints from `docs/api.md §2.9`: conversations, messages, writing
-      correction, grammar explanation.
-- [ ] Ownership checks, per-user rate limits, max-token budget.
-- [ ] Persist normalised content (not raw provider payloads).
-
-## Phase 4 — Prompt modules & structured output 🔴
-
-- [ ] `prompts/tutor.py`, `grammar.py`, `writing.py`.
-- [ ] JSON-schema outputs for correction/recommendations, validated before use.
-- [ ] Prompt-injection guardrails: server-owned system prompt, delimited user
-      content, no tool execution from model output.
-
-## Phase 5 — Personalisation 🔴
-
-- [ ] Learner context assembly (profile + recent progress) with a token budget.
-- [ ] `recommendations` module: rule-based first, AI-assisted later.
-- [ ] Cache/avoid repeated expensive calls for identical recommendation requests.
-
-## Explicitly deferred
-
-- Streaming responses.
-- Embeddings / RAG over learning content.
-- Voice/audio provider integration for speaking feedback.
-- Exercise generation (admin tooling).
-- Extracting a separate AI service (conditions in `docs/ai.md §9`).
-
-## Risks / watch-items
-
-- Cost control: rate limits + token budgets from the first AI endpoint.
-- Prompt injection: cover with tests using adversarial inputs.
-- Provider lock-in: keep provider-specific code inside `providers/` only.
-- Failure UX: AI must degrade gracefully, never block core learning flows.
+Implementation and limitations are specified in docs/ai.md and docs/development.md.

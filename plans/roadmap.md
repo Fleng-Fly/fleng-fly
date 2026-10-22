@@ -3,6 +3,13 @@
 > Status: **active**. Update after every stage. Current status board:
 > `plans/milestones.md`.
 
+Current frontend phase (2026-10-22): Dashboard and Lessons have been implemented
+on the existing static frontend and SQLite local workflow. Lessons now has a
+shared workspace, Theory/Practice/Test/Vocabulary tabs, real grading and
+resume, and responsive layouts. Exact Figma comparison awaits the target
+screen reference; Login/Sign Up is the next requested UI phase. The historical
+stage descriptions below record earlier architecture decisions.
+
 ## MVP definition
 
 A signed-in learner can:
@@ -62,7 +69,7 @@ to the existing auth/progress API.
 **Exit criteria met:** the app runs from one `uvicorn` process; the auth journey
 works; static-serving, same-origin and existing auth/progress tests pass.
 
-### Stage 2 — Learning MVP (in progress)
+### Stage 2 — Learning MVP ✅ completed
 
 Courses, lessons, exercises, submissions, grading; lesson start/complete;
 progress recording.
@@ -71,11 +78,14 @@ progress recording.
 - ✅ Read-only catalog API (`GET /courses`, `/courses/{slug}`, `/lessons/{slug}`),
   published-only, with tests.
 - ✅ Frontend catalog, course detail and lesson-theory pages.
-- ⬜ Exercises, submissions and server-side grading.
-- ⬜ Lesson start/complete and progress recording.
-- ⬜ Per-course progress.
+- ✅ `Exercise`/`ExerciseSubmission`/`LessonProgress` + migration
+  `20261011_1400_exercises`; `single_choice`, `text` and `self_check` types.
+- ✅ Lesson start/submit/progress endpoints with server-side grading; answer keys
+  never exposed before submission.
+- ✅ Once-only XP and server-derived lesson/course progress on `/progress/me`.
+- ✅ Lesson page and dashboard render real persisted data.
 
-**Exit criteria:** the lesson flow works from the API with tests; progress is
+**Exit criteria met:** the lesson flow works from the API with tests; progress is
 queryable per course.
 
 ### Stage 3 — Vocabulary & gamification
@@ -87,6 +97,12 @@ streaks, achievements.
 XP/streak/achievements idempotently.
 
 ### Stage 4 — Frontend MVP
+
+Dashboard visual/integration code is in the working tree: responsive
+sidebar, catalog search, real course/progress/streak/learned-word metrics.
+Standalone Lessons redesign, auth redesign and AI assistant UI remain later
+phases. Dashboard Firefox checks at 360/768/desktop passed on local SQLite
+(2026-10-22); exact Figma comparison and live PostgreSQL checks remain pending.
 
 Static pages for dashboard, learn/lessons, quizzes, vocabulary, progress and the
 AI tutor; shared layout and design tokens; critical Playwright flows.
@@ -123,3 +139,20 @@ checklist from `docs/deployment.md` and `docs/security.md` satisfied.
 Microservices, message broker, GraphQL, native mobile apps, MFA, OAuth, real-time
 features, custom model training, multi-region. Each requires a written
 justification before adoption (see `AGENTS.md` rules 2/9).
+
+## Backend completion update — 2026-10-18
+
+Vocabulary/reviews, streaks/achievements, profile updates, password reset and
+OpenRouter tutoring APIs are implemented and tested with mocked AI and ORM
+fixtures. Adaptive recommendations and SSE are included. Live PostgreSQL and paid
+OpenRouter validation remain blocked; do not label deployment integration as
+complete. See [ai-plan.md](ai-plan.md) for completed/blocked/next details. New API
+frontend wiring is outside this backend task. No commits were made, per request.
+
+## Local development update — 2026-10-22
+
+SQLite is the local default. `npm run dev` prepares the persistent file with
+Alembic and an initial catalog, then runs the existing FastAPI/static frontend.
+PostgreSQL remains an explicit deployment option. Lessons UI and AI scope are
+unchanged. Dashboard Firefox scenarios passed; Figma comparison and live PostgreSQL
+checks remain separate.

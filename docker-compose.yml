@@ -14,7 +14,7 @@ services:
       POSTGRES_PASSWORD: fleng
       POSTGRES_DB: fleng
     ports:
-      - '5432:5432'
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
     volumes:
       - fleng-db-data:/var/lib/postgresql/data
     healthcheck:

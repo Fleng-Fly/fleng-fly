@@ -1,9 +1,11 @@
 # API
 
-> Status: **M2 + catalog read implemented** for `GET /api/v1/health`, the auth
-> endpoints (`/auth/register`, `/login`, `/refresh`, `/logout`),
-> `GET /api/v1/users/me`, `GET /api/v1/progress/me` and the read-only catalog
-> (`GET /courses`, `GET /courses/{slug}`, `GET /lessons/{slug}`). All other
+> Status: **M2 + catalog + exercises implemented** for `GET /api/v1/health`, the
+> auth endpoints (`/auth/register`, `/login`, `/refresh`, `/logout`),
+> `GET /api/v1/users/me`, `GET /api/v1/progress/me`, the catalog
+> (`GET /courses`, `GET /courses/{slug}`, `GET /lessons/{slug}`) and the
+> authenticated lesson flow (`POST /lessons/{slug}/start`,
+> `POST /lessons/{slug}/submit`, `GET /lessons/{slug}/progress`). All other
 > endpoints below are designed but not built. Base path: `/api/v1`.
 
 ## 1. Conventions
@@ -117,26 +119,48 @@ Pagination is deliberately deferred for the small MVP catalog.
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
-| GET ✅ | `/{slug}` | Published lesson with theory + course context | none | — | `200 LessonDetail` |
-| POST | `/{slug}/start` | Mark in progress | bearer | — | `200 LessonProgress` |
-| POST | `/{slug}/complete` | Submit completion | bearer | `{ answers? }` | `200 { progress, xp, streak, newAchievements }` |
-| GET | `/{slug}/progress` | Progress for lesson | bearer | — | `200 LessonProgress` |
+| GET ✅ | `/{slug}` | Published lesson with theory, course context and public exercises | none | — | `200 LessonDetail` |
+| POST ✅ | `/{slug}/start` | Start or resume a lesson (idempotent) | bearer | — | `200 LessonProgress` |
+| POST ✅ | `/{slug}/submit` | Grade and persist one answer | bearer | `{ exerciseId, answer, selfAssessment? }` | `200 SubmissionResult` |
+| GET ✅ | `/{slug}/progress` | The caller's progress through a lesson | bearer | — | `200 LessonProgress` |
 
 `LessonDetail` = `{ id, slug, title, summary, theory, position, estimatedMinutes,
-courseSlug, courseTitle, level }`. `theory` is plain text with light markup
-(see `docs/database.md`). Lesson slugs are globally unique, so no course context
-is needed in the path.
+courseSlug, courseTitle, level, exercises: ExercisePublic[] }`.
+
+`ExercisePublic` = `{ id, slug, position, type, prompt, points, options? }` where
+`options` = `[{ id, text }]` and is present only for `single_choice`. Public
+payloads **never** contain `correctOptionId`, `acceptedAnswers`, `modelAnswer`
+or `explanation`.
+
+`LessonProgress` = `{ lessonSlug, lessonTitle, status ("in_progress"|"completed"),
+completed, startedAt, completedAt, exercisesTotal, exercisesCompleted, xpEarned,
+exercises: [{ exerciseId, completed, isCorrect, attempts, pointsAwarded, answer }] }`.
+`answer` is the authenticated caller's latest submitted answer or `null`.
+
+`SubmissionResult` = `{ exerciseId, type, isCorrect, completed, points,
+xpAwarded, feedback, correctOptionId?, acceptedAnswers?, modelAnswer?,
+explanation?, lesson: LessonProgress }`. The correct answer / model answer /
+explanation are revealed here (and only after submission) so the learner can
+review. `theory` is plain text with light markup (see `docs/database.md`). Lesson
+slugs are globally unique, so no course context is needed in the path.
+
+`POST /{slug}/submit` validates the answer shape per exercise type and returns
+`422 INVALID_ANSWER` for malformed answers (unknown single-choice option, blank
+short answer, or a `self_check` submission without a `correct`/`incorrect`
+self-assessment). An exerciseId that does not belong to the lesson returns
+`404 NOT_FOUND`. See `docs/database.md` for the grading and XP rules.
 
 ### 2.5 Exercises — `/api/v1/exercises`
+
+Exercise content is served inside the lesson payload (`GET /lessons/{slug}`) and
+graded through `POST /lessons/{slug}/submit`; there is no separate public
+exercise resource yet. Exercise types and their answer shapes are documented in
+`docs/database.md`. The endpoints below remain designed but not built.
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
 | GET | `/:id` | Exercise (answer hidden) | bearer | — | `200 Exercise` |
-| POST | `/:id/submit` | Submit answer | bearer | `{ answer }` | `200 { isCorrect, score, feedback }` |
 | GET | `/submissions` | Own submission history | bearer | `?exerciseId&cursor` | `200 { items, nextCursor }` |
-
-Exercise payload/answer shape depends on `type`; documented alongside the
-exercise domain in `docs/database.md`.
 
 ### 2.6 Vocabulary — `/api/v1/vocabulary`
 
@@ -154,15 +178,21 @@ exercise domain in `docs/database.md`.
 
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
-| GET ✅ | `/me` | Own aggregate progress | bearer | — | `200 { userId, lessonsStarted, lessonsCompleted, studyMinutes, lastActivityAt, updatedAt }` |
+| GET ✅ | `/me` | Own aggregate + per-course progress | bearer | — | `200 Progress` |
 | GET | `/summary` | Dashboard summary | bearer | — | `200 { xp, level, streak, skills, recent }` |
-| GET | `/courses/:courseId` | Progress in a course | bearer | — | `200 { lessons: LessonProgress[] }` |
 | GET | `/skills` | Per-skill breakdown | bearer | `?range` | `200 SkillProgress[]` |
 | GET | `/activity` | Activity timeline | bearer | `?range&cursor` | `200 { items, nextCursor }` |
 
-Progress is server-derived; there is deliberately no client-writable `PATCH`
-yet. Write endpoints arrive with lesson completion, where the backend records
-progress from graded activity (`docs/security.md`).
+`Progress` = `{ userId, lessonsStarted, lessonsCompleted, exercisesCompleted,
+studyMinutes, xp, lastActivityAt, updatedAt, courses: CourseProgress[] }` where
+`CourseProgress` = `{ courseId, slug, title, level, lessonsTotal,
+lessonsStarted, lessonsCompleted }`. The original fields remain, so the response is
+backward-compatible.
+
+Progress is server-derived. There is deliberately no client-writable `PATCH`:
+lesson start/completion is recorded by `POST /lessons/{slug}/start` and
+`/submit`, and XP is awarded server-side once per exercise (`docs/security.md`,
+`docs/database.md`).
 
 ### 2.8 Challenges — `/api/v1/challenges`
 
@@ -210,3 +240,53 @@ built server-side (never trust client-supplied system prompts). See
 - `docs/authentication.md` — token mechanics.
 - `docs/security.md` — validation, rate limiting, prompt injection.
 - `project-map/api-map.md` — condensed map used for navigation.
+
+## Implemented extension endpoints (2026-10-18)
+
+All routes below are relative to `/api/v1`. Private endpoints require the existing
+Bearer access token. Responses use camelCase; identity always comes from the
+access token, never a request userId.
+
+| Method | Route | Input / result |
+| --- | --- | --- |
+| PATCH | `/users/me` | Optional displayName, englishLevel (A1–C2), preferredLanguage → UserResponse |
+| GET | `/vocabulary?due=false&limit=50&offset=0&lessonId=<uuid>` | Own words; optional `lessonId` selects words saved for that lesson, `due=true` selects due flashcards |
+| GET | `/vocabulary/stats` | Own learned-word count: `{ wordsLearned }` |
+| POST | `/vocabulary` | word, translation, optional example and lessonId → item (201) |
+| PATCH | `/vocabulary/{id}` | learned: boolean → item |
+| DELETE | `/vocabulary/{id}` | Remove own word and reviews (204) |
+| POST | `/vocabulary/{id}/review` | remembered: boolean → updated item/dueAt |
+| GET | `/vocabulary/{id}/reviews?limit=50&offset=0` | Own review history |
+| GET | `/streaks/me` | current, longest, lastActivityDate, timezone |
+| GET | `/achievements/me` | Definitions with awardedAt or null |
+| POST | `/auth/password-reset/request` | Public: email → generic message |
+| POST | `/auth/password-reset/confirm` | Public: token, password → 204; invalid/expired/used → 400 |
+| POST | `/ai/chat` | message, optional conversationId/lessonId/correctGrammar → persisted tutor response |
+| POST | `/ai/chat/stream` | Same input → SSE delta/done/error events |
+| GET | `/ai/conversations?limit=20&offset=0` | Own conversations |
+| GET | `/ai/conversations/{id}?limit=50&offset=0` | Own message history |
+| DELETE | `/ai/conversations/{id}` | Delete own conversation/messages (204) |
+| POST | `/ai/explain` | studentAnswer, optional exerciseId/lessonId/topic → explanation |
+| POST | `/ai/generate-exercise` | topic, exerciseType, optional level/difficulty → practice-only material |
+| GET | `/ai/recommendations` | Deterministic next lessons, missed topics, vocabulary review |
+
+List limits are capped at 100. Object ownership violations return 404. Duplicate
+saved words return 409. Null/blank profile values and invalid CEFR values return
+422; XP and numeric level cannot be updated here. Invalid generation returns 502,
+missing/disabled AI returns 503, timeout 504, quotas/concurrency 429, oversized API
+body 413. Generic reset-request responses do not disclose account existence.
+All errors use the existing envelope; input values are excluded from validation
+error details. Reset endpoints are independently rate-limited by IP/email hash.
+
+Examples:
+
+```json
+{"word":"supportive","translation":"підтримуючий","example":"A supportive tutor helps me learn."}
+```
+
+```json
+{"displayName":"Alex","englishLevel":"B1","preferredLanguage":"Ukrainian"}
+```
+
+Detailed AI request/response examples, limits and streaming fallback:
+[ai.md](ai.md). SMTP/reset configuration: [development.md](development.md).

@@ -5,7 +5,7 @@ API and business logic of Fleng. Built with **Python + FastAPI**.
 ## Stack
 
 - **FastAPI** + Pydantic for HTTP, validation and OpenAPI.
-- **SQLAlchemy 2 (async)** + **asyncpg** for PostgreSQL.
+- **SQLAlchemy 2 (async)** + **aiosqlite** locally; **asyncpg** for PostgreSQL.
 - **Alembic** for migrations.
 - **pydantic-settings** for configuration.
 - **pytest** for tests; **Ruff** + **mypy** for quality.
@@ -27,8 +27,7 @@ pyproject.toml
 ## Setup
 
 ```bash
-pnpm setup            # from the repo root: creates .venv + installs deps
-pnpm backend:dev      # uvicorn --reload on :3001
+npm run dev          # from repo root: prepares SQLite and starts the site on :3001
 ```
 
 Or directly:
@@ -36,6 +35,7 @@ Or directly:
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
+.venv/bin/python -m app.db.prepare
 .venv/bin/uvicorn app.main:app --reload --port 3001
 ```
 
@@ -52,5 +52,6 @@ pnpm backend:test       # pytest
 - Docs: `docs/backend.md`, `docs/database.md`, `docs/api.md`, `docs/security.md`
 - Plan: `plans/backend-plan.md`
 
-> The development auth dependency (`app/api/deps.py`) is a stub, not
-> authentication, and refuses to run when `APP_ENV=production`.
+SQLite defaults to `backend/data/fleng.db` and persists across restarts. Explicit
+PostgreSQL DATABASE_URL configurations require their own server and migrations.
+Authentication uses access JWTs and rotating HttpOnly refresh cookies in both modes.

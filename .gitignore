@@ -53,3 +53,5 @@ Thumbs.db
 .turbo/
 .cache/
 tmp/
+backend/fleng.local.sqlite3*
+backend/data/

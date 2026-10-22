@@ -16,4 +16,5 @@ async def get_my_progress(
     db: AsyncSession = Depends(get_db),
 ) -> ProgressResponse:
     progress = await get_progress(db, current_user.id)
-    return to_progress_response(current_user.id, progress)
+    xp = current_user.profile.xp if current_user.profile else 0
+    return await to_progress_response(db, user_id=current_user.id, progress=progress, xp=xp)

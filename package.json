@@ -21,6 +21,7 @@
     "backend:typecheck": "cd backend && .venv/bin/mypy app",
     "backend:test": "cd backend && .venv/bin/pytest",
     "db:migrate": "cd backend && .venv/bin/alembic upgrade head",
+    "db:prepare": "cd backend && .venv/bin/python -m app.db.prepare",
     "db:sql": "cd backend && .venv/bin/alembic upgrade head --sql",
     "db:seed": "cd backend && .venv/bin/python -m app.db.seed"
   },

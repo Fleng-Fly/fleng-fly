@@ -35,28 +35,35 @@ export class ApiError extends Error {
 }
 
 async function refreshAccessToken() {
+  let response;
   try {
-    const response = await fetch(`${API_BASE}/auth/refresh`, {
+    response = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
       cache: 'no-store',
       headers: { Accept: 'application/json' },
     });
-    if (!response.ok) {
-      accessToken = null;
-      return null;
-    }
-    const body = await response.json();
-    if (!body.accessToken) {
-      accessToken = null;
-      return null;
-    }
-    accessToken = body.accessToken;
-    return accessToken;
   } catch {
+    throw new ApiError('Unable to reach the backend', 0, 'NETWORK_ERROR');
+  }
+  if (response.status === 401) {
     accessToken = null;
     return null;
   }
+  if (!response.ok) {
+    throw new ApiError('Unable to restore your session', response.status, 'SESSION_UNAVAILABLE');
+  }
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    throw new ApiError('Backend returned an invalid response', response.status, 'INVALID_RESPONSE');
+  }
+  if (!body.accessToken) {
+    throw new ApiError('Backend returned an invalid response', response.status, 'INVALID_RESPONSE');
+  }
+  accessToken = body.accessToken;
+  return accessToken;
 }
 
 let refreshInFlight = null;
@@ -147,6 +154,19 @@ export function getMyProgress() {
   return apiFetch('/progress/me');
 }
 
+export function getMyStreak() {
+  return apiFetch('/streaks/me');
+}
+
+export function getVocabularyStats() {
+  return apiFetch('/vocabulary/stats');
+}
+
+export function getLessonVocabulary(lessonId, offset = 0, limit = 30) {
+  const query = new URLSearchParams({ lessonId, offset: String(offset), limit: String(limit) });
+  return apiFetch(`/vocabulary?${query}`);
+}
+
 export function getHealth() {
   return apiFetch('/health');
 }
@@ -161,4 +181,19 @@ export function getCourse(slug) {
 
 export function getLesson(slug) {
   return apiFetch(`/lessons/${encodeURIComponent(slug)}`);
+}
+
+export function startLesson(slug) {
+  return apiFetch(`/lessons/${encodeURIComponent(slug)}/start`, { method: 'POST' });
+}
+
+export function getLessonProgress(slug) {
+  return apiFetch(`/lessons/${encodeURIComponent(slug)}/progress`);
+}
+
+export function submitAnswer(slug, payload) {
+  return apiFetch(`/lessons/${encodeURIComponent(slug)}/submit`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }

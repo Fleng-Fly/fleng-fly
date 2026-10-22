@@ -6,68 +6,125 @@
     <title>Dashboard — Fleng</title>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
   </head>
-  <body>
-    <header id="site-header" class="site-header"></header>
+  <body class="dashboard-page">
+        <main class="dashboard-main">
+          <section id="session-error" class="dashboard-alert" role="alert" hidden>
+            <span id="session-error-text"></span>
+            <button id="session-retry" class="dashboard-text-button" type="button">
+              Try again
+            </button>
+          </section>
 
-    <main class="container page">
-      <div class="stack">
-        <header>
-          <h1>Dashboard</h1>
-          <p class="muted text-sm">Your profile and progress in one place.</p>
-        </header>
-
-        <section class="card">
-          <div class="row">
-            <div>
-              <p class="muted text-sm" style="margin: 0">Signed in as</p>
-              <p id="user-name" style="margin: 0.15rem 0 0; font-size: 1.15rem; font-weight: 600">
-                —
-              </p>
-              <p id="user-email" class="muted text-sm" style="margin: 0.15rem 0 0">—</p>
+          <div id="dashboard-content" hidden>
+            <div class="dashboard-page-heading">
+              <div>
+                <p class="dashboard-eyebrow">OVERVIEW</p>
+                <h1>Dashboard</h1>
+                <p class="dashboard-subtitle">Your learning space, all in one place.</p>
+              </div>
+              <span id="dashboard-level" class="dashboard-level">Level —</span>
             </div>
-            <div class="stat-grid" style="min-width: 14rem">
-              <div class="stat">
-                <div class="stat-label">Level</div>
-                <div id="user-level" class="stat-value">—</div>
+            <div class="dashboard-grid">
+              <div class="dashboard-primary">
+                <section class="welcome-card dashboard-reveal" aria-labelledby="welcome-title">
+                  <div class="welcome-copy">
+                    <span class="welcome-kicker">WELCOME TO FLENG</span>
+                    <h2 id="welcome-title">Welcome back!</h2>
+                    <p id="welcome-message">
+                      Make a little progress today and keep your momentum going.
+                    </p>
+                    <a class="dashboard-cta" href="/courses.html"
+                      >Go to lessons <svg><use href="#icon-arrow" /></svg
+                    ></a>
+                  </div>
+                  <div class="welcome-art" aria-hidden="true">
+                    <span class="art-orbit art-orbit-one"></span
+                    ><span class="art-orbit art-orbit-two"></span><span class="art-core">✦</span>
+                  </div>
+                </section>
+                <section class="dashboard-section dashboard-reveal" aria-labelledby="quick-heading">
+                  <div class="section-heading">
+                    <div>
+                      <p class="dashboard-eyebrow">YOUR SPACE</p>
+                      <h2 id="quick-heading">Quick access</h2>
+                    </div>
+                  </div>
+                  <div class="quick-grid">
+                    <a class="quick-card dashboard-card" href="/courses.html"
+                      ><span class="quick-icon"
+                        ><svg><use href="#icon-book" /></svg></span
+                      ><span class="quick-copy"
+                        ><strong>Lessons</strong
+                        ><small>Pick up a lesson and keep learning.</small></span
+                      ><svg class="quick-arrow"><use href="#icon-arrow" /></svg
+                    ></a>
+                    <a id="quick-course-link" class="quick-card dashboard-card" href="/courses.html"
+                      ><span class="quick-icon"
+                        ><svg><use href="#icon-layers" /></svg></span
+                      ><span class="quick-copy"
+                        ><strong>Course</strong><small>Explore your learning path.</small></span
+                      ><svg class="quick-arrow"><use href="#icon-arrow" /></svg
+                    ></a>
+                    <a class="quick-card dashboard-card" href="#your-progress"
+                      ><span class="quick-icon"
+                        ><svg><use href="#icon-chart" /></svg></span
+                      ><span class="quick-copy"
+                        ><strong>Progress</strong><small>See how far you have come.</small></span
+                      ><svg class="quick-arrow"><use href="#icon-arrow" /></svg
+                    ></a>
+                    <div
+                      class="quick-card quick-card-unavailable dashboard-card"
+                      aria-disabled="true"
+                    >
+                      <span class="quick-icon"
+                        ><svg><use href="#icon-trophy" /></svg></span
+                      ><span class="quick-copy"
+                        ><strong>Leaderboard</strong><small>Coming soon</small></span
+                      >
+                    </div>
+                  </div>
+                </section>
+                <section
+                  class="dashboard-section dashboard-reveal"
+                  aria-labelledby="current-course-heading"
+                >
+                  <div class="section-heading">
+                    <div>
+                      <p class="dashboard-eyebrow">KEEP GOING</p>
+                      <h2 id="current-course-heading">Current course</h2>
+                    </div>
+                  </div>
+                  <div
+                    id="current-course-body"
+                    class="dashboard-card current-course-card"
+                    aria-live="polite"
+                  >
+                    <p class="dashboard-muted">Loading course…</p>
+                  </div>
+                </section>
               </div>
-              <div class="stat">
-                <div class="stat-label">XP</div>
-                <div id="user-xp" class="stat-value">—</div>
-              </div>
+              <aside
+                id="your-progress"
+                class="dashboard-secondary dashboard-reveal"
+                aria-labelledby="progress-heading"
+              >
+                <div class="dashboard-card progress-panel">
+                  <div class="section-heading">
+                    <div>
+                      <p class="dashboard-eyebrow">AT A GLANCE</p>
+                      <h2 id="progress-heading">Your progress</h2>
+                    </div>
+                  </div>
+                  <div id="progress-body" aria-live="polite">
+                    <p class="dashboard-muted">Loading progress…</p>
+                  </div>
+                </div>
+              </aside>
             </div>
           </div>
-        </section>
-
-        <section>
-          <h2 class="section-title">Progress</h2>
-          <div id="progress-body"></div>
-        </section>
-
-        <section class="card">
-          <div class="row">
-            <div>
-              <h2 class="section-title" style="margin: 0">Courses</h2>
-              <p class="text-sm muted" style="margin: 0.25rem 0 0">
-                Browse the catalog and open your first lesson.
-              </p>
-            </div>
-            <a class="btn btn-primary" href="/courses.html">Browse courses</a>
-          </div>
-        </section>
-
-        <div class="actions">
-          <a class="btn btn-ghost" href="/courses.html">Courses</a>
-          <a class="btn btn-ghost" href="/settings.html">Settings</a>
-          <a class="btn btn-ghost" href="/index.html">Back home</a>
-        </div>
-      </div>
-    </main>
-
-    <footer class="site-footer">
-      <div class="container">Fleng — learn English, every day.</div>
-    </footer>
-
+        </main>
     <script type="module" src="/js/dashboard.js"></script>
   </body>
 </html>

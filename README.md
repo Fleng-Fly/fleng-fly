@@ -6,30 +6,41 @@ tutor.
 
 This repository currently contains an **M2 authentication vertical slice**: a
 plain HTML/CSS/JavaScript frontend served by a **Python / FastAPI** backend,
-backed by PostgreSQL via SQLAlchemy and Alembic. Email/password authentication,
-user profiles, learning-progress storage and a read-only course/lesson catalog
-work end to end. Exercises, progress writes and AI are not implemented yet.
+backed by local SQLite (or PostgreSQL via `DATABASE_URL`) through SQLAlchemy and
+Alembic. Email/password authentication,
+user profiles, the course/lesson catalog and a graded learning flow
+(exercises, submissions, XP and progress) are implemented. Backend vocabulary,
+streaks, achievements, profile updates, password reset and OpenRouter tutoring
+APIs are also implemented. Live PostgreSQL/AI integration verification remains
+blocked in this execution environment; see `docs/development.md` and `docs/ai.md`.
 
 ## What works today
 
-- `pnpm setup` + `pnpm dev` starts a single FastAPI server on port 3001 that
-  serves both the API and the static frontend.
+- `npm run dev` prepares local SQLite and starts a single FastAPI server on port
+  3001 that serves both the API and the static frontend.
 - The landing page (`/`) calls the API and shows a live **Backend ● Online /
   Offline** indicator.
 - **Authentication**: `POST /api/v1/auth/register`, `/login`, `/refresh` and
   `/logout` — argon2id hashing, short-lived access JWTs and rotating refresh
   tokens in an HttpOnly cookie (with reuse detection).
 - `GET /api/v1/users/me` returns the authenticated learner's profile; `GET
-  /api/v1/progress/me` returns their progress. Both require a Bearer token.
+/api/v1/progress/me` returns their progress. Both require a Bearer token.
 - `login.html` and `register.html` create a real session; `dashboard.html` shows
   the signed-in learner's name, level, XP and progress from the API;
   `settings.html` shows the profile. These pages redirect to login when there is
   no session.
-- **Catalog** (read-only): `GET /api/v1/courses` lists published courses,
+- **Catalog**: `GET /api/v1/courses` lists published courses,
   `GET /api/v1/courses/{slug}` returns a course with its published lessons and
-  `GET /api/v1/lessons/{slug}` returns a lesson's theory. `courses.html`,
-  `course.html` and `lesson.html` render them; demo content is loaded with the
-  idempotent seed (`pnpm db:seed`).
+  `GET /api/v1/lessons/{slug}` returns a lesson's theory plus public exercises
+  (never the answer keys). `courses.html`, `course.html` and `lesson.html`
+  render them; demo content is loaded with the idempotent seed (`pnpm db:seed`).
+- **Graded lessons**: `POST /api/v1/lessons/{slug}/start|submit` and
+  `GET /api/v1/lessons/{slug}/progress`. Exercises come in three types
+  (`single_choice`, `text`, `self_check`), answers are graded server-side, and
+  the correct answer / model answer is revealed only after submission. XP is
+  awarded once per exercise; `GET /api/v1/progress/me` returns the aggregate,
+  `exercisesCompleted`, `xp` and per-course progress. The lesson page and the
+  dashboard show this persisted data.
 
 ## Vision
 
@@ -62,8 +73,8 @@ Browser
 FastAPI (Python)  — one deployable on :3001
    ├── serves the static frontend (frontend/: HTML, CSS, vanilla JS) at /
    ├── serves the REST API at /api/v1
-   ↓  SQLAlchemy 2 (async) + asyncpg
-PostgreSQL  (docker-compose.yml)
+   ↓  SQLAlchemy 2 (async) + aiosqlite / asyncpg
+SQLite locally / PostgreSQL via DATABASE_URL
 ```
 
 - One backend deployable serves both the API and the static frontend, so the
@@ -71,8 +82,8 @@ PostgreSQL  (docker-compose.yml)
 - **FastAPI is the only backend framework.** The frontend is plain HTML/CSS/JS
   with no framework and no build step; there is no TypeScript anywhere.
 - The backend owns all data decisions; the frontend contains no business rules.
-- The AI layer (`ai/`) will be a Python library consumed by the backend, not a
-  separate service.
+- AI lives in `backend/app/modules/ai/` inside the monolith; `ai/` is its
+  documentation entry point. OpenRouter credentials remain server-only.
 
 Details: `docs/architecture.md` and `project-map/architecture.md`.
 
@@ -94,7 +105,7 @@ Details: `docs/architecture.md` and `project-map/architecture.md`.
 │   ├── alembic/       # migrations
 │   ├── tests/         # pytest
 │   └── pyproject.toml
-├── ai/                # future Python AI layer (docs only)
+├── ai/                # AI documentation entry point
 ├── docs/              # architecture and engineering docs
 ├── plans/             # roadmap, per-area plans, milestones
 ├── design/            # design system and UX docs
@@ -107,74 +118,78 @@ Details: `docs/architecture.md` and `project-map/architecture.md`.
 
 ## Technology stack
 
-| Area       | Choice                                                              |
-| ---------- | ------------------------------------------------------------------- |
-| Frontend   | Plain HTML5, CSS3 and vanilla JavaScript (ES modules, `fetch`)      |
-| Static serving | FastAPI `StaticFiles` (same origin as the API)                  |
-| Backend    | Python 3.11+, FastAPI, SQLAlchemy 2 (async), Alembic, Pydantic       |
-| Database   | PostgreSQL (asyncpg driver)                                         |
-| Backend tests  | pytest                                                          |
-| Backend lint/type | Ruff (lint + format), mypy                                  |
-| Tooling    | Python virtualenv (backend), Docker (database only), Node (scripts) |
+| Area              | Choice                                                              |
+| ----------------- | ------------------------------------------------------------------- |
+| Frontend          | Plain HTML5, CSS3 and vanilla JavaScript (ES modules, `fetch`)      |
+| Static serving    | FastAPI `StaticFiles` (same origin as the API)                      |
+| Backend           | Python 3.11+, FastAPI, SQLAlchemy 2 (async), Alembic, Pydantic      |
+| Database          | SQLite locally (aiosqlite); optional PostgreSQL (asyncpg)           |
+| Backend tests     | pytest                                                              |
+| Backend lint/type | Ruff (lint + format), mypy                                          |
+| Tooling           | Python virtualenv (backend), Docker (database only), Node (scripts) |
 
 Rationale and deliberate omissions: `docs/development.md`.
 
 ## Getting started
 
-Prerequisites: Node.js >= 20, Python >= 3.11, and either Docker or a local
-PostgreSQL.
+Prerequisites: Node.js >= 20 and Python >= 3.11 with venv. No database server is
+needed for local development.
 
 ```bash
-pnpm setup                # create backend/.venv and install Python dependencies
-
-docker compose up -d db   # start PostgreSQL (or set DATABASE_URL)
-cp .env.example .env      # optional; sensible development defaults exist
-pnpm db:migrate           # apply Alembic migrations
-pnpm db:seed              # load the demo courses and lessons (idempotent)
-
-pnpm dev                  # FastAPI on :3001 (serves the API and the frontend)
+npm run dev              # prepares SQLite, then starts FastAPI and the frontend
+# If backend/.venv is absent, the existing setup installs Python dependencies.
+# Optional explicit database commands:
+npm run db:migrate
+npm run db:seed
 ```
 
 Then open http://localhost:3001. The UI is served at `/`; all API routes live
 under http://localhost:3001/api/v1.
 
-> `pnpm dev` starts even without PostgreSQL: the landing page shows
-> `Backend ● Online` with `db down`, and `/api/v1/users/me` returns `503`.
-> `DATABASE_URL` is required in production.
+The default file is `backend/data/fleng.db`, excluded from Git. Relative SQLite
+paths always resolve against `backend/`, regardless of the working directory.
+Startup applies pending Alembic upgrades and loads the demo catalog only if no
+courses exist. Repeated starts preserve users, sessions and progress. Explicit
+`db:seed` updates demo content in place without duplicate records.
+
+PostgreSQL remains supported: set `DATABASE_URL=postgresql://...` in the ignored
+root `.env` or environment, then apply migrations explicitly. Automatic preparation
+is disabled for PostgreSQL and production. Never replace an existing `.env` blindly.
 
 ## Scripts
 
-| Script                 | Effect |
-| ---------------------- | ------ |
-| `pnpm setup`           | Create the backend venv and install Python dependencies |
-| `pnpm dev`             | Run FastAPI (serves the API and the static frontend) |
-| `pnpm lint`            | Ruff (backend) |
-| `pnpm typecheck`       | mypy (backend) |
-| `pnpm test`            | pytest (backend, incl. static-frontend serving) |
-| `pnpm format`          | Prettier (HTML/CSS/JS/Markdown) + Ruff format (backend) |
-| `pnpm db:migrate`      | Apply Alembic migrations |
-| `pnpm db:seed`         | Insert/update the demo catalog (idempotent) |
-| `pnpm db:sql`          | Emit migration SQL without a database |
+| Script               | Effect                                                  |
+| -------------------- | ------------------------------------------------------- |
+| `pnpm setup`         | Create the backend venv and install Python dependencies |
+| `pnpm dev`           | Run FastAPI (serves the API and the static frontend)    |
+| `pnpm lint`          | Ruff (backend)                                          |
+| `pnpm typecheck`     | mypy (backend)                                          |
+| `pnpm test`          | pytest (backend, incl. static-frontend serving)         |
+| `pnpm format`        | Prettier (HTML/CSS/JS/Markdown) + Ruff format (backend) |
+| `pnpm db:migrate`    | Apply Alembic migrations                                |
+| `npm run db:prepare` | Prepare local SQLite (also called by dev)               |
+| `pnpm db:seed`       | Insert/update the demo catalog (idempotent)             |
+| `pnpm db:sql`        | Emit migration SQL without a database                   |
 
 ## Roadmap
 
 High level (details in `plans/roadmap.md`):
 
-1. **Foundation** — structure, docs, project map, design system. *(done)*
-2. **M1 — Frontend + FastAPI backend** — health/users API, database. *(done)*
-3. **M2 — Authentication & progress** — register/login/refresh/logout, `/users/me`, `/progress/me`. *(done)*
-4. **Phase A — Static frontend** — plain HTML/CSS/JS served by FastAPI. *(done)*
-5. **Learning MVP** — courses + lessons read API and pages *(done)*; exercises, grading and progress recording *(next)*.
-6. **Vocabulary & gamification** — flashcards, streaks, XP, achievements.
-7. **AI tutor** — Python AI layer, explanations, writing feedback.
+1. **Foundation** — structure, docs, project map, design system. _(done)_
+2. **M1 — Frontend + FastAPI backend** — health/users API, database. _(done)_
+3. **M2 — Authentication & progress** — register/login/refresh/logout, `/users/me`, `/progress/me`. _(done)_
+4. **Phase A — Static frontend** — plain HTML/CSS/JS served by FastAPI. _(done)_
+5. **Learning MVP** — courses, lessons, exercises, grading and progress recording. _(done)_
+6. **Vocabulary & gamification backend** — implemented; frontend integration remains.
+7. **AI tutor backend** — implemented with OpenRouter; live verification pending.
 8. **Polish & launch** — speaking practice, notifications, analytics, billing.
 
 ## Current status
 
-M2 + Phase A + catalog read. `pnpm lint`, `pnpm typecheck` and `pnpm test` all
-pass (auth/progress, catalog and static-frontend tests). See
-`plans/milestones.md` for the live status board and `plans/david-work.md` for the
-storage/login/progress assignment.
+M2 + Phase A + catalog + graded lesson flow. `pnpm lint`, `pnpm typecheck` and
+`pnpm test` all pass (auth/progress, catalog, exercises and static-frontend
+tests). See `plans/milestones.md` for the live status board and
+`plans/david-work.md` for the storage/login/progress assignment.
 
 ## Contributing
 

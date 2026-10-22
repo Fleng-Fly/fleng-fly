@@ -40,16 +40,20 @@ Reuse of a revoked refresh token
 
 ```
 /dashboard.html loads → js/dashboard.js main()
-  → requireSession(): js/session.js → GET /api/v1/users/me (Authorization: Bearer)
+  → requireSession({ throwOnUnavailable: true }): js/session.js
+  → GET /api/v1/users/me (Authorization: Bearer)
       → on 401, api.js refreshes once from the HttpOnly cookie and retries
       → no session → redirect to /login.html
   → get_current_user verifies the JWT → loads User + Profile
   → 200 { id, email, displayName, level, xp, createdAt }
-  → GET /api/v1/progress/me
-  → progress service reads the user's aggregate row (scoped to the token subject)
-  → 200 { userId, lessonsStarted, lessonsCompleted, studyMinutes, ... }
-  → UI shows name/level/XP and the progress counters; no fake data
-  → DB down → 503 DATABASE_UNAVAILABLE → error card + retry
+  → GET /api/v1/progress/me, /streaks/me, /vocabulary/stats
+  → progress service reads aggregate plus published course lesson counts
+  → streak service reads activity days; vocabulary stats counts own learned words
+  → UI shows name/level/XP, lesson completion ratio, estimated time,
+    current course, streak and learned-word count; no fake data
+  → API error → unavailable metric/error card + retry
+  → search submits → GET /courses then /courses/{slug} for each published course
+    → matching published courses/lessons shown as navigable results
 ```
 
 Identity always comes from the access token subject; a user can only ever read
@@ -67,23 +71,55 @@ course.html?slug=... → getCourse(slug) → GET /api/v1/courses/{slug}
   → missing/unpublished → 404 NOT_FOUND → friendly "not found" state
 
 lesson.html?slug=... → getLesson(slug) → GET /api/v1/lessons/{slug}
-  → published lesson of a published course → 200 LessonDetail (theory)
+  → published lesson of a published course → 200 LessonDetail
+    (theory + public exercises, never answer keys)
   → theory rendered with textContent (headings / lists / paragraphs only)
 ```
 
-Content is read-only and seeded by `backend/app/db/seed.py`.
+Content is read-only and seeded by `backend/app/db/seed.py` (courses, lessons and
+exercises).
 
-## Flow 5 — Lesson completion (planned)
+## Flow 5 — Lesson start, submission and completion (implemented)
 
 ```
-POST /lessons/:id/complete
-  → exercises grades submissions
-  → progress records LessonProgress
-  → gamification updates XpEvent, Streak, achievements
-  → analytics records event (best-effort)
+lesson.html?slug=... → startLesson(slug) → POST /api/v1/lessons/{slug}/start
+  → get-or-create LessonProgress (in_progress) + Progress.lessons_started += 1
+  → 200 LessonProgress (per-exercise state) → progress summary rendered
+
+Answer an exercise → submitAnswer(slug, {exerciseId, answer, selfAssessment?})
+  → POST /api/v1/lessons/{slug}/submit
+  → exercises module: resolve lesson+exercise (404 if not the lesson's exercise)
+  → validate answer shape (422 INVALID_ANSWER if malformed)
+  → grade single_choice / text; record self-assessment for self_check
+  → upsert ExerciseSubmission; award XP once (conditional UPDATE on xp_awarded)
+  → recompute lesson completion; on first completion:
+        LessonProgress -> completed
+        Progress.lessons_completed += 1, study_minutes += estimatedMinutes
+  → 200 SubmissionResult (correctness, +XP, revealed answer, explanation, lesson)
+  → frontend updates the result area and the progress summary
+
+GET /api/v1/progress/me
+  → aggregate + derived exercisesCompleted + xp + per-course progress
 ```
 
-## Flow 6 — AI tutor turn (planned)
+XP is server-side only (never client-supplied) and cannot be farmed by retries.
+
+The Lessons workspace adds a Theory tab from `LessonDetail.theory`, Practice
+and Test views over the same exercises and submissions, and a Vocabulary tab.
+The player reads `GET /lessons/{slug}/progress` before starting and resumes
+from the first incomplete question. Progress includes the caller's latest
+submitted answer for page reload; unsent drafts stay in memory. Vocabulary
+calls `GET /vocabulary?lessonId=<lesson UUID>&offset=...&limit=30`, which filters
+by both authenticated user and lesson. Dashboard reads the same persisted
+progress through `GET /progress/me`.
+
+## Flow 6 — Gamification (planned)
+
+```
+Lesson completion → XpEvent, Streak, Achievement updates
+```
+
+## Flow 7 — AI tutor turn (planned)
 
 ```
 POST /ai/conversations/:id/messages
@@ -94,11 +130,41 @@ POST /ai/conversations/:id/messages
 
 ## Data ownership summary
 
-| Data | Writer | Reader |
-| ---- | ------ | ------ |
-| Credentials, sessions/tokens | auth 🟢 | auth 🟢 |
-| User / Profile | auth 🟢 (registration) | users 🟢 |
-| Progress (aggregate) | server-side / progress 🟢 | progress 🟢 |
-| Catalog/content (courses, lessons) | catalog 🟢 (seed) | logged-in users 🟢 |
-| XP/vocabulary | gamification/vocabulary 🔴 | dashboards later |
-| AI conversations | ai 🔴 | ai 🔴 |
+| Data                                                   | Writer                           | Reader             |
+| ------------------------------------------------------ | -------------------------------- | ------------------ |
+| Credentials, sessions/tokens                           | auth 🟢                          | auth 🟢            |
+| User / Profile                                         | auth 🟢 (registration)           | users 🟢           |
+| Progress (aggregate)                                   | exercises + progress 🟢          | progress 🟢        |
+| Catalog/content (courses, lessons, exercises, answers) | catalog/exercises 🟢 (seed)      | logged-in users 🟢 |
+| Submissions / lesson progress                          | exercises 🟢                     | progress 🟢        |
+| XP                                                     | exercises 🟢 (once per exercise) | dashboard 🟢       |
+| Streaks / achievements                                 | gamification 🔴                  | dashboards later   |
+| AI conversations                                       | ai 🔴                            | ai 🔴              |
+
+## Implemented extension flows — 2026-10-18
+
+- Graded submission → learner row lock → existing deterministic grading/XP/progress
+  → unique timezone-policy activity day → deterministic achievement rules → commit.
+- Vocabulary review → ownership + learner lock → review record/due state → daily
+  activity/achievement rules → commit. Adding words evaluates vocabulary awards.
+- Reset request → shared IP/email hash counters → generic response → hashed expiring
+  token and configurable SMTP delivery. Confirm → atomic token claim → password
+  hash update + reset-token/refresh-session invalidation → commit.
+- AI chat → auth/ownership/input checks → bounded read-only context/history → shared
+  rate/budget/concurrency reservation commit → OpenRouter → validate complete output
+  → atomic user+assistant pair + usage commit. Failure leaves history untouched.
+- AI stream → same checks/reservation → upstream SSE parsing → delta events → only
+  complete streams commit; otherwise error event/cancellation and failed accounting.
+- Recommendations → latest incorrect exercise submissions grouped by lesson,
+  unlearned vocabulary and next published lessons at CEFR level; no provider call.
+
+AI has no privileged mutation tools or hidden official answer keys. Browser only
+calls FastAPI. Provider transport is persistence-free and swappable via Protocol.
+
+## Local startup
+
+`npm run dev` → Python `app.db.prepare` → shared config/async engine → SQLite
+Alembic upgrade → seed only if the course catalog is empty → uvicorn serves UI
+and API. Users, refresh sessions, submissions, XP and progress persist in the
+same ignored `backend/data/fleng.db` across restarts. PostgreSQL remains an
+explicit DATABASE_URL choice with manual migrations.

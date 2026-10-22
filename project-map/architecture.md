@@ -12,12 +12,11 @@ FastAPI (Python) 🟢  — one deployable on :3001
   • serves the static frontend at /  🟢  (frontend/: HTML, CSS, vanilla JS)
   • serves REST /api/v1              🟢
   • main.py: CORS, error handlers, /api/v1 router, StaticFiles mount 🟢
-  • modules: health 🟢, auth 🟢, users 🟢, progress 🟢
+  • modules: health 🟢, auth 🟢, users 🟢, progress 🟢, catalog 🟢, exercises 🟢
   • infrastructure: core (config, errors, schemas) 🟢, db (models, session) 🟢,
     api (router, deps) 🟢
-  • planned modules (all 🔴): catalog, content, exercises, vocabulary,
-             gamification, challenges, recommendations, ai,
-             notifications, subscriptions, analytics
+  • planned modules (all 🔴): content, vocabulary, gamification, challenges,
+             recommendations, ai, notifications, subscriptions, analytics
   ↓  SQLAlchemy 2 (async) → asyncpg
 PostgreSQL 🟢 (models + 2 Alembic migrations committed; runtime needs a running instance)
 
@@ -73,3 +72,12 @@ relative `/api/v1`; there is no frontend environment configuration.
 - Keep the monolith until evidence justifies extraction (`docs/architecture.md §8`).
 - Any new top-level directory must be added to this map and to `README.md`.
 - New backend modules must be added to `modules.md` and `api-map.md`.
+
+## Backend extension — 2026-10-18
+
+Vocabulary, gamification, password_reset and ai now live in the FastAPI monolith.
+AI wraps an in-process async OpenRouter provider adapter with no database access;
+recommendations use deterministic SQL analytics. No new deployable, frontend
+framework or build step. PostgreSQL adds learning/review/achievement/reset/AI and
+quota tables in revision 20261018_1200. Provider keys remain server-only. Tests are
+mocked/default SQLite fixtures; live PostgreSQL/AI integration is still blocked.

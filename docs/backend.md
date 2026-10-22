@@ -2,12 +2,13 @@
 
 > Status: **M2 implemented**. Stack: Python 3.11+ / FastAPI / SQLAlchemy 2
 > (async) / Alembic / Pydantic. Implemented modules: `health`, `auth`, `users`,
-> `progress`. Catalog, exercises, AI and the rest are not built yet.
+> `progress`, catalog/exercises, vocabulary/gamification, password reset and AI.
+> Live PostgreSQL/OpenRouter verification remains pending; see the extension section.
 
 ## 1. Responsibilities
 
 The backend is the only part of the system allowed to make decisions about data:
-validation, authorization, business rules, persistence and (later) AI
+validation, authorization, business rules, persistence and AI
 orchestration. The frontend never reaches the database.
 
 ## 2. Project structure (current)
@@ -164,3 +165,48 @@ pnpm db:migrate            # alembic upgrade head
 ```
 
 See `plans/backend-plan.md` for what comes next.
+
+## Implemented learning and AI extensions (2026-10-18)
+
+The modular FastAPI/SQLAlchemy architecture is unchanged. New modules follow
+`router.py`, `service.py`, `schemas.py`:
+
+- `vocabulary`: user-owned words, translation/example, optional published lesson,
+  learned/review state, due queue and review history. Review scheduling is a
+  simple 1-day retry / 7-day remembered policy, not a full SRS algorithm.
+- `gamification`: one unique learning activity per learner/calendar day; current
+  and longest streak; five deterministic achievements. Submissions and vocabulary
+  reviews record activity. Merely opening a lesson does not earn a streak day.
+- `password_reset`: hashed expiring one-use tokens, generic responses, persistent
+  IP/email fixed-window limits, SMTP delivery and refresh-session revocation.
+- `ai`: OpenRouter provider adapter, bounded tutor history, structured explanation
+  and practice generation, deterministic learner recommendations, JSON and SSE.
+- `users`: authenticated profile PATCH for display name, CEFR English level and
+  preferred explanation language. Numeric level, XP, email and identity stay
+  outside this update surface.
+
+Learning writes take a `users` row lock before reading/updating progress/profile,
+so concurrent requests cannot overwrite XP using stale profile objects. The
+existing deterministic grading and once-only XP claim remain authoritative.
+Activity and achievement writes participate in the same learning transaction.
+Achievement definitions are migration-owned, with no client/AI award endpoint.
+Thresholds: first lesson, seven-day longest streak, 100 XP, ten completed lessons,
+and five saved words. Previously earned metrics are evaluated on the next
+learning write; no historical streak days are invented during migration.
+
+`LEARNING_TIMEZONE` is a server-wide IANA zone (default UTC). Dates are derived
+from server time and cannot be supplied by clients. A streak remains current if
+its last day was today or yesterday; it becomes zero after a missed day. Longest
+streak is preserved. Changing this policy after collecting activity changes day
+boundaries; plan an explicit data migration if changing timezone in production.
+
+`core/limits.py` stores request windows in PostgreSQL. AI quota reservations are
+serialized per user and globally, and survive worker restarts. All API request
+bodies are bounded before JSON parsing. Validation errors omit input values to
+avoid reflecting credentials/reset tokens. Provider errors never expose upstream
+bodies. Authenticated object access is scoped by the token's user ID.
+
+Tests, PostgreSQL setup, safe demo seed and SMTP configuration:
+[development.md](development.md). Provider protocol, limits and manual AI checks:
+[ai.md](ai.md). Live PostgreSQL/AI verification remains blocked in the implementation
+environment; offline SQL and mocked/ORM tests are distinct from live integration.

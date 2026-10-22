@@ -31,16 +31,22 @@ Implemented and verified:
   argon2id, rotating hashed refresh tokens and reuse detection.
 - `GET /api/v1/users/me` and `GET /api/v1/progress/me` (Bearer-protected,
   read-only).
-- Read-only catalog: `GET /api/v1/courses`, `/courses/{slug}` and `/lessons/{slug}`
-  (published content only), with `Course`/`Lesson` models, migration
-  `20261011_1200_catalog` and an idempotent seed (`app/db/seed.py`).
+- Catalog: `GET /api/v1/courses`, `/courses/{slug}` and `/lessons/{slug}`
+  (published content only, public exercises without answer keys), with
+  `Course`/`Lesson` models, migration `20261011_1200_catalog` and an idempotent
+  seed (`app/db/seed.py`).
+- Graded lesson flow: `POST /lessons/{slug}/start|submit`, `GET
+  /lessons/{slug}/progress` with `Exercise`, `ExerciseSubmission` and
+  `LessonProgress` models (migration `20261011_1400_exercises`). Three exercise
+  types (`single_choice`, `text`, `self_check`), server-side grading, once-only
+  XP, and server-derived lesson/course progress on `/progress/me`.
 - A static HTML/CSS/JS frontend (`frontend/`) served by the same FastAPI app:
   `/index.html`, `/login.html`, `/register.html`, `/dashboard.html`,
   `/courses.html`, `/course.html`, `/lesson.html`, `/settings.html`. In-memory
   access token, automatic refresh, `requireSession` redirect guard, and a live
   backend-status indicator.
 
-Not built: exercises/grading, lesson completion, vocabulary, gamification, AI,
+Not built: vocabulary/SRS, gamification (streaks, achievements), AI,
 notifications, analytics, deployments.
 
 > Environment note: migrations were verified offline (`pnpm db:sql`); applying

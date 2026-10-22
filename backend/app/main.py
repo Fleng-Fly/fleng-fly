@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
+from app.core.body_limit import BodyLimitMiddleware
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 
@@ -48,6 +49,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(BodyLimitMiddleware, max_bytes=settings.http_max_body_bytes)
     register_exception_handlers(app)
     app.include_router(api_router, prefix="/api/v1")
 

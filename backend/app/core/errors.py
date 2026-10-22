@@ -83,9 +83,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(StarletteHTTPException)
-    async def http_exception_handler(
-        request: Request, exc: StarletteHTTPException
-    ) -> JSONResponse:
+    async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
         code = _STATUS_CODES.get(exc.status_code, "HTTP_ERROR")
         message = exc.detail if isinstance(exc.detail, str) else "Request failed"
         return JSONResponse(
@@ -105,7 +103,14 @@ def register_exception_handlers(app: FastAPI) -> None:
                     "VALIDATION_FAILED",
                     "Validation failed",
                     request.url.path,
-                    details=exc.errors(),
+                    details=[
+                        {
+                            key: value
+                            for key, value in error.items()
+                            if key in {"type", "loc", "msg"}
+                        }
+                        for error in exc.errors()
+                    ],
                 )
             ),
         )
@@ -116,7 +121,9 @@ def register_exception_handlers(app: FastAPI) -> None:
         # asyncpg surfaces an unreachable database as a raw OSError
         # (ConnectionRefusedError); SQLAlchemy surfaces query-level failures as
         # SQLAlchemyError. Both mean "database unavailable" for this API.
-        logger.error("Database error on %s %s: %s", request.method, request.url.path, exc)
+        logger.error(
+            "Database error on %s %s (%s)", request.method, request.url.path, type(exc).__name__
+        )
         return JSONResponse(
             status_code=503,
             content=_envelope(

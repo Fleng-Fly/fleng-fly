@@ -1,21 +1,25 @@
 """Database models.
 
 Identity (`User`), learner profile (`Profile`), authentication sessions
-(`RefreshToken`), learning progress (`Progress`) and the learning catalog
-(`Course`, `Lesson`).
+(`RefreshToken`), learning progress (`Progress`), the learning catalog
+(`Course`, `Lesson`) and exercises (`Exercise`, `ExerciseSubmission`,
+`LessonProgress`).
 """
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
     String,
     Text,
+    UniqueConstraint,
     Uuid,
     false,
     func,
@@ -23,6 +27,9 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+EXERCISE_TYPES = ("single_choice", "text", "self_check")
+LESSON_PROGRESS_STATUSES = ("in_progress", "completed")
 
 
 class User(Base):
@@ -61,6 +68,10 @@ class Profile(Base):
         ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False
     )
     display_name: Mapped[str] = mapped_column(String, nullable=False)
+    english_level: Mapped[str] = mapped_column(String(2), default="A1", server_default="A1")
+    preferred_language: Mapped[str] = mapped_column(
+        String(40), default="English", server_default="English"
+    )
     level: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
     xp: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -212,3 +223,245 @@ class Lesson(Base):
     )
 
     course: Mapped[Course] = relationship(back_populates="lessons")
+    exercises: Mapped[list["Exercise"]] = relationship(
+        back_populates="lesson",
+        cascade="all, delete-orphan",
+        order_by="Exercise.position",
+    )
+
+
+class Exercise(Base):
+    """A question inside a lesson.
+
+    Three types are supported (`EXERCISE_TYPES`):
+
+    - `single_choice`: `options` is a list of `{id, text}` and
+      `correct_option_id` holds the one correct option id.
+    - `text`: `accepted_answers` is a list of accepted short answers (compared
+      after normalisation: trimmed, collapsed whitespace, case-insensitive).
+    - `self_check`: the learner answers in their own words and checks it
+      themselves; the server records the attempt and never grades free text.
+      `model_answer` is revealed only after submission.
+
+    `correct_option_id`, `accepted_answers` and `model_answer` are grading
+    secrets and must never appear in a public response before the learner
+    submits.
+    """
+
+    __tablename__ = "exercises"
+    __table_args__ = (
+        CheckConstraint(
+            "type IN ('single_choice', 'text', 'self_check')",
+            name="exercises_type_check",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    lesson_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("lessons.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    slug: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    type: Mapped[str] = mapped_column(String(20), nullable=False)
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    points: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
+    options: Mapped[list[dict[str, str]] | None] = mapped_column(JSON, nullable=True)
+    correct_option_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    accepted_answers: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    model_answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    lesson: Mapped[Lesson] = relationship(back_populates="exercises")
+
+
+class ExerciseSubmission(Base):
+    """One learner's latest attempt at one exercise.
+
+    Unique per `(user_id, exercise_id)`: retries update the row rather than
+    inserting. `completed` is sticky (once true it never resets) and
+    `xp_awarded` guarantees points are granted at most once per exercise.
+    """
+
+    __tablename__ = "exercise_submissions"
+    __table_args__ = (
+        UniqueConstraint("user_id", "exercise_id", name="exercise_submissions_user_exercise_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    exercise_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("exercises.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_correct: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    completed: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    xp_awarded: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    attempts: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+
+class LessonProgress(Base):
+    """Per-learner state for one lesson.
+
+    Unique per `(user_id, lesson_id)`. `status` moves from `in_progress` to
+    `completed` once every published exercise in the lesson is completed; the
+    transition happens at most once, so aggregate counters cannot double-count.
+    """
+
+    __tablename__ = "lesson_progress"
+    __table_args__ = (
+        UniqueConstraint("user_id", "lesson_id", name="lesson_progress_user_lesson_key"),
+        CheckConstraint(
+            "status IN ('in_progress', 'completed')",
+            name="lesson_progress_status_check",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    lesson_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("lessons.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    status: Mapped[str] = mapped_column(
+        String(20), default="in_progress", server_default="in_progress", nullable=False
+    )
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+
+class VocabularyItem(Base):
+    __tablename__ = "vocabulary_items"
+    __table_args__ = (UniqueConstraint("user_id", "word", name="vocabulary_user_word_key"),)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    lesson_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("lessons.id", ondelete="SET NULL")
+    )
+    word: Mapped[str] = mapped_column(String(120))
+    translation: Mapped[str] = mapped_column(String(300))
+    example: Mapped[str] = mapped_column(String(1000), default="")
+    learned: Mapped[bool] = mapped_column(Boolean, default=False)
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class VocabularyReview(Base):
+    __tablename__ = "vocabulary_reviews"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    item_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("vocabulary_items.id", ondelete="CASCADE"), index=True
+    )
+    remembered: Mapped[bool] = mapped_column(Boolean)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class LearningActivity(Base):
+    __tablename__ = "learning_activity"
+    __table_args__ = (UniqueConstraint("user_id", "day", name="activity_user_day_key"),)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    day: Mapped[date] = mapped_column(Date)
+
+
+class Achievement(Base):
+    __tablename__ = "achievements"
+    code: Mapped[str] = mapped_column(String(40), primary_key=True)
+    title: Mapped[str] = mapped_column(String(100))
+    metric: Mapped[str] = mapped_column(String(30))
+    threshold: Mapped[int] = mapped_column(Integer)
+
+
+class UserAchievement(Base):
+    __tablename__ = "user_achievements"
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    achievement_code: Mapped[str] = mapped_column(ForeignKey("achievements.code"), primary_key=True)
+    awarded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RequestLimit(Base):
+    """Persistent fixed windows; unique keys and row locks coordinate workers."""
+
+    __tablename__ = "request_limits"
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    window: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    count: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class AIConversation(Base):
+    __tablename__ = "ai_conversations"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    model: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AIMessage(Base):
+    __tablename__ = "ai_messages"
+    __table_args__ = (
+        CheckConstraint("role IN ('user', 'assistant')", name="ai_message_role_check"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("ai_conversations.id", ondelete="CASCADE"), index=True
+    )
+    role: Mapped[str] = mapped_column(String(20))
+    content: Mapped[str] = mapped_column(Text)
+    model: Mapped[str] = mapped_column(String(200))
+    usage: Mapped[dict | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AIUsage(Base):
+    __tablename__ = "ai_usage"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    model: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(20), default="reserved")
+    reserved_tokens: Mapped[int] = mapped_column(Integer)
+    usage: Mapped[dict | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

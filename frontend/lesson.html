@@ -6,17 +6,60 @@
     <title>Lesson — Fleng</title>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/lesson.css" />
   </head>
-  <body>
-    <header id="site-header" class="site-header"></header>
-
-    <main class="container page">
-      <div id="lesson-body" class="stack"></div>
+  <body class="dashboard-page lesson-page">
+    <main class="dashboard-main">
+      <div id="lesson-loading" class="lesson-card lesson-loading" role="status">Loading your lesson…</div>
+      <section id="lesson-error" class="lesson-card lesson-error" role="alert" hidden></section>
+      <div id="lesson-content" hidden>
+        <nav class="lesson-breadcrumb" aria-label="Breadcrumb">
+          <a href="/courses.html">Lessons</a><span aria-hidden="true">/</span>
+          <a id="lesson-course-link" href="/courses.html">Course</a>
+        </nav>
+        <section class="lesson-hero lesson-reveal" aria-labelledby="lesson-title">
+          <div class="lesson-hero-copy">
+            <div class="lesson-hero-meta"><span id="lesson-number">LESSON</span><span id="lesson-level"></span><span id="lesson-duration"></span></div>
+            <h1 id="lesson-title"></h1><p id="lesson-subtitle"></p>
+            <div class="lesson-hero-progress"><span id="lesson-activity-count"></span><span id="lesson-xp"></span></div>
+            <div id="lesson-progress" class="lesson-track" role="progressbar" aria-label="Completed lesson activities" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="lesson-fill"></span></div>
+          </div>
+          <span class="lesson-hero-art" aria-hidden="true">✦</span>
+        </section>
+        <div class="lesson-grid">
+          <div class="lesson-primary">
+            <div class="lesson-tabs" role="tablist" aria-label="Lesson content">
+              <button id="tab-theory" role="tab" aria-controls="panel-theory" aria-selected="false" tabindex="-1" type="button">Theory</button>
+              <button id="tab-practice" role="tab" aria-controls="panel-practice" aria-selected="false" tabindex="-1" type="button">Practice</button>
+              <button id="tab-test" role="tab" aria-controls="panel-test" aria-selected="true" type="button">Test</button>
+              <button id="tab-vocabulary" role="tab" aria-controls="panel-vocabulary" aria-selected="false" tabindex="-1" type="button">Vocabulary</button>
+            </div>
+            <section id="lesson-completed" class="lesson-completed" role="status" hidden></section>
+            <section id="panel-theory" role="tabpanel" aria-labelledby="tab-theory" tabindex="0" hidden></section>
+            <section id="panel-practice" role="tabpanel" aria-labelledby="tab-practice" tabindex="0" hidden></section>
+            <section id="panel-test" role="tabpanel" aria-labelledby="tab-test" tabindex="0"></section>
+            <section id="panel-vocabulary" role="tabpanel" aria-labelledby="tab-vocabulary" tabindex="0" hidden></section>
+          </div>
+          <aside class="lesson-secondary" aria-label="Test overview">
+            <section class="lesson-card lesson-template lesson-reveal" aria-labelledby="template-heading">
+              <div class="lesson-card-heading"><h2 id="template-heading">Test Template</h2><span class="lesson-chip">THIS LESSON</span></div>
+              <p class="lesson-muted">A preview of your lesson’s activities.</p>
+              <div id="template-preview"></div>
+              <button id="use-template" class="lesson-button lesson-button-primary" type="button">Use template <span aria-hidden="true">↗</span></button>
+              <p class="lesson-fine-print">Opens this lesson in Test view. Your progress is shared with Practice.</p>
+            </section>
+            <section class="lesson-card lesson-structure lesson-reveal" aria-labelledby="structure-heading">
+              <h2 id="structure-heading">Template Structure</h2>
+              <p class="lesson-muted">Explore the activity types in this lesson.</p>
+              <ul id="template-structure"></ul>
+              <button class="lesson-button lesson-button-secondary" type="button" disabled aria-describedby="template-unavailable" title="Custom test creation is not available yet">Create test from template</button>
+              <p id="template-unavailable" class="lesson-fine-print">Custom test creation is not available yet.</p>
+            </section>
+          </aside>
+        </div>
+      </div>
     </main>
-
-    <footer class="site-footer">
-      <div class="container">Fleng — learn English, every day.</div>
-    </footer>
 
     <script type="module" src="/js/lesson.js"></script>
   </body>

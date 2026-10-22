@@ -25,6 +25,11 @@ streak, XP, notifications and profile menu.
 
 ### Dashboard `/dashboard`
 
+Current `/dashboard.html` implementation follows the supplied Dashboard
+description and palette: compact sidebar, catalog search, welcome card, quick
+access, progress ring and current course. Exact Figma geometry and imagery are
+not verified because the file/screenshots were inaccessible in this run.
+
 - Greeting + daily goal ring.
 - "Continue learning" card.
 - Streak and XP/level summary.
@@ -41,6 +46,13 @@ streak, XP, notifications and profile menu.
 - Lesson player: one exercise at a time, progress indicator, submit/continue.
 - Feedback states (correct/incorrect) inline.
 - Completion screen: score, XP gained, streak update, next lesson.
+
+Current `/lesson.html?slug=...` implementation uses the Dashboard sidebar and
+header, a data-driven lesson hero, Theory/Practice/Test/Vocabulary tabs, a
+question card and a right-column current-test preview. “Use template” enters
+Test; custom template creation is unavailable. Completion is a status banner
+with a course link. The standalone score/next-lesson screen above remains a
+design idea. Exact Figma comparison is pending access to the target frame.
 
 ### Vocabulary `/vocabulary`
 

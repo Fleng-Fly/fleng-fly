@@ -57,12 +57,16 @@ its published lessons. Drafts and unpublished lessons are invisible (`404`).
 | Method | Path | Auth | Status |
 | ------ | ---- | ---- | ------ |
 | GET | `/lessons/{slug}` | public | ✅ |
-| POST | `/lessons/{slug}/start` | bearer | ⬜ |
-| POST | `/lessons/{slug}/complete` | bearer | ⬜ |
-| GET | `/lessons/{slug}/progress` | bearer | ⬜ |
+| POST | `/lessons/{slug}/start` | bearer | ✅ |
+| POST | `/lessons/{slug}/submit` | bearer | ✅ |
+| GET | `/lessons/{slug}/progress` | bearer | ✅ |
 
-`GET /lessons/{slug}` returns theory + course context. Lesson slugs are globally
-unique.
+`GET /lessons/{slug}` returns theory + course context + public exercises (never
+answer keys). Lesson slugs are globally unique. `/start` is idempotent;
+`/submit` takes `{ exerciseId, answer, selfAssessment? }` and returns the grading
+result + lesson progress.
+`GET /lessons/{slug}/progress` includes each exercise's latest answer for the
+authenticated caller; no answer keys are exposed by this read endpoint.
 
 ## Exercises
 
@@ -93,6 +97,9 @@ unique.
 | GET | `/progress/courses/:courseId` | bearer | ⬜ |
 | GET | `/progress/skills` | bearer | ⬜ |
 | GET | `/progress/activity` | bearer | ⬜ |
+
+`/progress/me` also returns `exercisesCompleted`, `xp` and a `courses[]`
+breakdown with `lessonsStarted` and `lessonsCompleted` per course (additive).
 
 ## Challenges
 
@@ -134,3 +141,21 @@ unique.
 - `USER`: own resources only (`userId` scoping enforced in queries).
 - `ADMIN`: manage catalog/content.
 - Ownership violations return `404` where existence is sensitive.
+
+## Implemented extensions — 2026-10-18
+
+All prefixed `/api/v1`; see docs/api.md for request/response contracts:
+
+- `PATCH /users/me` (Bearer).
+- `GET|POST /vocabulary`, `PATCH|DELETE /vocabulary/{id}` (Bearer, own rows).
+- `GET /vocabulary?lessonId=<uuid>` filters the caller's words to one lesson.
+- `POST /vocabulary/{id}/review`, `GET /vocabulary/{id}/reviews` (Bearer).
+- `GET /vocabulary/stats` (Bearer) returns the caller's learned-word count.
+- `GET /streaks/me`, `GET /achievements/me` (Bearer; no client award route).
+- `POST /auth/password-reset/request|confirm` (public, rate-limited).
+- `POST /ai/chat`, `POST /ai/chat/stream` (Bearer).
+- `GET /ai/conversations`, `GET|DELETE /ai/conversations/{id}` (Bearer, own rows).
+- `POST /ai/explain`, `POST /ai/generate-exercise` (Bearer, no official XP/grading).
+- `GET /ai/recommendations` (Bearer, deterministic, works without provider).
+
+These actual routes supersede earlier proposed AI/vocabulary route names above.

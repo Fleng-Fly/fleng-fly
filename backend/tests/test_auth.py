@@ -3,14 +3,13 @@
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from httpx import AsyncClient
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.config import get_settings
 from app.db.models import RefreshToken, User
 from app.modules.auth.security import hash_refresh_token
 from app.modules.auth.service import _normalize_email
+from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 REGISTER = "/api/v1/auth/register"
 LOGIN = "/api/v1/auth/login"

@@ -28,5 +28,7 @@ def to_user_response(user: User) -> UserResponse:
         display_name=profile.display_name if profile else user.email.split("@")[0],
         level=profile.level if profile else 1,
         xp=profile.xp if profile else 0,
+        english_level=profile.english_level if profile else "A1",
+        preferred_language=profile.preferred_language if profile else "English",
         created_at=user.created_at,
     )

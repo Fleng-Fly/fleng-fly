@@ -123,3 +123,22 @@ Responses return `429` with `Retry-After`.
 - [ ] Rate limited if abusable or expensive.
 - [ ] Errors use the standard envelope; no internals leaked.
 - [ ] No secrets/PII logged.
+
+## Learning/AI controls (implemented 2026-10-18)
+
+New private endpoints reuse Bearer authentication and enforce row ownership.
+Deterministic backend rules own XP, grades and achievements. Profile PATCH permits
+only display name, CEFR level and preferred language. Password reset stores only
+SHA-256 hashes of cryptographically random, expiring, atomically single-use tokens;
+responses are generic, requests/confirmations rate-limited, delivery configurable
+through SMTP, and reset revokes refresh sessions. Development testing captures
+email locally rather than exposing tokens in APIs/logs. Existing access JWTs
+expire on their normal short lifetime after a reset.
+
+OpenRouter credentials use SecretStr, provider errors are redacted, and no model
+tools can access user records. Static system instructions are separate from
+untrusted learner/catalog/history text. AI reservations/rate limits are persistent,
+with bounded global/per-user concurrency and conservative token budgets. History,
+input/output and API bodies are bounded. Validation errors omit submitted input
+values. Streaming failures never save completed responses. See ai.md for limits,
+provider billing caveats and trust-boundary limitations.

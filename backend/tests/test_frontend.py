@@ -38,6 +38,29 @@ async def test_static_javascript_is_served(client: AsyncClient) -> None:
     assert "apiFetch" in response.text
 
 
+async def test_dashboard_shell_assets_are_served(client: AsyncClient) -> None:
+    page = await client.get("/dashboard.html")
+    styles = await client.get("/css/dashboard.css")
+    script = await client.get("/js/dashboard.js")
+    workspace = await client.get("/js/workspace.js")
+    assert all(response.status_code == 200 for response in (page, styles, script, workspace))
+    assert 'id="dashboard-sidebar"' in workspace.text
+    assert 'id="your-progress"' in page.text
+    assert "prefers-reduced-motion" in styles.text
+    assert "getVocabularyStats" in script.text
+
+
+async def test_lesson_player_assets_are_served(client: AsyncClient) -> None:
+    page = await client.get("/lesson.html")
+    styles = await client.get("/css/lesson.css")
+    script = await client.get("/js/lesson.js")
+    assert page.status_code == styles.status_code == script.status_code == 200
+    assert 'id="tab-test"' in page.text
+    assert 'id="panel-vocabulary"' in page.text
+    assert "submitAnswer" in script.text
+    assert "prefers-reduced-motion" in styles.text
+
+
 async def test_api_is_reachable_alongside_the_frontend(client: AsyncClient) -> None:
     response = await client.get("/api/v1/health")
     assert response.status_code == 200

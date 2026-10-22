@@ -1,11 +1,11 @@
 # Architecture
 
 > Status: **M2 implemented** — a plain HTML/CSS/JS frontend served by the backend,
-> plus authentication and progress (`/auth/*`, `/users/me`, `/progress/me`) and
-> the read-only learning catalog (`/courses`, `/courses/{slug}`,
-> `/lessons/{slug}`). Exercises, progress writes and AI are design-only. This
-> document is the canonical description of how Fleng is built; update it when the
-> real architecture diverges.
+> plus authentication and progress (`/auth/*`, `/users/me`, `/progress/me`), the
+> learning catalog (`/courses`, `/courses/{slug}`, `/lessons/{slug}`) and the
+> graded lesson flow (`/lessons/{slug}/start|submit|progress`). AI is
+> design-only. This document is the canonical description of how Fleng is built;
+> update it when the real architecture diverges.
 
 ## 1. Goals and constraints
 
@@ -33,9 +33,10 @@ Non-goals for the MVP:
   dependencies. FastAPI is the **only** backend framework: there is no
   NestJS/Express/Node.js or TypeScript code in `backend/`.
 - **AI layer** is a Python package consumed by the backend. It isolates
-  provider-specific code and prompt/response handling. It is *not* a service.
-- **PostgreSQL** is the single source of persistent truth, accessed only through
-  SQLAlchemy (async) from the backend; schema changes go through Alembic.
+  provider-specific code and prompt/response handling. It is _not_ a service.
+- The configured SQL database is the single source of persistent truth: **SQLite**
+  locally, **PostgreSQL** available through DATABASE_URL. Both use the existing
+  SQLAlchemy async engine and Alembic; frontend accesses only the API.
 
 ```
 Browser
@@ -73,20 +74,20 @@ Browser
       External AI providers
 
               ▲
-              │ SQLAlchemy (async) → asyncpg
+              │ SQLAlchemy (async)
 ┌──────────────────────────┐
-│ PostgreSQL               │
+│ SQLite / PostgreSQL      │
 └──────────────────────────┘
 ```
 
 ## 3. Layer responsibilities
 
-| Layer    | Owns                                                        | Must not |
-| -------- | ----------------------------------------------------------- | -------- |
-| Frontend | Rendering, navigation, forms, client state, design system   | Contain business rules, call AI providers directly, store secrets |
-| Backend  | Business rules, validation, authz, persistence, orchestration | Contain UI concerns, expose provider-specific AI payloads |
-| AI layer | Provider clients, prompts, response parsing, guardrails      | Know about HTTP, FastAPI, SQLAlchemy, or the database |
-| Database | Data integrity, constraints, indexes                         | Be bypassed by ad-hoc SQL outside migrations |
+| Layer    | Owns                                                          | Must not                                                          |
+| -------- | ------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Frontend | Rendering, navigation, forms, client state, design system     | Contain business rules, call AI providers directly, store secrets |
+| Backend  | Business rules, validation, authz, persistence, orchestration | Contain UI concerns, expose provider-specific AI payloads         |
+| AI layer | Provider clients, prompts, response parsing, guardrails       | Know about HTTP, FastAPI, SQLAlchemy, or the database             |
+| Database | Data integrity, constraints, indexes                          | Be bypassed by ad-hoc SQL outside migrations                      |
 
 ## 4. Backend module boundaries
 
@@ -147,17 +148,22 @@ GET /api/v1/lessons/{slug}
 Content is read-only from the API; it is populated by the idempotent seed
 (`backend/app/db/seed.py`).
 
-### 5.4 Completing a lesson (planned)
+### 5.4 Completing a lesson (implemented)
 
 ```
-Frontend
-  → POST /api/v1/lessons/:id/complete
-Backend
-  → exercises module grades answers
-  → progress module records LessonProgress + XP events
-  → gamification module updates streak / level / achievements
-  → recommendations module may invalidate cached next-step hints
-  → responds with updated progress summary
+Frontend (lesson page)
+  → POST /api/v1/lessons/{slug}/start        (idempotent; moves to in_progress)
+  → POST /api/v1/lessons/{slug}/submit       ({ exerciseId, answer, selfAssessment? })
+Backend (exercises module)
+  → resolve the published lesson (by slug) and the exercise, or 404
+  → validate the answer shape per type
+  → grade single_choice / text; record the self-assessment for self_check
+  → upsert ExerciseSubmission (unique per user+exercise), award XP once
+  → recompute lesson completion; on first completion bump the progress aggregate
+  → responds with the grading result + lesson progress
+Progress aggregate / XP
+  → XP is server-side only, once per exercise; Profile.xp is the running total
+  → gamification (streaks, levels, achievements) is still planned
 ```
 
 ### 5.5 AI tutor turn (planned)
@@ -217,3 +223,14 @@ questions:
 - Email provider for verification/reset (deferred).
 - Billing provider (deferred until subscriptions).
 - Whether speaking feedback needs an audio-capable provider (deferred).
+
+## Backend extension status (2026-10-18)
+
+The current modular monolith also includes vocabulary, gamification, password
+reset and AI. OpenRouter transport lives in `backend/app/modules/ai/provider.py`;
+it has no database access. AI services assemble read-only bounded learner context,
+reserve shared PostgreSQL quotas, then persist only complete tutoring turns.
+Deterministic grading/XP/achievements stay in backend learning services. `ai/`
+is a documentation entry point. No separate deployable, backend framework or
+frontend technology was added. See docs/ai.md for actual AI endpoints and limits;
+earlier future-AI design notes do not represent a second implementation.

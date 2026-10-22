@@ -4,8 +4,15 @@
 > Legend: ✅ completed · 🚧 in progress · ⛔ blocked · ⬜ next/not started ·
 > ❌ cancelled.
 
-Last updated: M4 — catalog read vertical slice (courses + lessons) landed;
-Phase A (static frontend served by FastAPI) complete.
+Last updated: M4 — catalog + graded lesson flow (exercises, submissions, XP,
+lesson/course progress) landed; Phase A (static frontend served by FastAPI)
+complete.
+
+Frontend update (2026-10-22): Dashboard and Lessons UI phases are complete
+against the available written design brief. Lessons uses the live lesson,
+progress, submission and lesson-filtered vocabulary APIs. Firefox smoke covers
+1440/768/360 widths, session restore, tabs, submission and navigation. Exact
+Figma screenshot comparison is pending; Login/Sign Up is the next UI phase.
 
 | # | Milestone | Status | Notes |
 | - | --------- | ------ | ----- |
@@ -14,7 +21,7 @@ Phase A (static frontend served by FastAPI) complete.
 | M2 | Identity + auth storage | ✅ completed | `User`, `Profile`, `RefreshToken`, `Progress`; argon2id; migration `20261005_1000` |
 | M3 | Authentication & progress API + frontend session | ✅ completed | register/login/refresh/logout, read-only `/users/me`, `/progress/me` |
 | M3a | Phase A: static frontend served by FastAPI | ✅ completed | Next.js removed; `frontend/` HTML/CSS/JS; landing/login/register/dashboard/settings; same-origin CSRF fix |
-| M4 | Catalog & learning | 🚧 in progress | ✅ courses + lessons read API, seed, frontend pages; ⬜ exercises/grading, lesson completion, progress writes |
+| M4 | Catalog & learning | ✅ completed | courses/lessons read API; `single_choice`/`text`/`self_check` exercises with server-side grading; lesson start/submit/progress; once-only XP; per-course progress; lesson page + dashboard |
 | M5 | Vocabulary + SRS | ⬜ | words, user vocabulary, flashcards |
 | M6 | Gamification | ⬜ | XP, levels, streaks, achievements |
 | M7 | Frontend MVP | ⬜ | app shell + core screens + design system |
@@ -36,17 +43,15 @@ Phase A (static frontend served by FastAPI) complete.
 Nothing is blocked. The PostgreSQL runtime checks above are environment
 limitations, not project blockers.
 
-## Immediate next actions (M4, continued)
+## Immediate next actions (M5 — Vocabulary + SRS)
 
-1. ✅ Catalog models (`Course`, `Lesson`) + migration `20261011_1200_catalog` and
-   idempotent seed (`app/db/seed.py`).
-2. ✅ `catalog` module: published-only list/detail/lesson reads with tests.
-3. ⬜ Add `Exercise`, `ExerciseSubmission` and `LessonProgress` + migration;
-   implement the `exercises` module and grade submissions server-side.
-4. ⬜ Lesson start/complete; record progress (server-derived). Keep the client
-   unable to set its own XP/progress.
-5. ⬜ Apply migrations and run the suite against a real PostgreSQL instance in CI.
-6. Deferred auth follow-ups: profile editing, email verification, password
+1. ✅ M4 complete: catalog, exercises, grading, lesson/progress writes.
+2. ⬜ `VocabularyWord`, `UserVocabulary`, `FlashcardReview` + migration; the
+   `vocabulary` module and SRS scheduling.
+3. ⬜ Gamification (M6): `XpEvent`, `Streak`, `Achievement` on top of lesson
+   completion.
+4. ⬜ Apply migrations and run the suite against a real PostgreSQL instance in CI.
+5. Deferred auth follow-ups: profile editing, email verification, password
    reset, rate limiting.
 
 ## Decisions log
@@ -68,3 +73,18 @@ limitations, not project blockers.
 | M4 | Lesson `slug` is **globally** unique (not per course) | `GET /lessons/{slug}` has no course context; global uniqueness avoids ambiguity |
 | M4 | Lesson `theory` is plain text with light markup (`## `, `- `), rendered via `textContent` | Keeps content authoring simple and prevents stored/rendered HTML/XSS |
 | M4 | Catalog read endpoints are public; catalog **pages** are behind `requireSession` | Content is not sensitive; the UI stays part of the signed-in learning flow |
+| M4 | Lesson-path identifier is the lesson **slug** (e.g. `/lessons/{slug}/submit`) | Consistent with `GET /lessons/{slug}`; no UUID round-trip needed |
+| M4 | XP = exercise `points`, awarded **once per exercise** on first completion; no lesson bonus | Bounded, server-side, and impossible to farm with retries |
+| M4 | `single_choice`/`text` complete on a correct answer; `self_check` completes on attempt | The server cannot objectively grade free text; self-check is explicitly self-assessed |
+| M4 | A lesson completes only when it has ≥1 exercise and all are completed | Prevents "opened ⇒ completed"; empty lessons never auto-complete |
+| M4 | `exercises_completed` and per-course progress are **derived** on read | No denormalised counters to drift |
+
+## Backend completion checkpoint — 2026-10-18
+
+Implemented: vocabulary, streaks, deterministic achievements, profile PATCH,
+password reset, OpenRouter provider/tutor/history/explanation/practice generation,
+recommendations, SSE and security limits. Automated mocked/ORM verification is
+complete; real PostgreSQL migration/integration and live OpenRouter testing remain
+blocked. See ai-plan.md and docs/development.md for exact next steps. These backend
+APIs do not imply completed frontend UI integration. Changes are uncommitted by
+explicit user instruction.

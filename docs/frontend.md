@@ -41,7 +41,7 @@ frontend/
 ├── dashboard.html      # protected: profile + progress from the API
 ├── courses.html        # protected: course catalog
 ├── course.html         # protected: course detail + lesson list (?slug=...)
-├── lesson.html         # protected: lesson theory (?slug=...)
+├── lesson.html         # protected: lesson player (?slug=...)
 ├── settings.html       # protected: profile display
 ├── css/app.css         # design tokens + shared styles
 └── js/
@@ -53,9 +53,10 @@ frontend/
     ├── login.js
     ├── register.js
     ├── dashboard.js
+    ├── workspace.js    # Dashboard/Lessons sidebar, header, search and profile menu
     ├── courses.js      # catalog list
     ├── course.js       # course detail + lesson list
-    ├── lesson.js       # lesson theory (safe light-markup renderer)
+    ├── lesson.js       # theory + exercises + submissions + progress
     └── settings.js
 ```
 
@@ -85,8 +86,10 @@ client:
 `js/errors.js` turns errors into user-facing messages for 401, 403, 404, 422,
 503, network failure and the default case.
 
-`js/api.js` also exposes the catalog reads used by the course pages:
-`listCourses()`, `getCourse(slug)` and `getLesson(slug)`.
+`js/api.js` also exposes the catalog reads and lesson flow used by the course
+pages: `listCourses()`, `getCourse(slug)`, `getLesson(slug)`,
+`startLesson(slug)`, `getLessonProgress(slug)`, `submitAnswer(slug, payload)`
+and `getLessonVocabulary(lessonId, offset, limit)`.
 
 ### Course pages
 
@@ -97,10 +100,36 @@ it with `layout.js` helpers, always via `textContent`:
   lesson count), with loading, empty and error states.
 - `course.js` reads `?slug=` and shows the course header plus its ordered lesson
   list; a missing/unpublished course shows a friendly "not found" state.
-- `lesson.js` reads `?slug=` and renders theory using a tiny safe renderer: blank
-  lines separate blocks, `## ` is a heading, `- ` lines are a list, everything
-  else is a paragraph (see `app/db/models.py`). No HTML is ever stored or
-  interpreted.
+- `lesson.js` loads the published lesson and the caller's lesson progress, then
+  starts the lesson only if it has not begun. Theory uses the existing safe text
+  renderer. Practice lists all activities; Test shows one at a time with
+  Previous/Next and a current-lesson preview. Both modes share the same server
+  submissions and progress. Radios (`single_choice`), short answers (`text`),
+  and self-assessment (`self_check`) are supported. The Vocabulary tab loads
+  only the caller's saved words filtered by this lesson ID; it shows an honest
+  empty state when there are none. Last submitted answers are restored from
+  `GET /lessons/{slug}/progress`; unsent drafts exist only in page memory.
+  Answer keys remain available only in the submission response. XP and
+  completion are computed by the backend. The custom template builder is
+  disabled because it has no API; “Use template” opens the current Test tab.
+  All server text is inserted with `textContent`.
+
+`dashboard.html` and `lesson.html` use `js/workspace.js` for their sidebar and topbar. The mobile sidebar
+opens as a keyboard-accessible drawer; the profile menu links to Settings and
+uses the existing logout API. The topbar searches published course titles,
+descriptions, levels and lesson titles/summaries through the existing catalog
+API. Dedicated word/topic search, notifications and leaderboard are explicitly
+unavailable.
+
+`dashboard.js` renders `GET /users/me`, `GET /progress/me`,
+`GET /streaks/me` and `GET /vocabulary/stats`. The ring is completed published
+lessons divided by all published lessons; no denominator displays an unavailable
+state. Study time is the sum of estimated minutes of completed lessons. The
+current course is an unfinished started course with the highest completion
+ratio; catalog order breaks ties. If no unfinished course remains, a completed
+course is shown for review. A course with no started lessons is never labelled
+current. `frontend/css/dashboard.css` contains the scoped visual treatment and
+respects reduced motion. No local progress cache is used.
 
 `js/layout.js` renders the shared header (brand, nav, session-aware
 login/logout), the live backend-status badge from `GET /health` (polled every

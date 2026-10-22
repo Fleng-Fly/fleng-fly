@@ -7,6 +7,7 @@ timestamps or any internal bookkeeping.
 from uuid import UUID
 
 from app.core.schemas import CamelModel
+from app.modules.exercises.schemas import ExercisePublicResponse
 
 
 class CourseSummaryResponse(CamelModel):
@@ -43,7 +44,7 @@ class CourseDetailResponse(CamelModel):
 
 
 class LessonDetailResponse(CamelModel):
-    """A single lesson with its course context and theory body."""
+    """A single lesson with its course context, theory body and public exercises."""
 
     id: UUID
     slug: str
@@ -55,3 +56,4 @@ class LessonDetailResponse(CamelModel):
     course_slug: str
     course_title: str
     level: str
+    exercises: list[ExercisePublicResponse]

@@ -3,9 +3,9 @@
 This file is the working contract for every agent and developer contributing to Fleng.
 Read it before making any change, then read `README.md`, `docs/`, `project-map/`, and `plans/`.
 
-> Project status: **M2 + catalog read** (plain HTML/CSS/JS frontend served by
-> FastAPI). Email/password auth, profiles and progress storage work end to end,
-> as does a read-only course/lesson catalog. Exercises, progress writes and AI
+> Project status: **M2 + catalog + graded lessons** (plain HTML/CSS/JS frontend
+> served by FastAPI). Email/password auth, profiles, progress, the course/lesson
+> catalog and a graded exercise flow work end to end. Vocabulary, streaks and AI
 > are not implemented yet.
 
 ---

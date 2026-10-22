@@ -554,6 +554,147 @@ p {
   margin-bottom: 0.25rem;
 }
 
+/* ── Exercises ────────────────────────────────────────────────────────── */
+
+.exercise-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.exercise-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.exercise-index {
+  color: var(--violet-400);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.exercise-prompt {
+  margin: 0;
+  color: var(--slate-100);
+  font-size: 1rem;
+}
+
+.exercise-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  border: 1px solid var(--ink-600);
+  border-radius: 12px;
+  background: rgba(26, 26, 40, 0.5);
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.option:hover {
+  border-color: var(--violet-500);
+}
+
+.option input {
+  margin-top: 0.2rem;
+}
+
+.exercise-result:empty {
+  display: none;
+}
+
+.exercise-result {
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.result-ok {
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  background: rgba(52, 211, 153, 0.1);
+  color: var(--slate-100);
+}
+
+.result-bad {
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--slate-100);
+}
+
+.result-headline {
+  font-weight: 600;
+}
+
+.result-xp {
+  color: var(--success);
+  margin-left: 0.35rem;
+}
+
+.exercise-result p {
+  margin: 0.4rem 0 0;
+}
+
+.exercise-done {
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+/* ── Progress bars ────────────────────────────────────────────────────── */
+
+.course-progress + .course-progress {
+  margin-top: 1rem;
+}
+
+.progress-track {
+  height: 0.5rem;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  background: var(--ink-800);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--violet-500), var(--cyan-400));
+  transition: width 0.3s ease;
+}
+
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--ink-600);
+  border-radius: 12px;
+  background: var(--ink-900);
+  padding: 0.6rem 0.75rem;
+  color: var(--slate-100);
+  font: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.field textarea:focus {
+  border-color: var(--violet-500);
+  outline: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 640px) {
   .brand-name {
     display: none;

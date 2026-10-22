@@ -15,6 +15,7 @@ from app.modules.catalog.schemas import (
     CourseSummaryResponse,
     LessonDetailResponse,
 )
+from app.modules.exercises import service as exercises_service
 
 router = APIRouter(tags=["catalog"])
 
@@ -30,9 +31,7 @@ async def list_courses(db: AsyncSession = Depends(get_db)) -> list[CourseSummary
 
 
 @router.get("/courses/{slug}", response_model=CourseDetailResponse)
-async def get_course(
-    slug: str, db: AsyncSession = Depends(get_db)
-) -> CourseDetailResponse:
+async def get_course(slug: str, db: AsyncSession = Depends(get_db)) -> CourseDetailResponse:
     """Return a published course and its published lessons."""
     result = await service.get_published_course(db, slug)
     if result is None:
@@ -47,4 +46,5 @@ async def get_lesson(slug: str, db: AsyncSession = Depends(get_db)) -> LessonDet
     if result is None:
         raise _not_found("Lesson not found")
     lesson, course = result
-    return service.to_lesson_detail(lesson, course)
+    exercises = await exercises_service.list_public_exercises(db, lesson.id)
+    return service.to_lesson_detail(lesson, course, exercises)

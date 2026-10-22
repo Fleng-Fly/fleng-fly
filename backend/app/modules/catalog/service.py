@@ -17,6 +17,7 @@ from app.modules.catalog.schemas import (
     LessonDetailResponse,
     LessonSummaryResponse,
 )
+from app.modules.exercises.schemas import ExercisePublicResponse
 
 
 @dataclass(frozen=True)
@@ -117,7 +118,9 @@ async def get_published_lesson(db: AsyncSession, slug: str) -> tuple[Lesson, Cou
     return lesson, course
 
 
-def to_lesson_detail(lesson: Lesson, course: Course) -> LessonDetailResponse:
+def to_lesson_detail(
+    lesson: Lesson, course: Course, exercises: list[ExercisePublicResponse]
+) -> LessonDetailResponse:
     return LessonDetailResponse(
         id=lesson.id,
         slug=lesson.slug,
@@ -129,4 +132,5 @@ def to_lesson_detail(lesson: Lesson, course: Course) -> LessonDetailResponse:
         course_slug=course.slug,
         course_title=course.title,
         level=course.level,
+        exercises=exercises,
     )

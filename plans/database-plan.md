@@ -24,14 +24,17 @@
       or email verification is needed.
 - [ ] Seed: one admin user for local development (dev only, not production).
 
-## Stage 2 — Learning 🚧
+## Stage 2 — Learning ✅
 
 - [x] `Course`, `Lesson` (migration `20261011_1200_catalog`).
 - [x] Unique `courses.slug`, globally unique `lessons.slug`, index
       `lessons.course_id`, CEFR `level` check constraint.
 - [x] Seed: two sample courses (A1, B1) with three lessons each.
-- [ ] `Exercise`, `ExerciseSubmission`, `LessonProgress`.
-- [ ] Unique `(user_id, lesson_id)`; ordered indexes for exercises.
+- [x] `Exercise`, `ExerciseSubmission`, `LessonProgress` (migration
+      `20261011_1400_exercises`).
+- [x] Unique `exercises.slug`, `(user_id, exercise_id)` and
+      `(user_id, lesson_id)`; exercise `type` check constraint; ordered indexes.
+- [x] Seed exercises (all three types) with correct/incorrect paths.
 
 ## Stage 3 — Vocabulary & gamification ⬜
 
@@ -59,3 +62,23 @@
 - Over-indexing early: add indexes with a query in mind, not speculatively.
 - Migration reversibility: prefer additive, backwards-compatible migrations.
 - Async lazy-loading: eager-load relationships used in serialization.
+
+## Implementation checkpoint — 2026-10-18
+
+Revision 20261018_1200 adds vocabulary/reviews, daily activity, deterministic
+achievement definitions/awards, reset tokens, persistent quota windows and AI
+conversations/messages/usage plus CEFR/language profile fields. These actual
+schemas supersede the older proposed Stage 3/4 model names above. Offline SQL
+compiles; live migration remains blocked by unavailable PostgreSQL. Opt-in
+TEST_DATABASE_URL tests validate the full chain and ORM drift in temporary schemas.
+
+## Local SQLite startup — 2026-10-22
+
+- [x] SQLite is the local default; relative paths are rooted at backend/.
+- [x] Dev workflow upgrades an existing file safely and seeds only an empty catalog.
+- [x] Alembic uses the application engine and SQLite connection configuration.
+- [x] PostgreSQL remains configurable; no automatic production migrations/seeding.
+- [x] File-backed migration/idempotency/preservation tests added.
+- [x] HTTP auth/cookie/lesson/XP/Dashboard checks passed, including a full restart.
+- [x] Firefox login, Dashboard layouts and navigation checked at 360/768/1440 px.
+- [ ] Live PostgreSQL migration verification remains dependent on an available server.
