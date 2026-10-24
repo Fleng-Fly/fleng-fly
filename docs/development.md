@@ -1,5 +1,12 @@
 # Development
 
+For local presentation preparation, use `npm run demo:prepare` followed by
+`npm run dev`. The explicit preparation command applies SQLite migrations,
+seeds the catalog and creates three fictional accounts through the existing
+registration and grading services. It is allowed only with `APP_ENV=development`
+or `APP_ENV=demo` and a SQLite `DATABASE_URL`; credentials are generated in
+ignored `backend/data/demo-credentials.json`. See `DEMO.md` for the walkthrough.
+
 > Status: **M2 + catalog read implemented** — static HTML/CSS/JS frontend served
 > by the Python/FastAPI backend, local SQLite (optional PostgreSQL) via SQLAlchemy + Alembic,
 > email/password authentication with progress storage, and a read-only

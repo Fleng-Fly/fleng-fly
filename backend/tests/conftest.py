@@ -12,14 +12,15 @@ import uuid
 from collections.abc import AsyncGenerator
 
 import pytest_asyncio
-from app.db import models  # noqa: F401  (register all models on Base.metadata)
-from app.db.base import Base
-from app.db.session import get_db
-from app.main import app
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
+
+from app.db import models  # noqa: F401  (register all models on Base.metadata)
+from app.db.base import Base
+from app.db.session import get_db
+from app.main import app
 
 
 @pytest_asyncio.fixture

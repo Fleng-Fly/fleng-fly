@@ -87,6 +87,11 @@ p {
   padding: 2rem 0 4rem;
 }
 
+.page > .stack,
+.page > #course-body {
+  min-width: 0;
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -466,7 +471,7 @@ p {
 .course-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
 }
 
 .course-card {
@@ -512,6 +517,16 @@ p {
 .lesson-list a:hover {
   border-color: var(--violet-500);
   color: inherit;
+}
+
+.lesson-list a:focus-visible,
+.course-card:focus-visible {
+  border-color: var(--violet-400);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.18);
+}
+
+.lesson-list a > div {
+  min-width: 0;
 }
 
 .lesson-list .lesson-title {
@@ -696,6 +711,14 @@ p {
 }
 
 @media (max-width: 640px) {
+  .page {
+    padding-top: 1.5rem;
+  }
+
+  .lesson-list a {
+    flex-wrap: wrap;
+  }
+
   .brand-name {
     display: none;
   }

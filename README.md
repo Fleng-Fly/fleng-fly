@@ -132,6 +132,10 @@ Rationale and deliberate omissions: `docs/development.md`.
 
 ## Getting started
 
+For the presentation setup, fictional accounts and walkthrough, see [DEMO.md](DEMO.md).
+Run `./start.sh` to prepare local data, start the app if needed, and check
+the landing page, database, catalog and demo-account progress.
+
 Prerequisites: Node.js >= 20 and Python >= 3.11 with venv. No database server is
 needed for local development.
 

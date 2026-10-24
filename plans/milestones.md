@@ -1,5 +1,15 @@
 # Milestones & Status
 
+Presentation readiness (2026-10-24): local SQLite migration head and seeded
+catalog verified; three fictional accounts seeded through auth and grading;
+HTTP login/catalog/lesson/XP/restart checks passed. Browser inspection remains
+unverified because no browser surface was available in this session. See
+`DEMO.md`. Next: present the existing learning flow; no new feature milestone
+was started.
+The `npm run demo` wrapper was verified both against an existing server and
+from a cold start; it leaves the server running after successful checks.
+`./start.sh` is the presentation entry point and passed a cold-start check.
+
 > Living status board. Keep in sync with `plans/roadmap.md` and the actual repo.
 > Legend: ✅ completed · 🚧 in progress · ⛔ blocked · ⬜ next/not started ·
 > ❌ cancelled.

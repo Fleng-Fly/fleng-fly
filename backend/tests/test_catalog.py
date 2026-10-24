@@ -1,11 +1,12 @@
 """Catalog tests: published-only listing, ordering, detail, 404s and seeding."""
 
 import pytest_asyncio
-from app.db.models import Course, Lesson
-from app.db.seed import seed_catalog
 from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models import Course, Lesson
+from app.db.seed import seed_catalog
 
 COURSES = "/api/v1/courses"
 LESSONS = "/api/v1/lessons"

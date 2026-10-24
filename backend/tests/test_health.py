@@ -2,9 +2,10 @@
 
 from collections.abc import AsyncGenerator
 
+from fastapi.testclient import TestClient
+
 from app.db.session import get_db
 from app.main import app
-from fastapi.testclient import TestClient
 
 
 class OkSession:

@@ -10,6 +10,7 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "dev": "node scripts/dev.mjs",
+    "demo": "node scripts/demo.mjs",
     "lint": "pnpm backend:lint",
     "typecheck": "pnpm backend:typecheck",
     "test": "pnpm backend:test",
@@ -23,7 +24,8 @@
     "db:migrate": "cd backend && .venv/bin/alembic upgrade head",
     "db:prepare": "cd backend && .venv/bin/python -m app.db.prepare",
     "db:sql": "cd backend && .venv/bin/alembic upgrade head --sql",
-    "db:seed": "cd backend && .venv/bin/python -m app.db.seed"
+    "db:seed": "cd backend && .venv/bin/python -m app.db.seed",
+    "demo:prepare": "cd backend && .venv/bin/python -m app.db.prepare && .venv/bin/python -m app.db.demo"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

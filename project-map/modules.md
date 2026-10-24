@@ -1,5 +1,13 @@
 # Project Map — Modules
 
+Demo preparation: `backend/app/db/demo.py` runs only when explicitly selected in
+development/demo with local SQLite. It reuses auth registration and graded lesson
+submission services, stores credentials in ignored `backend/data/`, and is invoked
+by `npm run demo:prepare`. The normal startup remains `npm run dev`.
+`scripts/demo.mjs` is the presentation wrapper: it calls preparation, starts
+the existing dev server when needed, then checks HTTP health and demo accounts.
+The executable root `start.sh` is the single-command entry point for this flow.
+
 > Status: M2/M3 implemented. Durable design: `docs/backend.md`, `docs/frontend.md`.
 > Update when a module is created, renamed or gains a dependency.
 > Legend: 🟢 implemented · 🟡 partial · 🔴 documented only.

@@ -2,6 +2,8 @@ import json
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import func, select
+
 from app.core.config import Settings, get_settings
 from app.core.errors import ApiError
 from app.db.models import AIConversation, AIMessage, AIUsage, Exercise, User
@@ -10,8 +12,6 @@ from app.main import app
 from app.modules.ai import prompts, service
 from app.modules.ai.provider import Completion
 from app.modules.ai.router import provider_dependency
-from sqlalchemy import func, select
-
 from tests.test_learning_extensions import headers
 
 

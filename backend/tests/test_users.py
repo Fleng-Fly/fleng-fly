@@ -1,9 +1,10 @@
 """Users endpoint tests: `/users/me` is authenticated and strictly read-only."""
 
-from app.db.models import User
 from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models import User
 
 ME = "/api/v1/users/me"
 REGISTER = "/api/v1/auth/register"

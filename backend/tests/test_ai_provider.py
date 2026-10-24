@@ -2,10 +2,11 @@ import json
 
 import httpx
 import pytest
+from pydantic import ValidationError
+
 from app.core.config import Settings
 from app.core.errors import ApiError
 from app.modules.ai.provider import OpenRouterProvider
-from pydantic import ValidationError
 
 
 def settings(**kwargs):

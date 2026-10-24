@@ -5,14 +5,15 @@ import uuid
 from pathlib import Path
 
 import pytest
-from alembic import command
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
-from app.core.config import Settings
-from app.db.base import Base
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
+
+from alembic import command
+from app.core.config import Settings
+from app.db.base import Base
 
 
 @pytest.mark.skipif(
