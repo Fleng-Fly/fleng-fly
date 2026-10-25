@@ -54,8 +54,10 @@ progress are persisted with an Alembic migration. The dev auth stub is removed.
 **Exit criteria met:** auth and progress are exercised by an automated test suite
 (register/login/refresh/rotation/reuse/logout/protected/cross-user isolation).
 
-**Deferred within this stage:** profile editing (`PATCH /users/me`), email
-verification, password reset and rate limiting (see `plans/security-plan.md`).
+**Settings follow-up completed:** own profile and email editing (`PATCH
+/users/me`), language preference and authenticated password changes. Email
+verification and rate limiting remain separate follow-ups (see
+`plans/security-plan.md`).
 
 ### Stage 1c — Static frontend served by FastAPI ✅ completed
 

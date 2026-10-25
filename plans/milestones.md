@@ -45,8 +45,8 @@ Figma screenshot comparison is pending; Login/Sign Up is the next UI phase.
   to a real PostgreSQL instance and running DB integration tests remain tasks in
   `plans/testing-plan.md`.
 - Auth tests use in-memory SQLite, not PostgreSQL.
-- Profile editing, email verification, password reset and rate limiting are not
-  implemented.
+- Settings profile/email editing and password changes are implemented. Email
+  verification and broader authentication follow-ups remain separate work.
 
 ## Blocked
 

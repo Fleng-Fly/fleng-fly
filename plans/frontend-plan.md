@@ -43,7 +43,7 @@
 
 - [x] Dashboard progress summary and current-course view.
 - [ ] Standalone Progress screen and per-skill/activity views.
-- [ ] Profile editing (settings form) once `PATCH /users/me` exists.
+- [x] Settings profile/email form, language preference, password change and logout.
 
 ## Phase D — AI tutor ⬜
 

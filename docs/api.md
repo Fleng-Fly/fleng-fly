@@ -92,7 +92,8 @@ never returned in the response body. Errors: `401 INVALID_CREDENTIALS`,
 | Method | Path | Purpose | Auth | Request | Response |
 | ------ | ---- | ------- | ---- | ------- | -------- |
 | GET ✅ | `/me` | Read own profile | bearer | — | `200 { id, email, displayName, level, xp, createdAt }` |
-| PATCH ⬜ | `/me` | Update own profile | bearer | partial profile | `200 Profile` |
+| PATCH ✅ | `/me` | Update own profile and email | bearer | optional `displayName`, `email`, `englishLevel`, `preferredLanguage` | `200 UserResponse`; `409 EMAIL_TAKEN` |
+| POST ✅ | `/me/password` | Change own password | bearer | `currentPassword`, `newPassword` (8–128 characters) | `204`; `400 INVALID_PASSWORD` |
 | DELETE | `/me` | Delete/anonymise account | bearer | — | `204` |
 | GET | `/:id` | Public profile (limited) | bearer | — | `200 PublicProfile` |
 | GET | `/me/settings` | Read settings | bearer | — | `200 Settings` |
@@ -249,7 +250,7 @@ access token, never a request userId.
 
 | Method | Route | Input / result |
 | --- | --- | --- |
-| PATCH | `/users/me` | Optional displayName, englishLevel (A1–C2), preferredLanguage → UserResponse |
+| PATCH | `/users/me` | Optional displayName, email, englishLevel (A1–C2), preferredLanguage → UserResponse |
 | GET | `/vocabulary?due=false&limit=50&offset=0&lessonId=<uuid>` | Own words; optional `lessonId` selects words saved for that lesson, `due=true` selects due flashcards |
 | GET | `/vocabulary/stats` | Own learned-word count: `{ wordsLearned }` |
 | POST | `/vocabulary` | word, translation, optional example and lessonId → item (201) |

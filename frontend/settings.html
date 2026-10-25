@@ -6,45 +6,229 @@
     <title>Settings — Fleng</title>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/settings.css" />
   </head>
-  <body>
-    <header id="site-header" class="site-header"></header>
-
-    <main class="container page">
-      <div class="stack" style="max-width: 40rem; margin: 0 auto">
-        <header>
-          <h1>Settings</h1>
-          <p class="muted text-sm">Your profile information, as stored on the server.</p>
-        </header>
-
-        <section class="card">
-          <h2 class="section-title">Profile</h2>
-          <dl class="definition">
-            <dt>Display name</dt>
-            <dd id="user-name">—</dd>
-            <dt>Email</dt>
-            <dd id="user-email">—</dd>
-            <dt>Level</dt>
-            <dd id="user-level">—</dd>
-            <dt>XP</dt>
-            <dd id="user-xp">—</dd>
-          </dl>
-          <p class="text-sm muted" style="margin: 1rem 0 0">
-            Editing your profile is not available yet; it arrives with the profile
-            settings milestone.
+  <body class="dashboard-page settings-page">
+    <main class="dashboard-main settings-main">
+      <div class="dashboard-page-heading">
+        <div>
+          <p class="dashboard-eyebrow">SETTINGS</p>
+          <h1>Account Settings</h1>
+          <p class="dashboard-subtitle">
+            Manage your profile, preferences and learning experience.
           </p>
-        </section>
-
-        <div class="actions">
-          <a class="btn btn-ghost" href="/dashboard.html">Back to dashboard</a>
         </div>
       </div>
+      <section id="settings-error" class="dashboard-alert" role="alert" hidden>
+        <span id="settings-error-text"></span>
+        <button id="settings-retry" class="dashboard-text-button" type="button">Try again</button>
+      </section>
+      <div id="settings-content" hidden>
+        <section class="settings-banner" aria-label="Your profile">
+          <div class="settings-banner-person">
+            <span id="settings-avatar" class="settings-avatar" aria-hidden="true">F</span>
+            <div class="settings-banner-copy">
+              <h2 id="settings-name">—</h2>
+              <p id="settings-email">—</p>
+              <span id="settings-level" class="settings-level">English level —</span>
+            </div>
+          </div>
+          <button id="edit-profile" class="settings-banner-button" type="button">
+            Edit Profile
+          </button>
+        </section>
+        <div class="settings-card-grid">
+          <section class="settings-card" aria-labelledby="language-title">
+            <div class="settings-card-heading">
+              <span class="settings-card-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path
+                    d="M3 12h18M12 3c2.6 2.5 4 5.5 4 9s-1.4 6.5-4 9c-2.6-2.5-4-5.5-4-9s1.4-6.5 4-9Z"
+                  /></svg
+              ></span>
+              <div>
+                <h2 id="language-title">Language</h2>
+                <p>Choose your preferred language for the interface.</p>
+              </div>
+            </div>
+            <label class="settings-label" for="language-select">Preferred language</label>
+            <select id="language-select" class="settings-control" aria-describedby="language-note">
+              <option value="English">English</option>
+              <option value="Ukrainian">Українська</option>
+            </select>
+            <p id="language-note" class="settings-note">
+              This preference is saved to your account. The interface is currently in English.
+            </p>
+            <p
+              id="language-feedback"
+              class="settings-feedback"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </section>
+          <section class="settings-card" aria-labelledby="actions-title">
+            <div class="settings-card-heading">
+              <span class="settings-card-icon" aria-hidden="true"
+                ><svg viewBox="0 0 24 24">
+                  <path d="M12 2 20 5v6c0 5-3.2 8.6-8 11-4.8-2.4-8-6-8-11V5l8-3Z" />
+                  <path d="m9 12 2 2 4-4" /></svg
+              ></span>
+              <div>
+                <h2 id="actions-title">Account Actions</h2>
+                <p>Manage your account data.</p>
+              </div>
+            </div>
+            <button id="settings-logout" class="settings-outline-button" type="button">
+              Log Out
+            </button>
+            <p id="logout-feedback" class="settings-feedback" role="alert"></p>
+          </section>
+        </div>
+        <section
+          id="account-information"
+          class="settings-card settings-information"
+          aria-labelledby="information-title"
+        >
+          <div class="settings-card-heading">
+            <span class="settings-card-icon" aria-hidden="true"
+              ><svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" /></svg
+            ></span>
+            <div>
+              <h2 id="information-title">Account Information</h2>
+              <p>Update your personal details and password.</p>
+            </div>
+          </div>
+          <form id="profile-form" novalidate>
+            <div class="settings-fields">
+              <div>
+                <label class="settings-label" for="profile-name">Name</label
+                ><input
+                  id="profile-name"
+                  class="settings-control"
+                  name="name"
+                  autocomplete="name"
+                  required
+                  minlength="1"
+                  maxlength="80"
+                />
+              </div>
+              <div>
+                <label class="settings-label" for="profile-email">Email</label
+                ><input
+                  id="profile-email"
+                  class="settings-control"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  required
+                />
+              </div>
+            </div>
+            <div class="settings-form-actions">
+              <p
+                id="profile-feedback"
+                class="settings-feedback"
+                role="status"
+                aria-live="polite"
+              ></p>
+              <button id="save-profile" class="settings-primary-button" type="submit">
+                Save Changes
+              </button>
+            </div>
+          </form>
+          <div class="settings-password-header">
+            <div>
+              <h3>Password</h3>
+              <p>Your password is never shown or sent back to this page.</p>
+            </div>
+            <button
+              id="password-toggle"
+              class="settings-outline-button"
+              type="button"
+              aria-expanded="false"
+              aria-controls="password-form"
+            >
+              Change Password
+            </button>
+          </div>
+          <form id="password-form" hidden novalidate>
+            <div class="settings-password-fields">
+              <div>
+                <label class="settings-label" for="current-password">Current password</label>
+                <div class="settings-password-input">
+                  <input
+                    id="current-password"
+                    class="settings-control"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                  /><button
+                    type="button"
+                    data-password-target="current-password"
+                    aria-label="Show current password"
+                  >
+                    Show
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label class="settings-label" for="new-password">New password</label>
+                <div class="settings-password-input">
+                  <input
+                    id="new-password"
+                    class="settings-control"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    maxlength="128"
+                    required
+                  /><button
+                    type="button"
+                    data-password-target="new-password"
+                    aria-label="Show new password"
+                  >
+                    Show
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label class="settings-label" for="confirm-password">Confirm new password</label>
+                <div class="settings-password-input">
+                  <input
+                    id="confirm-password"
+                    class="settings-control"
+                    type="password"
+                    autocomplete="new-password"
+                    required
+                  /><button
+                    type="button"
+                    data-password-target="confirm-password"
+                    aria-label="Show confirmed password"
+                  >
+                    Show
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="settings-form-actions">
+              <p
+                id="password-feedback"
+                class="settings-feedback"
+                role="status"
+                aria-live="polite"
+              ></p>
+              <button id="save-password" class="settings-primary-button" type="submit">
+                Update Password
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
     </main>
-
-    <footer class="site-footer">
-      <div class="container">Fleng — learn English, every day.</div>
-    </footer>
-
     <script type="module" src="/js/settings.js"></script>
   </body>
 </html>

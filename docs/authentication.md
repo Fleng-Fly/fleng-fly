@@ -26,6 +26,8 @@
 | Refresh | `POST /api/v1/auth/refresh` | rotates the refresh token; sets a new cookie |
 | Logout | `POST /api/v1/auth/logout` | revokes the presented token and clears the cookie |
 | Current user | `GET /api/v1/users/me` | Bearer access token; read-only |
+| Account details | `PATCH /api/v1/users/me` | Bearer access token; updates own name, email or language preference |
+| Change password | `POST /api/v1/users/me/password` | Bearer access token; verifies current password and stores an argon2id hash |
 
 ## 3. Token flow
 

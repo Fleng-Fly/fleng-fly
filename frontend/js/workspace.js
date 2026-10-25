@@ -180,9 +180,12 @@ export function mountWorkspace(active) {
   main.prepend(content.querySelector('#search-results'));
   content.querySelector('#dashboard-main-wrap').append(main);
   for (const link of content.querySelectorAll('.sidebar-link[href]')) {
-    const selected = active === 'lessons'
-      ? link.getAttribute('href') === '/courses.html' && link.id !== 'sidebar-course-link'
-      : link.getAttribute('href') === '/dashboard.html';
+    const selected =
+      active === 'settings'
+        ? link.getAttribute('href') === '/settings.html'
+        : active === 'lessons'
+          ? link.getAttribute('href') === '/courses.html' && link.id !== 'sidebar-course-link'
+          : link.getAttribute('href') === '/dashboard.html';
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');

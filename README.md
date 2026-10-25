@@ -27,7 +27,7 @@ blocked in this execution environment; see `docs/development.md` and `docs/ai.md
 /api/v1/progress/me` returns their progress. Both require a Bearer token.
 - `login.html` and `register.html` create a real session; `dashboard.html` shows
   the signed-in learner's name, level, XP and progress from the API;
-  `settings.html` shows the profile. These pages redirect to login when there is
+  `settings.html` manages account details, language preference and password. These pages redirect to login when there is
   no session.
 - **Catalog**: `GET /api/v1/courses` lists published courses,
   `GET /api/v1/courses/{slug}` returns a course with its published lessons and

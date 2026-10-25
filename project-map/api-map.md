@@ -33,7 +33,8 @@ Response: `{ status: "ok", service: "backend", timestamp, database: "up" | "down
 | Method | Path | Auth | Status |
 | ------ | ---- | ---- | ------ |
 | GET | `/users/me` | bearer | ✅ |
-| PATCH | `/users/me` | bearer | ⬜ |
+| PATCH | `/users/me` | bearer | ✅ |
+| POST | `/users/me/password` | bearer | ✅ |
 | DELETE | `/users/me` | bearer | ⬜ |
 | GET | `/users/:id` | bearer (limited) | ⬜ |
 | GET | `/users/me/settings` | bearer | ⬜ |
@@ -146,7 +147,8 @@ breakdown with `lessonsStarted` and `lessonsCompleted` per course (additive).
 
 All prefixed `/api/v1`; see docs/api.md for request/response contracts:
 
-- `PATCH /users/me` (Bearer).
+- `PATCH /users/me` (Bearer; own profile, email, preferred language).
+- `POST /users/me/password` (Bearer; verifies current password and hashes the replacement).
 - `GET|POST /vocabulary`, `PATCH|DELETE /vocabulary/{id}` (Bearer, own rows).
 - `GET /vocabulary?lessonId=<uuid>` filters the caller's words to one lesson.
 - `POST /vocabulary/{id}/review`, `GET /vocabulary/{id}/reviews` (Bearer).

@@ -42,7 +42,7 @@ frontend/
 ├── courses.html        # protected: course catalog
 ├── course.html         # protected: course detail + lesson list (?slug=...)
 ├── lesson.html         # protected: lesson player (?slug=...)
-├── settings.html       # protected: profile display
+├── settings.html       # protected: account settings
 ├── css/app.css         # design tokens + shared styles
 └── js/
     ├── api.js          # fetch wrapper + endpoint helpers
@@ -180,6 +180,5 @@ Browser end-to-end tests (Playwright) remain planned.
 - JavaScript is straightforward ES modules; no abstractions without a clear need.
 - Keep `js/api.js` the single HTTP chokepoint.
 - Update `design/` and this document when the visual language changes.
-
 
 The styles from `CSS.star4life/CSS/` are adapted in `frontend/css/star4life.css`, loaded after `app.css` on every page. Login and registration use the `log-in` and `sign-up` body classes. Invalid reference syntax, fixed desktop dimensions and the missing font dependency are omitted; existing API forms and responsive layouts are preserved.

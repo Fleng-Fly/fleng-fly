@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field, field_validator
+from pydantic import EmailStr, Field, field_validator
 
 from app.core.schemas import CamelModel
 
@@ -21,6 +21,7 @@ class UserResponse(CamelModel):
 
 
 class ProfileUpdate(CamelModel):
+    email: EmailStr | None = None
     display_name: str | None = Field(default=None, min_length=1, max_length=80)
     english_level: Literal["A1", "A2", "B1", "B2", "C1", "C2"] | None = None
     preferred_language: str | None = Field(default=None, min_length=1, max_length=40)
@@ -31,3 +32,8 @@ class ProfileUpdate(CamelModel):
         if value is None or not value.strip():
             raise ValueError("Must not be null or blank")
         return value.strip()
+
+
+class PasswordChange(CamelModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)

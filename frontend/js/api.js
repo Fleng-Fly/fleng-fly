@@ -150,6 +150,14 @@ export function getCurrentUser() {
   return apiFetch('/users/me');
 }
 
+export function updateCurrentUser(input) {
+  return apiFetch('/users/me', { method: 'PATCH', body: JSON.stringify(input) });
+}
+
+export function changePassword(input) {
+  return apiFetch('/users/me/password', { method: 'POST', body: JSON.stringify(input) });
+}
+
 export function getMyProgress() {
   return apiFetch('/progress/me');
 }
