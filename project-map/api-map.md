@@ -161,3 +161,12 @@ All prefixed `/api/v1`; see docs/api.md for request/response contracts:
 - `GET /ai/recommendations` (Bearer, deterministic, works without provider).
 
 These actual routes supersede earlier proposed AI/vocabulary route names above.
+
+## Auth stabilization — 2026-10-28
+
+`POST /auth/login|register`: persistent fixed-window limits return generic 429
+with window-aligned Retry-After. `POST /users/me/password`: existing 204 contract,
+now invalidates refresh/reset tokens transactionally; clients sign in again.
+`POST /auth/refresh`: atomic once-only claim, strict whole-set reuse revocation.
+No route renames, new endpoints or response-schema changes. Access JWT expiry
+policy and default quotas: `docs/authentication.md`.

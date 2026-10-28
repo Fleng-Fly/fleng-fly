@@ -291,3 +291,14 @@ Examples:
 
 Detailed AI request/response examples, limits and streaming fallback:
 [ai.md](ai.md). SMTP/reset configuration: [development.md](development.md).
+
+## Auth stabilization — 2026-10-28
+
+Login/register can return `429 RATE_LIMITED` with `Retry-After` seconds until the
+fixed window ends. Defaults: login 20/IP/minute and 10/email/minute; register
+10/IP/hour. Existing success/error payloads are preserved.
+`POST /users/me/password` remains `204`, now atomically revoking refresh sessions
+and outstanding reset tokens; clients must sign in again. Existing access JWTs
+retain their configured TTL (default 15 minutes). Strict refresh reuse continues
+to revoke all user refresh sessions. See `authentication.md` for concurrency and
+proxy trust policies.

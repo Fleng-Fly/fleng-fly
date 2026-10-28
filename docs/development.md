@@ -330,3 +330,17 @@ hashes. After successful setup use the existing migrate/check/seed commands abov
 The PostgreSQL tests create unique temporary schemas. Their cleanup drops only
 those schemas; get explicit approval before running that cleanup when required.
 The existing public application schema is never used as test-fixture scratch data.
+
+## Auth stabilization and isolated local checks
+
+Local startup remains `npm run dev`, using persistent `backend/data/fleng.db`.
+No reset or schema replacement is needed for stabilization; no migration was added.
+Local Uvicorn disables proxy headers; deployment proxy trust must be explicitly
+configured as described in `authentication.md`. Auth quota defaults are documented
+there and in `.env.example`; do not overwrite an existing `.env`.
+
+To check startup/auth/Dashboard/Lessons without touching local learner data, run
+`python3 scripts/backend-stabilization-smoke.py` from the repository root. It uses
+only temporary SQLite and checks persistence across two server starts. For a
+sandbox-specific aiosqlite hang, see `testing.md`; use the required execution
+permissions instead of changing the application database or pytest fixtures.

@@ -84,3 +84,13 @@ VocabularyItem/Review and daily-activity tables rather than the older proposed
 schema names above. Advanced SRS/dictionary search/XP ledger remain future scope.
 Tests/static checks pass; live PostgreSQL and OpenRouter integration remain
 blocked. See ai-plan.md for completed/blocked/next work. No automatic commits.
+
+## Stabilization — 2026-10-28
+
+- completed: atomic refresh claims and rollback, auth rate limits, bounded Argon2,
+  password/reset session invalidation, SQLite learner-write serialization.
+- completed: independent-connection regression tests and temporary SQLite
+  `npm run dev`/auth/Dashboard/Lessons/restart smoke; see verification report.
+- next: optional real PostgreSQL suite/migration drift, real SMTP/OpenRouter checks.
+- blocked: live PostgreSQL verification lacks a configured test database;
+  no local server/credentials are changed for this phase.

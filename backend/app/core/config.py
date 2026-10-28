@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     # `frontend/` directory (resolved relative to this file).
     frontend_dir: str | None = None
 
+    auth_login_ip_per_minute: int = Field(default=20, ge=1)
+    auth_login_email_per_minute: int = Field(default=10, ge=1)
+    auth_register_ip_per_hour: int = Field(default=10, ge=1)
+
     # ── Authentication ──────────────────────────────────────────────────────
     jwt_access_secret: str = DEV_ACCESS_SECRET
     jwt_algorithm: str = "HS256"

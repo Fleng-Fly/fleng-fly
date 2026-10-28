@@ -74,3 +74,13 @@ Blocked: real PostgreSQL integration (local server unavailable) and manual
 OpenRouter test (no live configured credentials/database). Next: use the native or
 Docker database setup, run the full TEST_DATABASE_URL suite, then follow docs/ai.md
 manual integration instructions. Do not treat SQLite fixtures as PostgreSQL proof.
+
+## Backend stabilization — 2026-10-28
+
+Completed: independent-connection temporary SQLite refresh/password/quota/XP
+concurrency, rollback and constraint tests; worker-bound/event-loop regression;
+`npm run dev` auth/Dashboard/Lessons smoke with restart persistence.
+The observed sandbox aiosqlite hang reproduces outside pytest and disappears
+with unrestricted execution. No tests are disabled to hide it.
+Next: run the opt-in PostgreSQL tests using a dedicated TEST_DATABASE_URL.
+Live PostgreSQL is NOT VERIFIED. Results: `docs/backend-stabilization-report.md`.

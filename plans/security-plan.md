@@ -18,7 +18,10 @@
 - [x] Argon2id password hashing; minimum password length (8) enforced.
 - [x] Access JWT + rotating refresh tokens stored hashed (SHA-256).
 - [x] Refresh reuse detection revokes the whole session set.
-- [ ] Rate limiting on login/register/refresh/forgot-password.
+- [x] Persistent rate limiting on login/register/password reset.
+- [ ] Rate limiting on refresh.
+- [x] Atomic refresh claims and password-change/reset refresh-session invalidation.
+- [x] Bounded Argon2 workers; SQLite/PostgreSQL learner lock strategy.
 - [x] No account enumeration (generic errors, timing-consistent login).
 - [x] Cookies: HttpOnly, Secure, SameSite, scoped path; Origin check on
       cookie-backed endpoints.
@@ -33,11 +36,11 @@
 
 ## Stage 4 — AI security
 
-- [ ] Server-owned system prompts; user content delimited as data.
-- [ ] JSON-schema validation of model output; no execution of output.
-- [ ] Per-user + global rate limits and token budgets.
+- [x] Server-owned system prompts; user content delimited as data.
+- [x] JSON-schema validation of model output; no execution of output.
+- [x] Per-user + global rate limits and token budgets.
 - [ ] Prompt-injection tests with adversarial inputs.
-- [ ] No full prompt/response logging by default.
+- [x] No full prompt/response logging by default.
 
 ## Stage 5 — Pre-launch
 
@@ -49,7 +52,7 @@
 
 ## Risks / watch-items
 
-- Rate limiting across multiple instances — revisit storage (Redis) only when
-  multi-instance deployment exists.
+- Rate limits already use shared database windows; reassess storage only with
+  measured contention. No Redis is needed for current correctness.
 - Prompt injection is an open area; treat as ongoing, test continuously.
 - Avoid "security theatre": controls must map to the threat model.

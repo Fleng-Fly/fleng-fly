@@ -133,3 +133,18 @@ catalog before `scripts/dev.mjs` starts the server. `core/config.py` resolves en
 files and SQLite paths independently of cwd; `db/session.py` creates the data
 directory and configures every SQLite connection. PostgreSQL and production
 require explicit migration commands; no automatic seeding or fallback is used.
+
+## Backend stabilization — 2026-10-28
+
+- `auth/security.password_work`: shared AnyIO four-worker budget for async Argon2 paths.
+- `auth/router`: persistent peer-IP/email throttling via `core/limits` before hashing.
+- `auth/service`: conditional refresh claims, rollback, locked issuance and shared
+  `invalidate_password_sessions` used by `users` and `password_reset`.
+- `gamification.lock_learner`: PostgreSQL row lock / SQLite no-op write lock;
+  auth/password/learning transactions use the same identity lock order.
+- `tests/test_stabilization.py`: isolated file-SQLite concurrency suite, optional
+  isolated PostgreSQL schemas; no application database used.
+- `scripts/backend-stabilization-smoke.py`: temporary SQLite dev-server/API/restart checks.
+
+No new modules/tables or migration. Settings only clears auth state and redirects
+after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.

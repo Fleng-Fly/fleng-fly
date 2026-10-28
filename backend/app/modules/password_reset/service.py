@@ -12,8 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
 from app.core.errors import ApiError
-from app.db.models import PasswordReset, RefreshToken, User
-from app.modules.auth.security import hash_password, hash_refresh_token
+from app.db.models import PasswordReset, User
+from app.modules.auth.security import hash_password, hash_refresh_token, password_work
+from app.modules.auth.service import invalidate_password_sessions
+from app.modules.gamification.service import lock_learner
 
 
 async def deliver(email: str, raw: str, settings: Settings) -> None:
@@ -59,14 +61,17 @@ async def request_reset(db: AsyncSession, email: str, settings: Settings) -> Non
 
 
 async def confirm_reset(db: AsyncSession, raw: str, password: str) -> None:
-    now = datetime.now(UTC)
     # Lock identity first to serialize all reset tokens belonging to an account.
     user_id = await db.scalar(
         select(PasswordReset.user_id).where(PasswordReset.token_hash == hash_refresh_token(raw))
     )
     if user_id is None:
         raise ApiError(400, "INVALID_RESET_TOKEN", "Invalid or expired reset token")
-    user = await db.scalar(select(User).where(User.id == user_id).with_for_update())
+    await lock_learner(db, user_id)
+    now = datetime.now(UTC)
+    user = await db.scalar(
+        select(User).where(User.id == user_id).execution_options(populate_existing=True)
+    )
     claimed = await db.execute(
         update(PasswordReset)
         .where(
@@ -80,15 +85,6 @@ async def confirm_reset(db: AsyncSession, raw: str, password: str) -> None:
     )
     if claimed.scalar_one_or_none() is None or user is None:
         raise ApiError(400, "INVALID_RESET_TOKEN", "Invalid or expired reset token")
-    user.password_hash = await asyncio.to_thread(hash_password, password)
-    await db.execute(
-        update(PasswordReset)
-        .where(PasswordReset.user_id == user_id, PasswordReset.used_at.is_(None))
-        .values(used_at=now)
-    )
-    await db.execute(
-        update(RefreshToken)
-        .where(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None))
-        .values(revoked_at=now)
-    )
+    user.password_hash = await password_work(hash_password, password)
+    await invalidate_password_sessions(db, user_id)
     await db.commit()

@@ -1,5 +1,3 @@
-import asyncio
-
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -9,7 +7,8 @@ from app.api.deps import get_current_user
 from app.core.errors import ApiError
 from app.db.models import User
 from app.db.session import get_db
-from app.modules.auth.security import hash_password, verify_password
+from app.modules.auth.security import hash_password, password_work, verify_password
+from app.modules.auth.service import invalidate_password_sessions
 from app.modules.gamification.service import lock_learner
 from app.modules.users.schemas import PasswordChange, ProfileUpdate, UserResponse
 from app.modules.users.service import to_user_response
@@ -62,12 +61,14 @@ async def change_password(
     db: AsyncSession = Depends(get_db),
 ) -> Response:
     await lock_learner(db, current_user.id)
-    if not await asyncio.to_thread(
+    await db.refresh(current_user, attribute_names=["password_hash"])
+    if not await password_work(
         verify_password, current_user.password_hash, payload.current_password
     ):
         raise ApiError(400, "INVALID_PASSWORD", "Current password is incorrect")
     if payload.current_password == payload.new_password:
         raise ApiError(422, "VALIDATION_FAILED", "Choose a different new password")
-    current_user.password_hash = await asyncio.to_thread(hash_password, payload.new_password)
+    current_user.password_hash = await password_work(hash_password, payload.new_password)
+    await invalidate_password_sessions(db, current_user.id)
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

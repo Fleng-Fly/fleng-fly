@@ -2,7 +2,7 @@ from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -59,7 +59,15 @@ async def streak(db: AsyncSession, user_id: UUID) -> StreakResponse:
 
 async def lock_learner(db: AsyncSession, user_id: UUID) -> None:
     # Same lock order for grading, vocabulary, activity and achievement awards.
-    await db.execute(select(User.id).where(User.id == user_id).with_for_update())
+    if db.get_bind().dialect.name == "sqlite":
+        await db.execute(
+            update(User)
+            .where(User.id == user_id)
+            .values(id=User.id, updated_at=User.updated_at)
+            .execution_options(synchronize_session=False)
+        )
+    else:
+        await db.execute(select(User.id).where(User.id == user_id).with_for_update())
 
 
 async def record_activity(db: AsyncSession, user_id: UUID) -> None:

@@ -10,7 +10,9 @@ import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
 
+import anyio
 import jwt
+from anyio.lowlevel import RunVar
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 
@@ -78,3 +80,16 @@ def generate_refresh_token() -> tuple[str, str]:
 
 def hash_refresh_token(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+async def password_work(function, *args):
+    """Run Argon2 off the event loop with a dedicated bounded worker budget."""
+    try:
+        limiter = _password_limiter.get()
+    except LookupError:
+        limiter = anyio.CapacityLimiter(4)
+        _password_limiter.set(limiter)
+    return await anyio.to_thread.run_sync(function, *args, limiter=limiter)
+
+
+_password_limiter: RunVar[anyio.CapacityLimiter] = RunVar("fleng_password_limiter")

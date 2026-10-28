@@ -35,8 +35,14 @@ backend/
 │   └── modules/
 │       ├── health/             # GET /health
 │       ├── auth/               # register/login/refresh/logout + security.py
-│       ├── users/              # GET /users/me (read-only)
-│       └── progress/           # GET /progress/me
+│       ├── users/              # own profile/settings/password
+│       ├── progress/           # GET /progress/me
+│       ├── catalog/            # courses and lessons
+│       ├── exercises/          # grading, XP and completion
+│       ├── vocabulary/         # personal words and basic reviews
+│       ├── gamification/       # activity, streaks and achievements
+│       ├── password_reset/     # reset tokens and SMTP
+│       └── ai/                 # OpenRouter, history, recommendations and SSE
 ├── alembic/
 │   ├── env.py                  # async migrations; URL from app settings
 │   ├── script.py.mako
@@ -64,7 +70,7 @@ HTTP request
  → FastAPI routing (/api/v1)
  → dependency injection (get_db, get_current_user)
  → router (thin) → service (business logic)
- → SQLAlchemy async session → asyncpg → PostgreSQL
+ → SQLAlchemy async session → aiosqlite / asyncpg → SQLite / PostgreSQL
  → response_model serialization (camelCase)
  → exception handlers on error → standard JSON envelope
 ```
@@ -94,7 +100,8 @@ HTTP request
 - **Auth** — `get_current_user` (`app/api/deps.py`) verifies a Bearer access JWT
   and loads the `User` with its `Profile`. Invalid/expired tokens return `401
   UNAUTHORIZED`. There is no development auth stub anymore.
-- **Rate limiting** — deferred. See `plans/security-plan.md` Stage 2.
+- **Rate limiting** — persistent fixed windows for login/register, password reset and AI.
+  Configuration and proxy trust: `docs/authentication.md`. Refresh throttling is deferred.
 
 ## 5. Authentication module
 
@@ -182,10 +189,11 @@ The modular FastAPI/SQLAlchemy architecture is unchanged. New modules follow
 - `ai`: OpenRouter provider adapter, bounded tutor history, structured explanation
   and practice generation, deterministic learner recommendations, JSON and SSE.
 - `users`: authenticated profile PATCH for display name, CEFR English level and
-  preferred explanation language. Numeric level, XP, email and identity stay
+  preferred explanation language. Email editing is also supported. Numeric level, XP and identity stay
   outside this update surface.
 
-Learning writes take a `users` row lock before reading/updating progress/profile,
+Learning writes take a PostgreSQL `users` row lock or SQLite no-op write lock
+before reading/updating progress/profile,
 so concurrent requests cannot overwrite XP using stale profile objects. The
 existing deterministic grading and once-only XP claim remain authoritative.
 Activity and achievement writes participate in the same learning transaction.
@@ -200,7 +208,7 @@ its last day was today or yesterday; it becomes zero after a missed day. Longest
 streak is preserved. Changing this policy after collecting activity changes day
 boundaries; plan an explicit data migration if changing timezone in production.
 
-`core/limits.py` stores request windows in PostgreSQL. AI quota reservations are
+`core/limits.py` stores request windows in SQLite or PostgreSQL. AI quota reservations are
 serialized per user and globally, and survive worker restarts. All API request
 bodies are bounded before JSON parsing. Validation errors omit input values to
 avoid reflecting credentials/reset tokens. Provider errors never expose upstream
@@ -210,3 +218,19 @@ Tests, PostgreSQL setup, safe demo seed and SMTP configuration:
 [development.md](development.md). Provider protocol, limits and manual AI checks:
 [ai.md](ai.md). Live PostgreSQL/AI verification remains blocked in the implementation
 environment; offline SQL and mocked/ORM tests are distinct from live integration.
+
+## Backend stabilization — 2026-10-28
+
+Refresh rotation claims one unrevoked, unexpired token through conditional
+`UPDATE ... RETURNING`; revocation, successor creation and linking share one
+commit. A common learner lock serializes rotation/session issuance with password
+changes/reset. SQLite uses a no-op UPDATE (preserving `updated_at`), PostgreSQL
+uses `FOR UPDATE`; correctness never depends on SQLite supporting row locks.
+The existing SQLite connection timeout remains bounded at 30 seconds, with no
+retry loop. Logout also uses a conditional UPDATE.
+
+Hash/verify/dummy-verify calls in async auth/password paths use the shared
+four-worker AnyIO limiter. Hash parameters and credential semantics are unchanged;
+there was no existing automatic rehash path to migrate.
+The existing schema and Alembic chain are unchanged. See
+[stabilization report](backend-stabilization-report.md) for runtime evidence.

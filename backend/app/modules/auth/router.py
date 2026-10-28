@@ -4,11 +4,14 @@ The refresh token lives in an HttpOnly cookie scoped to `/api/v1/auth`; the
 access token is returned in the JSON body and kept in memory by the frontend.
 """
 
+import hashlib
+
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.core.errors import ApiError
+from app.core.limits import consume
 from app.db.session import get_db
 from app.modules.auth import service
 from app.modules.auth.schemas import (
@@ -79,13 +82,42 @@ def _read_refresh_cookie(request: Request, settings: Settings) -> str:
     return raw
 
 
+async def throttle(
+    db: AsyncSession,
+    request: Request,
+    settings: Settings,
+    email: str,
+    *,
+    registration: bool = False,
+) -> None:
+    # Only the ASGI peer is trusted. Deployment must constrain uvicorn proxy trust.
+    ip = request.client.host if request.client else "unknown"
+    digest = hashlib.sha256(ip.encode()).hexdigest()
+    scope = "register" if registration else "login"
+    await consume(
+        db,
+        f"auth:{scope}:ip:{digest}",
+        settings.auth_register_ip_per_hour if registration else settings.auth_login_ip_per_minute,
+        3600 if registration else 60,
+    )
+    # Persist IP attempts even if the email limit or credential check rejects the request.
+    await db.commit()
+    if not registration:
+        digest = hashlib.sha256(email.strip().lower().encode()).hexdigest()
+        await consume(db, f"auth:login:email:{digest}", settings.auth_login_email_per_minute, 60)
+        await db.commit()
+
+
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     payload: RegisterRequest,
+    request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
+    _assert_trusted_origin(request, settings)
+    await throttle(db, request, settings, str(payload.email), registration=True)
     user = await service.register_user(
         db,
         email=payload.email,
@@ -110,6 +142,7 @@ async def login(
     settings: Settings = Depends(get_settings),
 ) -> TokenResponse:
     _assert_trusted_origin(request, settings)
+    await throttle(db, request, settings, str(payload.email))
     user = await service.authenticate(db, email=payload.email, password=payload.password)
     if user is None:
         raise ApiError(

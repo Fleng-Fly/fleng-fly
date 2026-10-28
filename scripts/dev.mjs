@@ -62,6 +62,6 @@ const port = process.env.PORT ?? '3001';
 start(
   'backend',
   venvUvicorn,
-  ['app.main:app', '--reload', '--host', '0.0.0.0', '--port', port],
+  ['app.main:app', '--reload', '--no-proxy-headers', '--host', '0.0.0.0', '--port', port],
   backendDir,
 );

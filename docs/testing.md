@@ -58,13 +58,9 @@ Static frontend (`backend/tests/test_frontend.py`):
 
 Covered now: register → login → refresh → logout; protected requests; a user
 cannot read another user's data; catalog reads; start a lesson → answer
-exercises → grading → lesson completion → progress/XP update (streaks are not
-implemented yet). Still to cover as features land:
-
-1. Streak / achievement updates on lesson completion (gamification not built).
-2. Vocabulary review updates SRS scheduling.
-3. AI tutor turn with the mock provider.
-4. Run the app against a real database (PostgreSQL integration).
+exercises → grading → lesson completion → progress/XP and streak/achievement
+updates; vocabulary review scheduling; AI tutor turns with mocked transport.
+Real PostgreSQL integration remains opt-in and unverified in this environment.
 
 ## 5. Commands
 
@@ -98,3 +94,38 @@ refused IPv4/IPv6 connections. Offline migration SQL compiled; actual Alembic
 upgrade failed before applying anything. Live AI testing also remains pending.
 One existing Starlette/httpx TestClient deprecation warning is unrelated to these
 changes; no new test-only dependency was added to suppress it.
+
+## Stabilization checks — 2026-10-28
+
+`test_stabilization.py` uses independent sessions/connections and temporary file
+SQLite for concurrent refresh, password change/reset, limiter increments and
+once-only XP/completion. It covers invalid/expired/reused tokens, failed
+insert/commit rollback, constraints, multiple devices, stale login credentials,
+quota boundaries/window reset/Retry-After, spoofed forwarding headers and bounded
+password workers. The same database tests run in isolated PostgreSQL schemas
+when `TEST_DATABASE_URL` is provided; otherwise they explicitly skip.
+
+A minimal aiosqlite `SELECT 1` hung inside the execution sandbox, with its worker
+idle in `queue.get` and the asyncio loop waiting in the selector. The identical
+program completed immediately outside the sandbox. This reproduces the failure
+without FastAPI, pytest fixtures, a connection pool or external DB. It isolates
+this observed hang to the restricted execution environment's cross-thread asyncio
+wake-up path; no OS-level cause is claimed. Run the suite with the necessary
+execution permissions rather than disabling tests or extending timeouts.
+
+From the repository root:
+
+```bash
+cd backend
+.venv/bin/pytest -q
+.venv/bin/ruff check app tests
+.venv/bin/mypy app
+.venv/bin/alembic heads
+.venv/bin/alembic history
+```
+
+`python3 scripts/backend-stabilization-smoke.py` (repository root) starts/stops
+`npm run dev` on a temporary port and temporary SQLite database, validates auth,
+Dashboard/Lessons APIs and persistence across restart, then removes only its
+own temporary directory. It requires working subprocess/network/thread permissions.
+Current results: [backend-stabilization-report.md](backend-stabilization-report.md).

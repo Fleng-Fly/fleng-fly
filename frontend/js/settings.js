@@ -131,7 +131,9 @@ function bindPage() {
     try {
       await changePassword({ currentPassword, newPassword });
       clearPasswordForm();
-      feedback('password-feedback', 'Password updated successfully.');
+      setAccessToken(null);
+      window.alert('Password updated. Please sign in again.');
+      window.location.assign('/login.html');
     } catch (error) {
       feedback('password-feedback', describeApiError(error), true);
     } finally {

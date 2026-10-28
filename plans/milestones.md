@@ -32,10 +32,10 @@ Figma screenshot comparison is pending; Login/Sign Up is the next UI phase.
 | M3 | Authentication & progress API + frontend session | ✅ completed | register/login/refresh/logout, read-only `/users/me`, `/progress/me` |
 | M3a | Phase A: static frontend served by FastAPI | ✅ completed | Next.js removed; `frontend/` HTML/CSS/JS; landing/login/register/dashboard/settings; same-origin CSRF fix |
 | M4 | Catalog & learning | ✅ completed | courses/lessons read API; `single_choice`/`text`/`self_check` exercises with server-side grading; lesson start/submit/progress; once-only XP; per-course progress; lesson page + dashboard |
-| M5 | Vocabulary + SRS | ⬜ | words, user vocabulary, flashcards |
-| M6 | Gamification | ⬜ | XP, levels, streaks, achievements |
+| M5 | Vocabulary + SRS | 🟡 partial | personal words, reviews and basic 1/7-day scheduling implemented; adaptive SRS deferred |
+| M6 | Gamification | 🟡 partial | XP, streaks and achievements implemented; numeric level progression deferred |
 | M7 | Frontend MVP | ⬜ | app shell + core screens + design system |
-| M8 | AI tutor | ⬜ | Python AI layer + tutor + writing correction |
+| M8 | AI tutor | 🟡 partial | OpenRouter/SSE/history/explanation/practice APIs implemented; live provider verification and UI pending |
 | M9 | Polish & launch | ⬜ | practice depth, notifications, analytics, deploy |
 
 ## Known limitations / not yet verified
@@ -98,3 +98,10 @@ complete; real PostgreSQL migration/integration and live OpenRouter testing rema
 blocked. See ai-plan.md and docs/development.md for exact next steps. These backend
 APIs do not imply completed frontend UI integration. Changes are uncommitted by
 explicit user instruction.
+
+## Backend stabilization — 2026-10-28
+
+Completed implementation and isolated SQLite checks: refresh atomicity,
+login/register limits, nonblocking Argon2, password-session revocation and
+concurrent learning updates. The follow-up request authorizes committing this stage and the README update. Live PostgreSQL
+is NOT VERIFIED; verification results are in `docs/backend-stabilization-report.md`.

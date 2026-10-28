@@ -1,5 +1,6 @@
 """Database-backed windows shared by workers; no raw identifiers in keys."""
 
+import math
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete, select, update
@@ -26,7 +27,14 @@ async def consume(db: AsyncSession, key: str, limit: int, seconds: int) -> None:
     )
     if result.scalar_one_or_none() is None:
         raise ApiError(
-            429, "RATE_LIMITED", "Request limit reached", headers={"Retry-After": str(seconds)}
+            429,
+            "RATE_LIMITED",
+            "Request limit reached",
+            headers={
+                "Retry-After": str(
+                    max(1, math.ceil((window + timedelta(seconds=seconds) - now).total_seconds()))
+                )
+            },
         )
     await db.execute(
         delete(RequestLimit)

@@ -158,3 +158,12 @@ Alembic and an initial catalog, then runs the existing FastAPI/static frontend.
 PostgreSQL remains an explicit deployment option. Lessons UI and AI scope are
 unchanged. Dashboard Firefox scenarios passed; Figma comparison and live PostgreSQL
 checks remain separate.
+
+## Backend stabilization — 2026-10-28
+
+Completed: atomic refresh rotation, login/register throttling, bounded password
+workers, password/reset refresh-session revocation and SQLite concurrent-write
+regressions. Existing learning/UI contracts are preserved; Settings signs out
+after changing the password. No new product features or schema changes.
+Next: live PostgreSQL migration/concurrency verification and SMTP/OpenRouter
+integration. Current runtime evidence: `docs/backend-stabilization-report.md`.

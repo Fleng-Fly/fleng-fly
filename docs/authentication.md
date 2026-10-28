@@ -2,8 +2,8 @@
 
 > Status: **implemented** (M2). Email/password authentication, rotating refresh
 > sessions and the `get_current_user` dependency work end to end. Roles/RBAC,
-> email verification and password reset are not implemented yet. Design notes for
-> the deferred parts are marked below.
+> and email verification are deferred; password reset is implemented (SMTP opt-in).
+> Design notes for deferred parts are marked below.
 
 ## 1. Model
 
@@ -15,7 +15,7 @@
 - Refresh tokens are stored **hashed** (SHA-256 hex) in `refresh_tokens`
   (`docs/database.md`), so the database never holds a usable bearer secret.
 - Authorization today is simply "authenticated user". Role-based access control
-  and ownership-scoped resources arrive with the learning catalog.
+  is deferred. Ownership-scoped learning, vocabulary and AI resources are implemented.
 
 ## 2. Endpoints
 
@@ -27,7 +27,7 @@
 | Logout | `POST /api/v1/auth/logout` | revokes the presented token and clears the cookie |
 | Current user | `GET /api/v1/users/me` | Bearer access token; read-only |
 | Account details | `PATCH /api/v1/users/me` | Bearer access token; updates own name, email or language preference |
-| Change password | `POST /api/v1/users/me/password` | Bearer access token; verifies current password and stores an argon2id hash |
+| Change password | `POST /api/v1/users/me/password` | `204`; verifies current password, changes hash and revokes refresh/reset tokens atomically; sign in again |
 
 ## 3. Token flow
 
@@ -43,8 +43,9 @@ Authenticated request
 
 Access token expired
   → frontend calls POST /auth/refresh (cookie sent automatically)
-  → server looks up the hash, checks expiry and revocation
-  → rotates: revokes the old token, issues a new one (linked via replaced_by_id)
+  → server resolves identity and takes the shared learner lock
+  → conditionally claims an unrevoked, unexpired token with UPDATE RETURNING
+  → revocation, new token and replaced_by_id link commit together
   → returns a new access token + rotated cookie
 
 Logout
@@ -97,8 +98,59 @@ and the client must re-authenticate (`401 REFRESH_TOKEN_REUSED`).
 
 ## 7. Not implemented yet
 
-- Email verification and password reset (email provider deferred).
+- Email verification. Password reset is implemented; real SMTP delivery remains unverified.
 - Role-based access control (`ADMIN`) and public profiles.
-- Rate limiting on auth endpoints (`plans/security-plan.md` Stage 2).
+- Rate limiting on refresh (login/register/reset already have persistent limits).
 - Multi-device session listing / "log out everywhere" (the schema supports it).
 - OAuth providers and MFA.
+
+## Stabilized sessions and password changes
+
+Only one transaction can claim a refresh token. Concurrent reuse returns
+`401 REFRESH_TOKEN_REUSED` and durably revokes the whole user refresh-session set,
+including the winning request's successor. The winner can therefore receive a
+cookie already revoked by the concurrent replay; this intentionally preserves the
+existing strict reuse policy. Unknown/expired tokens return `401 INVALID_REFRESH_TOKEN`.
+Failures before a successful commit roll back the old claim and successor together.
+
+Rotation, login issuance, password change and reset share the same identity lock.
+Login rechecks the verified password hash under that lock, preventing issuance
+from credentials verified before a concurrent password change. Normal password
+change refreshes the password hash after locking, preventing stale verification.
+Both password flows revoke every refresh session and unused reset token within
+the password transaction. A failed request session is rolled back on close.
+The existing route is **POST**, not PATCH, `/users/me/password`; its `204` contract
+is preserved. Settings clears its in-memory access token, explains that another
+sign-in is required, then redirects to login. No new token-version field is added.
+
+**Access JWT policy:** logout, password change/reset and reuse detection revoke
+refresh tokens. Already issued access JWTs remain valid until their configured
+expiry (`ACCESS_TOKEN_EXPIRE_MINUTES`, default 15). Other tabs/devices can retain
+this limited access. Immediate access-token revocation would require an additional
+revocation/version mechanism and is outside this stabilization.
+
+## Login/register throttling and proxy trust
+
+All limits are fixed UTC windows in the existing `request_limits` table:
+
+| Setting | Default | Scope |
+| --- | --- | --- |
+| `AUTH_LOGIN_IP_PER_MINUTE` | 20 | Login attempts per peer IP/minute |
+| `AUTH_LOGIN_EMAIL_PER_MINUTE` | 10 | Login attempts per normalized email/minute, shared across IPs |
+| `AUTH_REGISTER_IP_PER_HOUR` | 10 | Registration attempts per peer IP/hour |
+
+Limits apply before expensive password work, regardless of credential success or
+account existence. Keys contain SHA-256 digests, not raw email/IP. A conditional
+counter increment prevents concurrent overspending. IP attempts commit before the
+email check so an exhausted email window cannot bypass IP accounting. `429
+RATE_LIMITED` has the same generic response for all accounts; `Retry-After` is the
+positive, rounded-up number of seconds until that window ends. The existing
+registration `409 EMAIL_TAKEN` contract remains unchanged (registration can still
+reveal duplicates); the limiter adds no account-dependent response.
+
+The app reads only ASGI `request.client.host`, never raw `X-Forwarded-For`.
+`npm run dev` and `backend:dev` disable proxy-header processing. In a proxied
+production deployment configure Uvicorn `--proxy-headers --forwarded-allow-ips`
+with only actual trusted proxy addresses, restrict direct backend access, and
+have the proxy overwrite forwarded headers. Never trust `*` on a public backend.
+Without a trusted proxy configuration, requests share the proxy's IP quota.

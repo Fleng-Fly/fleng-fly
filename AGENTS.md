@@ -3,10 +3,13 @@
 This file is the working contract for every agent and developer contributing to Fleng.
 Read it before making any change, then read `README.md`, `docs/`, `project-map/`, and `plans/`.
 
-> Project status: **M2 + catalog + graded lessons** (plain HTML/CSS/JS frontend
-> served by FastAPI). Email/password auth, profiles, progress, the course/lesson
-> catalog and a graded exercise flow work end to end. Vocabulary, streaks and AI
-> are not implemented yet.
+> Project status: **Learning MVP + backend extensions** (plain HTML/CSS/JS
+> frontend served by FastAPI). Auth, settings, catalog, graded lessons, XP/progress,
+> vocabulary/reviews, streaks/achievements, password reset and OpenRouter/SSE APIs
+> are implemented. SQLite is the local default; PostgreSQL is supported but live
+> integration remains unverified here. Reviews use a basic 1/7-day policy; numeric
+> level progression is not implemented. AI and SMTP are disabled by default.
+> Stabilization details: `docs/backend-stabilization-report.md`.
 
 ---
 
@@ -210,8 +213,8 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
 - **Frontend:** plain HTML5, CSS3 and vanilla JavaScript (ES modules, `fetch`), served statically by the backend.
 - **Backend:** Python — FastAPI, SQLAlchemy 2 (async), Alembic, Pydantic.
 - **Repository:** one backend deployable that also serves the static frontend; the backend is a Python project with its own virtualenv. Orchestrated by root Node scripts.
-- **Database:** PostgreSQL.
-- **AI:** a future Python layer consumed by the backend AI module. Not a separate service.
+- **Database:** SQLite + aiosqlite locally; PostgreSQL + asyncpg supported.
+- **AI:** Python OpenRouter integration in `backend/app/modules/ai/`. Not a separate service.
 - **Source of truth:**
   - Architecture → `docs/architecture.md`
   - Stack + rationale → `docs/development.md`
@@ -229,7 +232,7 @@ Read it before making any change, then read `README.md`, `docs/`, `project-map/`
 /
 ├── frontend/     # static HTML/CSS/JS user interface (served by FastAPI)
 ├── backend/      # FastAPI API (Python, modular monolith)
-├── ai/           # future Python AI layer (docs only)
+├── ai/           # documentation entry point for backend AI
 ├── docs/         # durable architecture + engineering documentation
 ├── plans/        # roadmap, per-area plans, milestones
 ├── design/       # design system + UX documentation

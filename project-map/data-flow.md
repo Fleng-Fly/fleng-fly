@@ -168,3 +168,15 @@ Alembic upgrade → seed only if the course catalog is empty → uvicorn serves 
 and API. Users, refresh sessions, submissions, XP and progress persist in the
 same ignored `backend/data/fleng.db` across restarts. PostgreSQL remains an
 explicit DATABASE_URL choice with manual migrations.
+
+## Stabilized auth writes — 2026-10-28
+
+Login/register → persistent IP limit (and normalized-email login limit) → bounded
+Argon2 worker → identity lock and credential recheck → session commit.
+Refresh → resolve hashed token owner → identity lock → conditional token claim →
+successor + link + revocation commit together; replay commits whole-set revocation.
+Password change/reset → same identity lock → hash update + refresh/reset token
+revocation in one transaction → Settings returns to login (change flow).
+Access JWTs retain their configured expiry. SQLite serializes writes through a
+no-op UPDATE; PostgreSQL uses a user-row lock. Quota keys are hashed and shared
+by workers through the existing database. See `docs/authentication.md`.

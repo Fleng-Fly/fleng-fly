@@ -3,7 +3,8 @@
 > Status: **partial (auth implemented)**. Authentication now implements argon2id
 > hashing, short-lived access JWTs, rotating refresh tokens stored hashed,
 > reuse detection, production-gated secrets and CSRF-conscious cookies. Rate
-> limiting, security headers, RBAC and AI guardrails are not implemented yet.
+> limiting is implemented for login/register/reset and AI; security headers and RBAC
+> remain deferred. AI input/output bounds and trust separation are implemented.
 > This document defines the baseline every feature must respect.
 
 ## 1. Threat model (initial)
@@ -29,8 +30,8 @@ Primary threats:
 
 Implemented: argon2id hashing, short-lived access JWTs, rotating refresh tokens
 stored hashed, reuse detection, session revocation, production-gated
-`JWT_ACCESS_SECRET`. See `docs/authentication.md`. Remaining: rate limiting,
-email verification, password reset.
+`JWT_ACCESS_SECRET`. See `docs/authentication.md`. Remaining: refresh throttling
+and email verification. Password reset and login/register throttling are implemented.
 
 ## 3. Authorization
 
@@ -142,3 +143,11 @@ with bounded global/per-user concurrency and conservative token budgets. History
 input/output and API bodies are bounded. Validation errors omit submitted input
 values. Streaming failures never save completed responses. See ai.md for limits,
 provider billing caveats and trust-boundary limitations.
+
+## Stabilization — 2026-10-28
+
+Atomic refresh claims, bounded Argon2 workers, persistent login/register limits
+and password-session revocation are implemented. Proxy trust, quota defaults,
+unchanged duplicate-registration disclosure and access JWT residual lifetime are
+explicit in [authentication.md](authentication.md). Live production infrastructure,
+SMTP and OpenRouter are not validated by SQLite/mocked tests.
