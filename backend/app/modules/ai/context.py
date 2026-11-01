@@ -27,6 +27,9 @@ async def lesson_context(db: AsyncSession, lesson_id: UUID) -> dict:
     if lesson is None:
         raise ApiError(404, "NOT_FOUND", "Lesson not found")
     return {
+        "id": str(lesson.id),
+        "slug": lesson.slug,
+        "level": await db.scalar(select(Course.level).where(Course.id == lesson.course_id)),
         "title": lesson.title[:200],
         "summary": lesson.summary[:1000],
         "theory": lesson.theory[:3000],
@@ -82,7 +85,17 @@ async def learner_context(db: AsyncSession, user: User, lesson_id: UUID | None =
         else None,
     }
     if lesson_id:
-        result["lesson"] = await lesson_context(db, lesson_id)
+        try:
+            result["lesson"] = await lesson_context(db, lesson_id)
+        except ApiError:
+            # Invalid/unpublished context never reaches the provider; general tutoring works.
+            return result
+        current = await db.scalar(
+            select(LessonProgress).where(
+                LessonProgress.user_id == user.id, LessonProgress.lesson_id == lesson_id
+            )
+        )
+        result["lesson"]["progress"] = current.status if current else "not_started"
     return result
 
 

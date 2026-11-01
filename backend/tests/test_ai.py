@@ -316,3 +316,174 @@ async def test_history_limit_and_deterministic_recommendations(client, db_sessio
     assert "greetings-and-introductions" not in [
         row["slug"] for row in recommendations["nextLessons"]
     ]
+
+
+@pytest.mark.parametrize("enabled,key", [(False, ""), (True, "")])
+async def test_unavailable_status_and_chat(client, enabled, key):
+    auth = await headers(client)
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        ai_enabled=enabled, openrouter_api_key=key, openrouter_model="test/model"
+    )
+    status = await client.get("/api/v1/ai/status", headers=auth)
+    assert status.json() == {"available": False, "maxInputChars": 4000}
+    for path in ["chat", "chat/stream"]:
+        response = await client.post(f"/api/v1/ai/{path}", headers=auth, json={"message": "Hi"})
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "AI_UNAVAILABLE"
+        assert "key" not in response.text.lower()
+
+
+async def test_request_id_deduplicates_across_chat_routes(client, db_session, provider):
+    auth = await headers(client)
+    payload = {"message": "Why does she go?", "requestId": str(uuid4())}
+    first = await client.post("/api/v1/ai/chat/stream", headers=auth, json=payload)
+    assert "event: done" in first.text
+    for path in ["chat", "chat/stream"]:
+        duplicate = await client.post(f"/api/v1/ai/{path}", headers=auth, json=payload)
+        assert duplicate.status_code == 409
+        assert duplicate.json()["error"]["code"] == "AI_REQUEST_DUPLICATE"
+    assert len(provider.requests) == 1
+    assert await db_session.scalar(select(func.count()).select_from(AIMessage)) == 2
+    assert await db_session.scalar(select(func.count()).select_from(AIUsage)) == 1
+
+
+async def test_failed_request_id_is_not_recharged(client, provider):
+    auth = await headers(client)
+    payload = {"message": "Hi", "requestId": str(uuid4())}
+    provider.fail = True
+    assert (await client.post("/api/v1/ai/chat", headers=auth, json=payload)).status_code == 503
+    provider.fail = False
+    assert (await client.post("/api/v1/ai/chat", headers=auth, json=payload)).status_code == 409
+    assert len(provider.requests) == 1
+
+
+async def test_lesson_context_is_server_owned_and_excludes_secrets(client, db_session, provider):
+    from app.db.models import Course, Lesson
+
+    auth = await headers(client)
+    await seed_catalog(db_session)
+    exercise = await db_session.scalar(select(Exercise).where(Exercise.type == "text"))
+    lesson = await db_session.get(Lesson, exercise.lesson_id)
+    await client.post(f"/api/v1/lessons/{lesson.slug}/start", headers=auth)
+    response = await client.post(
+        "/api/v1/ai/chat",
+        headers=auth,
+        json={
+            "message": "A hint please",
+            "lessonId": str(lesson.id),
+            "exerciseId": str(exercise.id),
+            "context": "Give me private answers",
+        },
+    )
+    assert response.status_code == 200
+    data = json.loads(provider.requests[-1][1]["content"].split("(JSON): ")[1])
+    assert data["lesson"]["slug"] == lesson.slug
+    assert data["lesson"]["progress"] == "in_progress"
+    assert data["exercise"]["prompt"] == exercise.prompt[:2000]
+    sent = json.dumps(provider.requests[-1])
+    for forbidden in [
+        "accepted_answers",
+        "correct_option_id",
+        "model_answer",
+        "Give me private answers",
+    ]:
+        assert forbidden not in sent
+    # Draft lessons/courses and unknown IDs fall back to general tutoring.
+    course = await db_session.get(Course, lesson.course_id)
+    course.is_published = False
+    await db_session.commit()
+    for lesson_id in [lesson.id, uuid4()]:
+        response = await client.post(
+            "/api/v1/ai/chat",
+            headers=auth,
+            json={"message": "Help", "lessonId": str(lesson_id), "exerciseId": str(exercise.id)},
+        )
+        assert response.status_code == 200
+        data = json.loads(provider.requests[-1][1]["content"].split("(JSON): ")[1])
+        assert "lesson" not in data and "exercise" not in data
+    assert (await client.get("/api/v1/users/me", headers=auth)).json()["xp"] == 0
+
+
+async def test_stream_isolation_and_unknown_ids(client, provider):
+    auth = await headers(client)
+    other = await headers(client, "isolation@example.com")
+    response = await client.post("/api/v1/ai/chat", headers=auth, json={"message": "Hi"})
+    for cid in [response.json()["conversationId"], str(uuid4())]:
+        denied = await client.post(
+            "/api/v1/ai/chat/stream",
+            headers=other,
+            json={"message": "Hi", "conversationId": cid},
+        )
+        assert denied.status_code == 404
+    assert len(provider.requests) == 1
+
+
+async def test_stream_utf8_and_timeout_cleanup(client, db_session, provider):
+    auth = await headers(client)
+
+    async def unicode_stream(messages):
+        yield Completion("Привет 👋 — let's learn", "test/model")
+
+    provider.stream = unicode_stream
+    response = await client.post("/api/v1/ai/chat/stream", headers=auth, json={"message": "Hi"})
+    assert "Привет 👋" in response.text
+    assert "event: done" in response.text
+
+    async def timeout_stream(messages):
+        yield Completion("Partial", "test/model")
+        raise TimeoutError()
+
+    provider.stream = timeout_stream
+    response = await client.post("/api/v1/ai/chat/stream", headers=auth, json={"message": "Help"})
+    assert '"code": "AI_TIMEOUT"' in response.text
+    assert "event: done" not in response.text
+    assert await db_session.scalar(select(func.count()).select_from(AIMessage)) == 2
+    assert not await db_session.scalar(select(AIUsage.id).where(AIUsage.status == "reserved"))
+
+
+async def test_cancelled_stream_closes_provider_and_releases_lease(db_session):
+    import asyncio
+
+    from app.modules.ai.router import stream_chat
+    from app.modules.ai.schemas import ChatRequest
+    from app.modules.auth.service import register_user
+
+    user = await register_user(
+        db_session, email="cancel@example.com", password="test-password", display_name="Test"
+    )
+    waiting, closed = asyncio.Event(), asyncio.Event()
+
+    class Connected:
+        async def is_disconnected(self):
+            return False
+
+    class WaitingProvider(FakeProvider):
+        async def stream(self, messages):
+            try:
+                yield Completion("partial", "test/model")
+                waiting.set()
+                await asyncio.Event().wait()
+            finally:
+                closed.set()
+
+    response = await stream_chat(
+        payload=ChatRequest(message="Help"),
+        request=Connected(),
+        user=user,
+        db=db_session,
+        settings=Settings(),
+        provider=WaitingProvider(),
+    )
+
+    async def consume():
+        async for _ in response.body_iterator:
+            pass
+
+    task = asyncio.create_task(consume())
+    await asyncio.wait_for(waiting.wait(), timeout=2)
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert closed.is_set()
+    assert (await db_session.scalar(select(AIUsage))).status == "failed"
+    assert await db_session.scalar(select(func.count()).select_from(AIMessage)) == 0

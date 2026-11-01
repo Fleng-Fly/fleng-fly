@@ -296,3 +296,12 @@ The database was unavailable during implementation: migrations have **not** been
 applied to a live PostgreSQL instance here. See development.md for recovery and
 real integration instructions. Downgrading removes extension data and must never
 be used as a routine development setup command.
+
+
+### AI request deduplication — 2026-11-01
+
+`AIUsage.request_id` is a nullable UUID, uniquely indexed with `user_id` by
+`ai_usage_request_key`. Migration `20261101_1200` adds it without touching existing
+chat history. Reservations record explicit request IDs before provider I/O;
+completed and failed requests retain the ID until the 30-day usage cleanup.
+There are no additional conversation/message tables.

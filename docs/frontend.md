@@ -182,3 +182,14 @@ Browser end-to-end tests (Playwright) remain planned.
 - Update `design/` and this document when the visual language changes.
 
 The styles from `CSS.star4life/CSS/` are adapted in `frontend/css/star4life.css`, loaded after `app.css` on every page. Login and registration use the `log-in` and `sign-up` body classes. Invalid reference syntax, fixed desktop dimensions and the missing font dependency are omitted; existing API forms and responsive layouts are preserved.
+
+
+### Floating Fleng AI — 2026-11-01
+
+Authenticated Dashboard and Lessons reuse `js/ai-assistant.js`, `js/ai-stream.js`
+and `css/ai-assistant.css`. The component calls the existing authenticated AI API,
+restores owned conversations and renders streaming/plain text safely. Lessons
+provides a callback for current lesson/exercise IDs; backend owns context loading.
+Close/minimize retains the in-flight response on-page. Navigation disconnects it.
+Responsive/keyboard behavior is implemented but browser/device QA remains pending.
+See [AI integration](ai-assistant-integration.md).

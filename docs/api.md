@@ -302,3 +302,17 @@ and outstanding reset tokens; clients must sign in again. Existing access JWTs
 retain their configured TTL (default 15 minutes). Strict refresh reuse continues
 to revoke all user refresh sessions. See `authentication.md` for concurrency and
 proxy trust policies.
+
+
+### AI assistant additions (2026-11-01)
+
+- `GET /ai/status` (Bearer): `{available: boolean, maxInputChars: number}`;
+  configuration readiness only, no paid provider probe.
+- `POST /ai/chat` and `/ai/chat/stream`: optional `exerciseId` (public exercise in
+  `lessonId`) and `requestId` UUID. Duplicate identified requests return
+  `409 AI_REQUEST_DUPLICATE` and are never re-sent upstream (30-day usage retention).
+- Unknown/unpublished lesson IDs in chat omit context and use general tutoring;
+  `/ai/explain` still validates lesson publication strictly.
+- Existing owned conversation/history/delete routes remain unchanged.
+
+Full contracts and streaming lifecycle: [AI](ai.md).

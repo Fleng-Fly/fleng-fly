@@ -167,3 +167,18 @@ regressions. Existing learning/UI contracts are preserved; Settings signs out
 after changing the password. No new product features or schema changes.
 Next: live PostgreSQL migration/concurrency verification and SMTP/OpenRouter
 integration. Current runtime evidence: `docs/backend-stabilization-report.md`.
+
+
+## Floating assistant integration — 2026-11-01
+
+- **Completed:** Dashboard/Lessons reusable widget, owned history selection/new chat,
+  incremental UTF-8 SSE, safe text rendering, minimize/close lifecycle.
+- **Completed:** authenticated readiness API, published lesson/exercise context,
+  request-ID deduplication on existing AIUsage (migration `20261101_1200`).
+- **Completed:** mocked backend/parser regression checks, dev-server SQLite smoke,
+  independent self-review; docs and project map updated.
+- **Next / unverified:** actual browser QA at 360/768/desktop, virtual keyboards,
+  paid OpenRouter with a configured model/key, live PostgreSQL integration.
+- **Commits:** not created, per explicit user instruction.
+
+Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains deferred.

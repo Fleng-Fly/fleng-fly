@@ -1,0 +1,180 @@
+.fleng-ai {
+  position: fixed;
+  z-index: 80;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: calc(20px + var(--ai-bottom, 0px));
+  color: #efedfa;
+  font:
+    14px/1.5 Inter,
+    system-ui,
+    sans-serif;
+}
+.fleng-ai [hidden] {
+  display: none !important;
+}
+.fleng-ai button,
+.fleng-ai select,
+.fleng-ai textarea {
+  font: inherit;
+  color: inherit;
+  border: 1px solid #51496d;
+  border-radius: 12px;
+  background: #29243e;
+}
+.fleng-ai button {
+  min-height: 44px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.fleng-ai button:hover {
+  background: #473968;
+}
+.fleng-ai :focus-visible {
+  outline: 3px solid #b8a1ff;
+  outline-offset: 3px;
+}
+.fleng-ai :disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.fleng-ai .ai-launcher,
+.ai-composer button {
+  background: #7851d1;
+  color: #fff;
+  box-shadow: 0 10px 35px #0005;
+}
+.ai-panel {
+  width: 370px;
+  height: min(580px, calc(var(--ai-height, 100dvh) - 40px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #51496d;
+  border-radius: 20px;
+  background: #1a1728;
+  box-shadow: 0 20px 65px #0008;
+}
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  border-bottom: 1px solid #393249;
+}
+.ai-header > div {
+  flex: 1;
+}
+.ai-header strong {
+  font-size: 16px;
+}
+.ai-header small {
+  display: block;
+  color: #c0b7d7;
+}
+.ai-header button {
+  min-width: 44px;
+  font-size: 22px;
+}
+.ai-tools {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 0;
+}
+.ai-tools select {
+  min-width: 0;
+  flex: 1;
+  width: 100%;
+  padding: 6px;
+}
+.ai-tools button {
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+.ai-context {
+  color: #bfb0df;
+  font-size: 12px;
+  margin: 8px 14px;
+}
+.ai-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 14px;
+}
+.ai-welcome {
+  color: #c4bdd4;
+}
+.ai-message {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #282238;
+  overflow-wrap: anywhere;
+}
+.ai-message small {
+  color: #c7b0ff;
+  font-weight: 600;
+}
+.ai-message p {
+  white-space: pre-wrap;
+  margin: 4px 0 0;
+}
+.ai-user {
+  margin-left: 28px;
+  background: #3b2b57;
+}
+.ai-assistant {
+  margin-right: 12px;
+}
+.ai-notice {
+  color: #d2c3f0;
+  font-size: 12px;
+  margin: 6px 14px;
+  overflow-wrap: anywhere;
+}
+.ai-notice:empty {
+  display: none;
+}
+.ai-composer {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid #393249;
+}
+.ai-composer textarea {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  padding: 10px;
+}
+.ai-composer textarea::placeholder {
+  color: #b9b1ca;
+}
+@media (max-width: 480px) {
+  .fleng-ai {
+    right: 8px;
+    bottom: calc(8px + var(--ai-bottom, 0px));
+  }
+  .ai-panel {
+    width: calc(100vw - 16px);
+    height: min(580px, calc(var(--ai-height, 100dvh) - 16px));
+    border-radius: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fleng-ai *,
+  .fleng-ai {
+    scroll-behavior: auto;
+    transition: none;
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .fleng-ai.ai-keyboard .ai-tools,
+  .fleng-ai.ai-keyboard .ai-context {
+    display: none;
+  }
+}

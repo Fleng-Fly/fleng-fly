@@ -127,3 +127,23 @@ async def test_stream_framing_and_incomplete(ending, success):
     except ApiError:
         assert not success
     assert chunks[0] == "Hi"
+
+
+@pytest.mark.parametrize("data", [[], {"choices": [None]}, {"choices": [{"message": []}]}])
+async def test_malformed_provider_shapes_are_sanitized(data):
+    with pytest.raises(ApiError) as exc:
+        await OpenRouterProvider(
+            settings(), httpx.MockTransport(lambda r: httpx.Response(200, json=data))
+        ).complete([])
+    assert exc.value.code == "AI_INVALID_RESPONSE"
+
+
+@pytest.mark.parametrize("status,code", [(429, "AI_RATE_LIMITED"), (503, "AI_UNAVAILABLE")])
+async def test_stream_provider_http_errors(status, code):
+    provider = OpenRouterProvider(
+        settings(), httpx.MockTransport(lambda r: httpx.Response(status, text="private"))
+    )
+    with pytest.raises(ApiError) as exc:
+        _ = [chunk async for chunk in provider.stream([])]
+    assert exc.value.code == code
+    assert "private" not in str(exc.value)

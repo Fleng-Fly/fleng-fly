@@ -148,3 +148,17 @@ require explicit migration commands; no automatic seeding or fallback is used.
 
 No new modules/tables or migration. Settings only clears auth state and redirects
 after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
+
+
+## Fleng AI widget — 2026-11-01
+
+- `frontend/js/ai-assistant.js`: shared authenticated Dashboard/Lessons floating
+  chat, history selection/reload, composer, visibility and request states.
+- `frontend/js/ai-stream.js`: bounded UTF-8 SSE reader; no build/dependency.
+- `frontend/css/ai-assistant.css`: dark compact responsive window/focus styling.
+- Existing `modules/ai`: authenticated configuration status, validated lesson/
+  exercise context and request-ID deduplication using existing AIUsage.
+- `20261101_1200_ai_request_id.py`: nullable request UUID + per-user unique index.
+- `scripts/test-ai-stream.mjs`: standalone Node tests of stream framing/failures.
+
+- `scripts/test-ai-api.mjs`: auth-refresh/raw-stream and no-retry client regressions.

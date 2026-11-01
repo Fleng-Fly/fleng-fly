@@ -41,7 +41,7 @@ async def test_postgres_migration_chain_and_drift():
             assert await connection.scalar(text("SELECT count(*) FROM achievements")) == 5
             assert (
                 await connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "20261018_1200"
+                == "20261101_1200"
             )
     finally:
         async with engine.begin() as connection:

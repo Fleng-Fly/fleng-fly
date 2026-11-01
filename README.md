@@ -49,7 +49,7 @@ For the presentation walkthrough and fictional accounts, see [DEMO.md](DEMO.md).
 | Progress | Once-only exercise XP, lesson completion and per-course progress |
 | Vocabulary | Personal words, translations/examples, lesson links, due queue and review history |
 | Gamification | Daily activity, current/longest streak and deterministic achievements |
-| AI backend | OpenRouter chat/history, explanations, generated practice, SSE and usage limits |
+| AI assistant | Floating Dashboard/Lessons chat, OpenRouter SSE/history, lesson hints, explanations and usage limits |
 | Recommendations | Deterministic learning suggestions that work without an AI provider |
 
 The frontend connects login/register, Dashboard, courses, Lessons and Settings to

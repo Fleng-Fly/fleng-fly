@@ -100,7 +100,11 @@ class OpenRouterProvider:
                                 502, "AI_INVALID_RESPONSE", "AI response exceeded limits"
                             )
             data = json.loads(chunks)
+            if not isinstance(data, dict):
+                raise ValueError("Invalid response object")
             choice = data["choices"][0]
+            if not isinstance(choice, dict) or not isinstance(choice.get("message"), dict):
+                raise ValueError("Invalid choice")
             if data.get("error") or choice.get("finish_reason") != "stop":
                 raise ValueError("Incomplete response")
             content = choice["message"]["content"]
@@ -149,12 +153,18 @@ class OpenRouterProvider:
                                 raise ValueError("Incomplete stream")
                             return
                         data = json.loads(event)
+                        if not isinstance(data, dict):
+                            raise ValueError("Invalid stream event")
                         if data.get("error"):
                             raise ValueError("Provider stream error")
                         choices = data.get("choices", [])
                         content = ""
                         if choices:
                             choice = choices[0]
+                            if not isinstance(choice, dict) or not isinstance(
+                                choice.get("delta", {}), dict
+                            ):
+                                raise ValueError("Invalid delta object")
                             reason = choice.get("finish_reason")
                             if reason and reason != "stop":
                                 raise ValueError("Incomplete generation")

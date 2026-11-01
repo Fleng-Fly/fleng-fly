@@ -48,10 +48,11 @@ def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path):
         assert result.returncode == 0, result.stdout + result.stderr
 
     run("-m", "app.db.prepare")
+    run("-m", "alembic", "-c", str(BACKEND_ROOT / "alembic.ini"), "check")
     user_id = uuid.uuid4().hex
     with sqlite3.connect(path) as db:
         assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == (
-            "20261018_1200"
+            "20261101_1200"
         )
         counts = [
             db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]

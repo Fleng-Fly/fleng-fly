@@ -14,6 +14,8 @@ class ChatRequest(CamelModel):
     conversation_id: UUID | None = None
     lesson_id: UUID | None = None
     correct_grammar: bool = True
+    exercise_id: UUID | None = None
+    request_id: UUID | None = None
 
 
 class ExplainRequest(CamelModel):

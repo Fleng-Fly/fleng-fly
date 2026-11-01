@@ -103,14 +103,30 @@ async def prepare_chat(db: AsyncSession, user: User, payload: ChatRequest, setti
         if count >= settings.ai_conversations_per_user:
             raise ApiError(409, "AI_CONVERSATION_LIMIT", "Delete an old conversation first")
     learner = await context.learner_context(db, user, payload.lesson_id)
+    if payload.exercise_id and payload.lesson_id and "lesson" in learner:
+        exercise = await db.scalar(
+            select(Exercise).where(
+                Exercise.id == payload.exercise_id, Exercise.lesson_id == payload.lesson_id
+            )
+        )
+        if exercise is not None:
+            learner["exercise"] = {"type": exercise.type, "prompt": exercise.prompt[:2000]}
     learner["correct_grammar"] = payload.correct_grammar
     return conversation, prompts.messages(learner, payload.message, history)
 
 
 async def reserve(
-    db: AsyncSession, user: User, settings: Settings, messages: list[dict]
+    db: AsyncSession,
+    user: User,
+    settings: Settings,
+    messages: list[dict],
+    request_id: UUID | None = None,
 ) -> AIUsage:
     await lock_learner(db, user.id)
+    if request_id and await db.scalar(
+        select(AIUsage.id).where(AIUsage.user_id == user.id, AIUsage.request_id == request_id)
+    ):
+        raise ApiError(409, "AI_REQUEST_DUPLICATE", "Request already received; reload history")
     now = datetime.now(UTC)
     lease_start = now - timedelta(seconds=settings.ai_request_timeout + 60)
     if await db.scalar(
@@ -159,7 +175,11 @@ async def reserve(
         .execution_options(synchronize_session="fetch")
     )
     usage = AIUsage(
-        user_id=user.id, model=settings.openrouter_model, status="reserved", reserved_tokens=tokens
+        user_id=user.id,
+        model=settings.openrouter_model,
+        status="reserved",
+        reserved_tokens=tokens,
+        request_id=request_id,
     )
     db.add(usage)
     await db.commit()
@@ -219,7 +239,7 @@ async def chat(
 ):
     async with capacity(settings):
         conversation, messages = await prepare_chat(db, user, payload, settings)
-        usage = await reserve(db, user, settings, messages)
+        usage = await reserve(db, user, settings, messages, payload.request_id)
         try:
             async with asyncio.timeout(settings.ai_request_timeout):
                 result = await provider.complete(messages)
@@ -253,6 +273,8 @@ async def structured(
             schema_type, task = Explanation, "explain"
         else:
             schema_type, task = GeneratedExercise, "generate"
+        if lesson_id:
+            await context.lesson_context(db, lesson_id)
         learner = await context.learner_context(db, user, lesson_id)
         if isinstance(payload, GenerateRequest) and payload.level:
             learner["level"] = payload.level

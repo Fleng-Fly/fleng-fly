@@ -14,7 +14,7 @@ from app.core.errors import ApiError
 from app.db.models import AIConversation, AIMessage, User
 from app.db.session import get_db
 from app.modules.ai import context, service
-from app.modules.ai.provider import Completion, Provider, get_provider
+from app.modules.ai.provider import Completion, Provider, get_provider, unavailable
 from app.modules.ai.schemas import (
     ChatRequest,
     ChatResponse,
@@ -39,6 +39,19 @@ def chat_response(conversation, message):
         conversation_id=conversation.id,
         message=MessageResponse.model_validate(message, from_attributes=True),
     )
+
+
+@router.get("/status")
+async def status(
+    user: User = Depends(get_current_user), settings: Settings = Depends(get_settings)
+):
+    # Configuration readiness only; no paid probe and no credentials exposed.
+    try:
+        get_provider(settings)
+        available = True
+    except ApiError:
+        available = False
+    return {"available": available, "maxInputChars": settings.ai_max_input_chars}
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -143,7 +156,7 @@ async def recommendations(
 
 
 def event(name: str, data: dict) -> str:
-    return "event: " + name + "\ndata: " + json.dumps(data) + "\n\n"
+    return "event: " + name + "\ndata: " + json.dumps(data, ensure_ascii=False) + "\n\n"
 
 
 @router.post("/chat/stream")
@@ -156,7 +169,7 @@ async def stream_chat(
     provider: Provider = Depends(provider_dependency),
 ):
     conversation, messages = await service.prepare_chat(db, user, payload, settings)
-    usage = await service.reserve(db, user, settings, messages)
+    usage = await service.reserve(db, user, settings, messages, payload.request_id)
 
     async def stream():
         completed = False
@@ -174,6 +187,8 @@ async def stream_chat(
                                 yield event("delta", {"content": chunk.content})
                 if await request.is_disconnected():
                     return
+                if not content.strip() or len(content) > settings.ai_max_response_chars:
+                    raise unavailable()
                 result = Completion(content, settings.openrouter_model, usage_info)
                 saved_conversation, answer = await service.save_turn(
                     db, user, conversation, payload, result, usage
@@ -191,7 +206,10 @@ async def stream_chat(
             code = exc.code if isinstance(exc, ApiError) else "AI_TIMEOUT"
             yield event(
                 "error",
-                {"code": code, "message": "AI stream did not complete; retry with /ai/chat."},
+                {
+                    "code": code,
+                    "message": "AI stream did not complete. Reload history before sending again.",
+                },
             )
         except Exception:
             yield event(

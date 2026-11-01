@@ -170,3 +170,12 @@ now invalidates refresh/reset tokens transactionally; clients sign in again.
 `POST /auth/refresh`: atomic once-only claim, strict whole-set reuse revocation.
 No route renames, new endpoints or response-schema changes. Access JWT expiry
 policy and default quotas: `docs/authentication.md`.
+
+
+## AI assistant — 2026-11-01
+
+`GET /ai/status` (Bearer) returns `{available, maxInputChars}` without a paid probe.
+Existing `POST /ai/chat|chat/stream` additionally accept optional `exerciseId` and
+`requestId`; repeated request IDs return `409 AI_REQUEST_DUPLICATE` without provider
+I/O. Invalid/unpublished chat lesson context falls back to general tutoring.
+Owned conversation/history endpoints are reused by Dashboard and Lessons.

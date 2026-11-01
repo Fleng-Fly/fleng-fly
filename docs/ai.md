@@ -162,10 +162,10 @@ cd backend
 ```
 
 Tests mock HTTP and provider responses: no API key or real AI calls required.
-For real PostgreSQL validation see `docs/development.md`; SQLite fixtures are
-explicitly test-only and do not replace the application's database.
+SQLite is the local application default and is also used by isolated tests.
+For optional live PostgreSQL validation see `docs/development.md`.
 
-Manual paid integration test (requires running/migrated PostgreSQL and configured
+Manual paid integration test (requires a running/migrated SQLite or PostgreSQL database and configured
 OpenRouter key/model): register/login through `/docs`, copy the returned access
 token into Authorize, then call `/api/v1/ai/chat` with `{"message":"Help me practice introductions"}`.
 Verify the conversation/history endpoint, send a second turn with its ID, and
@@ -173,3 +173,63 @@ try `/explain`, `/generate-exercise` and `/chat/stream`. Verify XP is unchanged,
 and verify another account cannot read/delete the conversation. Disable AI and
 confirm `/ai/recommendations` still responds. This live check was not performed
 in this execution environment: PostgreSQL and live credentials were unavailable.
+
+
+## Floating learning assistant — 2026-11-01
+
+Dashboard and Lessons mount `frontend/js/ai-assistant.js` after authentication.
+The shared component loads `/css/ai-assistant.css`; no frontend build or new
+runtime dependency is required. It supports open/minimize/close, new conversation,
+conversation selection, paginated chronological history, Reload, and incremental
+plain-text responses. Static welcome copy is separate from model messages.
+
+`GET /api/v1/ai/status` requires authentication and returns
+`{available, maxInputChars}`. Availability means server configuration is ready;
+it does not probe provider health or bill the provider. History remains readable
+when generation is disabled. Provider failures update the widget without exposing
+configuration details.
+
+Chat accepts optional `exerciseId` and `requestId` UUIDs in addition to `lessonId`
+and `conversationId`. Lessons supplies only the loaded lesson/current exercise
+identifiers (exercise only in Practice/Test). Backend loads published lesson and
+course data, bounded theory, CEFR level and this user's lesson status. Unknown or
+unpublished chat lesson context is omitted; general tutoring continues. Exercise
+context must belong to that published lesson and contains only type/prompt.
+Structured `/explain` retains strict 404 validation for unavailable lessons.
+Answer keys, model answers and private data from other learners are excluded.
+The tutor is instructed to give hints first and acknowledge uncertainty; it has
+no tools or path to change XP, official grading or progress.
+
+The widget sends a fresh `requestId` per explicit submission. `AIUsage.request_id`
+and its unique `(user_id, request_id)` index prevent a repeated identified request
+from reaching OpenRouter, across both chat routes and worker restarts. Replays
+return `409 AI_REQUEST_DUPLICATE`, including failed/unknown requests, to avoid a
+second charge. IDs live with usage rows (30-day retention); older API clients may
+omit the field. Migration: `20261101_1200`. No second chat table was added.
+
+`apiFetch` returns a raw Response for streaming, retaining the existing single
+401 refresh path. It never retries provider/network failures. `ai-stream.js`
+uses a streaming UTF-8 decoder, handles byte/chunk/CRLF boundaries and multiline
+SSE data, and requires terminal `done` or `error`. Delta text is provisional;
+`done` replaces it with the saved response instead of appending it twice.
+After ambiguous failure, sending is disabled until history is reloaded or an
+explicit new chat is chosen. Only server-confirmed complete pairs are history.
+
+Closing or minimizing keeps the active fetch running on the current page. Opening
+again shows its current text; another submission/history switch is disabled until
+it finishes. Leaving/reloading the page disconnects and cancels upstream work;
+partial turns are not saved. If the server committed just before disconnect,
+Reload/history recovers that completed pair. Failed/cancelled accounting retains
+the conservative reservation, since provider costs cannot be undone.
+
+Only a user-scoped selected conversation ID is stored locally; message content
+and tokens are not. Both user/model output use `textContent`, with no Markdown,
+HTML execution or generated links. The nonmodal window has labelled controls,
+visible focus, Escape-to-close, 44px buttons, small-screen CSS, visualViewport
+keyboard adjustments and reduced-motion support. These layout choices require
+browser QA on actual devices; static/parser tests do not establish visual quality.
+
+Checks: `node scripts/test-ai-stream.mjs`, `node scripts/test-ai-api.mjs`,
+backend pytest/Ruff/mypy,
+JS syntax and Alembic checks. See [integration report](ai-assistant-integration.md)
+for evidence and remaining manual validation.

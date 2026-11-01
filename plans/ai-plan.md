@@ -26,3 +26,18 @@ Status at 2026-10-18:
 - **Commits:** intentionally not created; user explicitly prohibited automatic commits.
 
 Implementation and limitations are specified in docs/ai.md and docs/development.md.
+
+
+## Floating assistant integration — 2026-11-01
+
+- **Completed:** Dashboard/Lessons reusable widget, owned history selection/new chat,
+  incremental UTF-8 SSE, safe text rendering, minimize/close lifecycle.
+- **Completed:** authenticated readiness API, published lesson/exercise context,
+  request-ID deduplication on existing AIUsage (migration `20261101_1200`).
+- **Completed:** mocked backend/parser regression checks, dev-server SQLite smoke,
+  independent self-review; docs and project map updated.
+- **Next / unverified:** actual browser QA at 360/768/desktop, virtual keyboards,
+  paid OpenRouter with a configured model/key, live PostgreSQL integration.
+- **Commits:** not created, per explicit user instruction.
+
+Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains deferred.

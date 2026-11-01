@@ -16,6 +16,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -456,6 +457,8 @@ class AIMessage(Base):
 
 class AIUsage(Base):
     __tablename__ = "ai_usage"
+    __table_args__ = (Index("ai_usage_request_key", "user_id", "request_id", unique=True),)
+    request_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, nullable=True)
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), index=True

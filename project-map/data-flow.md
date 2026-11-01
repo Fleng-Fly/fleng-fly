@@ -180,3 +180,13 @@ revocation in one transaction → Settings returns to login (change flow).
 Access JWTs retain their configured expiry. SQLite serializes writes through a
 no-op UPDATE; PostgreSQL uses a user-row lock. Quota keys are hashed and shared
 by workers through the existing database. See `docs/authentication.md`.
+
+
+## Floating tutoring chat — 2026-11-01
+
+Dashboard/Lessons → shared widget → authenticated POST `/ai/chat/stream` → existing
+AI service (ownership, published lesson/exercise context, quotas, unique request
+reservation) → OpenRouter → SSE delta → safe textContent UI → atomic AIConversation/
+AIMessage pair + completed AIUsage → SSE done → saved conversation ID.
+History returns only JWT-owned rows. Lesson/exercise identifiers are supplied by
+Lessons; trusted context is loaded by backend. No AI-to-grading/progress mutation.

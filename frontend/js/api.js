@@ -102,7 +102,7 @@ export async function apiFetch(path, init = {}, options = {}) {
   if (response.status === 401 && retryOnUnauthorized && !path.startsWith('/auth/')) {
     const token = await refreshOnce();
     if (token) {
-      return apiFetch(path, init, { retryOnUnauthorized: false });
+      return apiFetch(path, init, { ...options, retryOnUnauthorized: false });
     }
   }
 
@@ -120,6 +120,8 @@ export async function apiFetch(path, init = {}, options = {}) {
     }
     throw new ApiError(message, response.status, code, details);
   }
+
+  if (options.rawResponse) return response;
 
   if (response.status === 204) {
     return undefined;
@@ -204,4 +206,16 @@ export function submitAnswer(slug, payload) {
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+
+export function getAIStatus() { return apiFetch('/ai/status'); }
+export function listAIConversations() { return apiFetch('/ai/conversations?limit=100'); }
+export function getAIHistory(id, offset = 0) {
+  return apiFetch(`/ai/conversations/${encodeURIComponent(id)}?limit=100&offset=${offset}`);
+}
+export function streamAIChat(payload) {
+  return apiFetch('/ai/chat/stream', {
+    method: 'POST', body: JSON.stringify(payload), headers: { Accept: 'text/event-stream' },
+  }, { rawResponse: true });
 }

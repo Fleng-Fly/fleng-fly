@@ -1,3 +1,4 @@
+import { mountAIAssistant } from './ai-assistant.js';
 import { getLesson, getLessonProgress, getLessonVocabulary, startLesson, submitAnswer } from './api.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
@@ -427,6 +428,10 @@ async function loadLesson() {
     const [lesson, current] = await Promise.all([getLesson(slug), getLessonProgress(slug)]);
     const progress = current.startedAt ? current : await startLesson(slug);
     state.lesson = lesson;
+    mountAIAssistant(user, () => ({
+      lessonId: state.lesson?.id,
+      exerciseId: ['test', 'practice'].includes(state.tab) ? state.lesson?.exercises[state.index]?.id : undefined,
+    }));
     state.progress = progress;
     state.index = Math.max(0, lesson.exercises.findIndex((item) => !progress.exercises.some((entry) => entry.exerciseId === item.id && entry.completed)));
     state.drafts.clear();

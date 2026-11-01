@@ -1,3 +1,4 @@
+import { mountAIAssistant } from './ai-assistant.js';
 import {
   getMyProgress,
   getMyStreak,
@@ -29,6 +30,7 @@ function message(target, title, detail, retry) {
 function setProfile(user) {
   const name = (user.displayName || 'Learner').trim();
   setWorkspaceUser(user);
+  mountAIAssistant(user);
   $('dashboard-level').textContent = `Level ${user.level} · ${user.xp} XP`;
   $('welcome-message').textContent =
     `Good to see you, ${name}. Make a little progress today and keep your momentum going.`;
