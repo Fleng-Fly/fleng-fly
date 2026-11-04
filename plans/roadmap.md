@@ -10,6 +10,25 @@ resume, and responsive layouts. Exact Figma comparison awaits the target
 screen reference; Login/Sign Up is the next requested UI phase. The historical
 stage descriptions below record earlier architecture decisions.
 
+## Netlify publication boundary — 2026-11-04
+
+- **Completed locally:** root `netlify.toml` uses `base = "frontend"` and
+  `publish = "."` to publish only `frontend/` and avoid root pnpm installation,
+  with no build step or SPA fallback; future `/api/*` HTTPS proxy is commented out.
+  Netlify local artifacts are ignored. Only the confirmed trailing empty YAML
+  document was removed from the existing pnpm lockfile; no dependency update.
+- **Pending:** user push and corrected Netlify deployment, deploy-file inspection
+  and public HTTP checks from `docs/deployment.md`. The previous deployment's
+  repository exposure is not resolved publicly by a local commit.
+- **Blocked on external configuration:** FastAPI is not hosted; authentication,
+  catalog/user APIs, progress and AI cannot work on static hosting alone.
+- **Next:** provision Python hosting and persistent PostgreSQL, supply backend
+  secrets (OpenRouter key stays backend-only), run migrations, activate the real
+  proxy and verify HTTPS sessions, readiness, persistence and optional SSE.
+- **Separate follow-up:** reconcile the lockfile's missing root `prettier`
+  devDependency before depending on frozen pnpm installation; no package
+  installation or version change is part of this deployment fix.
+
 ## MVP definition
 
 A signed-in learner can:

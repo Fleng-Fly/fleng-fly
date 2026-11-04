@@ -1,8 +1,113 @@
 # Deployment
 
-Fleng ships as **one FastAPI service containing `backend/` and `frontend/`**.
-There is no frontend build or Node process in production. A public deployment
-has not been created; the host, database credentials and domain are not supplied.
+Fleng can run as **one FastAPI service containing `backend/` and `frontend/`**.
+There is no frontend build or Node process in production. The Netlify site at
+<https://fleng.netlify.app> is a separate static-frontend deployment. FastAPI
+has not been deployed externally; its host and database credentials are not
+supplied. The configuration below has not yet been deployed or verified on the
+public site; a successful Netlify deployment alone does not prove a working app.
+
+## Netlify: static frontend only
+
+The root `netlify.toml` sets `[build] base = "frontend"` and `publish = "."`.
+Netlify resolves publish relative to base, so the published directory is exactly
+`frontend/`, not the repository root. Leave the build command empty. There is
+no bundler, build step or frontend package manifest.
+
+The explicit base is necessary to avoid root dependency detection: Netlify
+automatically runs pnpm when the base contains `pnpm-lock.yaml`, and this
+repository's root lockfile is out of sync with its development tooling manifest.
+The frontend needs none of those packages. This isolates static deployment
+without changing dependencies or weakening frozen-install checks. See Netlify's
+[base/publish definitions](https://docs.netlify.com/build/configure-builds/overview/)
+and [dependency detection](https://docs.netlify.com/build/configure-builds/manage-dependencies/).
+Do not select the repository root as the publish directory.
+Do not add a catch-all SPA redirect: pages are separate HTML files and unknown
+URLs and API requests must remain 404 until a backend proxy is enabled.
+
+Only files inside `frontend/` are publishable. Backend sources, migrations,
+tests, SQLite files, `.env` files (including example templates), `AGENTS.md`,
+documentation, plans, project maps, Git metadata, logs and local configuration
+must stay outside that directory. `.gitignore` is not a publication boundary:
+inspect the complete frontend tree, including ignored files and symlinks, before
+each release. Never copy secrets or private data into it.
+
+Until FastAPI is hosted, authentication, catalog and user APIs, saved progress
+and AI are unavailable on Netlify. Static HTML returning 200 does not imply that
+protected pages or API-dependent features work in the browser.
+
+After deploying FastAPI with a persistent database (managed PostgreSQL is the
+intended production choice), replace the placeholder with its real HTTPS host
+and uncomment the existing example in `netlify.toml`:
+
+```toml
+[[redirects]]
+  from = "/api/*"
+  to = "https://YOUR-BACKEND.example.com/api/:splat"
+  status = 200
+  force = true
+```
+
+The `/api/` prefix is intentional: `/api/v1/health` must reach the backend as
+`/api/v1/health`. Never point this rule at localhost. Keep the existing frontend
+API client and endpoints. Configure backend `CORS_ORIGIN` to the exact frontend
+origin (`https://fleng.netlify.app` for this site), secure cookies and trusted
+ingress settings, then verify cookie refresh, origin checks and SSE through the
+proxy before claiming integration works. Store `OPENROUTER_API_KEY`, database
+credentials and JWT secrets only in the backend host's secret store, never in
+frontend files or browser-injected Netlify variables.
+
+### Static deployment verification
+
+Before the proxy is enabled, check HTTP responses against the local publish
+directory and repeat against the deployed Netlify URL after the user deploys:
+
+| Expected status | Paths |
+| --- | --- |
+| 200 | `/`, `/index.html`, `/courses.html`, `/dashboard.html`, existing `/css/*.css` and `/js/*.js` assets |
+| 404 | `/unknown-page`, `/api/v1/health`, `/backend/app/core/config.py`, `/backend/data/fleng.db`, `/AGENTS.md`, `/.env`, `/.env.production`, `/.env.example`, `/.env.production.example`, `/docs/deployment.md`, `/plans/roadmap.md`, `/project-map/architecture.md`, `/tests/`, `/backend/alembic/env.py`, `/.git/config` |
+
+Inspect the Netlify deploy file list: it must contain only the frontend tree.
+Verify that a missing URL returns an actual 404, not `index.html` with 200.
+If Netlify CLI is unavailable, use this local static-path check:
+
+```sh
+python3 -m http.server 8080 --bind 127.0.0.1 --directory frontend
+```
+
+This does not emulate Netlify redirects or prove the public deployment.
+After proxy activation, health must return the real backend JSON and readiness
+must confirm database access;
+the private-file checks must still return 404. An old deployment publishing the
+repository root remains exposed until a corrected deployment replaces it.
+
+The tracked `pnpm-lock.yaml` had a trailing `---` creating an empty second YAML
+document, not a duplicated package block. Only that marker was removed; package
+versions were preserved. Its root importer does not list the `prettier`
+devDependency declared by `package.json`; dependency synchronization remains
+separate work. The frontend base avoids invoking this root install altogether.
+
+### Local verification — 2026-11-04
+
+- Parsed active TOML and the uncommented proxy example; verified that base plus
+  publish resolves exactly to `frontend/`. Netlify CLI was unavailable.
+- Inspected all 35 frontend files, including ignored/hidden paths: no symlinks,
+  private file types or routing overrides. Secret-pattern and local-credential
+  comparisons covered tracked working files, Git index, frontend and 555
+  reachable historical blobs without printing values. No confirmed secrets;
+  the credential-URL finding was an intentional test fixture.
+- Local static HTTP checks passed for 46 paths: required pages and all 25 CSS/JS
+  assets returned 200; missing/API/private paths returned 404. This tests the
+  publish directory, not Netlify's production routing or proxy behavior.
+- `git diff --check`, syntax checks for 17 frontend JS files, 26 existing
+  frontend tests, Ruff and mypy (64 source files) passed. Backend pytest passed
+  outside the restricted sandbox: 228 passed, 15 PostgreSQL tests skipped;
+  existing Starlette/httpx deprecation warning remains. The sandbox run timed
+  out. Tests used isolated databases, not the local application SQLite file.
+- Separate self-review checked publication boundaries, proxy prefix, lockfile
+  semantics, scope and documentation. No backend or UI code was changed.
+- No push or production deployment was run. Public exposure remains unverified
+  until the corrected Netlify deployment and its file-list/HTTP checks.
 
 ## Local and production commands
 

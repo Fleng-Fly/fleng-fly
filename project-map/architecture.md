@@ -3,7 +3,28 @@
 > Status: M2/M3 implemented (Phase A: static frontend served by FastAPI).
 > Canonical detail: `docs/architecture.md`.
 
-## System diagram (current)
+## Hosting boundary — 2026-11-04
+
+Local development still uses one FastAPI process for frontend and `/api/v1`.
+The Netlify deployment is a static-only alternative, configured by root
+`netlify.toml`: `base = "frontend"`, `publish = "."` (relative to base), so
+`frontend/` is the entire publish tree. The base avoids installing unrelated root
+pnpm dependencies. No build command or SPA fallback. Backend sources, database files, env
+templates, tests, documentation and Git metadata are outside the publish tree.
+
+```text
+Browser → Netlify → frontend/ HTML, CSS, JavaScript
+        → /api/v1 → 404 (FastAPI not externally deployed)
+Future: Netlify /api/* HTTPS proxy → FastAPI → persistent PostgreSQL
+                                          → OpenRouter (backend secret only)
+```
+
+Authentication and API-dependent pages cannot work on Netlify until FastAPI,
+persistent storage and the commented proxy are configured and verified. The
+local fix has not been deployed; public behavior is unverified. See
+`docs/deployment.md` for proxy activation and HTTP/private-file checks.
+
+## System diagram (local FastAPI topology)
 
 ```
 User

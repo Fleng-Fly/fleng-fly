@@ -51,6 +51,7 @@ Thumbs.db
 !.vscode/settings.example.json
 
 # Misc
+.netlify/
 .turbo/
 .cache/
 tmp/
