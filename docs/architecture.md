@@ -14,7 +14,7 @@
 - Built and maintained by several agents/developers → strong conventions,
   explicit boundaries, small commits.
 - Start simple and extensible. **No premature microservices.**
-- TypeScript on the frontend, Python on the backend — each where it fits best.
+- Plain JavaScript on the frontend, Python on the backend.
 
 Non-goals for the MVP:
 

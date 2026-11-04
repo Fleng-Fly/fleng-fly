@@ -48,6 +48,7 @@ For the presentation walkthrough and fictional accounts, see [DEMO.md](DEMO.md).
 | Graded lessons | Start/resume, server-side submissions, single-choice/text/self-check exercises |
 | Progress | Once-only exercise XP, lesson completion and per-course progress |
 | Vocabulary | Personal words, translations/examples, lesson links, due queue and review history |
+| Leaderboard | Top learners, total XP, completed lessons, current streak and own global rank |
 | Gamification | Daily activity, current/longest streak and deterministic achievements |
 | AI assistant | Floating Dashboard/Lessons chat, OpenRouter SSE/history, lesson hints, explanations and usage limits |
 | Recommendations | Deterministic learning suggestions that work without an AI provider |
@@ -58,8 +59,9 @@ learned-word metrics. Dedicated Vocabulary, Practice, Challenges, Progress and A
 Tutor screens remain future work.
 
 Reviews currently use a basic **1-day retry / 7-day remembered** schedule.
-Automatic numeric level progression, adaptive SRS, billing, notifications and
-leaderboards are not implemented.
+The all-time Leaderboard ranks learners by earned XP, with stable ties and
+private account fields excluded. Automatic numeric level progression, adaptive
+SRS, billing and notifications are not implemented.
 
 ## Architecture and stack
 
@@ -110,6 +112,8 @@ preserve any existing configuration and keep real credentials out of Git.
   `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`.
 - Reset-email delivery is disabled by default. Configure `RESET_DELIVERY=smtp`
   and SMTP settings to send reset links.
+
+Production setup and release commands: [deployment](docs/deployment.md).
 
 Detailed setup: [development](docs/development.md), [authentication](docs/authentication.md)
 and [AI](docs/ai.md).

@@ -120,3 +120,15 @@ is NOT VERIFIED; verification results are in `docs/backend-stabilization-report.
 - **Commits:** not created, per explicit user instruction.
 
 Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains deferred.
+
+
+## Leaderboard + hosting preparation — 2026-11-04
+
+- **Completed:** authenticated all-time XP ranking, top-3 cards, learner table,
+  own rank, short/empty/loading/error/retry states and responsive styles.
+- **Completed:** production launcher/Procfile, environment template, secure-cookie
+  and secret guards, exact HTTPS CORS origins, DB readiness and deployment notes.
+- **Next:** choose hosting/managed PostgreSQL and supply production secrets;
+  apply migrations and verify public HTTPS auth, proxy trust and optional AI.
+- **Not verified:** exact Figma comparison (source not supplied), browser layout
+  at 360/768/desktop (browser unavailable), live hosting/PostgreSQL/OpenRouter/SMTP.

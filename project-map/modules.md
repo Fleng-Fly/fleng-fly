@@ -162,3 +162,18 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
 - `scripts/test-ai-stream.mjs`: standalone Node tests of stream framing/failures.
 
 - `scripts/test-ai-api.mjs`: auth-refresh/raw-stream and no-retry client regressions.
+
+
+## Leaderboard and hosting preparation — 2026-11-04
+
+- Existing `gamification` router/service/schemas now own the authenticated
+  all-time ranking. Window functions rank Profile XP with a stable UUID tie-break;
+  Progress supplies completed lessons and batched LearningActivity supplies streaks.
+  No new table, migration, package or service.
+- `frontend/leaderboard.html`, `js/leaderboard.js`, `css/leaderboard.css` use the
+  existing workspace sidebar/header and API/session helpers. Dashboard and sidebar
+  link to the screen. Top 100 and own global position come from `/leaderboard`.
+- `backend/run.py` + root `Procfile`: production uvicorn process without reload,
+  Settings-based port and explicit proxy trust. `health/ready`: DB readiness.
+- `.env.production.example` and `docs/deployment.md`: single-service HTTPS release
+  with explicit migrations, optional initial catalog and managed PostgreSQL.

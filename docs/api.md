@@ -316,3 +316,16 @@ proxy trust policies.
 - Existing owned conversation/history/delete routes remain unchanged.
 
 Full contracts and streaming lifecycle: [AI](ai.md).
+
+
+## All-time Leaderboard and readiness (2026-11-04)
+
+- `GET /api/v1/leaderboard?limit=100` requires bearer authentication; limit 1–100.
+  Returns `{ entries, currentUser, total }`. Entries contain `rank`, `displayName`,
+  `xp`, `lessonsCompleted`, `streak`, `isCurrentUser`; no email or user ID.
+  `currentUser` remains present outside the requested top list (nullable if no
+  profile exists). Global unique positions use XP descending, user UUID ascending.
+  All profiles participate, including zero XP. Lessons and current streak are
+  informational. Streak uses existing LearningActivity and learning timezone.
+- `GET /api/v1/health/ready` is public: 200 for a reachable DB, 503 on failure or
+  five-second timeout; same response fields as `/health`. No schema-version check.

@@ -30,8 +30,8 @@
   progress ring, current course, streak and learned-word count implemented.
   Firefox checks at 360/768/desktop passed on local SQLite (2026-10-22).
   Exact Figma comparison remains pending.
-  Leaderboard, notifications and dedicated word/topic search remain
-  unavailable until supported by APIs.
+  Notifications and dedicated word/topic search remain unavailable.
+  Leaderboard is implemented (see 2026-11-04 update).
 - [x] Lessons visual phase: shared Dashboard workspace, lesson hero and four
   keyboard-accessible tabs, three existing exercise types, server feedback,
   Test navigation/preview, lesson-filtered saved vocabulary and responsive
@@ -68,3 +68,15 @@ cards, responsive layouts. Tokens live in `frontend/css/app.css` and align with
 - Avoid reintroducing a framework or build step; keep pages small.
 
 - [x] Integrate `CSS.star4life` gradients and auth cards into the existing API-connected static pages, with valid CSS and responsive sizing.
+
+
+## Leaderboard + hosting preparation — 2026-11-04
+
+- **Completed:** authenticated all-time XP ranking, top-3 cards, learner table,
+  own rank, short/empty/loading/error/retry states and responsive styles.
+- **Completed:** production launcher/Procfile, environment template, secure-cookie
+  and secret guards, exact HTTPS CORS origins, DB readiness and deployment notes.
+- **Next:** choose hosting/managed PostgreSQL and supply production secrets;
+  apply migrations and verify public HTTPS auth, proxy trust and optional AI.
+- **Not verified:** exact Figma comparison (source not supplied), browser layout
+  at 360/768/desktop (browser unavailable), live hosting/PostgreSQL/OpenRouter/SMTP.
