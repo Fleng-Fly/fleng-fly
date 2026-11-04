@@ -10,6 +10,7 @@ Level = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
 
 
 class ChatRequest(CamelModel):
+    model_config = ConfigDict(extra="forbid")
     message: str = Field(min_length=1, max_length=16000)
     conversation_id: UUID | None = None
     lesson_id: UUID | None = None
@@ -19,6 +20,7 @@ class ChatRequest(CamelModel):
 
 
 class ExplainRequest(CamelModel):
+    model_config = ConfigDict(extra="forbid")
     exercise_id: UUID | None = None
     lesson_id: UUID | None = None
     student_answer: str = Field(min_length=1, max_length=4000)
@@ -26,6 +28,7 @@ class ExplainRequest(CamelModel):
 
 
 class GenerateRequest(CamelModel):
+    model_config = ConfigDict(extra="forbid")
     level: Level | None = None
     topic: str = Field(min_length=1, max_length=200)
     difficulty: Literal["easy", "medium", "hard"] = "medium"

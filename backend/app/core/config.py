@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     openrouter_model: str = ""
     ai_structured_outputs: bool = False
     ai_max_output_tokens: int = Field(default=800, ge=1, le=8192)
+    ai_max_input_tokens: int = Field(default=24000, ge=1, le=128000)
     ai_request_timeout: float = Field(default=30, gt=0, le=300)
     ai_max_input_chars: int = Field(default=4000, ge=1, le=16000)
     ai_max_response_chars: int = Field(default=16000, ge=1, le=64000)
@@ -102,6 +103,7 @@ class Settings(BaseSettings):
             parts.scheme != "https"
             or not parts.hostname
             or parts.username
+            or parts.password
             or parts.query
             or parts.fragment
         ):

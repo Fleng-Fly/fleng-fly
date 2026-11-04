@@ -4,9 +4,17 @@ import { el } from './layout.js';
 
 let widget;
 
+export function unmountAIAssistant(options) {
+  widget?.destroy(options);
+}
+
 /** One widget per authenticated workspace. The callback sends IDs only. */
 export function mountAIAssistant(user, getContext = () => ({})) {
+  if (!user?.id) return;
+  if (widget && widget.userId !== user.id) widget.destroy({ clearSelection: true });
   if (widget) return widget;
+  let destroyed = false;
+  let controller;
   const css = el('link');
   css.rel = 'stylesheet';
   css.href = '/css/ai-assistant.css';
@@ -145,6 +153,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     if (!panel.hidden) (input.disabled ? reload : input).focus();
   }
   async function history() {
+    if (destroyed) return;
     messages.replaceChildren();
     if (!conversationId) {
       welcome();
@@ -153,19 +162,21 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     let offset = 0;
     while (true) {
       const page = await getAIHistory(conversationId, offset);
+      if (destroyed) return;
       for (const item of page) bubble(item.role === 'user' ? 'user' : 'assistant', item.content);
       if (page.length < 100) break;
       offset += page.length;
     }
   }
   async function load() {
-    if (busy) return;
+    if (busy || destroyed) return;
     busy = true;
     phase('LOADING');
     notice.textContent = 'Loading conversation history…';
     controls();
     try {
       const [status, conversations] = await Promise.all([getAIStatus(), listAIConversations()]);
+      if (destroyed) return;
       available = status.available;
       input.maxLength = status.maxInputChars;
       if (!initialized) {
@@ -184,6 +195,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
         select.append(new Option(`Chat · ${new Date(item.createdAt).toLocaleString()}`, item.id));
       select.value = conversationId || '';
       await history();
+      if (destroyed) return;
       initialized = true;
       needsReload = false;
       remember();
@@ -192,7 +204,12 @@ export function mountAIAssistant(user, getContext = () => ({})) {
         ? ''
         : 'Fleng AI is currently unavailable. Your saved conversations are still accessible.';
       phase(available ? visibility : 'UNAVAILABLE');
-    } catch {
+    } catch (error) {
+      if (destroyed) return;
+      if (error.status === 401) {
+        destroy({ clearSelection: true });
+        return;
+      }
       needsReload = true;
       notice.textContent = 'Unable to load the assistant. Check your connection and select Reload.';
       phase('ERROR');
@@ -202,6 +219,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     }
   }
   select.addEventListener('change', async () => {
+    if (destroyed) return;
     conversationId = select.value || null;
     remember();
     busy = true;
@@ -209,10 +227,16 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     phase('LOADING');
     try {
       await history();
+      if (destroyed) return;
       needsReload = false;
       notice.textContent = available ? '' : 'Fleng AI is currently unavailable.';
       phase(available ? visibility : 'UNAVAILABLE');
-    } catch {
+    } catch (error) {
+      if (destroyed) return;
+      if (error.status === 401) {
+        destroy({ clearSelection: true });
+        return;
+      }
       needsReload = true;
       notice.textContent = 'Unable to load history. Select Reload to try again.';
       phase('ERROR');
@@ -224,7 +248,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const message = input.value.trim();
-    if (busy || !available || needsReload || !message) return;
+    if (destroyed || busy || !available || needsReload || !message) return;
     busy = true;
     controls();
     phase('STREAMING');
@@ -235,14 +259,23 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     bubble('user', message);
     const answer = bubble('assistant', '');
     let complete = false;
+    controller = new AbortController();
     try {
-      const response = await streamAIChat({
-        message,
-        conversationId,
-        ...context(),
-        requestId: crypto.randomUUID(),
-      });
+      const response = await streamAIChat(
+        {
+          message,
+          conversationId,
+          ...context(),
+          requestId: crypto.randomUUID(),
+        },
+        { signal: controller.signal },
+      );
+      if (destroyed) {
+        await response.body?.cancel();
+        return;
+      }
       for await (const event of readAIEvents(response.body)) {
+        if (destroyed) return;
         if (event.name === 'delta') {
           if (typeof event.data.content !== 'string') throw new Error('Invalid response');
           answer.textContent += event.data.content;
@@ -268,6 +301,11 @@ export function mountAIAssistant(user, getContext = () => ({})) {
       }
       if (!complete) throw new Error('Incomplete response');
     } catch (error) {
+      if (destroyed) return;
+      if (error.status === 401) {
+        destroy({ clearSelection: true });
+        return;
+      }
       needsReload = true;
       initialized = false;
       answer.textContent =
@@ -281,6 +319,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
           : 'The request did not complete. Reload history before sending again; no automatic retry was made.';
       phase(unavailable ? 'UNAVAILABLE' : 'ERROR');
     } finally {
+      controller = null;
       busy = false;
       availability.textContent = available ? 'Ready to help' : 'Unavailable';
       controls();
@@ -315,7 +354,31 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   viewport();
   controls();
   phase('CLOSED');
-  widget = { open };
+  function onSessionEnd() {
+    destroy({ clearSelection: true });
+  }
+  function onStorage(event) {
+    if (event.key === 'fleng.session.logout') onSessionEnd();
+  }
+  function destroy({ clearSelection = false } = {}) {
+    if (destroyed) return;
+    destroyed = true;
+    controller?.abort();
+    messages.replaceChildren();
+    input.value = '';
+    conversationId = null;
+    if (clearSelection) remember();
+    root.remove();
+    css.remove();
+    window.visualViewport?.removeEventListener('resize', viewport);
+    window.visualViewport?.removeEventListener('scroll', viewport);
+    window.removeEventListener('fleng:session-ended', onSessionEnd);
+    window.removeEventListener('storage', onStorage);
+    widget = undefined;
+  }
+  window.addEventListener('fleng:session-ended', onSessionEnd);
+  window.addEventListener('storage', onStorage);
+  widget = { open, destroy, userId: user.id };
   return widget;
 }
 

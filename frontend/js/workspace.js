@@ -1,10 +1,17 @@
 import { getCourse, listCourses, logout, setAccessToken } from './api.js';
+import { mountAIAssistant, unmountAIAssistant } from './ai-assistant.js';
+import { requireSession } from './session.js';
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
 
 const $ = (id) => document.getElementById(id);
 let lastNavFocus;
 let catalogPromise;
+let aiContext = () => ({});
+
+export function setWorkspaceAIContext(callback) {
+  aiContext = callback;
+}
 
 // Trusted static navigation markup, shared by Dashboard and Lessons.
 // User and catalog data are assigned with textContent, never interpolated here.
@@ -165,6 +172,7 @@ export function setWorkspaceUser(user) {
   const name = (user.displayName || 'Learner').trim();
   $('profile-short-name').textContent = name;
   $('profile-avatar').textContent = name.charAt(0).toLocaleUpperCase() || 'F';
+  mountAIAssistant(user, () => aiContext());
 }
 
 export function mountWorkspace(active) {
@@ -195,6 +203,16 @@ export function mountWorkspace(active) {
   document.body.prepend(content);
   bindNavigation();
   bindSearch();
+  // A cached document must revalidate its session before restoring private UI.
+  window.addEventListener('pagehide', () => unmountAIAssistant());
+  window.addEventListener('pageshow', async (event) => {
+    if (!event.persisted) return;
+    unmountAIAssistant();
+    try {
+      const user = await requireSession({ throwOnUnavailable: true });
+      if (user) setWorkspaceUser(user);
+    } catch { /* Keep private AI state absent until a session can be verified. */ }
+  });
 }
 
 function button(label, action, className = 'dashboard-text-button') {

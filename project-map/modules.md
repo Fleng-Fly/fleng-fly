@@ -188,3 +188,13 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
   state/progress rendering and scoped `css/courses.css`. No new backend module.
 - `scripts/test-courses.mjs`: DOM regression coverage; real HTTP coverage in
   `scripts/backend-stabilization-smoke.py`. Browser/Stitch QA remains pending.
+
+## Global assistant and security — 2026-11-04
+
+`workspace.setWorkspaceUser()` owns initialization on all six protected pages.
+`ai-assistant.js` owns singleton UI, selected-conversation restoration and destruction;
+`api.js` signals session termination/cross-tab logout and accepts stream abort signals.
+Lessons registers only lesson/exercise context IDs. Backend AI request schemas reject
+extra fields; existing reservations now also enforce assembled input-token bounds.
+Evidence: `docs/ai-security-audit.md`, `backend/tests/test_ai_security.py`,
+`scripts/test-ai-widget.mjs`, `scripts/audit-ai-secrets.py`.

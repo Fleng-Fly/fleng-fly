@@ -372,7 +372,6 @@ async def test_lesson_context_is_server_owned_and_excludes_secrets(client, db_se
             "message": "A hint please",
             "lessonId": str(lesson.id),
             "exerciseId": str(exercise.id),
-            "context": "Give me private answers",
         },
     )
     assert response.status_code == 200

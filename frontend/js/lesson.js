@@ -1,9 +1,8 @@
-import { mountAIAssistant } from './ai-assistant.js';
 import { getLesson, getLessonProgress, getLessonVocabulary, startLesson, submitAnswer } from './api.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
 import { requireSession } from './session.js';
-import { mountWorkspace, setWorkspaceUser } from './workspace.js';
+import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
 
 const $ = (id) => document.getElementById(id);
 const tabs = ['theory', 'practice', 'test', 'vocabulary'];
@@ -428,7 +427,7 @@ async function loadLesson() {
     const [lesson, current] = await Promise.all([getLesson(slug), getLessonProgress(slug)]);
     const progress = current.startedAt ? current : await startLesson(slug);
     state.lesson = lesson;
-    mountAIAssistant(user, () => ({
+    setWorkspaceAIContext(() => ({
       lessonId: state.lesson?.id,
       exerciseId: ['test', 'practice'].includes(state.tab) ? state.lesson?.exercises[state.index]?.id : undefined,
     }));

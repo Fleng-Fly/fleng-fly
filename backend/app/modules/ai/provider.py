@@ -123,6 +123,11 @@ class OpenRouterProvider:
             raise unavailable() from exc
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise ApiError(502, "AI_INVALID_RESPONSE", "Invalid AI response") from exc
+        except ApiError:
+            raise
+        except Exception:
+            # Unexpected transport errors may contain credentials; never log/reflect them.
+            raise unavailable() from None
 
     async def stream(self, messages: list[dict]) -> AsyncGenerator[Completion, None]:
         payload = self.payload(messages, stream=True)
@@ -185,6 +190,10 @@ class OpenRouterProvider:
             raise unavailable() from exc
         except (ValueError, KeyError, IndexError, TypeError) as exc:
             raise ApiError(502, "AI_INCOMPLETE_STREAM", "AI stream did not complete") from exc
+        except ApiError:
+            raise
+        except Exception:
+            raise unavailable() from None
 
 
 def safe_usage(value: object) -> dict:

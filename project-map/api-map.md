@@ -192,3 +192,10 @@ Owned conversation/history endpoints are reused by Dashboard and Lessons.
   informational. Streak uses existing LearningActivity and learning timezone.
 - `GET /api/v1/health/ready` is public: 200 for a reachable DB, 503 on failure or
   five-second timeout; same response fields as `/health`. No schema-version check.
+
+## AI hardening — 2026-11-04
+
+Existing `/ai/chat`, `/ai/chat/stream`, `/ai/explain`, `/ai/generate-exercise`
+request schemas now reject unknown fields (422); user ID, system prompts, model
+selection and arbitrary context are not accepted. Existing endpoints and response
+shapes remain; no public AI API. `AI_MAX_INPUT_TOKENS` bounds assembled server prompts.

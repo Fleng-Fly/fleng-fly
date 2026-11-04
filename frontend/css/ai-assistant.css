@@ -178,3 +178,20 @@
     display: none;
   }
 }
+
+/* Reserve scroll space for the fixed launcher and keep navigation in front. */
+.dashboard-page .dashboard-main {
+  padding-bottom: 7rem;
+}
+.dashboard-page.drawer-open .fleng-ai {
+  visibility: hidden;
+  pointer-events: none;
+}
+.fleng-ai {
+  bottom: calc(max(20px, env(safe-area-inset-bottom)) + var(--ai-bottom, 0px));
+}
+@media (max-width: 480px) {
+  .fleng-ai {
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + var(--ai-bottom, 0px));
+  }
+}

@@ -182,6 +182,8 @@ async def stream_chat(
                             if await request.is_disconnected():
                                 return
                             content += chunk.content
+                            if len(content) > settings.ai_max_response_chars:
+                                raise unavailable()
                             usage_info.update(chunk.usage)
                             if chunk.content:
                                 yield event("delta", {"content": chunk.content})

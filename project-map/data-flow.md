@@ -210,3 +210,13 @@ Its lesson response provides `courseSlug` for returning to the correct details
 page → Back to Courses. Page navigation/history restoration/tab return rereads
 server progress; no second storage or XP writes on course pages. Failed reads
 show errors/retry, and expired sessions redirect through the existing auth flow.
+
+## Global AI lifecycle — 2026-11-04
+
+Protected page → existing session guard → `setWorkspaceUser()` → singleton AI
+(general mode; Lessons registers its context callback). Open → status + owned
+conversation list → user-scoped selection → owned backend history. Submit →
+authenticated FastAPI → strict request schema → validated lesson context → existing
+rate/daily/concurrency reservation + input-token bound → OpenRouter → safe SSE text.
+Logout/session-end → abort + clear private DOM/selection + cross-tab notification.
+Navigation → destroy UI but retain user-scoped ID; cached restore revalidates session.

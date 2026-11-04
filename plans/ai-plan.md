@@ -41,3 +41,17 @@ Implementation and limitations are specified in docs/ai.md and docs/development.
 - **Commits:** not created, per explicit user instruction.
 
 Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains deferred.
+
+## Global assistant and OpenRouter security — 2026-11-04
+
+- **Completed:** single workspace initialization on Dashboard/Courses/Course Details/
+  Lessons/Leaderboard/Settings; lesson-context callback, private-state destruction,
+  logout cancellation/cross-tab notification and cached-session revalidation.
+- **Completed:** extra-field rejection, assembled input-token ceiling, unexpected
+  provider-error sanitization, URL-userinfo guard and pre-delta output bound.
+- **Completed:** secret-marker/API/security/DOM regressions, secret scan, pytest
+  (228 passed / 15 skipped), Ruff/mypy, 26 JS/DOM checks, syntax and HTTP smoke.
+- **Next / NOT VERIFIED:** real browser at 360/768/desktop, live OpenRouter,
+  production TLS/proxies/logs and PostgreSQL concurrency. Public AI launch awaits
+  those checks; keep AI disabled until configured. See `docs/ai-security-audit.md`.
+- **Git:** user subsequently authorized committing the course and AI work.

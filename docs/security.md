@@ -151,3 +151,10 @@ and password-session revocation are implemented. Proxy trust, quota defaults,
 unchanged duplicate-registration disclosure and access JWT residual lifetime are
 explicit in [authentication.md](authentication.md). Live production infrastructure,
 SMTP and OpenRouter are not validated by SQLite/mocked tests.
+
+## Global AI audit — 2026-11-04
+
+See [OpenRouter and global assistant audit](ai-security-audit.md) for verified
+boundaries, fixed lifecycle/request/provider-error gaps, automated evidence and
+remaining production checks. API credentials stay backend-only; all AI endpoints
+remain authenticated. This audit does not claim live-host or paid-provider validation.

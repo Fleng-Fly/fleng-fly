@@ -18,6 +18,9 @@ let accessToken = null;
 
 export function setAccessToken(token) {
   accessToken = token;
+  if (token === null && typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('fleng:session-ended'));
+  }
 }
 
 export function getAccessToken() {
@@ -47,7 +50,7 @@ async function refreshAccessToken() {
     throw new ApiError('Unable to reach the backend', 0, 'NETWORK_ERROR');
   }
   if (response.status === 401) {
-    accessToken = null;
+    setAccessToken(null);
     return null;
   }
   if (!response.ok) {
@@ -144,8 +147,14 @@ export function login(email, password) {
   return apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
 }
 
-export function logout() {
-  return apiFetch('/auth/logout', { method: 'POST' }, { retryOnUnauthorized: false });
+export async function logout() {
+  await apiFetch('/auth/logout', { method: 'POST' }, { retryOnUnauthorized: false });
+  setAccessToken(null);
+  try {
+    localStorage.setItem('fleng.session.logout', crypto.randomUUID());
+  } catch {
+    /* Cross-tab notification is optional. */
+  }
 }
 
 export function getCurrentUser() {
@@ -208,16 +217,28 @@ export function submitAnswer(slug, payload) {
   });
 }
 
-
-export function getAIStatus() { return apiFetch('/ai/status'); }
-export function listAIConversations() { return apiFetch('/ai/conversations?limit=100'); }
+export function getAIStatus() {
+  return apiFetch('/ai/status');
+}
+export function listAIConversations() {
+  return apiFetch('/ai/conversations?limit=100');
+}
 export function getAIHistory(id, offset = 0) {
   return apiFetch(`/ai/conversations/${encodeURIComponent(id)}?limit=100&offset=${offset}`);
 }
-export function streamAIChat(payload) {
-  return apiFetch('/ai/chat/stream', {
-    method: 'POST', body: JSON.stringify(payload), headers: { Accept: 'text/event-stream' },
-  }, { rawResponse: true });
+export function streamAIChat(payload, { signal } = {}) {
+  return apiFetch(
+    '/ai/chat/stream',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { Accept: 'text/event-stream' },
+      signal,
+    },
+    { rawResponse: true },
+  );
 }
 
-export function getLeaderboard() { return apiFetch('/leaderboard'); }
+export function getLeaderboard() {
+  return apiFetch('/leaderboard');
+}

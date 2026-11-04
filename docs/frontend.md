@@ -235,3 +235,14 @@ compact lesson rows, purple tokens, focus/hover states and reduced-motion rules.
   workspace. Course pages do not create another assistant or change AI APIs.
 
 Verification and source limitations: [course implementation report](courses-implementation.md).
+
+## Global assistant — 2026-11-04
+
+Supersedes the page-specific AI mounting described above: every authenticated
+`setWorkspaceUser()` now mounts the singleton assistant, including Courses,
+Course Details, Leaderboard and Settings. Dashboard/Lessons share that path;
+Lessons supplies context with `setWorkspaceAIContext()`. Logout/account change
+clears private UI, aborts generation and removes the selection for that user;
+ordinary navigation preserves the selection and restores owned backend history.
+Cached-document restoration verifies the session first. Public pages stay unchanged.
+See [AI security audit](ai-security-audit.md) for checks and deployment limits.

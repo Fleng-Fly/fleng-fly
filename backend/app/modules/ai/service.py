@@ -153,11 +153,10 @@ async def reserve(
     await consume(db, f"ai:minute:{user.id}", settings.ai_requests_per_minute, 60)
     await consume(db, f"ai:day:{user.id}", settings.ai_daily_requests, 86400)
     # Conservative token reservation: UTF-8 bytes upper-bound text tokens.
-    tokens = (
-        sum(len(m["content"].encode()) for m in messages)
-        + 32 * len(messages)
-        + settings.ai_max_output_tokens
-    )
+    input_tokens = sum(len(m["content"].encode()) for m in messages) + 32 * len(messages)
+    if input_tokens > settings.ai_max_input_tokens:
+        raise ApiError(422, "AI_INPUT_LIMIT", "AI context exceeded input token limit")
+    tokens = input_tokens + settings.ai_max_output_tokens
     spent = (
         await db.scalar(
             select(func.sum(AIUsage.reserved_tokens)).where(
