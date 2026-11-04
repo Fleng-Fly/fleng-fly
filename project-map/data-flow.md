@@ -190,3 +190,11 @@ reservation) → OpenRouter → SSE delta → safe textContent UI → atomic AIC
 AIMessage pair + completed AIUsage → SSE done → saved conversation ID.
 History returns only JWT-owned rows. Lesson/exercise identifiers are supplied by
 Lessons; trusted context is loaded by backend. No AI-to-grading/progress mutation.
+
+
+## Leaderboard
+
+Protected page → shared session refresh → `GET /api/v1/leaderboard` →
+gamification reads Profile XP + Progress totals → SQL global rank before limit →
+batch activity for displayed learners and caller → existing streak calculation →
+privacy-limited response → top cards/table/own position. No writes or XP awards.

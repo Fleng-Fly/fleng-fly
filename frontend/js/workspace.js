@@ -71,13 +71,8 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           <a class="sidebar-link active" href="/dashboard.html" aria-current="page"
             ><svg><use href="#icon-grid" /></svg><span>Dashboard</span></a
           >
-          <span
-            class="sidebar-link sidebar-unavailable"
-            aria-disabled="true"
-            title="Leaderboard is not available yet"
-            ><svg><use href="#icon-trophy" /></svg
-            ><span>Leaderboard <small>Coming soon</small></span></span
-          >
+          <a class="sidebar-link" href="/leaderboard.html"
+            ><svg><use href="#icon-trophy" /></svg><span>Leaderboard</span></a>
           <a class="sidebar-link" href="/courses.html"
             ><svg><use href="#icon-book" /></svg><span>Lessons</span></a
           >
@@ -181,11 +176,13 @@ export function mountWorkspace(active) {
   content.querySelector('#dashboard-main-wrap').append(main);
   for (const link of content.querySelectorAll('.sidebar-link[href]')) {
     const selected =
-      active === 'settings'
-        ? link.getAttribute('href') === '/settings.html'
-        : active === 'lessons'
-          ? link.getAttribute('href') === '/courses.html' && link.id !== 'sidebar-course-link'
-          : link.getAttribute('href') === '/dashboard.html';
+      active === 'leaderboard'
+        ? link.getAttribute('href') === '/leaderboard.html'
+        : active === 'settings'
+          ? link.getAttribute('href') === '/settings.html'
+          : active === 'lessons'
+            ? link.getAttribute('href') === '/courses.html' && link.id !== 'sidebar-course-link'
+            : link.getAttribute('href') === '/dashboard.html';
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');

@@ -118,8 +118,8 @@ it with `layout.js` helpers, always via `textContent`:
 opens as a keyboard-accessible drawer; the profile menu links to Settings and
 uses the existing logout API. The topbar searches published course titles,
 descriptions, levels and lesson titles/summaries through the existing catalog
-API. Dedicated word/topic search, notifications and leaderboard are explicitly
-unavailable.
+API. Dedicated word/topic search and notifications remain unavailable.
+Leaderboard now uses the same workspace (see 2026-11-04 update).
 
 `dashboard.js` renders `GET /users/me`, `GET /progress/me`,
 `GET /streaks/me` and `GET /vocabulary/stats`. The ring is completed published
@@ -193,3 +193,13 @@ provides a callback for current lesson/exercise IDs; backend owns context loadin
 Close/minimize retains the in-flight response on-page. Navigation disconnects it.
 Responsive/keyboard behavior is implemented but browser/device QA remains pending.
 See [AI integration](ai-assistant-integration.md).
+
+
+## Leaderboard — 2026-11-04
+
+`/leaderboard.html` shares Dashboard/Lessons workspace chrome. The authenticated
+`GET /leaderboard` response drives top-3 cards and the ranked table; caller rows
+are highlighted and an out-of-top-100 position stays visible. All names use
+textContent. Cards stack below 540px; the semantic table has a keyboard-focusable
+horizontal scroll region. Loading, empty and retryable error states include
+session-unavailable handling. Browser/Figma visual comparison remains unverified.

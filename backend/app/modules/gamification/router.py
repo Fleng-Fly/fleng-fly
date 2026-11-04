@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,7 +6,11 @@ from app.api.deps import get_current_user
 from app.db.models import Achievement, User, UserAchievement
 from app.db.session import get_db
 from app.modules.gamification import service
-from app.modules.gamification.schemas import AchievementResponse, StreakResponse
+from app.modules.gamification.schemas import (
+    AchievementResponse,
+    LeaderboardResponse,
+    StreakResponse,
+)
 
 router = APIRouter(tags=["gamification"])
 
@@ -30,3 +34,12 @@ async def achievements(user: User = Depends(get_current_user), db: AsyncSession 
         )
     ).all()
     return [AchievementResponse(code=a.code, title=a.title, awarded_at=at) for a, at in rows]
+
+
+@router.get("/leaderboard", response_model=LeaderboardResponse)
+async def get_leaderboard(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    limit: int = Query(default=100, ge=1, le=100),
+) -> LeaderboardResponse:
+    return await service.leaderboard(db, user.id, limit)

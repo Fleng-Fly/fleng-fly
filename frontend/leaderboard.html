@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Leaderboard — Fleng</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/leaderboard.css" />
+  </head>
+  <body class="dashboard-page leaderboard-page">
+    <main class="dashboard-main">
+      <div class="dashboard-page-heading">
+        <div>
+          <p class="dashboard-eyebrow">THE FLENG COMMUNITY</p>
+          <h1>Top Learners<span class="leaderboard-spark" aria-hidden="true">✦</span></h1>
+          <p class="dashboard-subtitle">
+            Small steps. Big progress. Celebrate the learners leading the way.
+          </p>
+        </div>
+        <span class="dashboard-level">All-time ranking</span>
+      </div>
+      <div id="leaderboard-body" aria-live="polite" aria-busy="true">
+        <div class="dashboard-card leaderboard-message" role="status">Loading learners…</div>
+      </div>
+    </main>
+    <script type="module" src="/js/leaderboard.js"></script>
+  </body>
+</html>

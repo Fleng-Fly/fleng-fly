@@ -23,6 +23,7 @@ async def test_login_page_is_served(client: AsyncClient) -> None:
 async def test_app_pages_are_served(client: AsyncClient) -> None:
     for path in (
         "/dashboard.html",
+        "/leaderboard.html",
         "/settings.html",
         "/courses.html",
         "/course.html",

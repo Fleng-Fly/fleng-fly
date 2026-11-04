@@ -219,3 +219,5 @@ export function streamAIChat(payload) {
     method: 'POST', body: JSON.stringify(payload), headers: { Accept: 'text/event-stream' },
   }, { rawResponse: true });
 }
+
+export function getLeaderboard() { return apiFetch('/leaderboard'); }

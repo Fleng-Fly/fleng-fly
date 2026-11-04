@@ -15,7 +15,11 @@ from app.db.models import (
     UserAchievement,
     VocabularyItem,
 )
-from app.modules.gamification.schemas import StreakResponse
+from app.modules.gamification.schemas import (
+    LeaderboardEntry,
+    LeaderboardResponse,
+    StreakResponse,
+)
 
 DEFINITIONS = (
     ("first_lesson", "First Lesson", "lessons", 1),
@@ -111,3 +115,53 @@ async def award(db: AsyncSession, user_id: UUID) -> None:
                         user_id=user_id, achievement_code=code, awarded_at=datetime.now(UTC)
                     )
                 )
+
+
+async def leaderboard(db: AsyncSession, user_id: UUID, limit: int) -> LeaderboardResponse:
+    """All-time XP ranking. Rank before limiting so own position stays global."""
+    ranked = (
+        select(
+            Profile.user_id,
+            Profile.display_name,
+            Profile.xp,
+            func.coalesce(Progress.lessons_completed, 0).label("lessons"),
+            func.row_number().over(order_by=(Profile.xp.desc(), Profile.user_id)).label("rank"),
+            func.count().over().label("total"),
+        )
+        .outerjoin(Progress, Progress.user_id == Profile.user_id)
+        .subquery()
+    )
+    rows = (
+        await db.execute(
+            select(ranked)
+            .where((ranked.c.rank <= limit) | (ranked.c.user_id == user_id))
+            .order_by(ranked.c.rank)
+        )
+    ).all()
+    # Batch activity reads for only the displayed learners; no per-row queries.
+    days: dict[UUID, list[date]] = {row.user_id: [] for row in rows}
+    today = datetime.now(ZoneInfo(get_settings().learning_timezone)).date()
+    if days:
+        activity = await db.execute(
+            select(LearningActivity.user_id, LearningActivity.day).where(
+                LearningActivity.user_id.in_(days), LearningActivity.day <= today
+            )
+        )
+        for learner_id, day in activity:
+            days[learner_id].append(day)
+    entries = [
+        LeaderboardEntry(
+            rank=row.rank,
+            display_name=row.display_name,
+            xp=row.xp,
+            lessons_completed=row.lessons,
+            streak=calculate_streak(days[row.user_id], today)[0],
+            is_current_user=row.user_id == user_id,
+        )
+        for row in rows
+    ]
+    return LeaderboardResponse(
+        entries=[entry for entry in entries if entry.rank <= limit],
+        current_user=next((entry for entry in entries if entry.is_current_user), None),
+        total=rows[0].total if rows else 0,
+    )
