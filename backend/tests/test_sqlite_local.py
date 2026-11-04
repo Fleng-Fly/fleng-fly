@@ -27,12 +27,16 @@ def test_postgres_url_is_still_supported(scheme):
     assert settings.database_url == "postgresql+asyncpg://user:password@localhost:5432/fleng"
 
 
-def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path):
+@pytest.mark.parametrize("app_env", ["development", "production"])
+def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path, app_env):
     path = tmp_path / "new-directory" / "fleng.db"
     env = {
         **os.environ,
         "DATABASE_URL": f"sqlite+aiosqlite:///{path}",
-        "APP_ENV": "development",
+        "APP_ENV": app_env,
+        "JWT_ACCESS_SECRET": "isolated-production-test-secret-never-deploy",
+        "CORS_ORIGIN": "https://fleng.example",
+        "COOKIE_SECURE": "true",
         "PYTHONPATH": str(BACKEND_ROOT),
     }
 
@@ -65,7 +69,8 @@ def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path):
             (user_id, "preserved@example.com", "test-fixture"),
         )
     run("-m", "app.db.prepare")
-    run("-m", "app.db.seed")
+    if app_env == "development":
+        run("-m", "app.db.seed")
     with sqlite3.connect(path) as db:
         assert db.execute("SELECT id FROM users").fetchone()[0] == user_id
         assert [

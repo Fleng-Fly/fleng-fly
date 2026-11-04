@@ -161,13 +161,16 @@ POST /ai/conversations/:id/messages
 AI has no privileged mutation tools or hidden official answer keys. Browser only
 calls FastAPI. Provider transport is persistence-free and swappable via Protocol.
 
-## Local startup
+## SQLite startup
 
-`npm run dev` → Python `app.db.prepare` → shared config/async engine → SQLite
-Alembic upgrade → seed only if the course catalog is empty → uvicorn serves UI
+`npm run dev` or production `backend/run.py` → Python `app.db.prepare` → shared
+config/async engine → rollback-only SQLite write probe → Alembic upgrade →
+tables/columns validation → seed only if the course catalog is empty → uvicorn serves UI
 and API. Users, refresh sessions, submissions, XP and progress persist in the
 same ignored `backend/data/fleng.db` across restarts. PostgreSQL remains an
-explicit DATABASE_URL choice with manual migrations.
+explicit DATABASE_URL choice with manual migrations. Production preparation runs
+once before Uvicorn starts its single worker. Restart persistence requires the
+same disk/file; free Render service restarts/redeploys/spin-down may discard it.
 
 ## Stabilized auth writes — 2026-10-28
 

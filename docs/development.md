@@ -124,8 +124,8 @@ resolve against `backend/`, even when Python runs from another directory.
 | `COOKIE_SECURE`               | backend | derived (`production`)                | Force the refresh cookie's `Secure` flag                                          |
 | `COOKIE_SAMESITE`             | backend | `lax`                                 | Refresh cookie `SameSite` policy                                                  |
 
-`DATABASE_URL` is required in production; in development it falls back to the
-docker-compose connection so `pnpm dev` works out of the box. The frontend has no
+`DATABASE_URL` should be explicit in production; otherwise it falls back to the
+file-backed SQLite default (`backend/data/fleng.db`). The frontend has no
 environment configuration of its own: it is served from the same origin as the
 API and calls the relative `/api/v1`. No secrets are exposed to the browser.
 
@@ -244,7 +244,9 @@ application role; do not weaken authentication to `trust` as a workaround.
 The seed is idempotent and updates only the small demo catalog matched by slugs
 (courses, lessons, exercises). It never changes accounts/progress; it can update
 seed-owned content in place, so use a development database. CLI seeding refuses
-`APP_ENV=production`. It does not run automatically on startup.
+`APP_ENV=production`. The SQLite preparation entry point uses the existing
+`seed_catalog` only when the catalog is empty, including production startup; it
+never creates demo accounts. PostgreSQL preparation remains manual.
 
 ### Database and migration checks
 

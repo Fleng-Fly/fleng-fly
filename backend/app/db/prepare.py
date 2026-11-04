@@ -1,13 +1,15 @@
-"""Prepare local SQLite before dev starts; never reset existing data."""
+"""Prepare file-backed SQLite before serving requests; never reset existing data."""
 
 import asyncio
+import uuid
 
 from alembic.config import Config
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.engine import make_url
 
 from alembic import command
 from app.core.config import BACKEND_ROOT, get_settings
+from app.db.base import Base
 from app.db.models import Course
 from app.db.seed import seed_catalog
 from app.db.session import SessionLocal, engine
@@ -25,13 +27,44 @@ async def ensure_catalog() -> None:
         await engine.dispose()
 
 
+async def check_sqlite() -> None:
+    """Verify real write access, including journal creation, without changing rows."""
+    try:
+        async with engine.connect() as connection:
+            await connection.execute(text("BEGIN IMMEDIATE"))
+            # Transactional DDL exercises journal/directory permissions, then rolls back.
+            probe = "_fleng_write_probe_" + uuid.uuid4().hex
+            await connection.execute(text(f'CREATE TABLE "{probe}" (id INT)'))
+            await connection.rollback()
+    finally:
+        await engine.dispose()
+
+
+async def check_schema() -> None:
+    """Fail startup on missing tables/columns even if Alembic was incorrectly stamped."""
+    try:
+        async with engine.connect() as connection:
+            for table in Base.metadata.sorted_tables:
+                await connection.execute(select(table).limit(0))
+    finally:
+        await engine.dispose()
+
+
 def main() -> None:
     settings = get_settings()
-    if settings.is_production or make_url(settings.database_url).get_backend_name() != "sqlite":
-        print("Automatic database preparation is local SQLite only; run db:migrate explicitly.")
+    url = make_url(settings.database_url)
+    if url.get_backend_name() != "sqlite":
+        print("PostgreSQL: run Alembic migrations explicitly before starting the service.")
         return
+    if not url.database or url.database == ":memory:":
+        raise RuntimeError("Startup preparation requires a file-backed SQLite database")
+    print(f"Preparing SQLite: {url.database}", flush=True)
+    asyncio.run(check_sqlite())
     config = Config(str(BACKEND_ROOT / "alembic.ini"))
+    print("SQLite write check passed; upgrading Alembic to head.", flush=True)
     command.upgrade(config, "head")
+    print("Checking SQLite tables and columns.", flush=True)
+    asyncio.run(check_schema())
     asyncio.run(ensure_catalog())
 
 

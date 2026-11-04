@@ -213,3 +213,20 @@ Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains d
   apply migrations and verify public HTTPS auth, proxy trust and optional AI.
 - **Not verified:** exact Figma comparison (source not supplied), browser layout
   at 360/768/desktop (browser unavailable), live hosting/PostgreSQL/OpenRouter/SMTP.
+
+
+## Render SQLite startup fix — 2026-11-04
+
+- **Completed:** production launcher performs SQLite write probe, existing Alembic
+  upgrades, mapped-schema validation and empty-catalog seed before single-worker
+  Uvicorn. No user-data reset; PostgreSQL release migrations remain explicit.
+- **Completed:** regression coverage for fresh production disk, registration,
+  login, refresh, Dashboard APIs, XP/session/account persistence on process restart,
+  unwritable files/directories, invalid path, memory DB and incorrectly stamped DB.
+- **Completed:** existing checks, separate self-review, docs/project-map update.
+- **Next / externally blocked:** live Render settings/log and public HTTPS checks
+  need the service URL/configuration; live PostgreSQL needs TEST_DATABASE_URL.
+- **Limitation:** free Render storage is ephemeral; process-only restart evidence
+  with the same SQLite file does not establish persistent hosting storage.
+
+Verification: `docs/render-sqlite-startup.md`. Prepared for deployment; no push.

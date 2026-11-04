@@ -129,3 +129,16 @@ cd backend
 Dashboard/Lessons APIs and persistence across restart, then removes only its
 own temporary directory. It requires working subprocess/network/thread permissions.
 Current results: [backend-stabilization-report.md](backend-stabilization-report.md).
+
+
+## Render SQLite startup regression — 2026-11-04
+
+`backend/tests/test_production_sqlite.py` starts the actual production launcher
+on an empty file and again after process termination. It covers register/login,
+refresh rotation and reuse of a saved refresh after restart, Dashboard APIs,
+earned XP, catalog idempotence, permission/path failures and falsely stamped
+schemas. `test_sqlite_local.py` now verifies production preparation and Alembic
+drift too. Full suite: 236 passed, 15 PostgreSQL tests skipped; existing
+Starlette/httpx warning remains. Ruff, mypy (65 sources), stabilization smoke and
+whitespace checks passed. Tests use temporary files. Live Render and PostgreSQL
+are unverified; see [startup report](render-sqlite-startup.md).

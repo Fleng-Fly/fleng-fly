@@ -77,8 +77,26 @@ TEST_DATABASE_URL tests validate the full chain and ORM drift in temporary schem
 - [x] SQLite is the local default; relative paths are rooted at backend/.
 - [x] Dev workflow upgrades an existing file safely and seeds only an empty catalog.
 - [x] Alembic uses the application engine and SQLite connection configuration.
-- [x] PostgreSQL remains configurable; no automatic production migrations/seeding.
+- [x] PostgreSQL remains configurable with manual migrations. Production SQLite
+      now prepares automatically (see the 2026-11-04 update below).
 - [x] File-backed migration/idempotency/preservation tests added.
 - [x] HTTP auth/cookie/lesson/XP/Dashboard checks passed, including a full restart.
 - [x] Firefox login, Dashboard layouts and navigation checked at 360/768/1440 px.
 - [ ] Live PostgreSQL migration verification remains dependent on an available server.
+
+
+## Render SQLite startup fix — 2026-11-04
+
+- **Completed:** production launcher performs SQLite write probe, existing Alembic
+  upgrades, mapped-schema validation and empty-catalog seed before single-worker
+  Uvicorn. No user-data reset; PostgreSQL release migrations remain explicit.
+- **Completed:** regression coverage for fresh production disk, registration,
+  login, refresh, Dashboard APIs, XP/session/account persistence on process restart,
+  unwritable files/directories, invalid path, memory DB and incorrectly stamped DB.
+- **Completed:** existing checks, separate self-review, docs/project-map update.
+- **Next / externally blocked:** live Render settings/log and public HTTPS checks
+  need the service URL/configuration; live PostgreSQL needs TEST_DATABASE_URL.
+- **Limitation:** free Render storage is ephemeral; process-only restart evidence
+  with the same SQLite file does not establish persistent hosting storage.
+
+Verification: `docs/render-sqlite-startup.md`. Prepared for deployment; no push.

@@ -2,10 +2,11 @@
 
 Fleng can run as **one FastAPI service containing `backend/` and `frontend/`**.
 There is no frontend build or Node process in production. The Netlify site at
-<https://fleng.netlify.app> is a separate static-frontend deployment. FastAPI
-has not been deployed externally; its host and database credentials are not
-supplied. The configuration below has not yet been deployed or verified on the
-public site; a successful Netlify deployment alone does not prove a working app.
+<https://fleng.netlify.app> is a separate static-frontend deployment. The user
+reports a running FastAPI deployment on free Render with SQLite and
+authentication returning 503. Live Render configuration/log details and its URL
+have not been supplied for independent verification. A successful static
+Netlify deployment alone does not prove a working app.
 
 ## Netlify: static frontend only
 
@@ -32,8 +33,9 @@ must stay outside that directory. `.gitignore` is not a publication boundary:
 inspect the complete frontend tree, including ignored files and symlinks, before
 each release. Never copy secrets or private data into it.
 
-Until FastAPI is hosted, authentication, catalog and user APIs, saved progress
-and AI are unavailable on Netlify. Static HTML returning 200 does not imply that
+Until the FastAPI proxy is configured and verified, authentication, catalog and
+user APIs, saved progress and AI are unavailable on Netlify. Static HTML returning
+200 does not imply that
 protected pages or API-dependent features work in the browser.
 
 After deploying FastAPI with a persistent database (managed PostgreSQL is the
@@ -122,14 +124,14 @@ Install from the repository root with the host's Python environment:
 python -m pip install ./backend
 ```
 
-Inject the variables below through the hosting secret store, then run this
-**release command once**, before starting the web service:
+Inject the variables below through the hosting secret store. For **PostgreSQL**,
+run this release command once before starting the web service:
 
 ```sh
 cd backend
 alembic upgrade head
-# First deployment only, if you want the existing learning catalog:
-python -m app.db.seed
+# Catalog CLI seed is development-only. For a controlled PostgreSQL catalog
+# import, call seed_catalog from an approved maintenance session; no demo accounts.
 ```
 
 Start command from the repository root:
@@ -138,9 +140,20 @@ Start command from the repository root:
 cd backend && python run.py
 ```
 
+For **file-backed SQLite**, the start command itself runs preparation before
+Uvicorn: write-access probe (rolled back), `alembic upgrade head`, mapped
+schema validation, and the existing catalog seed only if no course exists.
+Accounts, refresh sessions and progress are not reset. A failed stage exits
+nonzero without opening the HTTP listener. Logs show the resolved SQLite path,
+stage, exception class and SQLite error code without SQL parameters/secrets.
+Preparation is in the launcher, never the ASGI lifespan; the launcher explicitly
+uses one worker. Do not run multiple launcher instances against one SQLite file.
+Direct `uvicorn app.main:app` bypasses this preparation and is not the production
+start command. PostgreSQL keeps its explicit release migration workflow.
+
 For a local virtualenv use `backend/.venv/bin/python` / `.venv/bin/alembic`
-as appropriate. Do not use `npm run dev`, demo-account seeding, `--reload`, or
-`app.db.prepare` as a production release command. No new migration is required
+as appropriate. Do not use `npm run dev`, demo-account preparation or `--reload`
+for production. No new migration is required
 for Leaderboard; it reads existing tables. Back up data before upgrades and
 check `alembic current` against `alembic heads` after release.
 
@@ -155,7 +168,7 @@ Avoid shipping local `.env` files to the host.
 | --- | --- |
 | `APP_ENV` | `production` (exact spelling) |
 | `PORT` | Platform-assigned port; launcher reads the same Settings as the API |
-| `DATABASE_URL` | Managed PostgreSQL URL; `postgres://` and `postgresql://` select asyncpg |
+| `DATABASE_URL` | Managed PostgreSQL URL (durable storage), or explicit file-backed SQLite for an ephemeral demo; `postgres://` and `postgresql://` select asyncpg |
 | `JWT_ACCESS_SECRET` | Unique random secret, at least 32 characters; generate with `python -c 'import secrets; print(secrets.token_urlsafe(48))'` |
 | `CORS_ORIGIN` | Exact public HTTPS origin, e.g. `https://fleng.example`, no trailing slash/path; comma-separated if necessary |
 | `COOKIE_SECURE` | `true`; enforced in production |
@@ -167,8 +180,9 @@ Avoid shipping local `.env` files to the host.
 | `OPENROUTER_MODEL` | Valid `provider/model` identifier, needed only for AI |
 | `RESET_DELIVERY` | `disabled`; enable SMTP only after configuring and testing delivery |
 
-SQLite still works locally. A host may use SQLite only with an explicit durable
-volume, an absolute database path and a single application instance. Ephemeral
+Durable SQLite hosting requires an explicit durable volume, an absolute database
+path and a single application instance. Free Render SQLite is supported only as
+an ephemeral demo with possible loss of accounts and progress. Ephemeral
 service storage loses SQLite data on replacement; PostgreSQL is the intended
 online database. Follow the database provider's asyncpg-compatible TLS settings;
 validate the real connection and migrations before accepting users. There is no
@@ -220,3 +234,27 @@ Choose a Python web host and managed PostgreSQL, supply secrets, configure HTTPS
 and proxy trust, run the release command, start the service and run the checks
 above against its public URL. Live PostgreSQL, TLS/proxy behavior, provider SSE,
 SMTP and public URL access are **NOT VERIFIED** in this environment.
+
+## Free Render SQLite configuration
+
+Keep Root Directory empty (repository root), runtime Python, Build Command
+`python -m pip install ./backend`, Start Command `cd backend && python run.py`,
+and Health Check Path `/api/v1/health/ready`. Do not put migrations only in Build
+Command: runtime storage can be replaced independently. Set `APP_ENV=production`,
+`DATABASE_URL=sqlite+aiosqlite:///./data/fleng.db`, a host-stored random
+`JWT_ACCESS_SECRET`, `COOKIE_SECURE=true`, `COOKIE_SAMESITE=lax` and the exact
+public HTTPS frontend origin in `CORS_ORIGIN`. Let Render provide `PORT`. Retain
+the entire checkout for static frontend and Alembic files. The SQLite path
+resolves to `backend/data/fleng.db` regardless of cwd; use an absolute path for
+an intentionally chosen writable location. Never use `:memory:`.
+
+Render's [free service documentation](https://render.com/docs/free) states that
+local SQLite files are lost on service restart, redeploy or spin-down. A plain
+Python process restart with the same file preserves data; a Render service
+restart is not equivalent. This fix recreates schema/catalog on an empty disk,
+not lost user data. Persistent disks are unavailable for free web services;
+use durable external PostgreSQL for retained accounts/progress.
+
+No Render connector, service URL or dashboard configuration was available in
+this session. These are reviewed deployment settings, not a claim that the live
+service has been inspected or repaired. See [SQLite startup verification](render-sqlite-startup.md).

@@ -126,13 +126,15 @@ lesson tabs, questions, submission UI and preview. It calls the existing
 `vocabulary` can filter owned words by `lessonId`. No new database tables or
 migrations are needed.
 
-## Local database preparation
+## SQLite database preparation
 
-`app/db/prepare.py` upgrades local SQLite through Alembic and seeds an empty
-catalog before `scripts/dev.mjs` starts the server. `core/config.py` resolves env
+`app/db/prepare.py` checks SQLite write access, upgrades through Alembic, validates
+tables/columns and seeds an empty catalog before `scripts/dev.mjs` or the
+production launcher `backend/run.py` starts the server. `core/config.py` resolves env
 files and SQLite paths independently of cwd; `db/session.py` creates the data
-directory and configures every SQLite connection. PostgreSQL and production
-require explicit migration commands; no automatic seeding or fallback is used.
+directory and configures every SQLite connection. Preparation runs once in the
+launcher, outside ASGI workers; errors stop startup. PostgreSQL requires explicit
+migration commands; there is no fallback. Free Render storage is ephemeral.
 
 ## Backend stabilization — 2026-10-28
 

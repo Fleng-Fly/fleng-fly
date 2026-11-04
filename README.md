@@ -106,7 +106,8 @@ preserve any existing configuration and keep real credentials out of Git.
 
 - SQLite works with the development defaults.
 - For PostgreSQL, set `DATABASE_URL=postgresql://...` and run migrations explicitly.
-  Automatic database preparation is disabled for PostgreSQL and production.
+  PostgreSQL migrations remain an explicit release step. The production launcher
+  prepares file-backed SQLite before serving requests.
 - Production requires a real `JWT_ACCESS_SECRET`.
 - AI is disabled by default. Enable it with `AI_ENABLED=true`,
   `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`.
