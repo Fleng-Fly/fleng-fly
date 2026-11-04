@@ -230,3 +230,18 @@ Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains d
   with the same SQLite file does not establish persistent hosting storage.
 
 Verification: `docs/render-sqlite-startup.md`. Prepared for deployment; no push.
+
+## Render registration follow-up — 2026-11-04
+
+- **Completed:** safe SQLite failure categories, logger survival through Alembic,
+  shared-engine identity/schema snapshots after migrations and at FastAPI startup,
+  existing-file diagnostic CLI, foreign-key/now()/RETURNING startup checks.
+- **Completed:** fresh production registration/restart and isolated missing-table
+  regressions for request_limits/users/profiles/refresh_tokens; redaction checks,
+  independent self-review, pytest/Ruff/mypy and local production smoke validation.
+- **Next / needs external evidence:** collect the live deploy SHA, actual Start
+  Command, both startup snapshots and matching classified registration error.
+  Exact current Render causation is not established by generic OperationalError;
+  the existing launcher succeeds locally. Do not reset/stamp/delete the live DB.
+
+Evidence and safe procedure: `docs/render-sqlite-registration-diagnostics.md`.

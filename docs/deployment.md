@@ -258,3 +258,15 @@ use durable external PostgreSQL for retained accounts/progress.
 No Render connector, service URL or dashboard configuration was available in
 this session. These are reviewed deployment settings, not a claim that the live
 service has been inspected or repaired. See [SQLite startup verification](render-sqlite-startup.md).
+
+### Registration 503 after successful SQLite startup
+
+Follow [the safe runtime diagnostic procedure](render-sqlite-registration-diagnostics.md).
+The launcher already migrates through the same engine used by FastAPI; do not
+assume that the older missing-startup-migration defect explains a current error.
+Collect `SQLite diagnostics stage=after_migrations`, `stage=fastapi_startup` and
+the classified `Database error on POST /api/v1/auth/register` line. If a shell
+is available, `cd backend` then `python -m app.db.diagnostics` inspects the existing
+file without migrations, seeds or user-row output. Readiness uses SELECT 1 and
+can remain 200 with a broken schema. Never delete or stamp the database to make
+a diagnostic check pass.

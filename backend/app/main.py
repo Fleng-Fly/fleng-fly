@@ -10,9 +10,12 @@ from app.api.router import api_router
 from app.core.body_limit import BodyLimitMiddleware
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
+from app.db.diagnostics import log_sqlite_snapshot
+from app.db.session import engine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("fleng")
+logger.setLevel(logging.INFO)
 
 # backend/app/main.py -> backend/app -> backend -> repository root
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -34,6 +37,8 @@ def _resolve_frontend_dir(configured: str | None) -> Path | None:
 async def lifespan(_app: FastAPI):
     settings = get_settings()
     logger.info("Fleng API starting (env=%s, port=%s)", settings.app_env, settings.port)
+    if settings.is_production:
+        await log_sqlite_snapshot(engine, "fastapi_startup")
     yield
     logger.info("Fleng API stopped")
 

@@ -4,6 +4,7 @@ Shape (see docs/api.md):
     { "error": { code, message, statusCode, timestamp, path, details? } }
 """
 
+import json
 import logging
 from datetime import UTC, datetime
 
@@ -13,6 +14,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.db.diagnostics import error_details
 
 logger = logging.getLogger("fleng")
 
@@ -122,7 +125,10 @@ def register_exception_handlers(app: FastAPI) -> None:
         # (ConnectionRefusedError); SQLAlchemy surfaces query-level failures as
         # SQLAlchemyError. Both mean "database unavailable" for this API.
         logger.error(
-            "Database error on %s %s (%s)", request.method, request.url.path, type(exc).__name__
+            "Database error on %s %s %s",
+            request.method,
+            request.url.path,
+            json.dumps(error_details(exc)),
         )
         return JSONResponse(
             status_code=503,

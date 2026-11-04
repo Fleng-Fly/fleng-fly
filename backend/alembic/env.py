@@ -12,7 +12,7 @@ from app.db.session import engine
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Use the application's stored settings as the single source of the DB URL.
 config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("%", "%%"))

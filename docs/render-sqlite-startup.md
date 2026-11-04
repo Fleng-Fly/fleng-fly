@@ -94,3 +94,12 @@ This fix prepares a replacement disk; it cannot recover deleted accounts or
 progress. Persistent data requires durable storage, preferably external
 PostgreSQL. Live PostgreSQL, Render filesystem/configuration and public HTTPS
 registration/login/refresh/Dashboard remain unverified without external access.
+
+## Follow-up investigation
+
+For registration failures **after** this launcher fix, see
+[SQLite registration diagnostics](render-sqlite-registration-diagnostics.md).
+The generic live OperationalError does not establish that the earlier launcher
+bypass is still the cause. Safe runtime classification and connection/schema
+snapshots now distinguish that case from filesystem, locking and SQLite runtime
+failures. The current launcher passes fresh-disk registration locally.

@@ -200,3 +200,14 @@ Lessons registers only lesson/exercise context IDs. Backend AI request schemas r
 extra fields; existing reservations now also enforce assembled input-token bounds.
 Evidence: `docs/ai-security-audit.md`, `backend/tests/test_ai_security.py`,
 `scripts/test-ai-widget.mjs`, `scripts/audit-ai-secrets.py`.
+
+## SQLite runtime diagnostics — 2026-11-04
+
+`backend/app/db/diagnostics.py` provides allowlisted SQLite exception categories,
+post-migration and production FastAPI connection snapshots, and an existing-file
+inspection CLI (`python -m app.db.diagnostics`). It reports schema/configuration
+metadata only; no SQL parameters, connection URL, private rows or raw exceptions.
+Alembic preserves existing application loggers. Preparation additionally checks
+foreign keys, now() and SQLite RETURNING support; schema/write checks remain.
+See `docs/render-sqlite-registration-diagnostics.md` for the live Render procedure
+and the distinction between local success and unconfirmed live causation.

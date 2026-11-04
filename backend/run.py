@@ -1,7 +1,7 @@
 """Production entry point. Run from backend/ after installing this project."""
 
+import json
 import logging
-import sqlite3
 
 import uvicorn
 
@@ -9,6 +9,9 @@ from app.core.config import get_settings
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger("fleng")
+    logger.setLevel(logging.INFO)
     settings = get_settings()
     try:
         # Run once in the launcher, never in an ASGI worker/lifespan.
@@ -17,16 +20,11 @@ def main() -> None:
         prepare_database()
     except Exception as exc:
         # SQLAlchemy exception strings can contain SQL parameters/credentials.
-        cause = getattr(exc, "orig", None)
-        sqlite_error = (
-            getattr(cause, "sqlite_errorname", "SQLITE_ERROR")
-            if isinstance(cause, sqlite3.Error)
-            else "see preparation stage"
-        )
-        logging.getLogger("fleng").error(
-            "Database preparation failed (%s, %s); Uvicorn was not started",
-            type(exc).__name__,
-            sqlite_error,
+        from app.db.diagnostics import error_details
+
+        logger.error(
+            "Database preparation failed %s; Uvicorn was not started",
+            json.dumps(error_details(exc)),
         )
         raise SystemExit(1) from None
     uvicorn.run(

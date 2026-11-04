@@ -1,5 +1,6 @@
 """Production starts on an empty disk and preserves data on process-only restart."""
 
+import json
 import os
 import socket
 import sqlite3
@@ -142,6 +143,78 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
         )
     with sqlite3.connect(path) as db:
         assert db.execute("SELECT count(*) FROM courses").fetchone() == catalog
+        tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        assert {"request_limits", "users", "profiles", "refresh_tokens"} <= tables
+    logs = (tmp_path / "production.log").read_text()
+    snapshots = [
+        json.loads(line[line.index("{") :])
+        for line in logs.splitlines()
+        if "SQLite diagnostics stage=" in line
+    ]
+    assert len(snapshots) == 4  # preparation + real FastAPI connection, twice
+    for snapshot in snapshots:
+        assert snapshot["database_path"] == str(path)
+        assert snapshot["engine_path_matches"] and snapshot["settings_match_engine"]
+        assert snapshot["at_head"] and not snapshot["unknown_revision"]
+        assert snapshot["foreign_keys"] == 1
+        assert snapshot["file_writable"] and snapshot["directory_writable"]
+        assert snapshot["missing_tables"] == [] and snapshot["missing_columns"] == {}
+        assert snapshot["returning_supported"]
+
+
+@pytest.mark.parametrize("table", ["request_limits", "users", "profiles", "refresh_tokens"])
+def test_runtime_missing_table_has_safe_diagnostics(tmp_path, table):
+    """Only destroy a table in this isolated test file, after valid production startup."""
+    path = tmp_path / "isolated.db"
+    env = production_env(path)
+    email = "private-diagnostic-fixture@example.com"
+    password = "private-diagnostic-password-123"
+    with server(env, tmp_path) as client:
+        with sqlite3.connect(path) as db:
+            db.execute(f'DROP TABLE "{table}"')
+        assert client.get("/api/v1/health/ready").status_code == 200
+        response = client.post(
+            "/api/v1/auth/register",
+            json={"email": email, "password": password, "displayName": "Private Name"},
+        )
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "DATABASE_UNAVAILABLE"
+    logs = (tmp_path / "production.log").read_text()
+    assert '"reason": "missing_table"' in logs
+    assert f'"table": "{table}"' in logs
+    assert '"sqlite_name": "SQLITE_ERROR"' in logs
+    for value in (email, password, "Private Name", env["JWT_ACCESS_SECRET"], "[parameters:"):
+        assert value not in logs
+
+    result = subprocess.run(
+        [sys.executable, "-m", "app.db.diagnostics"],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    snapshot = json.loads(result.stdout)
+    assert snapshot["missing_tables"] == [table]
+    assert snapshot["at_head"]  # version stamp alone cannot establish schema health
+    with sqlite3.connect(path) as db:
+        assert not db.execute("SELECT name FROM sqlite_master WHERE name = ?", (table,)).fetchall()
+
+
+def test_diagnostic_command_does_not_create_missing_database(tmp_path):
+    path = tmp_path / "absent-directory" / "absent.db"
+    result = subprocess.run(
+        [sys.executable, "-m", "app.db.diagnostics"],
+        cwd=tmp_path,
+        env=production_env(path),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 1
+    assert result.stdout.strip() == "SQLite diagnostics require an existing SQLite file"
+    assert not path.parent.exists()
 
 
 @pytest.mark.parametrize(
