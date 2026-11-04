@@ -198,3 +198,15 @@ Protected page → shared session refresh → `GET /api/v1/leaderboard` →
 gamification reads Profile XP + Progress totals → SQL global rank before limit →
 batch activity for displayed learners and caller → existing streak calculation →
 privacy-limited response → top cards/table/own position. No writes or XP awards.
+
+## Courses Catalog → Course Details → Lesson — 2026-11-04
+
+Shared session guard → workspace chrome → `GET /courses` + `GET /progress/me`
+→ local title/description query AND CEFR filter → course card action
+→ `/course.html?slug=...` → `GET /courses/{slug}` + `GET /progress/me`
+→ `GET /lessons/{slug}/progress` for each published lesson → status/action
+→ `/lesson.html?slug=...`. Only the existing lesson player starts/submits lessons.
+Its lesson response provides `courseSlug` for returning to the correct details
+page → Back to Courses. Page navigation/history restoration/tab return rereads
+server progress; no second storage or XP writes on course pages. Failed reads
+show errors/retry, and expired sessions redirect through the existing auth flow.

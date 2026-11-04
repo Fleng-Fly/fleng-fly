@@ -182,10 +182,15 @@ export function mountWorkspace(active) {
           ? link.getAttribute('href') === '/settings.html'
           : active === 'lessons'
             ? link.getAttribute('href') === '/courses.html' && link.id !== 'sidebar-course-link'
-            : link.getAttribute('href') === '/dashboard.html';
+            : active === 'courses'
+              ? link.id === 'sidebar-course-link'
+              : link.getAttribute('href') === '/dashboard.html';
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
+  }
+  if (active === 'courses') {
+    content.querySelector('#sidebar-course-link span').textContent = 'Courses';
   }
   document.body.prepend(content);
   bindNavigation();

@@ -203,3 +203,35 @@ are highlighted and an out-of-top-100 position stays visible. All names use
 textContent. Cards stack below 540px; the semantic table has a keyboard-focusable
 horizontal scroll region. Loading, empty and retryable error states include
 session-unavailable handling. Browser/Figma visual comparison remains unverified.
+
+## Courses Catalog and Course Details — 2026-11-04
+
+Both course pages now mount the existing workspace sidebar/topbar, profile menu,
+global search and mobile drawer. `mountWorkspace('courses')` selects the Courses
+entry; Dashboard/Leaderboard layouts and lesson grading remain unchanged.
+`css/courses.css` scopes the two-column catalog, single-column mobile layout,
+compact lesson rows, purple tokens, focus/hover states and reduced-motion rules.
+`js/catalog-ui.js` shares progress bars and loading/empty/error messages.
+
+- Catalog reads `GET /courses` and `GET /progress/me`. Search matches title and
+  description without case sensitivity and combines with All/A1/A2/B1/B2 CEFR
+  filters locally. Clear removes only the query; Reset filters removes both.
+- Course details read `GET /courses/{slug}`, `/progress/me` and existing
+  `GET /lessons/{slug}/progress` for each published lesson. Per-lesson reads are
+  needed because the aggregate endpoint does not expose individual statuses.
+- Completion percentage is rounded `lessonsCompleted / lessonsTotal * 100`
+  (zero for an empty course). Start/Continue/Review uses server counts;
+  lesson actions use `completed` and `startedAt`. No local progress storage,
+  start requests or XP writes occur on either course page. Unavailable progress
+  produces an error rather than fabricated zero progress.
+- Catalog actions open `/course.html?slug=...`; lesson actions open the existing
+  `/lesson.html?slug=...`. The lesson response already supplies `courseSlug`
+  for its breadcrumb and completion link. Course Details has Back to Courses.
+- Initial navigation, cached history restoration, window focus and returning
+  from a hidden tab reload current data; concurrent loads are de-duplicated.
+  Missing/unpublished content, no lessons, empty/no-match catalog, API errors,
+  retry, unavailable session services and expired sessions are handled.
+- AI remains attached explicitly by Dashboard/Lessons, not automatically by
+  workspace. Course pages do not create another assistant or change AI APIs.
+
+Verification and source limitations: [course implementation report](courses-implementation.md).

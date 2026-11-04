@@ -177,3 +177,14 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
   Settings-based port and explicit proxy trust. `health/ready`: DB readiness.
 - `.env.production.example` and `docs/deployment.md`: single-service HTTPS release
   with explicit migrations, optional initial catalog and managed PostgreSQL.
+
+## Course surfaces — 2026-11-04
+
+- `frontend/courses.html` + `js/courses.js`: published course catalog with local
+  title/description search + CEFR filter; real course progress from `/progress/me`.
+- `frontend/course.html` + `js/course.js`: slug-based course hero and ordered
+  published lesson list; individual statuses from `/lessons/{slug}/progress`.
+- Both reuse `js/workspace.js`, `css/dashboard.css`, shared `js/catalog-ui.js`
+  state/progress rendering and scoped `css/courses.css`. No new backend module.
+- `scripts/test-courses.mjs`: DOM regression coverage; real HTTP coverage in
+  `scripts/backend-stabilization-smoke.py`. Browser/Stitch QA remains pending.

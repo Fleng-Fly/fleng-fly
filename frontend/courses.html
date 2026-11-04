@@ -6,24 +6,37 @@
     <title>Courses — Fleng</title>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/courses.css" />
   </head>
-  <body>
-    <header id="site-header" class="site-header"></header>
-
-    <main class="container page">
-      <div class="stack">
-        <header>
-          <h1>Courses</h1>
-          <p class="muted text-sm">Choose a course and open a lesson.</p>
-        </header>
-        <div id="courses-body"></div>
-      </div>
+  <body class="dashboard-page courses-page">
+    <main class="dashboard-main catalog-main">
+      <header class="dashboard-page-heading">
+        <div>
+          <h1>Explore Courses</h1>
+          <p class="dashboard-subtitle">Find your path to English fluency, one lesson at a time.</p>
+        </div>
+      </header>
+      <section class="catalog-controls" aria-label="Filter courses">
+        <div class="catalog-search">
+          <label class="sr-only" for="course-search">Search courses</label>
+          <svg aria-hidden="true"><use href="#icon-search" /></svg>
+          <input id="course-search" type="search" placeholder="Search courses" autocomplete="off" />
+          <button id="course-search-clear" class="dashboard-text-button" type="button" hidden>
+            Clear
+          </button>
+        </div>
+        <div id="course-filters" class="catalog-filters" role="group" aria-label="CEFR level">
+          <button type="button" data-level="All" aria-pressed="true">All</button>
+          <button type="button" data-level="A1" aria-pressed="false">A1</button>
+          <button type="button" data-level="A2" aria-pressed="false">A2</button>
+          <button type="button" data-level="B1" aria-pressed="false">B1</button>
+          <button type="button" data-level="B2" aria-pressed="false">B2</button>
+        </div>
+      </section>
+      <p id="course-results-count" class="dashboard-muted" role="status"></p>
+      <div id="courses-body" aria-busy="true"></div>
     </main>
-
-    <footer class="site-footer">
-      <div class="container">Fleng — learn English, every day.</div>
-    </footer>
-
     <script type="module" src="/js/courses.js"></script>
   </body>
 </html>

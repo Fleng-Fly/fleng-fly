@@ -128,6 +128,12 @@ def main():
                 for path in (
                     "/dashboard.html",
                     "/lesson.html",
+                    "/courses.html",
+                    "/course.html?slug=english-foundations",
+                    "/css/courses.css",
+                    "/js/courses.js",
+                    "/js/course.js",
+                    "/js/catalog-ui.js",
                     "/leaderboard.html",
                     "/css/leaderboard.css",
                     "/js/leaderboard.js",
@@ -142,13 +148,29 @@ def main():
                     "/api/v1/ai/recommendations",
                 ):
                     call(path, token=access)
-                assert call("/api/v1/courses")
+                courses = call("/api/v1/courses")
+                assert [course["title"] for course in courses] == [
+                    "English Foundations", "Everyday Conversations"
+                ]
+                course = call("/api/v1/courses/english-foundations")
+                call("/api/v1/courses/not-a-course", expected=404)
+                call("/api/v1/progress/me", expected=401)
+                before_reads = call("/api/v1/progress/me", token=access)
+                for item in course["lessons"]:
+                    current = call(f"/api/v1/lessons/{item['slug']}/progress", token=access)
+                    assert current["startedAt"] is None and not current["completed"]
+                    assert call(f"/api/v1/lessons/{item['slug']}")["courseSlug"] == course["slug"]
+                assert call("/api/v1/progress/me", token=access) == before_reads
                 lesson = call("/api/v1/lessons/greetings-and-introductions")
                 call(
                     "/api/v1/lessons/greetings-and-introductions/start",
                     {},
                     token=access,
                 )
+                started = call("/api/v1/progress/me", token=access)
+                current_course = next(item for item in started["courses"] if item["slug"] == course["slug"])
+                assert current_course["lessonsStarted"] == 1
+                assert current_course["lessonsCompleted"] == 0
                 question = next(
                     e for e in lesson["exercises"] if e["type"] == "single_choice"
                 )

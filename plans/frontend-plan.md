@@ -80,3 +80,19 @@ cards, responsive layouts. Tokens live in `frontend/css/app.css` and align with
   apply migrations and verify public HTTPS auth, proxy trust and optional AI.
 - **Not verified:** exact Figma comparison (source not supplied), browser layout
   at 360/768/desktop (browser unavailable), live hosting/PostgreSQL/OpenRouter/SMTP.
+
+## Courses Catalog + Course Details — 2026-11-04
+
+- **Completed:** existing workspace/sidebar/header/mobile drawer reused; Courses
+  selected; compact purple catalog and course hero/lesson rows implemented.
+- **Completed:** dynamic published courses/lessons, joint title/description search
+  and CEFR filter, clear/reset, real aggregate/individual progress, Start/Continue/
+  Review links, completed/empty/error/retry/session states and return refresh.
+- **Completed:** reduced-motion/responsive CSS, six DOM regression scenarios,
+  full pytest (184 passed / 15 skipped), Ruff, mypy, syntax/whitespace checks,
+  local dev-server and API smoke; independent self-review and docs/map updates.
+- **Blocked:** exact Stitch comparison; linked project inaccessible, local export
+  not identified and no screenshots attached. Browser inventory is empty.
+- **Next:** browser visual/interaction QA at 360/768/1440px, compare accessible
+  final Stitch screens, verify shared navigation and AI in browser.
+- **Commits:** not created, per task instruction. See `docs/courses-implementation.md`.

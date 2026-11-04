@@ -6,18 +6,14 @@
     <title>Course — Fleng</title>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/courses.css" />
   </head>
-  <body>
-    <header id="site-header" class="site-header"></header>
-
-    <main class="container page">
-      <div id="course-body" class="stack"></div>
+  <body class="dashboard-page courses-page">
+    <main class="dashboard-main catalog-main">
+      <a class="catalog-back" href="/courses.html">← Back to Courses</a>
+      <div id="course-body" aria-busy="true"></div>
     </main>
-
-    <footer class="site-footer">
-      <div class="container">Fleng — learn English, every day.</div>
-    </footer>
-
     <script type="module" src="/js/course.js"></script>
   </body>
 </html>
