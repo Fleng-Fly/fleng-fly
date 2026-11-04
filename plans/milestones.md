@@ -132,3 +132,12 @@ Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains d
   apply migrations and verify public HTTPS auth, proxy trust and optional AI.
 - **Not verified:** exact Figma comparison (source not supplied), browser layout
   at 360/768/desktop (browser unavailable), live hosting/PostgreSQL/OpenRouter/SMTP.
+
+## Render registration Origin 403 — 2026-11-04
+
+Completed: live 403 traced to auth Origin guard; effective CORS configuration
+allows Netlify but omits Render. Production template now lists both; nine
+regressions, rejection header diagnostics and HTTP smoke cover TLS termination
+without disabling CSRF/CORS. SQLite unchanged. Next: apply CORS_ORIGIN and restart
+Render, then repeat public checks; separately configure Netlify API proxy (404).
+See `docs/render-registration-origin-403.md` for evidence and check results.

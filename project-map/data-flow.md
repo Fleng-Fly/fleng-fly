@@ -19,6 +19,18 @@ Refetches every 15s. When the backend is unreachable, the client throws
 
 ## Flow 2 — Authentication & session (implemented)
 
+Public registration is anonymous: BodyLimit (413 if oversized) → CORS (OPTIONS
+preflight 200/400; POST continues) → exception handling/router → get_db/settings
+and payload validation → `_assert_trusted_origin` (403 `Origin not allowed`) →
+IP rate limit (429) → register user/session → 201 + Secure HttpOnly cookie.
+No bearer/session dependency is attached to auth registration or its parent router.
+Origin denial occurs before quota writes and user/session creation. The guard
+accepts the ASGI request's own origin or an exact `CORS_ORIGIN` entry, and logs
+bounded, escaped Origin/Host plus scheme on rejection without bodies or tokens.
+Both public HTTPS origins must be explicit behind Render's TLS termination:
+`https://fleng-fly.onrender.com,https://fleng.netlify.app`. See
+[confirmed live 403 diagnosis](../docs/render-registration-origin-403.md).
+
 ```
 Register/Login form (register.html / login.html + js/*.js)
   → login() → apiFetch('/auth/login')

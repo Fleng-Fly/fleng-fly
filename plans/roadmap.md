@@ -245,3 +245,16 @@ Verification: `docs/render-sqlite-startup.md`. Prepared for deployment; no push.
   the existing launcher succeeds locally. Do not reset/stamp/delete the live DB.
 
 Evidence and safe procedure: `docs/render-sqlite-registration-diagnostics.md`.
+
+## Render registration Origin 403 — 2026-11-04
+
+- **Completed:** public registration/preflight matrix proves Render HTTPS Origin
+  missing from effective allowlist, Netlify Origin allowed; auth guard is the
+  exact 403 source before limiter/service/database writes.
+- **Completed:** both origins in production template, bounded rejection header
+  diagnostics, nine production-origin regressions and expanded HTTP smoke;
+  independent self-review and documentation/project-map update.
+- **Next / external configuration:** apply the documented CORS_ORIGIN in Render
+  and restart; no dashboard access or push/deployment in this task. Recheck public
+  registration after configuration. Netlify API proxy still returns 404.
+- Evidence and verification: `docs/render-registration-origin-403.md`.

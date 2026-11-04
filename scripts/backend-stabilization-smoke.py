@@ -218,7 +218,8 @@ def main():
                 stop(process)
             # Same persisted test DB, production launcher/config/static/auth.
             env.update(APP_ENV="production", COOKIE_SECURE="true",
-                       CORS_ORIGIN="https://fleng.example", TRUSTED_PROXY_IPS="")
+                       CORS_ORIGIN="https://fleng-fly.onrender.com,https://fleng.netlify.app",
+                       TRUSTED_PROXY_IPS="")
             cookies.clear()
             process = start(log, production=True)
             try:
@@ -226,13 +227,26 @@ def main():
                 for path in ("/", "/dashboard.html", "/leaderboard.html", "/js/leaderboard.js"):
                     call(path)
                 call("/api/v1/auth/login", login, origin="https://untrusted.example", expected=403)
-                access = call("/api/v1/auth/login", login, origin="https://fleng.example")["accessToken"]
+                for index, origin in enumerate(env["CORS_ORIGIN"].split(",")):
+                    cookies.clear()
+                    call("/api/v1/auth/register", {
+                        "email": f"origin-{index}@example.com",
+                        "password": "origin-smoke-password-123",
+                        "displayName": "Origin smoke",
+                    }, origin=origin, expected=201)
+                call("/api/v1/auth/register", {
+                    "email": "untrusted-origin@example.com",
+                    "password": "origin-smoke-password-123",
+                    "displayName": "Rejected origin",
+                }, origin="https://untrusted.example", expected=403)
+                access = call("/api/v1/auth/login", login,
+                              origin="https://fleng-fly.onrender.com")["accessToken"]
                 refresh = next(c for c in cookies if c.name == "fleng_refresh")
                 assert refresh.secure and refresh.has_nonstandard_attr("HttpOnly")
                 # Plain HTTP test transport cannot auto-send Secure cookies.
                 # An explicit header checks rotation; browser HTTPS remains a host check.
                 call("/api/v1/auth/refresh", {}, cookie=f"fleng_refresh={refresh.value}",
-                     origin="https://fleng.example")
+                     origin="https://fleng-fly.onrender.com")
                 assert call("/api/v1/leaderboard", token=access)["currentUser"]["xp"] == xp
             finally:
                 stop(process)

@@ -5,6 +5,7 @@ access token is returned in the JSON body and kept in memory by the frontend.
 """
 
 import hashlib
+import logging
 
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +24,7 @@ from app.modules.auth.schemas import (
 from app.modules.users.service import to_user_response
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger("fleng")
 
 _UNAUTHORIZED_HEADERS = {"WWW-Authenticate": "Bearer"}
 
@@ -67,6 +69,15 @@ def _assert_trusted_origin(request: Request, settings: Settings) -> None:
     same_origin = f"{request.url.scheme}://{request.url.netloc}"
     if origin == same_origin or origin in settings.cors_origins:
         return
+    # Bound and escape untrusted headers. Never log bodies, cookies or tokens.
+    logger.warning(
+        "Auth origin rejected method=%s path=%s origin=%r host=%r scheme=%s",
+        request.method,
+        request.url.path,
+        origin[:256],
+        request.headers.get("host", "")[:256],
+        request.url.scheme,
+    )
     raise ApiError(403, "FORBIDDEN", "Origin not allowed")
 
 

@@ -3,10 +3,12 @@
 Fleng can run as **one FastAPI service containing `backend/` and `frontend/`**.
 There is no frontend build or Node process in production. The Netlify site at
 <https://fleng.netlify.app> is a separate static-frontend deployment. The user
-reports a running FastAPI deployment on free Render with SQLite and
-authentication returning 503. Live Render configuration/log details and its URL
-have not been supplied for independent verification. A successful static
-Netlify deployment alone does not prove a working app.
+has a running FastAPI deployment at <https://fleng-fly.onrender.com> on free
+Render with SQLite. Public HTTP checks confirmed registration 403 for the Render
+Origin and 201 for the Netlify Origin: see the
+[origin diagnosis](render-registration-origin-403.md). Dashboard environment values
+and ingress logs were not accessible. A successful static Netlify deployment
+alone does not prove a working app.
 
 ## Netlify: static frontend only
 
@@ -52,9 +54,10 @@ and uncomment the existing example in `netlify.toml`:
 
 The `/api/` prefix is intentional: `/api/v1/health` must reach the backend as
 `/api/v1/health`. Never point this rule at localhost. Keep the existing frontend
-API client and endpoints. Configure backend `CORS_ORIGIN` to the exact frontend
-origin (`https://fleng.netlify.app` for this site), secure cookies and trusted
-ingress settings, then verify cookie refresh, origin checks and SSE through the
+API client and endpoints. Configure backend `CORS_ORIGIN` to the exact public
+origins (`https://fleng-fly.onrender.com,https://fleng.netlify.app` for this site),
+secure cookies and trusted ingress settings, then verify cookie refresh,
+origin checks and SSE through the
 proxy before claiming integration works. Store `OPENROUTER_API_KEY`, database
 credentials and JWT secrets only in the backend host's secret store, never in
 frontend files or browser-injected Netlify variables.
@@ -170,7 +173,7 @@ Avoid shipping local `.env` files to the host.
 | `PORT` | Platform-assigned port; launcher reads the same Settings as the API |
 | `DATABASE_URL` | Managed PostgreSQL URL (durable storage), or explicit file-backed SQLite for an ephemeral demo; `postgres://` and `postgresql://` select asyncpg |
 | `JWT_ACCESS_SECRET` | Unique random secret, at least 32 characters; generate with `python -c 'import secrets; print(secrets.token_urlsafe(48))'` |
-| `CORS_ORIGIN` | Exact public HTTPS origin, e.g. `https://fleng.example`, no trailing slash/path; comma-separated if necessary |
+| `CORS_ORIGIN` | `https://fleng-fly.onrender.com,https://fleng.netlify.app`; exact HTTPS origins without trailing slashes/paths |
 | `COOKIE_SECURE` | `true`; enforced in production |
 | `COOKIE_SAMESITE` | `lax` for the supported same-origin frontend |
 | `TRUSTED_PROXY_IPS` | Empty by default; only actual ingress IPs/networks if forwarding headers are needed |
@@ -199,6 +202,16 @@ The auth origin guard accepts the request's own origin or `CORS_ORIGIN`.
 Behind TLS termination, configure the exact public HTTPS origin even if the
 upstream request is HTTP. CORS is not a replacement for the cookie-endpoint
 origin guard. Wildcards and HTTP origins are rejected in production.
+
+For these deployments set Render's `CORS_ORIGIN` to
+`https://fleng-fly.onrender.com,https://fleng.netlify.app` and restart/redeploy the
+service. The production example file is only a reference; editing it does not
+update Render's environment. Keep `APP_ENV=production`, `COOKIE_SECURE=true`,
+`COOKIE_SAMESITE=lax`, the current `DATABASE_URL` and existing JWT secret.
+Do not enable wildcard proxy trust to solve an origin mismatch. This configuration
+supports the Render frontend and a Netlify `/api/*` same-origin proxy; direct
+cross-site cookie authentication is not verified. Netlify's API currently returns
+404 and its proxy remains a separate deployment step.
 
 Preserve Host and stream AI SSE responses without proxy buffering. To use
 forwarded scheme/client IP for authentication rate limits, set
