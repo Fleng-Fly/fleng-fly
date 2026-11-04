@@ -26,7 +26,8 @@ class Settings(BaseSettings):
     )
 
     app_env: str = "development"
-    port: int = 3001
+    port: int = Field(default=3001, ge=1, le=65535)
+    trusted_proxy_ips: str = ""
     http_max_body_bytes: int = Field(default=131072, ge=1024, le=1048576)
     database_url: str = DEFAULT_DATABASE_URL
     cors_origin: str = "http://localhost:3000"
@@ -140,8 +141,33 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _reject_dev_secrets_in_production(self) -> "Settings":
-        if self.app_env == "production" and self.jwt_access_secret == DEV_ACCESS_SECRET:
-            raise ValueError("JWT_ACCESS_SECRET must be set in production")
+        if self.is_production:
+            if (
+                len(self.jwt_access_secret.strip()) < 32
+                or self.jwt_access_secret == DEV_ACCESS_SECRET
+                or self.jwt_access_secret.startswith("change-me")
+            ):
+                raise ValueError(
+                    "JWT_ACCESS_SECRET must be a random secret of at least 32 characters"
+                )
+            if not self.secure_cookies:
+                raise ValueError("Production requires Secure refresh cookies")
+            from urllib.parse import urlsplit
+
+            for origin in self.cors_origins:
+                parts = urlsplit(origin)
+                if (
+                    parts.scheme != "https"
+                    or not parts.hostname
+                    or parts.username
+                    or parts.password
+                    or parts.path
+                    or parts.query
+                    or parts.fragment
+                ):
+                    raise ValueError("Production CORS origins must be exact HTTPS origins")
+        if self.cookie_samesite == "none" and not self.secure_cookies:
+            raise ValueError("SameSite=None requires Secure cookies")
         return self
 
     @property

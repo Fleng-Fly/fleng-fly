@@ -49,3 +49,13 @@ def test_health_reports_database_down_without_failing() -> None:
 
     assert response.status_code == 200
     assert response.json()["database"] == "down"
+
+
+def test_readiness_status() -> None:
+    for session, expected in ((OkSession(), 200), (BrokenSession(), 503)):
+        app.dependency_overrides[get_db] = override_db(session)
+        try:
+            response = TestClient(app).get("/api/v1/health/ready")
+            assert response.status_code == expected
+        finally:
+            app.dependency_overrides.clear()

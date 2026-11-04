@@ -68,6 +68,10 @@ def create_app() -> FastAPI:
     # static frontend is served from the same origin as the API, which keeps the
     # HttpOnly refresh cookie first-party and removes the need for CORS.
     frontend_dir = _resolve_frontend_dir(settings.frontend_dir)
+    if settings.is_production and frontend_dir is None:
+        raise RuntimeError(
+            "Production requires the frontend directory; ship frontend/ or set FRONTEND_DIR"
+        )
     if frontend_dir is not None:
         app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
         logger.info("Serving static frontend from %s", frontend_dir)

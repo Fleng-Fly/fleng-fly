@@ -36,8 +36,10 @@ def main():
             urllib.request.HTTPCookieProcessor(cookies)
         )
 
-        def call(path, payload=None, *, token=None, cookie=None, expected=200):
+        def call(path, payload=None, *, token=None, cookie=None, origin=None, expected=200):
             headers = {}
+            if origin:
+                headers["Origin"] = origin
             if token:
                 headers["Authorization"] = f"Bearer {token}"
             if cookie:
@@ -60,9 +62,10 @@ def main():
                     else body
                 )
 
-        def start(log):
+        def start(log, *, production=False):
             process = subprocess.Popen(
-                ["npm", "run", "dev"],
+                [str(ROOT / "backend/.venv/bin/python"), "backend/run.py"]
+                if production else ["npm", "run", "dev"],
                 cwd=ROOT,
                 env=env,
                 stdout=log,
@@ -125,6 +128,12 @@ def main():
                 for path in (
                     "/dashboard.html",
                     "/lesson.html",
+                    "/leaderboard.html",
+                    "/css/leaderboard.css",
+                    "/js/leaderboard.js",
+                    "/api/v1/health/ready",
+                    "/api/v1/leaderboard",
+                    "/api/v1/ai/status",
                     "/api/v1/users/me",
                     "/api/v1/progress/me",
                     "/api/v1/streaks/me",
@@ -159,6 +168,9 @@ def main():
                     "/api/v1/lessons/greetings-and-introductions/progress", token=access
                 )
                 xp = call("/api/v1/progress/me", token=access)["xp"]
+                ranking = call("/api/v1/leaderboard", token=access)
+                assert ranking["currentUser"]["xp"] == xp
+                assert ranking["currentUser"]["rank"] == 1
                 call(
                     "/api/v1/users/me/password",
                     {
@@ -182,6 +194,27 @@ def main():
                 assert call("/api/v1/progress/me", token=access)["xp"] == xp
             finally:
                 stop(process)
+            # Same persisted test DB, production launcher/config/static/auth.
+            env.update(APP_ENV="production", COOKIE_SECURE="true",
+                       CORS_ORIGIN="https://fleng.example", TRUSTED_PROXY_IPS="")
+            cookies.clear()
+            process = start(log, production=True)
+            try:
+                call("/api/v1/health/ready")
+                for path in ("/", "/dashboard.html", "/leaderboard.html", "/js/leaderboard.js"):
+                    call(path)
+                call("/api/v1/auth/login", login, origin="https://untrusted.example", expected=403)
+                access = call("/api/v1/auth/login", login, origin="https://fleng.example")["accessToken"]
+                refresh = next(c for c in cookies if c.name == "fleng_refresh")
+                assert refresh.secure and refresh.has_nonstandard_attr("HttpOnly")
+                # Plain HTTP test transport cannot auto-send Secure cookies.
+                # An explicit header checks rotation; browser HTTPS remains a host check.
+                call("/api/v1/auth/refresh", {}, cookie=f"fleng_refresh={refresh.value}",
+                     origin="https://fleng.example")
+                assert call("/api/v1/leaderboard", token=access)["currentUser"]["xp"] == xp
+            finally:
+                stop(process)
+        print("VERIFIED: production launcher, static assets, readiness, Secure/HttpOnly cookie, origin guard and refresh.")
         print(
             "VERIFIED: npm dev, migrations, SQLite persistence across restart, auth/reuse/password/logout,"
         )

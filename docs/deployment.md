@@ -1,97 +1,117 @@
 # Deployment
 
-> Status: **planned**. No deployment exists yet. This document defines the
-> intended shape so it can be adopted without rework.
+Fleng ships as **one FastAPI service containing `backend/` and `frontend/`**.
+There is no frontend build or Node process in production. A public deployment
+has not been created; the host, database credentials and domain are not supplied.
 
-## 1. Topology (initial)
+## Local and production commands
 
-One application deployable plus a database:
+Local development remains `npm run dev`: SQLite preparation and uvicorn reload.
+Production uses `backend/run.py` (also declared in the root `Procfile`), binds
+`0.0.0.0:$PORT`, and disables reload and proxy trust by default.
 
-```
-[ CDN / edge ] → backend (FastAPI)  ──HTTPS──► AI providers
-                    │  serves the static frontend at /
-                    │  serves REST at /api/v1
-                    │ SQLAlchemy/asyncpg
-                    ▼
-                 PostgreSQL (managed)
-```
+On a Python 3.11+ host, keep the entire repository in the deployed checkout.
+Install from the repository root with the host's Python environment:
 
-- **Backend**: FastAPI/uvicorn — serves both the REST API (`/api/v1`) and the
-  static HTML/CSS/JS frontend (`/`) from the same origin, so the HttpOnly
-  refresh cookie is first-party. Horizontally scalable stateless instances behind
-  a load balancer.
-- **Frontend**: static files shipped with the backend (no separate Node/CDN
-  deployable is required; a CDN may still front the static assets).
-- **Database**: managed PostgreSQL with automated backups.
-- **AI**: external provider APIs; the backend holds the keys.
-
-## 2. Environments
-
-| Environment | Purpose | Notes |
-| ----------- | ------- | ----- |
-| Local | development | docker compose: Postgres (+ backend/frontend when containerised) |
-| CI | tests | ephemeral Postgres; `AI_PROVIDER=mock` |
-| Staging | pre-production | production-like, separate secrets/data |
-| Production | users | strict secrets, backups, monitoring |
-
-Environment configuration differs only by env vars; no environment-specific code
-branches.
-
-## 3. Local development
-
-```bash
-docker compose up -d db   # PostgreSQL
-pnpm install              # frontend dependencies
-pnpm setup                # backend virtualenv + Python dependencies
-pnpm db:migrate           # Alembic
-pnpm dev
+```sh
+python -m pip install ./backend
 ```
 
-A full `docker compose up` (db + backend + frontend) becomes available once the
-apps are containerised.
+Inject the variables below through the hosting secret store, then run this
+**release command once**, before starting the web service:
 
-## 4. Build and release
+```sh
+cd backend
+alembic upgrade head
+# First deployment only, if you want the existing learning catalog:
+python -m app.db.seed
+```
 
-1. `pnpm setup` (backend virtualenv + dependencies)
-2. `pnpm lint && pnpm typecheck && pnpm test`
-3. No frontend build step — the static files ship as-is and are served by the
-   backend.
-4. Run migrations `cd backend && .venv/bin/alembic upgrade head` (never
-   `--autogenerate` in production).
-5. Deploy frontend and backend; smoke-test `/api/v1/health`.
+Start command from the repository root:
 
-Rollbacks: backwards-compatible migrations by default; if a migration is
-irreversible, document the forward fix.
+```sh
+cd backend && python run.py
+```
 
-## 5. Configuration and secrets
+For a local virtualenv use `backend/.venv/bin/python` / `.venv/bin/alembic`
+as appropriate. Do not use `npm run dev`, demo-account seeding, `--reload`, or
+`app.db.prepare` as a production release command. No new migration is required
+for Leaderboard; it reads existing tables. Back up data before upgrades and
+check `alembic current` against `alembic heads` after release.
 
-- Injected via the platform's secret store into environment variables.
-- `.env` never ships in images; `.env.example` documents names only.
-- Required production secrets: `APP_ENV=production`, `DATABASE_URL`,
-  `CORS_ORIGIN`, `JWT_ACCESS_SECRET`, plus `AI_API_KEY` for the AI milestone.
+## Production environment
 
-## 6. Observability
+See [the production template](../.env.production.example). This template is a
+reference: it is not loaded automatically. Settings load optional `backend/.env`
+and root `.env` (root wins), followed by environment variables (highest priority).
+Avoid shipping local `.env` files to the host.
 
-- Structured JSON logs (stdout) collected by the platform.
-- Health endpoint (`/api/v1/health`) for liveness/readiness.
-- Error tracking added before public launch (provider TBD).
-- Metrics: request rate/latency/errors; AI token usage and cost.
+| Variable | Production value |
+| --- | --- |
+| `APP_ENV` | `production` (exact spelling) |
+| `PORT` | Platform-assigned port; launcher reads the same Settings as the API |
+| `DATABASE_URL` | Managed PostgreSQL URL; `postgres://` and `postgresql://` select asyncpg |
+| `JWT_ACCESS_SECRET` | Unique random secret, at least 32 characters; generate with `python -c 'import secrets; print(secrets.token_urlsafe(48))'` |
+| `CORS_ORIGIN` | Exact public HTTPS origin, e.g. `https://fleng.example`, no trailing slash/path; comma-separated if necessary |
+| `COOKIE_SECURE` | `true`; enforced in production |
+| `COOKIE_SAMESITE` | `lax` for the supported same-origin frontend |
+| `TRUSTED_PROXY_IPS` | Empty by default; only actual ingress IPs/networks if forwarding headers are needed |
+| `LEARNING_TIMEZONE` | `UTC` or chosen valid IANA timezone, shared by streaks and Leaderboard |
+| `AI_ENABLED` | `false` until OpenRouter is configured |
+| `OPENROUTER_API_KEY` | Backend secret, needed only for AI |
+| `OPENROUTER_MODEL` | Valid `provider/model` identifier, needed only for AI |
+| `RESET_DELIVERY` | `disabled`; enable SMTP only after configuring and testing delivery |
 
-## 7. Data and backups
+SQLite still works locally. A host may use SQLite only with an explicit durable
+volume, an absolute database path and a single application instance. Ephemeral
+service storage loses SQLite data on replacement; PostgreSQL is the intended
+online database. Follow the database provider's asyncpg-compatible TLS settings;
+validate the real connection and migrations before accepting users. There is no
+silent fallback from PostgreSQL to SQLite.
 
-- Automated Postgres backups + tested restore procedure before launch.
-- Migrations are committed and applied via a release step, not manually.
-- Retention/deletion policy to be finalised (see `docs/database.md`).
+## HTTPS, authentication and proxies
 
-## 8. Security in deployment
+Serve frontend and API from the **same HTTPS URL**. All frontend requests use
+relative `/api/v1`; no frontend environment injection is needed. Refresh cookies
+are HttpOnly, Secure, host-only, scoped to `/api/v1/auth`; access JWTs stay in
+browser memory. No cookie domain setting is needed for this topology.
 
-Per `docs/security.md`: force HTTPS/HSTS, restrict CORS, least-privilege
-database credentials, no secrets in images or logs, and review the dependency
-surface before launch.
+The auth origin guard accepts the request's own origin or `CORS_ORIGIN`.
+Behind TLS termination, configure the exact public HTTPS origin even if the
+upstream request is HTTP. CORS is not a replacement for the cookie-endpoint
+origin guard. Wildcards and HTTP origins are rejected in production.
 
-## 9. Open questions
+Preserve Host and stream AI SSE responses without proxy buffering. To use
+forwarded scheme/client IP for authentication rate limits, set
+`TRUSTED_PROXY_IPS` to the actual ingress IPs/networks and ensure the ingress
+replaces incoming client forwarding headers. Never set it to `*` on a directly
+reachable service. Without a trusted proxy, clients share the ingress peer-IP
+quota; email quotas remain per account. Restrict direct upstream access at the
+host. HTTPS termination and ingress settings must be verified on the chosen host.
 
-- Hosting provider for the single FastAPI deployable (and whether to front the
-  static assets with a CDN).
-- Container registry and CI platform.
-- Blue/green vs. rolling deploys — revisit at launch scale.
+AI failure/disabled configuration does not block lessons or rankings. Check
+`GET /api/v1/ai/status` with a session, then a real SSE turn after enabling AI.
+The reset API exists, but there is no reset-password frontend page in this
+checkout: do not enable public reset email until a usable `RESET_URL` is provided.
+
+## Health and release verification
+
+- `GET /api/v1/health`: existing HTTP 200 liveness response with database status.
+- `GET /api/v1/health/ready`: HTTP 200 when `SELECT 1` succeeds; HTTP 503 on
+  database error or a five-second probe timeout. It checks connectivity, not
+  schema version; migrations remain a release prerequisite.
+- Startup fails in production if the static frontend directory is missing.
+  If deploying it elsewhere, supply `FRONTEND_DIR` as an absolute path.
+
+After deployment, check readiness, `/`, `/login.html`, `/leaderboard.html`, CSS
+and JS. Register/login; reload a protected page to exercise cookie refresh;
+complete a lesson; check Dashboard XP, streak and Leaderboard; test logout and
+that an untrusted Origin is rejected. Test the AI SSE path if enabled. Confirm
+state survives a service restart and perform a PostgreSQL backup/restore drill.
+
+## Remaining external work
+
+Choose a Python web host and managed PostgreSQL, supply secrets, configure HTTPS
+and proxy trust, run the release command, start the service and run the checks
+above against its public URL. Live PostgreSQL, TLS/proxy behavior, provider SSE,
+SMTP and public URL access are **NOT VERIFIED** in this environment.
