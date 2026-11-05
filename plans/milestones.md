@@ -141,3 +141,12 @@ regressions, rejection header diagnostics and HTTP smoke cover TLS termination
 without disabling CSRF/CORS. SQLite unchanged. Next: apply CORS_ORIGIN and restart
 Render, then repeat public checks; separately configure Netlify API proxy (404).
 See `docs/render-registration-origin-403.md` for evidence and check results.
+
+## Render HTTPS Origin follow-up — 2026-11-05
+
+Completed locally: validated Render external HTTPS origin is merged into shared
+CORS/auth allowlist; tests cover Netlify-only CORS plus Render runtime environment,
+all session endpoints and trusted/untrusted Uvicorn forwarding behavior. Launcher
+still overrides platform wildcard proxy trust. Next: deploy commit and verify real
+HTTPS registration/session rotation; public post-deploy validation is pending.
+Evidence: `docs/render-https-origin-403.md`.

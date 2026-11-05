@@ -1,5 +1,9 @@
 # Render registration Origin 403 — 2026-11-04
 
+Follow-up: [Render HTTPS Origin fix — 2026-11-05](render-https-origin-403.md)
+adds the validated Render runtime URL to the shared allowlist. The measurements
+below describe the earlier deployment; current configuration is documented there.
+
 ## Confirmed cause
 
 Public HTTP checks at approximately 19:36–19:37 UTC against

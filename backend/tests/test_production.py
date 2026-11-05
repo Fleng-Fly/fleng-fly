@@ -57,3 +57,55 @@ def test_production_requires_frontend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.main.get_settings", lambda: settings)
     with pytest.raises(RuntimeError, match="frontend directory"):
         create_app()
+
+
+@pytest.mark.parametrize(
+    "origin",
+    [
+        "http://fleng-fly.onrender.com",
+        "https://fleng-fly.onrender.com/",
+        "https://user:password@fleng-fly.onrender.com",
+        "https://*.onrender.com",
+        "https://fleng-fly.onrender.com?query=1",
+        "https://fleng-fly.onrender.com#fragment",
+        "https://fleng-fly.onrender.com,https://evil.example",
+        "*",
+        "null",
+    ],
+)
+def test_render_external_url_rejects_non_origins(origin: str) -> None:
+    with pytest.raises(ValidationError, match="exact HTTPS origin"):
+        Settings(_env_file=None, render_external_url=origin)
+
+
+@pytest.mark.parametrize(
+    "cors",
+    [
+        "https://fleng.netlify.app",
+        " https://fleng-fly.onrender.com, https://fleng.netlify.app ",
+        "",
+    ],
+)
+def test_render_runtime_origin_is_merged_once(cors: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RENDER_EXTERNAL_URL", "https://fleng-fly.onrender.com")
+    settings = Settings(_env_file=None, cors_origin=cors)
+    assert settings.cors_origins.count("https://fleng-fly.onrender.com") == 1
+    assert "*" not in settings.cors_origins
+
+
+@pytest.mark.parametrize("trusted", ["", "10.0.0.7,10.0.1.0/24"])
+def test_launcher_uses_only_explicit_proxy_trust(
+    trusted: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import run
+
+    settings = Settings(_env_file=None, trusted_proxy_ips=trusted)
+    monkeypatch.setenv("FORWARDED_ALLOW_IPS", "*")  # Render's Python default.
+    monkeypatch.setattr(run, "get_settings", lambda: settings)
+    monkeypatch.setattr("app.db.prepare.main", lambda: None)
+    called = {}
+    monkeypatch.setattr(run.uvicorn, "run", lambda *args, **kwargs: called.update(kwargs))
+    run.main()
+    assert called["proxy_headers"] is bool(trusted)
+    assert called["forwarded_allow_ips"] == trusted
+    assert called["workers"] == 1

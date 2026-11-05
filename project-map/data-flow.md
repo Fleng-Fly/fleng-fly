@@ -235,3 +235,14 @@ authenticated FastAPI → strict request schema → validated lesson context →
 rate/daily/concurrency reservation + input-token bound → OpenRouter → safe SSE text.
 Logout/session-end → abort + clear private DOM/selection + cross-tab notification.
 Navigation → destroy UI but retain user-scoped ID; cached restore revalidates session.
+
+## Render HTTPS origin configuration — 2026-11-05
+
+Render server environment `RENDER_EXTERNAL_URL` → Settings exact HTTPS-origin
+validation → deduplicated merge with comma-separated `CORS_ORIGIN` → shared
+CORSMiddleware + auth `_assert_trusted_origin()` allowlist. Thus public Render
+HTTPS registration/login/refresh works even when upstream ASGI scheme is HTTP.
+No forwarded header creates an allowlist entry. `run.py` still explicitly disables
+proxy headers with empty TRUSTED_PROXY_IPS, overriding Render's Python
+FORWARDED_ALLOW_IPS=* default. Configured trusted peers alone may supply scheme/IP;
+Uvicorn ignores X-Forwarded-Host. DB/JWT/AI/learning flows are unchanged.

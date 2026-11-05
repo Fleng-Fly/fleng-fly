@@ -198,7 +198,11 @@ relative `/api/v1`; no frontend environment injection is needed. Refresh cookies
 are HttpOnly, Secure, host-only, scoped to `/api/v1/auth`; access JWTs stay in
 browser memory. No cookie domain setting is needed for this topology.
 
-The auth origin guard accepts the request's own origin or `CORS_ORIGIN`.
+The auth origin guard accepts the request's own origin or the effective CORS
+allowlist: comma-separated `CORS_ORIGIN` plus a nonempty `RENDER_EXTERNAL_URL`.
+Render automatically supplies the latter as its public HTTPS service URL; Settings
+validates it as an exact HTTPS origin and adds it once to both CORS and auth
+validation. It is server configuration, never a request/forwarding header.
 Behind TLS termination, configure the exact public HTTPS origin even if the
 upstream request is HTTP. CORS is not a replacement for the cookie-endpoint
 origin guard. Wildcards and HTTP origins are rejected in production.
@@ -208,6 +212,11 @@ For these deployments set Render's `CORS_ORIGIN` to
 service. The production example file is only a reference; editing it does not
 update Render's environment. Keep `APP_ENV=production`, `COOKIE_SECURE=true`,
 `COOKIE_SAMESITE=lax`, the current `DATABASE_URL` and existing JWT secret.
+Render HTTPS now also works with `CORS_ORIGIN=https://fleng.netlify.app` when
+`RENDER_EXTERNAL_URL=https://fleng-fly.onrender.com` is present. Keep the explicit
+two-origin CORS value above as the portable deployment setting. CORS_ORIGIN is a
+comma-separated string (whitespace around entries is stripped), not a JSON array;
+production entries must be HTTPS origins without paths/trailing slashes.
 Do not enable wildcard proxy trust to solve an origin mismatch. This configuration
 supports the Render frontend and a Netlify `/api/*` same-origin proxy; direct
 cross-site cookie authentication is not verified. Netlify's API currently returns
@@ -219,7 +228,13 @@ forwarded scheme/client IP for authentication rate limits, set
 replaces incoming client forwarding headers. Never set it to `*` on a directly
 reachable service. Without a trusted proxy, clients share the ingress peer-IP
 quota; email quotas remain per account. Restrict direct upstream access at the
-host. HTTPS termination and ingress settings must be verified on the chosen host.
+host. Render supplies `FORWARDED_ALLOW_IPS=*` for Python, but `backend/run.py`
+explicitly overrides Uvicorn with `TRUSTED_PROXY_IPS` and disables proxy headers
+when that value is empty. `X-Forwarded-Proto` then leaves ASGI scheme as HTTP;
+this is compatible with the explicit origin allowlist. Uvicorn does not rewrite
+Host from `X-Forwarded-Host`. HTTPS termination and ingress settings must be
+verified on the chosen host. See [Render default variables](https://render.com/docs/environment-variables)
+and [Uvicorn proxy settings](https://uvicorn.dev/settings/).
 
 AI failure/disabled configuration does not block lessons or rankings. Check
 `GET /api/v1/ai/status` with a session, then a real SSE turn after enabling AI.

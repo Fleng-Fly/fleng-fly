@@ -9,6 +9,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.core.config import Settings, get_settings
 from app.db.models import RequestLimit, User
@@ -25,18 +26,23 @@ PAYLOAD = {
 }
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(params=["explicit-origins", "render-runtime"])
 async def production_client(
-    db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
+    db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
 ) -> AsyncGenerator[AsyncClient, None]:
     monkeypatch.delenv("CORS_ORIGIN", raising=False)
+    monkeypatch.delenv("RENDER_EXTERNAL_URL", raising=False)
+    if request.param == "render-runtime":
+        # Reproduce the deployed allowlist (Netlify only), plus Render's own env.
+        monkeypatch.setenv("CORS_ORIGIN", NETLIFY)
+        monkeypatch.setenv("RENDER_EXTERNAL_URL", RENDER)
     settings = Settings(
         _env_file=Path(__file__).resolve().parents[2] / ".env.production.example",
         jwt_access_secret="isolated-origin-test-secret-at-least-32-characters",
         database_url="sqlite+aiosqlite:///:memory:",
     )
     assert settings.is_production
-    assert settings.cors_origins == [RENDER, NETLIFY]
+    assert set(settings.cors_origins) == {RENDER, NETLIFY}
     monkeypatch.setattr("app.main.get_settings", lambda: settings)
     app = create_app()
 
@@ -131,3 +137,78 @@ async def test_production_preflight(
     assert response.headers.get("access-control-allow-origin") == (
         origin if expected == 200 else None
     )
+
+
+@pytest.mark.parametrize(
+    "peer, proto, forwarded_host, expected_scheme, expected_status",
+    [
+        ("10.0.0.7", "https", "evil.example", "https", 401),
+        ("198.51.100.7", "https", "fleng-fly.onrender.com", "http", 403),
+        ("10.0.0.7", "https,http", "fleng-fly.onrender.com", "http", 403),
+        ("10.0.0.7", "garbage", "fleng-fly.onrender.com", "http", 403),
+        ("10.0.0.7", "http", "fleng-fly.onrender.com", "http", 403),
+    ],
+)
+async def test_uvicorn_only_applies_proto_from_trusted_peer(
+    monkeypatch: pytest.MonkeyPatch,
+    peer: str,
+    proto: str,
+    forwarded_host: str,
+    expected_scheme: str,
+    expected_status: int,
+) -> None:
+    from starlette.requests import Request
+
+    settings = Settings(_env_file=None, cors_origin=NETLIFY, render_external_url="")
+    monkeypatch.setattr("app.main.get_settings", lambda: settings)
+    app = create_app()
+    app.dependency_overrides[get_settings] = lambda: settings
+    observed = {}
+
+    async def record_scope(scope, receive, send):
+        request = Request(scope)
+        observed.update(scheme=request.url.scheme, host=request.headers["host"])
+        await app(scope, receive, send)
+
+    proxy = ProxyHeadersMiddleware(record_scope, trusted_hosts="10.0.0.7")
+    async with AsyncClient(
+        transport=ASGITransport(app=proxy, client=(peer, 1234)),
+        base_url="http://fleng-fly.onrender.com",
+    ) as client:
+        response = await client.post(
+            "/api/v1/auth/refresh",
+            headers={
+                "Origin": RENDER,
+                "X-Forwarded-Proto": proto,
+                "X-Forwarded-Host": forwarded_host,
+                "Forwarded": 'proto=https;host="fleng-fly.onrender.com"',
+            },
+        )
+    # 401 means the same-origin guard passed, but no session cookie was supplied.
+    assert response.status_code == expected_status
+    assert observed == {"scheme": expected_scheme, "host": "fleng-fly.onrender.com"}
+
+
+async def test_trusted_proxy_cannot_rewrite_host_to_allow_attacker_origin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = Settings(_env_file=None, cors_origin=NETLIFY, render_external_url=RENDER)
+    monkeypatch.setattr("app.main.get_settings", lambda: settings)
+    app = create_app()
+    app.dependency_overrides[get_settings] = lambda: settings
+    proxy = ProxyHeadersMiddleware(app, trusted_hosts="127.0.0.1")
+    async with AsyncClient(
+        transport=ASGITransport(app=proxy), base_url="http://fleng-fly.onrender.com"
+    ) as client:
+        for path in (REGISTER, "/api/v1/auth/login", "/api/v1/auth/refresh"):
+            response = await client.post(
+                path,
+                json=PAYLOAD,
+                headers={
+                    "Origin": "https://evil.example",
+                    "X-Forwarded-Proto": "https",
+                    "X-Forwarded-Host": "evil.example",
+                    "X-Forwarded-For": "198.51.100.7",
+                },
+            )
+            assert response.status_code == 403

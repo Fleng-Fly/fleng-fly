@@ -218,7 +218,9 @@ def main():
                 stop(process)
             # Same persisted test DB, production launcher/config/static/auth.
             env.update(APP_ENV="production", COOKIE_SECURE="true",
-                       CORS_ORIGIN="https://fleng-fly.onrender.com,https://fleng.netlify.app",
+                       CORS_ORIGIN="https://fleng.netlify.app",
+                       RENDER_EXTERNAL_URL="https://fleng-fly.onrender.com",
+                       FORWARDED_ALLOW_IPS="*",
                        TRUSTED_PROXY_IPS="")
             cookies.clear()
             process = start(log, production=True)
@@ -227,7 +229,7 @@ def main():
                 for path in ("/", "/dashboard.html", "/leaderboard.html", "/js/leaderboard.js"):
                     call(path)
                 call("/api/v1/auth/login", login, origin="https://untrusted.example", expected=403)
-                for index, origin in enumerate(env["CORS_ORIGIN"].split(",")):
+                for index, origin in enumerate((env["RENDER_EXTERNAL_URL"], env["CORS_ORIGIN"])):
                     cookies.clear()
                     call("/api/v1/auth/register", {
                         "email": f"origin-{index}@example.com",

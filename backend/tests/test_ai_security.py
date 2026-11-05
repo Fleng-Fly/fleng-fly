@@ -6,6 +6,7 @@ from uuid import uuid4
 import httpx
 import pytest
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.core.config import Settings, get_settings
 from app.db.models import AIUsage
@@ -151,7 +152,10 @@ async def test_persistent_leases_block_same_user_and_global_capacity(client, db_
     from app.modules.ai import service
     from app.modules.ai.schemas import ChatRequest
 
-    user = await db_session.scalar(select(User).where(User.email == "learner@example.com"))
+    # Match the auth dependency: service context expects an already loaded profile.
+    user = await db_session.scalar(
+        select(User).options(selectinload(User.profile)).where(User.email == "learner@example.com")
+    )
     _, messages = await service.prepare_chat(
         db_session, user, ChatRequest(message="Hi"), Settings()
     )

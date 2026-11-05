@@ -72,7 +72,8 @@ and the client must re-authenticate (`401 REFRESH_TOKEN_REUSED`).
   `path=/api/v1/auth`, `max-age` = refresh lifetime (30 days by default).
 - `SameSite=Lax` prevents the cookie from being sent on cross-site POSTs.
 - Cookie-backed endpoints (`login`, `refresh`, `logout`) additionally reject
-  requests whose `Origin` header is not in `CORS_ORIGIN`.
+  requests whose `Origin` header matches neither the request URL origin nor the
+  effective allowlist (`CORS_ORIGIN` plus validated `RENDER_EXTERNAL_URL`).
 - The frontend never stores the access token in `localStorage`; it lives in
   memory and is re-obtained via `/auth/refresh` on reload.
 

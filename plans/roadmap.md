@@ -258,3 +258,15 @@ Evidence and safe procedure: `docs/render-sqlite-registration-diagnostics.md`.
   and restart; no dashboard access or push/deployment in this task. Recheck public
   registration after configuration. Netlify API proxy still returns 404.
 - Evidence and verification: `docs/render-registration-origin-403.md`.
+
+## Render HTTPS Origin follow-up — 2026-11-05
+
+- **Completed:** ASGI HTTP vs browser HTTPS mismatch reproduced; validated
+  Render-provided RENDER_EXTERNAL_URL now joins the shared CORS/auth allowlist.
+  Netlify remains an explicitly configured CORS_ORIGIN. No proxy-trust expansion.
+- **Completed:** regressions for both origins, register/login/refresh, rejected
+  origins, real Uvicorn proxy middleware, malformed forwarding headers and
+  launcher overriding Render's FORWARDED_ALLOW_IPS=* default; self-review.
+- **Next / external:** deploy the local commit, verify Render Start Command and
+  environment, then test the actual HTTPS UI. No push/deploy performed here.
+- Verification: `docs/render-https-origin-403.md`. SQLite config is unchanged.

@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     http_max_body_bytes: int = Field(default=131072, ge=1024, le=1048576)
     database_url: str = DEFAULT_DATABASE_URL
     cors_origin: str = "http://localhost:3000"
+    # Render supplies this server-side value even when TLS terminates upstream.
+    # Never derive the public origin from client-controlled forwarding headers.
+    render_external_url: str = ""
     # Static frontend directory served by this app. `None` uses the repository
     # `frontend/` directory (resolved relative to this file).
     frontend_dir: str | None = None
@@ -81,6 +84,26 @@ class Settings(BaseSettings):
     ai_daily_requests: int = Field(default=100, ge=1)
     ai_daily_token_budget: int = Field(default=100000, ge=1)
     ai_concurrency: int = Field(default=4, ge=1, le=100)
+
+    @field_validator("render_external_url")
+    @classmethod
+    def _render_origin(cls, value: str) -> str:
+        from urllib.parse import urlsplit
+
+        if value:
+            parts = urlsplit(value)
+            if (
+                parts.scheme != "https"
+                or not parts.hostname
+                or "*" in parts.netloc
+                or parts.username
+                or parts.password
+                or parts.path
+                or parts.query
+                or parts.fragment
+            ):
+                raise ValueError("RENDER_EXTERNAL_URL must be an exact HTTPS origin")
+        return value
 
     @field_validator("learning_timezone")
     @classmethod
@@ -174,7 +197,10 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origin.split(",") if origin.strip()]
+        origins = [origin.strip() for origin in self.cors_origin.split(",") if origin.strip()]
+        if self.render_external_url and self.render_external_url not in origins:
+            origins.append(self.render_external_url)
+        return origins
 
     @property
     def is_production(self) -> bool:
