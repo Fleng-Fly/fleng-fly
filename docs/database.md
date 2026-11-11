@@ -310,3 +310,8 @@ be used as a routine development setup command.
 chat history. Reservations record explicit request IDs before provider I/O;
 completed and failed requests retain the ID until the 30-day usage cleanup.
 There are no additional conversation/message tables.
+
+
+## Vocabulary flashcards — 2026-11-10
+
+Added course_vocabulary_items (course FK, unique course/word) and vocabulary_flashcard_sessions (owner FK, source/status, immutable JSON card snapshot, timestamps), migration 20261110_1200. Personal vocabulary is unchanged. See vocabulary-flashcards-api.md.

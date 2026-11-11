@@ -270,3 +270,8 @@ Evidence and safe procedure: `docs/render-sqlite-registration-diagnostics.md`.
 - **Next / external:** deploy the local commit, verify Render Start Command and
   environment, then test the actual HTTPS UI. No push/deploy performed here.
 - Verification: `docs/render-https-origin-403.md`. SQLite config is unchanged.
+
+
+## Vocabulary flashcards — 2026-11-10
+
+Vocabulary backend completed: categories, saved sets up to 10, owner completion and test handoff. Frontend integration and Roma testing/XP remain next; shared A0 course support deferred. See docs/vocabulary-flashcards-api.md.

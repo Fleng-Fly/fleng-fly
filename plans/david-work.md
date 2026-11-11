@@ -64,3 +64,17 @@
 - **CRITICAL:** run migrations + integration tests against real PostgreSQL.
 - **NEXT:** rate limiting on auth endpoints; profile editing (`PATCH /users/me`).
 - **LATER:** email verification, password reset, role/RBAC, "log out everywhere".
+
+
+## Vocabulary flashcards — 2026-11-10
+
+Completed: vocabulary audit, course-word catalog and filters, persistent owned flashcard sessions, completion and Roma handoff contract. Next: frontend category/flip/navigation integration; Roma test engine and XP; curated catalog import. A0 course model extension deferred for shared catalog coordination. Live PostgreSQL NOT VERIFIED.
+
+Validation: full pytest 293 passed / 15 skipped; expanded flashcard tests 7 passed,
+SQLite migration preservation 1 passed; Ruff, mypy, Alembic SQLite check/head,
+PostgreSQL offline SQL and diff whitespace check passed. Independent self-review
+completed. Final verification and one logical commit authorized by the follow-up
+request; no push.
+
+Final pre-commit checks: full pytest 297 passed / 15 skipped; Ruff, mypy,
+Alembic SQLite checks, PostgreSQL offline SQL and git diff --check passed.

@@ -468,3 +468,38 @@ class AIUsage(Base):
     reserved_tokens: Mapped[int] = mapped_column(Integer)
     usage: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class CourseVocabularyItem(Base):
+    """Shared curated vocabulary; CEFR is inherited from the existing course."""
+
+    __tablename__ = "course_vocabulary_items"
+    __table_args__ = (UniqueConstraint("course_id", "word", name="course_vocabulary_word_key"),)
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    course_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("courses.id", ondelete="CASCADE"), index=True
+    )
+    word: Mapped[str] = mapped_column(String(120))
+    translation: Mapped[str] = mapped_column(String(300))
+    example: Mapped[str] = mapped_column(String(1000), default="", server_default="")
+
+
+class FlashcardSession(Base):
+    """Owned immutable card snapshot; source IDs survive deletion of original words."""
+
+    __tablename__ = "vocabulary_flashcard_sessions"
+    __table_args__ = (
+        CheckConstraint("source IN ('my_words', 'course_words')", name="flashcard_source_check"),
+        CheckConstraint(
+            "status IN ('active', 'completed', 'empty')", name="flashcard_status_check"
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    source: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20))
+    cards: Mapped[list[dict]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

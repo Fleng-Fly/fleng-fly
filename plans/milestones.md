@@ -150,3 +150,10 @@ all session endpoints and trusted/untrusted Uvicorn forwarding behavior. Launche
 still overrides platform wildcard proxy trust. Next: deploy commit and verify real
 HTTPS registration/session rotation; public post-deploy validation is pending.
 Evidence: `docs/render-https-origin-403.md`.
+
+## Vocabulary backend — 2026-11-10
+
+Completed: David's course vocabulary, saved flashcard sets, ownership/completion,
+Roma handoff contract and backend verification. Next: frontend integration,
+Roma's grading/retries/XP and curated catalog content. A0 course support requires
+shared catalog coordination; live PostgreSQL NOT VERIFIED.

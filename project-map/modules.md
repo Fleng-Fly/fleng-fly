@@ -211,3 +211,8 @@ Alembic preserves existing application loggers. Preparation additionally checks
 foreign keys, now() and SQLite RETURNING support; schema/write checks remain.
 See `docs/render-sqlite-registration-diagnostics.md` for the live Render procedure
 and the distinction between local success and unconfirmed live causation.
+
+
+## Vocabulary flashcards — 2026-11-10
+
+Vocabulary now includes flashcards.py: curated CourseVocabularyItem reads, owned FlashcardSession snapshots and completed-set handoff helper. No grading/XP changes.

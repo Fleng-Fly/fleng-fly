@@ -9,8 +9,12 @@ from app.api.deps import get_current_user
 from app.db.models import User, VocabularyItem, VocabularyReview
 from app.db.session import get_db
 from app.modules.gamification.service import lock_learner
-from app.modules.vocabulary import service
+from app.modules.vocabulary import flashcards, service
 from app.modules.vocabulary.schemas import (
+    CefrLevel,
+    CourseWordResponse,
+    FlashcardCreate,
+    FlashcardResponse,
     ReviewRequest,
     ReviewResponse,
     VocabularyCreate,
@@ -20,6 +24,55 @@ from app.modules.vocabulary.schemas import (
 )
 
 router = APIRouter(prefix="/vocabulary", tags=["vocabulary"])
+
+
+@router.get("/course-words", response_model=list[CourseWordResponse])
+async def course_words(
+    course_id: UUID | None = Query(None, alias="courseId"),
+    level: CefrLevel | None = None,
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    query = await flashcards.course_query(db, course_id, level)
+    return (await db.scalars(query.limit(limit).offset(offset))).all()
+
+
+@router.post("/flashcards/sessions", response_model=FlashcardResponse, status_code=201)
+async def create_flashcards(
+    payload: FlashcardCreate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return flashcards.response(await flashcards.create(db, user.id, payload))
+
+
+@router.get("/flashcards/sessions/{session_id}", response_model=FlashcardResponse)
+async def get_flashcards(
+    session_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return flashcards.response(await flashcards.owned(db, user.id, session_id))
+
+
+@router.post("/flashcards/sessions/{session_id}/complete", response_model=FlashcardResponse)
+async def complete_flashcards(
+    session_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return flashcards.response(await flashcards.complete(db, user.id, session_id))
+
+
+@router.get("/flashcards/sessions/{session_id}/test-words", response_model=FlashcardResponse)
+async def flashcards_test_words(
+    session_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await flashcards.words_for_test(db, user.id, session_id)
 
 
 @router.get("/stats", response_model=VocabularyStatsResponse)

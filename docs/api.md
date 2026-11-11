@@ -329,3 +329,8 @@ Full contracts and streaming lifecycle: [AI](ai.md).
   informational. Streak uses existing LearningActivity and learning timezone.
 - `GET /api/v1/health/ready` is public: 200 for a reachable DB, 503 on failure or
   five-second timeout; same response fields as `/health`. No schema-version check.
+
+
+## Vocabulary flashcards — 2026-11-10
+
+Vocabulary flashcards API: authenticated course words and persistent flashcard sessions; full routes, errors and handoff contract in [vocabulary-flashcards-api.md](vocabulary-flashcards-api.md).

@@ -246,3 +246,8 @@ No forwarded header creates an allowlist entry. `run.py` still explicitly disabl
 proxy headers with empty TRUSTED_PROXY_IPS, overriding Render's Python
 FORWARDED_ALLOW_IPS=* default. Configured trusted peers alone may supply scheme/IP;
 Uvicorn ignores X-Forwarded-Host. DB/JWT/AI/learning flows are unchanged.
+
+
+## Vocabulary flashcards — 2026-11-10
+
+JWT user → own VocabularyItem OR published CourseVocabularyItem → at most 10 DB words → owned persisted FlashcardSession snapshot → owner completion → testReady + test-words → future Roma testing service. No XP/progress/review writes.

@@ -199,3 +199,8 @@ Existing `/ai/chat`, `/ai/chat/stream`, `/ai/explain`, `/ai/generate-exercise`
 request schemas now reject unknown fields (422); user ID, system prompts, model
 selection and arbitrary context are not accepted. Existing endpoints and response
 shapes remain; no public AI API. `AI_MAX_INPUT_TOKENS` bounds assembled server prompts.
+
+
+## Vocabulary flashcards — 2026-11-10
+
+Vocabulary: GET /vocabulary/course-words; POST /vocabulary/flashcards/sessions; GET /vocabulary/flashcards/sessions/{sessionId}; POST .../{sessionId}/complete; GET .../{sessionId}/test-words. All Bearer-protected. Contract: ../docs/vocabulary-flashcards-api.md.
