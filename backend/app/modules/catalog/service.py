@@ -39,7 +39,9 @@ def _lesson_summary(lesson: Lesson) -> LessonSummaryResponse:
     )
 
 
-async def list_published_courses(db: AsyncSession) -> list[CourseSummaryResponse]:
+async def list_published_courses(
+    db: AsyncSession, *, level: str | None = None
+) -> list[CourseSummaryResponse]:
     """Published courses ordered by `position`, with a count of published lessons."""
     lesson_count = func.count(Lesson.id)
     statement = (
@@ -52,6 +54,8 @@ async def list_published_courses(db: AsyncSession) -> list[CourseSummaryResponse
         .group_by(Course.id)
         .order_by(Course.position, Course.title)
     )
+    if level is not None:
+        statement = statement.where(Course.level == level)
     rows = (await db.execute(statement)).all()
     return [
         CourseSummaryResponse(

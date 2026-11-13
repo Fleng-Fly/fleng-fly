@@ -4,10 +4,11 @@ Missing and unpublished resources both return the same `404 NOT_FOUND` so the
 API never reveals the existence of draft content.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ApiError
+from app.core.levels import LearningLevel
 from app.db.session import get_db
 from app.modules.catalog import service
 from app.modules.catalog.schemas import (
@@ -25,9 +26,11 @@ def _not_found(message: str) -> ApiError:
 
 
 @router.get("/courses", response_model=list[CourseSummaryResponse])
-async def list_courses(db: AsyncSession = Depends(get_db)) -> list[CourseSummaryResponse]:
+async def list_courses(
+    level: LearningLevel | None = Query(None), db: AsyncSession = Depends(get_db)
+) -> list[CourseSummaryResponse]:
     """List published courses ordered by position."""
-    return await service.list_published_courses(db)
+    return await service.list_published_courses(db, level=level)
 
 
 @router.get("/courses/{slug}", response_model=CourseDetailResponse)

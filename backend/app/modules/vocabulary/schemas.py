@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import ConfigDict, Field, field_validator
 
+from app.core.levels import LearningLevel
 from app.core.schemas import CamelModel
 
 
@@ -47,7 +48,7 @@ class ReviewResponse(CamelModel):
 
 
 # Use the repository's camelCase JSON convention, accepting snake_case on input.
-CefrLevel = Literal["A0", "A1", "A2", "B1", "B2", "C1", "C2"]
+CefrLevel = LearningLevel
 
 
 class FlashcardCreate(CamelModel):

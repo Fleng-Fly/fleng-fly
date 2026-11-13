@@ -6,6 +6,7 @@ timestamps or any internal bookkeeping.
 
 from uuid import UUID
 
+from app.core.levels import LearningLevel
 from app.core.schemas import CamelModel
 from app.modules.exercises.schemas import ExercisePublicResponse
 
@@ -17,7 +18,7 @@ class CourseSummaryResponse(CamelModel):
     slug: str
     title: str
     description: str
-    level: str
+    level: LearningLevel
     lesson_count: int
 
 
@@ -39,7 +40,7 @@ class CourseDetailResponse(CamelModel):
     slug: str
     title: str
     description: str
-    level: str
+    level: LearningLevel
     lessons: list[LessonSummaryResponse]
 
 
@@ -55,5 +56,5 @@ class LessonDetailResponse(CamelModel):
     estimated_minutes: int
     course_slug: str
     course_title: str
-    level: str
+    level: LearningLevel
     exercises: list[ExercisePublicResponse]

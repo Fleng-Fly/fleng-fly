@@ -4,9 +4,10 @@ from uuid import UUID
 
 from pydantic import ConfigDict, Field, model_validator
 
+from app.core.levels import LearningLevel
 from app.core.schemas import CamelModel
 
-Level = Literal["A1", "A2", "B1", "B2", "C1", "C2"]
+Level = LearningLevel
 
 
 class ChatRequest(CamelModel):

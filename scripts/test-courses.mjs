@@ -108,7 +108,7 @@ async function page(name, options = {}) {
     },
   };
   const filters = document.getElementById('course-filters');
-  for (const level of ['All', 'A1', 'A2', 'B1', 'B2']) {
+  for (const level of ['All', 'A0', 'A1', 'A2', 'B1', 'B2']) {
     const button = new Node('button');
     button.dataset.level = level;
     filters.append(button);
@@ -124,7 +124,7 @@ async function page(name, options = {}) {
     })),
   };
   const api = {
-    listCourses: async () => (options.empty ? [] : catalog),
+    listCourses: async () => (options.empty ? [] : options.catalog ?? catalog),
     getMyProgress: async () => {
       if (failure) throw failure;
       reads.push('progress');
@@ -216,9 +216,10 @@ test('catalog combines case-insensitive title/description search and CEFR; clear
   assert.match(p.get('courses-body').textContent, /English Foundations/);
   assert.doesNotMatch(p.get('courses-body').textContent, /Everyday Conversations/);
   const filters = p.get('course-filters');
-  filters.events.click({ target: filters.children[3] });
+  const b1Filter = filters.children.find((button) => button.dataset.level === 'B1');
+  filters.events.click({ target: b1Filter });
   assert.match(p.get('courses-body').textContent, /No courses found/);
-  assert.equal(filters.children[3].attributes['aria-pressed'], 'true');
+  assert.equal(b1Filter.attributes['aria-pressed'], 'true');
   p.get('course-search-clear').events.click();
   assert.match(p.get('courses-body').textContent, /Everyday Conversations/);
   search.value = 'nothing';
@@ -290,4 +291,17 @@ test('both pages guard unauthenticated sessions and redirect expired sessions', 
     const expired = await page(name, { failure: { status: 401 } });
     assert.equal(expired.window.redirect, '/login.html');
   }
+});
+
+
+test('A0 uses the existing level filter and unchanged course links', async () => {
+  const a0 = { ...catalog[0], id: 'a0', slug: 'fleng-a0', title: 'Absolute Beginner', level: 'A0' };
+  const progress = { courses: [{ courseId: 'a0', lessonsTotal: 10, lessonsStarted: 0, lessonsCompleted: 0 }] };
+  const p = await page('courses', { catalog: [a0], progress });
+  const filters = p.get('course-filters');
+  const a0Filter = filters.children.find((button) => button.dataset.level === 'A0');
+  filters.events.click({ target: a0Filter });
+  assert.match(p.get('courses-body').textContent, /Absolute Beginner/);
+  assert.equal(p.get('courses-body').querySelectorAll('a')[0].href, '/course.html?slug=fleng-a0');
+  assert.equal(a0Filter.attributes['aria-pressed'], 'true');
 });

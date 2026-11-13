@@ -27,6 +27,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.levels import LearningLevel
 from app.db.base import Base
 
 EXERCISE_TYPES = ("single_choice", "text", "self_check")
@@ -152,14 +153,14 @@ class RefreshToken(Base):
 class Course(Base):
     """A learning track. `slug` is stable and globally unique.
 
-    `level` is one of the CEFR bands (A1–C2), enforced by a check constraint.
+    `level` accepts Fleng introductory A0 and CEFR A1–C2.
     Only `is_published` courses are exposed by the API.
     """
 
     __tablename__ = "courses"
     __table_args__ = (
         CheckConstraint(
-            "level IN ('A1', 'A2', 'B1', 'B2', 'C1', 'C2')",
+            "level IN ('A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2')",
             name="courses_level_check",
         ),
     )
@@ -168,7 +169,7 @@ class Course(Base):
     slug: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    level: Mapped[str] = mapped_column(String(2), nullable=False)
+    level: Mapped[LearningLevel] = mapped_column(String(2), nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     is_published: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default=false(), nullable=False
@@ -471,7 +472,7 @@ class AIUsage(Base):
 
 
 class CourseVocabularyItem(Base):
-    """Shared curated vocabulary; CEFR is inherited from the existing course."""
+    """Shared curated vocabulary; learning level is inherited from its course."""
 
     __tablename__ = "course_vocabulary_items"
     __table_args__ = (UniqueConstraint("course_id", "word", name="course_vocabulary_word_key"),)

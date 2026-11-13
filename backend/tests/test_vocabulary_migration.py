@@ -15,7 +15,7 @@ def test_vocabulary_migration_preserves_personal_words(tmp_path):
     config.set_main_option("script_location", str(root / "alembic"))
     engine = create_engine(f"sqlite:///{tmp_path / 'migration.db'}")
     user_id, word_id = uuid.uuid4().hex, uuid.uuid4().hex
-    with engine.begin() as connection:
+    with engine.connect() as connection:
         config.attributes["connection"] = connection
         command.upgrade(config, "20261101_1200")
         connection.execute(
@@ -35,6 +35,7 @@ def test_vocabulary_migration_preserves_personal_words(tmp_path):
             {"id": word_id, "owner": user_id},
         )
         for target in ["head", "20261101_1200", "head"]:
+            connection.commit()
             if target == "head":
                 command.upgrade(config, target)
             else:

@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.core.levels import LEARNING_LEVELS
 from app.db.models import Course, Exercise, Lesson
 from app.db.session import SessionLocal
 
@@ -453,6 +454,8 @@ SEED_COURSES: list[dict] = [
 
 async def seed_catalog(db: AsyncSession) -> None:
     """Create or update the seed catalog. Safe to call repeatedly."""
+    if any(c["level"] not in LEARNING_LEVELS for c in SEED_COURSES):
+        raise ValueError("Invalid seed learning level")
     for course_spec in SEED_COURSES:
         course = await db.scalar(select(Course).where(Course.slug == course_spec["slug"]))
         if course is None:
