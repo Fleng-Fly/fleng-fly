@@ -1,13 +1,14 @@
 """Read-only catalog access: published courses and their published lessons.
 
-Unpublished content is never returned; callers translate `None` into a `404`
-that does not reveal whether the resource exists. There are no writes here —
-content is managed through seed data / operations, not the public API.
+Normal/public callers never receive unpublished content and translate `None`
+into a non-revealing `404`. Only the separate authenticated local preview router
+passes include_drafts=True, against its prepared isolated database. There are no
+writes here; content is managed through seed/import operations.
 """
 
 from dataclasses import dataclass
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Course, Lesson
@@ -40,7 +41,7 @@ def _lesson_summary(lesson: Lesson) -> LessonSummaryResponse:
 
 
 async def list_published_courses(
-    db: AsyncSession, *, level: str | None = None
+    db: AsyncSession, *, level: str | None = None, include_drafts: bool = False
 ) -> list[CourseSummaryResponse]:
     """Published courses ordered by `position`, with a count of published lessons."""
     lesson_count = func.count(Lesson.id)
@@ -48,9 +49,12 @@ async def list_published_courses(
         select(Course, lesson_count)
         .outerjoin(
             Lesson,
-            and_(Lesson.course_id == Course.id, Lesson.is_published.is_(True)),
+            and_(
+                Lesson.course_id == Course.id,
+                (true() if include_drafts else Lesson.is_published.is_(True)),
+            ),
         )
-        .where(Course.is_published.is_(True))
+        .where(true() if include_drafts else Course.is_published.is_(True))
         .group_by(Course.id)
         .order_by(Course.position, Course.title)
     )
@@ -70,10 +74,14 @@ async def list_published_courses(
     ]
 
 
-async def get_published_course(db: AsyncSession, slug: str) -> CourseWithLessons | None:
+async def get_published_course(
+    db: AsyncSession, slug: str, *, include_drafts: bool = False
+) -> CourseWithLessons | None:
     """Return a published course and its published lessons, or `None`."""
     course = await db.scalar(
-        select(Course).where(Course.slug == slug, Course.is_published.is_(True))
+        select(Course).where(
+            Course.slug == slug, (true() if include_drafts else Course.is_published.is_(True))
+        )
     )
     if course is None:
         return None
@@ -81,7 +89,10 @@ async def get_published_course(db: AsyncSession, slug: str) -> CourseWithLessons
         (
             await db.execute(
                 select(Lesson)
-                .where(Lesson.course_id == course.id, Lesson.is_published.is_(True))
+                .where(
+                    Lesson.course_id == course.id,
+                    (true() if include_drafts else Lesson.is_published.is_(True)),
+                )
                 .order_by(Lesson.position, Lesson.title)
             )
         )
@@ -103,7 +114,9 @@ def to_course_detail(result: CourseWithLessons) -> CourseDetailResponse:
     )
 
 
-async def get_published_lesson(db: AsyncSession, slug: str) -> tuple[Lesson, Course] | None:
+async def get_published_lesson(
+    db: AsyncSession, slug: str, *, include_drafts: bool = False
+) -> tuple[Lesson, Course] | None:
     """Return a published lesson of a published course, or `None`."""
     row = (
         await db.execute(
@@ -111,8 +124,8 @@ async def get_published_lesson(db: AsyncSession, slug: str) -> tuple[Lesson, Cou
             .join(Course, Lesson.course_id == Course.id)
             .where(
                 Lesson.slug == slug,
-                Lesson.is_published.is_(True),
-                Course.is_published.is_(True),
+                (true() if include_drafts else Lesson.is_published.is_(True)),
+                (true() if include_drafts else Course.is_published.is_(True)),
             )
         )
     ).first()

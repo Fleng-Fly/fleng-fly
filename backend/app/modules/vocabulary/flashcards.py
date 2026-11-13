@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import select, true, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ApiError
@@ -11,16 +11,25 @@ from app.db.models import Course, CourseVocabularyItem, FlashcardSession, Vocabu
 from app.modules.vocabulary.schemas import FlashcardCreate, FlashcardResponse
 
 
-async def course_query(db: AsyncSession, course_id: UUID | None, level: str | None):
+async def course_query(
+    db: AsyncSession, course_id: UUID | None, level: str | None, *, include_drafts: bool = False
+):
     if (
         course_id is not None
         and await db.scalar(
-            select(Course.id).where(Course.id == course_id, Course.is_published.is_(True))
+            select(Course.id).where(
+                Course.id == course_id,
+                (true() if include_drafts else Course.is_published.is_(True)),
+            )
         )
         is None
     ):
         raise ApiError(404, "NOT_FOUND", "Course not found")
-    query = select(CourseVocabularyItem).join(Course).where(Course.is_published.is_(True))
+    query = (
+        select(CourseVocabularyItem)
+        .join(Course)
+        .where(true() if include_drafts else Course.is_published.is_(True))
+    )
     if course_id is not None:
         query = query.where(Course.id == course_id)
     if level is not None:

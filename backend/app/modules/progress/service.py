@@ -8,7 +8,7 @@ counters (`exercises_completed`, per-course progress) are computed from
 
 from uuid import UUID
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Course, ExerciseSubmission, Lesson, LessonProgress, Progress
@@ -41,7 +41,9 @@ async def count_completed_exercises(db: AsyncSession, user_id: UUID) -> int:
     return int(count or 0)
 
 
-async def list_course_progress(db: AsyncSession, user_id: UUID) -> list[CourseProgressResponse]:
+async def list_course_progress(
+    db: AsyncSession, user_id: UUID, *, include_drafts: bool = False
+) -> list[CourseProgressResponse]:
     """Published courses with lesson totals and the caller's started/completed lessons."""
     statement = (
         select(
@@ -52,7 +54,10 @@ async def list_course_progress(db: AsyncSession, user_id: UUID) -> list[CoursePr
         )
         .outerjoin(
             Lesson,
-            and_(Lesson.course_id == Course.id, Lesson.is_published.is_(True)),
+            and_(
+                Lesson.course_id == Course.id,
+                (true() if include_drafts else Lesson.is_published.is_(True)),
+            ),
         )
         .outerjoin(
             LessonProgress,
@@ -61,7 +66,7 @@ async def list_course_progress(db: AsyncSession, user_id: UUID) -> list[CoursePr
                 LessonProgress.user_id == user_id,
             ),
         )
-        .where(Course.is_published.is_(True))
+        .where(true() if include_drafts else Course.is_published.is_(True))
         .group_by(Course.id)
         .order_by(Course.position, Course.title)
     )
@@ -81,10 +86,15 @@ async def list_course_progress(db: AsyncSession, user_id: UUID) -> list[CoursePr
 
 
 async def to_progress_response(
-    db: AsyncSession, *, user_id: UUID, progress: Progress | None, xp: int
+    db: AsyncSession,
+    *,
+    user_id: UUID,
+    progress: Progress | None,
+    xp: int,
+    include_drafts: bool = False,
 ) -> ProgressResponse:
     exercises_completed = await count_completed_exercises(db, user_id)
-    courses = await list_course_progress(db, user_id)
+    courses = await list_course_progress(db, user_id, include_drafts=include_drafts)
     if progress is None:
         # Safety net for accounts created before registration seeded progress.
         return ProgressResponse(

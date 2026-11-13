@@ -1,0 +1,1232 @@
+{
+  "browser": "159.0.1",
+  "checks": [
+    {
+      "page": "courses",
+      "viewport": "desktop",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0",
+      "viewport": "desktop",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-classroom",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-letters",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-hello",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-numbers",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-objects",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-people",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-describing",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-where",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-questions",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-first-day",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-first-day",
+      "viewport": "desktop",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1",
+      "viewport": "desktop",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-possessions",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-routines",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-routine-questions",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-time",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-town",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-food",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-abilities",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-right-now",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-likes",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-yesterday",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-yesterday",
+      "viewport": "desktop",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2",
+      "viewport": "desktop",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-past-actions",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-comparisons",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-plans",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-experiences",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-health",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-directions",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-background",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-conditions",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-descriptions",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-travel-problem",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-travel-problem",
+      "viewport": "desktop",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1",
+      "viewport": "desktop",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-lasting-change",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-ongoing-effort",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-story-order",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-future-options",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-hypothetical",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-processes",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-reporting",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-choices",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-deduction",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-opinion",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-opinion",
+      "viewport": "desktop",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2",
+      "viewport": "desktop",
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-future-milestones",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-regret",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-wish",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-reported-questions",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-modal-past",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-complex-nouns",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-stance",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-concession",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-formal-email",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-synthesis",
+      "viewport": "desktop",
+      "theory": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-synthesis",
+      "viewport": "desktop",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1428,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "courses",
+      "viewport": "mobile",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0",
+      "viewport": "mobile",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-classroom",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-letters",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-hello",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-numbers",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-objects",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-people",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-describing",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-where",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-questions",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-first-day",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a0-first-day",
+      "viewport": "mobile",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1",
+      "viewport": "mobile",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-possessions",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-routines",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-routine-questions",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-time",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-town",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-food",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-abilities",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-right-now",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-likes",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-yesterday",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a1-yesterday",
+      "viewport": "mobile",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2",
+      "viewport": "mobile",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-past-actions",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-comparisons",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-plans",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-experiences",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-health",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-directions",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-background",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-conditions",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-descriptions",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-travel-problem",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-a2-travel-problem",
+      "viewport": "mobile",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1",
+      "viewport": "mobile",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-lasting-change",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-ongoing-effort",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-story-order",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-future-options",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-hypothetical",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-processes",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-reporting",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-choices",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-deduction",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-opinion",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b1-opinion",
+      "viewport": "mobile",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2",
+      "viewport": "mobile",
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-future-milestones",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-regret",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-wish",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-reported-questions",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-modal-past",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-complex-nouns",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-stance",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-concession",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-formal-email",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-synthesis",
+      "viewport": "mobile",
+      "theory": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    },
+    {
+      "page": "fleng-b2-synthesis",
+      "viewport": "mobile",
+      "exercise_ui_correct": true,
+      "layout": {
+        "width": 390,
+        "scrollWidth": 378,
+        "replacementCharacter": false
+      }
+    }
+  ],
+  "screenshots": [
+    "course-a0-desktop.png",
+    "course-a0-mobile.png",
+    "courses-desktop.png",
+    "courses-mobile.png",
+    "exercise-b2-desktop.png",
+    "exercise-b2-mobile.png",
+    "fleng-a0-theory-desktop.png",
+    "fleng-a0-theory-mobile.png",
+    "fleng-a1-theory-desktop.png",
+    "fleng-a1-theory-mobile.png",
+    "fleng-a2-theory-desktop.png",
+    "fleng-a2-theory-mobile.png",
+    "fleng-b1-theory-desktop.png",
+    "fleng-b1-theory-mobile.png",
+    "fleng-b2-theory-desktop.png",
+    "fleng-b2-theory-mobile.png"
+  ],
+  "failures": []
+}

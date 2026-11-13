@@ -21,7 +21,7 @@ from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID
 
-from sqlalchemy import CursorResult, func, select, update
+from sqlalchemy import CursorResult, func, select, true, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ApiError
@@ -53,7 +53,9 @@ def _invalid(message: str) -> ApiError:
     return ApiError(422, "INVALID_ANSWER", message)
 
 
-async def get_published_lesson(db: AsyncSession, slug: str) -> tuple[Lesson, Course] | None:
+async def get_published_lesson(
+    db: AsyncSession, slug: str, *, include_drafts: bool = False
+) -> tuple[Lesson, Course] | None:
     """Return a published lesson of a published course, or `None`."""
     row = (
         await db.execute(
@@ -61,8 +63,8 @@ async def get_published_lesson(db: AsyncSession, slug: str) -> tuple[Lesson, Cou
             .join(Course, Lesson.course_id == Course.id)
             .where(
                 Lesson.slug == slug,
-                Lesson.is_published.is_(True),
-                Course.is_published.is_(True),
+                (true() if include_drafts else Lesson.is_published.is_(True)),
+                (true() if include_drafts else Course.is_published.is_(True)),
             )
         )
     ).first()
@@ -72,8 +74,10 @@ async def get_published_lesson(db: AsyncSession, slug: str) -> tuple[Lesson, Cou
     return lesson, course
 
 
-async def get_lesson_or_404(db: AsyncSession, slug: str) -> tuple[Lesson, Course]:
-    result = await get_published_lesson(db, slug)
+async def get_lesson_or_404(
+    db: AsyncSession, slug: str, *, include_drafts: bool = False
+) -> tuple[Lesson, Course]:
+    result = await get_published_lesson(db, slug, include_drafts=include_drafts)
     if result is None:
         raise _not_found("Lesson not found")
     return result

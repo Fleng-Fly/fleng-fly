@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -43,7 +43,7 @@ async def lifespan(_app: FastAPI):
     logger.info("Fleng API stopped")
 
 
-def create_app() -> FastAPI:
+def create_app(*, local_preview_router: APIRouter | None = None) -> FastAPI:
     settings = get_settings()
     app = FastAPI(title="Fleng API", version="0.1.0", lifespan=lifespan)
 
@@ -56,6 +56,10 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(BodyLimitMiddleware, max_bytes=settings.http_max_body_bytes)
     register_exception_handlers(app)
+    if local_preview_router is not None:
+        if settings.app_env != "development":
+            raise RuntimeError("Local preview routes require development mode")
+        app.include_router(local_preview_router, prefix="/api/v1")
     app.include_router(api_router, prefix="/api/v1")
 
     # Keep unknown `/api/*` paths on the JSON error envelope: without this they
