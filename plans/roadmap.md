@@ -275,3 +275,35 @@ Evidence and safe procedure: `docs/render-sqlite-registration-diagnostics.md`.
 ## Vocabulary flashcards — 2026-11-10
 
 Vocabulary backend completed: categories, saved sets up to 10, owner completion and test handoff. Frontend integration and Roma testing/XP remain next; shared A0 course support deferred. See docs/vocabulary-flashcards-api.md.
+
+
+## A0–B2 curriculum — 2026-11-10
+
+Completed: A0 backend + existing-filter button; 50-lesson A0–B2 draft and read-only validation/explicit import. Earlier A0 deferral is resolved. Next: editorial review, audio/production-skill coverage and separately approved release. Draft is not a CEFR certification syllabus; no production seed or publication performed.
+
+## Curriculum verification pipeline — 2026-11-11
+
+- **Completed:** offline validator, real grader probes, per-word review statuses,
+  provenance-aware local Wiktextract/Tatoeba adapters, JSON/Markdown reports,
+  separate SHA-guarded normalization copies, opt-in bounded AI review, offline tests.
+- **Completed:** audit of five drafts (50 lessons / 500 words / 400 exercises).
+  Structural success does not mean linguistic verification or publication approval.
+- **Needs external evidence:** reviewed source exports and record licensing;
+  current run attests/verifies zero words externally. No paid AI or DB writes.
+- **Next:** teacher/translator review of all lessons/words and flagged conditional
+  items, source-cache enrichment, sense/POS/morphology and productive-skill coverage,
+  then separately approved exact-SHA release. No commit/push per user instruction.
+
+## Curriculum visual review — 2026-11-11
+
+- **Completed:** isolated private SQLite preparation through existing draft import;
+  reviewer-only loopback preview using existing Courses/Course/Lessons pages;
+  ordinary API continues to hide drafts and published flags remain false.
+- **Completed:** all five courses / 50 lessons / 500 words / 400 exercises checked
+  over HTTP; Firefox desktop/mobile pass, 122 checks and 16 screenshots; full
+  pytest 375 passed/15 skipped, final targeted preview 13 passed, DOM 7 passed.
+- **Completed:** launch/cleanup instructions and security self-review. No frontend
+  redesign, grader/XP change, production write, commit or push.
+- **Next:** teacher/translator editorial review and separate release approval.
+  Existing UX: Vocabulary tab is personal words, initial tab is Test, floating
+  AI launcher can overlap mobile text. See docs/curriculum-visual-review.md.

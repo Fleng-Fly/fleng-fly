@@ -24,10 +24,10 @@ words with `strip().casefold()` before insertion, reject blank values and respec
 120/300/1000 length limits; no public catalog-write API or invented seed content
 is included. Catalog starts empty. Identical words in different courses are valid.
 
-Course's existing CHECK accepts A1–C2 only. A0 is accepted as a vocabulary filter
-and returns empty; it is not silently mapped to A1. Minimal future A0 support
-requires a separate migration extending `courses_level_check` and coordination
-with course/profile/filter consumers. This task preserves that shared model.
+Course accepts Fleng introductory A0 and CEFR A1–C2 after migration
+`20261110_1400`. A0 is an internal label, not an official CEFR band.
+Filters return published course words at that level; unpublished curriculum
+remains hidden. See [curriculum-a0-b2.md](curriculum-a0-b2.md).
 
 Persistent `FlashcardSession` stores JWT owner, source, status, immutable JSON
 snapshot (real original word UUIDs plus database text), timestamps. JSON is a
@@ -115,7 +115,7 @@ personal vocabulary; unpublished course words are excluded.
 - 401: missing/invalid access JWT, existing auth dependency.
 - 404: nonexistent/unpublished course or unknown/foreign session.
 - 409: test-words requested before completed.
-- 422: invalid UUID, CEFR outside A0–C2, source, pagination or extra POST fields,
+- 422: invalid UUID, learning level outside A0–C2, source, pagination or extra POST fields,
   following existing FastAPI validation conventions.
 
 No new 403 branch is necessary. Viewing translations is expected for flashcards;

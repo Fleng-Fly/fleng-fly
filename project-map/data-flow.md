@@ -251,3 +251,31 @@ Uvicorn ignores X-Forwarded-Host. DB/JWT/AI/learning flows are unchanged.
 ## Vocabulary flashcards — 2026-11-10
 
 JWT user → own VocabularyItem OR published CourseVocabularyItem → at most 10 DB words → owned persisted FlashcardSession snapshot → owner completion → testReady + test-words → future Roma testing service. No XP/progress/review writes.
+
+
+## A0–B2 curriculum — 2026-11-10
+
+Versioned draft JSON → Pydantic structural validation/prerequisites → default DB dry-run → explicit draft import → human review + exact SHA acknowledgement → explicit publication in review DB → existing catalog/lesson/vocabulary APIs. No automatic startup import, production CLI writes or user/progress mutations.
+
+## Curriculum QA — 2026-11-11
+
+Existing draft bytes/SHA → existing Pydantic importer schemas + raw normalization
+checks + actual single-choice grader probes → local source cache/provenance
+(optional, never automatic downloads) → structural/linguistic JSON + Markdown.
+Official local exports → explicit license-reviewed projection → private evidence
+JSONL + input-hash manifest. Optional explicit AI opt-in → bounded existing
+OpenRouter transport → human-review-only findings. Explicit safe-fix operation
+requires source SHA → revalidated separate draft snapshot + diff; original and
+publication workflow remain untouched. No database/progress/XP writes in QA.
+
+## Local draft visual review — 2026-11-11
+
+Fresh private /tmp directory → explicit isolated SQLite URL → Alembic + legacy
+seed + existing unpublished curriculum import → new reviewer + private marker.
+Dedicated loopback preview factory → standard login/JWT + reviewer UUID check →
+existing Courses/Lessons JS → preview catalog/lesson/progress/dictionary read
+wrappers → unchanged learning services (writes only to reviewer's isolated DB).
+Normal app uses published-only defaults. QA UI submissions use a second database;
+the prepared primary preview starts with zero learner progress. No publication,
+production access or copy of personal accounts. Cleanup removes dedicated /tmp
+folders after stopping their servers; repository screenshots remain available.

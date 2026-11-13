@@ -51,3 +51,5 @@ notifications, analytics, deployments.
 
 > Environment note: migrations were verified offline (`pnpm db:sql`); applying
 > them to a real PostgreSQL and running DB integration tests remain tasks.
+
+Developer documentation navigation and source authority: [documentation map](documentation.md).

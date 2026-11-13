@@ -25,7 +25,7 @@ in `backend/app/db/models.py`):
   `ON DELETE CASCADE`), `lessons_started`, `lessons_completed`, `study_minutes`,
   `last_activity_at`, `created_at`, `updated_at`.
 - **`Course`** (`courses`) — `id` (UUID PK), `slug` (unique), `title`,
-  `description`, `level` (CEFR `A1`–`C2`, check constraint), `position`,
+  `description`, `level` (Fleng introductory `A0` or CEFR `A1`–`C2`, check constraint), `position`,
   `is_published` (default false), `created_at`, `updated_at`.
 - **`Lesson`** (`lessons`) — `id` (UUID PK), `course_id` (FK → `courses`,
   `ON DELETE CASCADE`, indexed), `slug` (unique, global), `title`, `summary`,
@@ -121,7 +121,7 @@ lives in the client's HttpOnly cookie.
 
 | Entity               | Owner     | Key fields                                                                                                                                                  | Status         |
 | -------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| `Course`             | catalog   | `id`, `slug` (unique), `title`, `description`, `level` (`A1`–`C2`), `position`, `isPublished`                                                               | 🟢 implemented |
+| `Course`             | catalog   | `id`, `slug` (unique), `title`, `description`, `level` (introductory `A0`, CEFR `A1`–`C2`), `position`, `isPublished`                                                               | 🟢 implemented |
 | `Lesson`             | catalog   | `id`, `courseId` FK, `slug` (unique, global), `title`, `summary`, `theory`, `position`, `estimatedMinutes`, `isPublished`                                   | 🟢 implemented |
 | `Exercise`           | exercises | `id`, `lessonId` FK, `slug` (unique), `type`, `prompt`, `points`, `options`, `correctOptionId`, `acceptedAnswers`, `modelAnswer`, `explanation`, `position` | 🟢 implemented |
 | `ExerciseSubmission` | exercises | `id`, `userId` FK, `exerciseId` FK (unique per user), `answer`, `isCorrect`, `completed`, `xpAwarded`, `attempts`, `submittedAt`                            | 🟢 implemented |
@@ -315,3 +315,11 @@ There are no additional conversation/message tables.
 ## Vocabulary flashcards — 2026-11-10
 
 Added course_vocabulary_items (course FK, unique course/word) and vocabulary_flashcard_sessions (owner FK, source/status, immutable JSON card snapshot, timestamps), migration 20261110_1200. Personal vocabulary is unchanged. See vocabulary-flashcards-api.md.
+
+
+## Introductory A0 and curriculum
+
+Migration `20261110_1400` extends the course-level CHECK; SQLite batch rebuild
+preserves dependent rows with FK cascades temporarily disabled. No content or
+user data is inserted by the migration. Optional draft curriculum uses existing
+Course/Lesson/Exercise/CourseVocabularyItem tables; see [curriculum](curriculum-a0-b2.md).

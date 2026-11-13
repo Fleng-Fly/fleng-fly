@@ -1,5 +1,7 @@
 # Fleng
 
+Developer documentation: [complete guide](docs/README.md), including API contracts, database, learning/curriculum, security and deployment.
+
 Fleng is an English-learning web platform with structured courses, graded
 exercises, personal vocabulary, learning progress and an AI tutor API.
 

@@ -157,3 +157,27 @@ Completed: David's course vocabulary, saved flashcard sets, ownership/completion
 Roma handoff contract and backend verification. Next: frontend integration,
 Roma's grading/retries/XP and curated catalog content. A0 course support requires
 shared catalog coordination; live PostgreSQL NOT VERIFIED.
+
+
+## A0–B2 curriculum — 2026-11-10
+
+Completed: A0 migration and full A0–B2 draft content/seed validation. Earlier A0 prerequisite is resolved. Pending: human content approval and production promotion; existing legacy content is retained. See docs/curriculum-a0-b2.md and docs/curriculum-content-quality.md.
+
+## Curriculum validator — 2026-11-11
+
+Completed: reusable offline CLI, source preparation adapters, per-item evidence,
+JSON/Markdown artifacts, safe normalization snapshots, mocked bounded AI review
+and automated regressions. Five draft courses audited; production untouched.
+External linguistic confirmation remains pending (no local reviewed dataset),
+as do teacher/translator sign-off and separate publication approval.
+Implementation/limits: `docs/curriculum-validator.md`; snapshot findings:
+`docs/curriculum-validation-report.md`.
+
+## Local draft preview — 2026-11-11
+
+Completed: controlled local preview of all five unpublished A0–B2 courses using a
+separate private SQLite and new reviewer, source-backed existing pages and normal
+authentication. Desktop/mobile Firefox artifacts recorded; source publication and
+main user DB unaffected. Primary reviewer remains at zero XP/lesson progress;
+UI interaction QA used a second database. Next: pedagogical/translation review,
+then separately authorized publication. Evidence: docs/curriculum-visual-review.md.

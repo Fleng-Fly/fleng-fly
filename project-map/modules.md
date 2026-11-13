@@ -216,3 +216,30 @@ and the distinction between local success and unconfirmed live causation.
 ## Vocabulary flashcards — 2026-11-10
 
 Vocabulary now includes flashcards.py: curated CourseVocabularyItem reads, owned FlashcardSession snapshots and completed-set handoff helper. No grading/XP changes.
+
+
+## A0–B2 curriculum — 2026-11-10
+
+`core/levels.py` centralizes Fleng A0 + CEFR A1–C2. `db/curriculum.py` validates packaged `db/content/curriculum-a0-b2.json` and preflights explicit draft/reviewed imports into existing models. No provider calls or test engine. Migration 20261110_1400 extends Course CHECK.
+
+## Curriculum verification — 2026-11-11
+
+`services/curriculum_validation/` audits the existing draft JSON through importer
+schemas and the real objective grader; it never opens a DB or imports/publishes.
+Local licensed evidence adapters, provenance/issue reports, SHA-guarded separate
+draft normalization and opt-in bounded existing OpenRouter transport are owned
+here. Entry points: `scripts/validate_curriculum.py` and
+`scripts/prepare_curriculum_sources.py`. No new endpoint/table/frontend dependency.
+See `docs/curriculum-validator.md`, source licenses and generated quality report.
+
+## Local curriculum visual preview — 2026-11-11
+
+`app/preview.py` is a separate development-only app factory over private prepared
+SQLite + marker, with loopback/Host guards and normal JWT authentication restricted
+to one reviewer UUID. `scripts/preview_curriculum.py` exclusively prepares/starts
+that database through existing migrations/seed/draft import. Catalog, lesson
+resolution, progress reads and course-word selection accept an internal
+`include_drafts=False` keyword; only preview wrappers opt in. Standard routes and
+publication flags remain unchanged; grading/XP services are reused.
+`review_curriculum_browser.py` provides optional real Firefox BiDi screenshots.
+See `docs/curriculum-visual-review.md` and `reports/curriculum-preview/`.

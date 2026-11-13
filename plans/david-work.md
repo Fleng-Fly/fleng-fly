@@ -78,3 +78,13 @@ request; no push.
 
 Final pre-commit checks: full pytest 297 passed / 15 skipped; Ruff, mypy,
 Alembic SQLite checks, PostgreSQL offline SQL and git diff --check passed.
+
+
+## A0–B2 curriculum — 2026-11-10
+
+Completed: introductory A0 schema/migration, full 5-course/50-lesson draft, 500 vocabulary rows and 400 exercises, validation, immutable/idempotent draft importer and integration tests. Supersedes earlier deferred A0/catalog-content notes. Next: human linguistic/translation review, publication approval and production release procedure; Roma test logic unchanged. No commit/push.
+
+Verification: pytest 325 passed / 15 skipped; final current-content tests 29
+passed; Ruff, mypy (68 files), SQLite migration/seed smoke, Alembic check/head,
+PostgreSQL offline SQL and diff check passed. DOM catalog checks: 7 passed.
+All 50 lessons remain draft; live PostgreSQL NOT VERIFIED.

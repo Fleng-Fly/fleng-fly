@@ -112,7 +112,7 @@ never returned in the response body. Errors: `401 INVALID_CREDENTIALS`,
 `CourseSummary` = `{ id, slug, title, description, level, lessonCount }`.
 `CourseDetail` = `{ id, slug, title, description, level, lessons: LessonSummary[] }`
 where `LessonSummary` = `{ id, slug, title, summary, position, estimatedMinutes }`.
-`level` is a CEFR band (`A1`–`C2`). Only `is_published` courses and lessons are
+`level` is Fleng introductory `A0` or a CEFR band (`A1`–`C2`). Only `is_published` courses and lessons are
 returned; missing and unpublished resources both return `404 NOT_FOUND`.
 Pagination is deliberately deferred for the small MVP catalog.
 
@@ -250,7 +250,7 @@ access token, never a request userId.
 
 | Method | Route | Input / result |
 | --- | --- | --- |
-| PATCH | `/users/me` | Optional displayName, email, englishLevel (A1–C2), preferredLanguage → UserResponse |
+| PATCH | `/users/me` | Optional displayName, email, englishLevel (A0 introductory, A1–C2 CEFR), preferredLanguage → UserResponse |
 | GET | `/vocabulary?due=false&limit=50&offset=0&lessonId=<uuid>` | Own words; optional `lessonId` selects words saved for that lesson, `due=true` selects due flashcards |
 | GET | `/vocabulary/stats` | Own learned-word count: `{ wordsLearned }` |
 | POST | `/vocabulary` | word, translation, optional example and lessonId → item (201) |
@@ -334,3 +334,13 @@ Full contracts and streaming lifecycle: [AI](ai.md).
 ## Vocabulary flashcards — 2026-11-10
 
 Vocabulary flashcards API: authenticated course words and persistent flashcard sessions; full routes, errors and handoff contract in [vocabulary-flashcards-api.md](vocabulary-flashcards-api.md).
+
+
+## Curriculum level filters
+
+`GET /api/v1/courses?level=A0` optionally filters published courses by
+A0/A1/A2/B1/B2/C1/C2 (invalid values: 422). A0 is Fleng introductory, not an
+official CEFR band. Course/lesson responses, profile updates, vocabulary filters
+and AI exercise requests accept it. JSON shapes and omitted-filter behavior stay
+unchanged. Draft curriculum remains invisible until explicit reviewed publication.
+See [curriculum](curriculum-a0-b2.md) for content and operator commands.
