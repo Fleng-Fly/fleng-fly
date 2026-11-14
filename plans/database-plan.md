@@ -133,3 +133,21 @@ Verification: `docs/render-sqlite-startup.md`. Prepared for deployment; no push.
 - **Completed:** npm dev uses existing local SQLite with pre-change backup and idempotent A0–B2 draft import; ordinary accounts see seven courses through authenticated loopback-only routes.
 - **Completed:** reuse current catalog/grading/progress services and private preview; reject hosted/production and non-file-SQLite dev configuration.
 - **Next:** teacher/translator review and separate production publication authorization remain pending. No production database connection or content publication was performed.
+
+## SQLite catalog startup for Render — 2026-11-14
+
+- **Completed:** existing SQLite preparation now initializes seven catalog courses
+  from repository seed/JSON, including five unpublished A0–B2 drafts; no private
+  database binary or account credentials are added to Git.
+- **Verification:** fresh production-mode launch and restart tests assert populated
+  drafts, hidden public draft routes, stable IDs and preserved learner XP/sessions.
+- **Next / external:** owner deploys the commit with the existing DATABASE_URL and
+  python run.py. Durable disk/storage and backups remain provider configuration.
+- **Unchanged:** no automatic PostgreSQL migration, production URL change, draft
+  publication, user-data replacement or remote deploy/push.
+
+Verification complete: full backend 406 passed / 18 skipped, Ruff/mypy/frontend
+and Markdown links pass; isolated dev startup rerun is idempotent. Separate
+self-review removed the now-redundant dev-only importer so both launchers use
+the same preparation path. Pre-existing stale preview-count/Test-tab assertions
+were aligned with the already implemented catalog/UI.

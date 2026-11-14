@@ -315,3 +315,11 @@ Existing SQLite → new private online snapshot (read-only typed rows) → exact
 ## npm run dev default catalog
 
 Local file SQLite → private online backup before preparation → existing migrations → A0–B2 draft import without publication → loopback-only development factory → existing signed-in users see both legacy courses and all five drafts. Grading/progress keep existing user ownership and once-only XP. Production launcher and ordinary app factory never opt into these draft reads.
+
+## Render SQLite catalog initialization — 2026-11-14
+
+DATABASE_URL SQLite file → existing write check/Alembic/schema check → seed legacy
+catalog only if empty → idempotent packaged A0–B2 draft import → standard public
+API (published content only). No local user DB is committed/uploaded and no
+publication flag is promoted. Ephemeral storage replacement recreates catalog
+content, not lost user accounts/progress.

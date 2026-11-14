@@ -67,6 +67,9 @@ def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path, app_env):
             for table in ("courses", "lessons", "exercises")
         ]
         assert all(count > 0 for count in counts)
+        assert counts[0] == 7
+        assert db.execute("SELECT count(*) FROM lessons WHERE is_published=0").fetchone() == (50,)
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (500,)
         db.execute(
             "INSERT INTO users (id, email, password_hash, created_at, updated_at) "
             "VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",

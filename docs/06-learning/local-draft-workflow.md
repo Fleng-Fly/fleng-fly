@@ -10,7 +10,8 @@ by the OS, so copy important backups to private durable storage.
 
 This dev launcher binds only 127.0.0.1, checks Host/client loopback, and refuses
 production/Render and non-file-SQLite settings. Production `run.py` and ordinary
-`app.main:app` retain published-only routes. No production deployment imports drafts.
+`app.main:app` retain published-only routes. SQLite production startup also loads the packaged drafts, but its public routes
+continue to hide unpublished content.
 
 For a separate reviewer account and database, the private preview remains available.
 For a separate isolated review of all five drafts, use the existing private preview:
@@ -72,9 +73,9 @@ account, all 50 draft lesson payloads and all 500 course words over HTTP. A rest
 preparation reported zero new rows / 955 existing rows. Targeted development/private
 preview checks: 17 passed, one platform skip; the known upstream lesson-count
 assertion was excluded from this focused run. Ruff, mypy, frontend Node checks and
-Markdown links pass. The full regression run finished with **405 passed, 18 skipped, one failed**:
-the known upstream 56-vs-57 preview assertion. No production visibility rule
-was relaxed to hide it.
+Markdown links pass. The SQLite startup follow-up updated the stale 56-vs-57 preview count and old
+Test-tab asset expectation. The full regression run now passes with **406 passed /
+18 skipped**. No production visibility rule was relaxed to hide a failing test.
 
 The shared private reviewer continues to reject other users. Default local draft
 access instead requires ordinary learner authentication, a loopback client/Host,

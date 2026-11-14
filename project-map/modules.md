@@ -313,3 +313,12 @@ permission-bit checks apply on POSIX; Windows backup protection uses inherited A
 ## Default local development curriculum — 2026-11-14
 
 `app/development.py` owns the npm dev-only preparation/factory: back up existing SQLite → existing Alembic preparation → idempotent unpublished curriculum import → loopback-only authenticated draft routes. It reuses `preview_router` with ordinary learner authentication; the separate private reviewer still passes its explicit UUID. `scripts/dev.mjs` starts this factory on 127.0.0.1; production/normal factories remain published-only. Existing users, sessions, XP and lesson data stay in the configured local file.
+
+## SQLite release catalog bootstrap — 2026-11-14
+
+`app/db/prepare.py` now imports the packaged A0–B2 curriculum as unpublished rows
+after migrations and legacy-catalog initialization. `run.py` reuses this path,
+so a fresh configured SQLite database is populated without uploading private DB
+files. Import preflight preserves IDs, rejects conflicting draft content and avoids
+duplicates; existing user data and publication flags are not overwritten. Normal
+public routes remain published-only. PostgreSQL startup remains explicit.

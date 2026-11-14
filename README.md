@@ -215,3 +215,14 @@ legacy courses after ordinary local login. For a separate reviewer database, use
 ## Default local course catalog
 
 `npm run dev` now backs up the existing local SQLite file before preparation, imports the five A0–B2 courses idempotently as unpublished drafts, and serves all seven courses to signed-in local learners at http://127.0.0.1:3001/courses.html. Existing accounts and learning progress stay in the same database. This launcher binds loopback and refuses production/hosted or non-file-SQLite configuration. `backend/run.py` and `app.main:app` still expose published content only; no production publication is performed.
+
+## Render with SQLite: populated catalog at startup
+
+Keep `DATABASE_URL=sqlite+aiosqlite:///./data/fleng.db` and start with
+`cd backend && python run.py` (root directory: repository root). The launcher
+creates/migrates SQLite and loads the two legacy courses plus five unpublished
+A0–B2 drafts from the versioned curriculum JSON. Repeated starts preserve existing
+accounts/progress and do not duplicate catalog rows. Private local database files
+and account credentials are not committed. Public draft visibility is unchanged.
+An ephemeral Render filesystem still loses runtime user data on replacement;
+use separately configured persistent storage for durable accounts/progress.

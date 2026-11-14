@@ -11,6 +11,7 @@ from sqlalchemy.engine import make_url
 from alembic import command
 from app.core.config import BACKEND_ROOT, get_settings
 from app.db.base import Base
+from app.db.curriculum import import_curriculum, load_curriculum
 from app.db.diagnostics import log_sqlite_snapshot
 from app.db.models import Course
 from app.db.seed import seed_catalog
@@ -25,6 +26,11 @@ async def ensure_catalog() -> None:
                 print("Demo catalog loaded.")
             else:
                 print("Catalog already present; use npm run db:seed to update demo content.")
+            result = await import_curriculum(db, load_curriculum(), apply=True)
+            print(
+                "A0–B2 catalog prepared (unpublished drafts): "
+                f"{result['new_rows']} new rows, {result['existing_rows']} existing rows."
+            )
     finally:
         await engine.dispose()
 

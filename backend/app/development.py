@@ -1,7 +1,5 @@
 """Loopback-only npm dev entry point: persistent local drafts, existing learner accounts."""
 
-import asyncio
-import json
 import tempfile
 from pathlib import Path
 
@@ -19,17 +17,6 @@ def validate_development_settings(settings: Settings) -> Path:
     return Path(url.database)
 
 
-async def import_local_drafts() -> dict:
-    from app.db.curriculum import import_curriculum, load_curriculum
-    from app.db.session import SessionLocal, engine
-
-    try:
-        async with SessionLocal() as session:
-            return await import_curriculum(session, load_curriculum(), apply=True)
-    finally:
-        await engine.dispose()
-
-
 def main() -> None:
     database = validate_development_settings(get_settings())
     if database.exists():
@@ -42,8 +29,6 @@ def main() -> None:
     from app.db.prepare import main as prepare_database
 
     prepare_database()
-    result = asyncio.run(import_local_drafts())
-    print("Local A0–B2 drafts ready: " + json.dumps(result), flush=True)
 
 
 def create_development_app():

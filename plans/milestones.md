@@ -205,3 +205,10 @@ profile XP and progress preserved; targeted tests/Ruff/mypy/frontend/docs links 
 Remaining: pre-existing upstream preview total-count assertion and documentation contract
 drift from letter_tiles remain separate fixes; editorial/production publication pending.
 No commit/push or production operation performed.
+
+## Render SQLite catalog bootstrap — 2026-11-14
+
+Completed: production SQLite preparation reuses packaged seed/curriculum to create
+a populated database without SSH upload. Five A0–B2 courses retain draft status.
+Existing users/progress and catalog IDs are preserved on restart. Owner deployment
+and persistent hosting storage remain external; no push/deploy performed here.

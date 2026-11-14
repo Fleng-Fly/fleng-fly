@@ -73,6 +73,18 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
     login = {"email": "render-test@example.com", "password": "regression-password-123"}
     origin = {"Origin": "https://fleng.example"}
     with server(env, tmp_path) as client:
+        with sqlite3.connect(path) as db:
+            assert db.execute("SELECT count(*) FROM users").fetchone() == (0,)
+            assert db.execute("SELECT count(*) FROM courses").fetchone() == (7,)
+            assert db.execute("SELECT count(*) FROM lessons WHERE is_published=0").fetchone() == (
+                50,
+            )
+            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (500,)
+            draft_ids = db.execute(
+                "SELECT id FROM courses WHERE is_published=0 ORDER BY id"
+            ).fetchall()
+        assert len(client.get("/api/v1/courses").json()) == 2
+        assert client.get("/api/v1/courses/fleng-a0").status_code == 404
         response = client.post(
             "/api/v1/auth/register", json={**login, "displayName": "Render"}, headers=origin
         )
@@ -143,6 +155,11 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
         )
     with sqlite3.connect(path) as db:
         assert db.execute("SELECT count(*) FROM courses").fetchone() == catalog
+        assert (
+            db.execute("SELECT id FROM courses WHERE is_published=0 ORDER BY id").fetchall()
+            == draft_ids
+        )
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (500,)
         tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert {"request_limits", "users", "profiles", "refresh_tokens"} <= tables
     logs = (tmp_path / "production.log").read_text()
