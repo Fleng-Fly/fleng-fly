@@ -56,7 +56,10 @@ async def test_lesson_player_assets_are_served(client: AsyncClient) -> None:
     styles = await client.get("/css/lesson.css")
     script = await client.get("/js/lesson.js")
     assert page.status_code == styles.status_code == script.status_code == 200
-    assert 'id="tab-test"' in page.text
+    for tab in ("theory", "practice", "vocabulary"):
+        assert f'id="tab-{tab}"' in page.text
+    assert 'id="tab-test"' not in page.text
+    assert 'id="panel-test"' not in page.text
     assert 'id="panel-vocabulary"' in page.text
     assert "submitAnswer" in script.text
     assert "prefers-reduced-motion" in styles.text

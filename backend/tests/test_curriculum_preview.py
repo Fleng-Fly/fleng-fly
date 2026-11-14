@@ -126,7 +126,7 @@ async def test_all_50_lessons_and_500_words_without_publication(preview, db_sess
     ] is False
     progress = (await client.get("/api/v1/progress/me", headers=headers)).json()
     assert len(progress["courses"]) == 7
-    assert sum(c["lessonsTotal"] for c in progress["courses"]) == 56
+    assert sum(c["lessonsTotal"] for c in progress["courses"]) == 57
     assert progress["xp"] == 0
     for course in load_curriculum().courses:
         detail = (await client.get(f"/api/v1/courses/{course.slug}", headers=headers)).json()
