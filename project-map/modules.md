@@ -282,3 +282,22 @@ Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екр
 Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
 на фізичних пристроях. Нативні інсталятори не створено.
 Деталі: `docs/pwa-installation.md` (від кореня проєкту).
+
+## Persistence and CI verification — 2026-11-14
+
+- `app.db.backup`: explicit read-only-source SQLite online backup, integrity checks,
+  private new file and overwrite refusal; no startup hook.
+- `tests/test_database_pipeline.py`: Alembic-based SQLite/isolated PostgreSQL checks,
+  idempotent seeds/imports, learner/card preservation and FK integrity.
+- `.github/workflows/database.yml`: mandatory SQLite/application and disposable
+  PostgreSQL jobs with an always-running success aggregator; no production access.
+- Root npm commands expose the existing isolated draft preview without publication.
+- Production target: managed PostgreSQL after an approved/rehearsed data transfer;
+  actual hosting settings and data migration remain external manual operations.
+
+## Git integration ? 2026-11-14
+
+Combined desktop/PWA and database persistence work, preserving both sets of
+npm commands and ignore rules. Database commands use the cross-platform backend
+runner; persistence test counts include the new present-perfect lesson. Backup
+permission-bit checks apply on POSIX; Windows backup protection uses inherited ACLs.

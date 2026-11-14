@@ -68,3 +68,10 @@ fleng.db-*
 /Fleng.exe
 /BUILD-MANIFEST.json
 /WINDOWS-DEPENDENCIES.txt
+
+# Private database copies / backup files (never publish as CI artifacts).
+backups/
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*

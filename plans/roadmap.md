@@ -334,3 +334,21 @@ Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екр
 Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
 на фізичних пристроях. Нативні інсталятори не створено.
 Деталі: `docs/pwa-installation.md` (від кореня проєкту).
+
+### Database persistence checkpoint — 2026-11-14
+
+Completed locally: populated SQLite audit, backup tooling, draft-preview npm workflow,
+Alembic-based database preservation checks and required SQLite/PostgreSQL CI definition.
+Production recommendation: managed PostgreSQL; no URL or production content changed.
+Next: PostgreSQL CI evidence, staging typed-transfer rehearsal and restore drill.
+External pending: branch protection and Render After CI Checks Pass configuration.
+See `docs/05-database/persistence-and-recovery.md` and
+`docs/09-deployment/database-ci-gate.md`. Final commit and ordinary push separately
+authorized after verification; production migration/publication remain separate.
+
+## Git integration ? 2026-11-14
+
+Combined desktop/PWA and database persistence work, preserving both sets of
+npm commands and ignore rules. Database commands use the cross-platform backend
+runner; persistence test counts include the new present-perfect lesson. Backup
+permission-bit checks apply on POSIX; Windows backup protection uses inherited ACLs.

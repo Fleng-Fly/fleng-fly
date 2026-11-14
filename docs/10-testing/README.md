@@ -11,3 +11,5 @@ Reproducible automated/operational checks and dated evidence.
 - [Quality gates](quality-gates.md)
 
 [Documentation home](../README.md)
+
+- [Persistence verification, 2026-11-14](persistence-verification-2026-11-14.md)

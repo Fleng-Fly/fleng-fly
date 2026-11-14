@@ -11,3 +11,5 @@ Twenty-one persisted ORM entities, relationships, migrations and integrity rules
 - [Sqlite](sqlite.md)
 
 [Documentation home](../README.md)
+
+- [Persistence, backups, restore and PostgreSQL transfer runbook](persistence-and-recovery.md)

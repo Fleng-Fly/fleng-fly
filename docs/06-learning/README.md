@@ -15,3 +15,5 @@ Grading/XP/vocabulary/flashcards plus unpublished curriculum, validation and rev
 - [Vocabulary](vocabulary.md)
 
 [Documentation home](../README.md)
+
+- [Local unpublished draft workflow](local-draft-workflow.md)

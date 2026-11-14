@@ -297,3 +297,14 @@ SQLite preparation/migrations → normal FastAPI API and static frontend → ded
 Edge/Chrome app window. Closing that window or losing the parent process closes
 the worker lifetime pipe and stops only that server. Existing development data
 is copied via SQLite backup only when the desktop database is absent.
+
+## Database release verification — 2026-11-14
+
+Push/PR → SQLite + disposable PostgreSQL CI → fresh Alembic schemas + drift check →
+seed/import reruns → learner XP/vocabulary/card writes → pool reconnect → identity,
+progress and session preservation + FK checks → required success aggregator.
+Render waits for checks only after its external Auto-Deploy setting is configured.
+No CI-to-production database connection or draft publication exists.
+
+Explicit SQLite backup → read-only source + SQLite backup API → private new file →
+integrity/FK checks + counts → operator-managed off-host storage/restore drill.

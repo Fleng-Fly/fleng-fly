@@ -26,7 +26,14 @@
     "db:sql": "node scripts/backend.mjs alembic upgrade head --sql",
     "db:seed": "node scripts/backend.mjs app.db.seed",
     "demo:prepare": "node scripts/backend.mjs app.db.prepare && node scripts/backend.mjs app.db.demo",
-    "test:pwa": "node scripts/test-pwa.mjs && node scripts/test-pwa-install.mjs"
+    "test:pwa": "node scripts/test-pwa.mjs && node scripts/test-pwa-install.mjs",
+    "db:verify": "node scripts/backend.mjs pytest -q tests/test_database_pipeline.py tests/test_postgres_migrations.py",
+    "db:backup": "node scripts/backend.mjs app.db.backup",
+    "curriculum:validate": "node scripts/backend.mjs app.db.curriculum --validate-only",
+    "curriculum:import-drafts": "node scripts/backend.mjs app.db.curriculum --apply-draft",
+    "curriculum:preview:prepare": "backend/.venv/bin/python scripts/preview_curriculum.py prepare",
+    "curriculum:preview": "backend/.venv/bin/python scripts/preview_curriculum.py start",
+    "frontend:test": "node --experimental-vm-modules --test scripts/test-courses.mjs scripts/test-ai-api.mjs scripts/test-ai-stream.mjs scripts/test-ai-widget.mjs"
   },
   "devDependencies": {
     "prettier": "^3.4.2"
