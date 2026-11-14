@@ -61,3 +61,10 @@ backend/data/
 # Local Fleng SQLite database and journals, wherever configured.
 fleng.db
 fleng.db-*
+
+# Private database copies / backup files (never publish as CI artifacts).
+backups/
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*

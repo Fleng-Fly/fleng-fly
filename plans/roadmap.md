@@ -307,3 +307,14 @@ Completed: A0 backend + existing-filter button; 50-lesson A0–B2 draft and read
 - **Next:** teacher/translator editorial review and separate release approval.
   Existing UX: Vocabulary tab is personal words, initial tab is Test, floating
   AI launcher can overlap mobile text. See docs/curriculum-visual-review.md.
+
+### Database persistence checkpoint — 2026-11-14
+
+Completed locally: populated SQLite audit, backup tooling, draft-preview npm workflow,
+Alembic-based database preservation checks and required SQLite/PostgreSQL CI definition.
+Production recommendation: managed PostgreSQL; no URL or production content changed.
+Next: PostgreSQL CI evidence, staging typed-transfer rehearsal and restore drill.
+External pending: branch protection and Render After CI Checks Pass configuration.
+See `docs/05-database/persistence-and-recovery.md` and
+`docs/09-deployment/database-ci-gate.md`. Final commit and ordinary push separately
+authorized after verification; production migration/publication remain separate.

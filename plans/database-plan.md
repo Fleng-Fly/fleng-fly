@@ -100,3 +100,21 @@ TEST_DATABASE_URL tests validate the full chain and ORM drift in temporary schem
   with the same SQLite file does not establish persistent hosting storage.
 
 Verification: `docs/render-sqlite-startup.md`. Prepared for deployment; no push.
+
+## Persistence and CI — 2026-11-14
+
+- **Completed:** read-only inventory of the populated local database; drafts absent
+  by design, existing user data intact; no production database inspected.
+- **Completed:** select managed PostgreSQL as production target, retain local SQLite
+  and current production URL; document SQLite persistent-disk alternative.
+- **Completed:** online SQLite backup helper and WAL round-trip verification;
+  npm draft import/isolated preview commands; mandatory SQLite/PostgreSQL CI definition.
+- **Completed:** migration-based idempotency/FK/learner/card preservation test;
+  persistence/backup/restore/transfer/rollback and external hosting gate documentation.
+- **Next:** execute PostgreSQL CI and staging transfer rehearsal; implement/review the
+  typed cross-engine transfer described in the runbook before production approval.
+- **External / not enabled:** GitHub required branch checks, Render After CI Checks
+  Pass, durable storage plan, off-host backups and production recovery drill.
+- **Not authorized:** production migration/URL switch and content publication.
+- **Finalization:** one infrastructure commit and ordinary push to main separately
+  authorized after final checks; production operations remain separate.

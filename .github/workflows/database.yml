@@ -1,0 +1,80 @@
+name: Database and application verification
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sqlite:
+    name: SQLite and application
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APP_ENV: development
+      DATABASE_URL: sqlite+aiosqlite:////tmp/fleng-ci.sqlite3
+      AI_ENABLED: 'false'
+      RESET_DELIVERY: disabled
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m venv backend/.venv
+      - run: backend/.venv/bin/pip install -e './backend[dev]'
+      - run: npm run backend:lint
+      - run: npm run backend:typecheck
+      - run: npm run db:verify
+      - run: npm run curriculum:validate
+      - run: backend/.venv/bin/python scripts/validate_curriculum.py --report json > /tmp/curriculum-validation.json
+      - run: npm run backend:test -- -q
+      - run: npm run frontend:test
+      - run: git diff --check
+  postgres:
+    name: PostgreSQL integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: fleng_ci
+          POSTGRES_PASSWORD: disposable_ci_only
+          POSTGRES_DB: fleng_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fleng_ci -d fleng_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: development
+      DATABASE_URL: postgresql+asyncpg://fleng_ci:disposable_ci_only@127.0.0.1:5432/fleng_ci
+      TEST_DATABASE_URL: postgresql+asyncpg://fleng_ci:disposable_ci_only@127.0.0.1:5432/fleng_ci
+      AI_ENABLED: 'false'
+      RESET_DELIVERY: disabled
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m venv backend/.venv
+      - run: backend/.venv/bin/pip install -e './backend[dev]'
+      - run: npm run db:verify
+      - run: npm run backend:test -- -q
+  required:
+    name: Required database checks
+    if: always()
+    needs: [sqlite, postgres]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful database jobs
+        env:
+          SQLITE_RESULT: ${{ needs.sqlite.result }}
+          POSTGRES_RESULT: ${{ needs.postgres.result }}
+        run: test "$SQLITE_RESULT" = success && test "$POSTGRES_RESULT" = success

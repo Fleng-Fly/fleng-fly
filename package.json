@@ -25,7 +25,14 @@
     "db:prepare": "cd backend && .venv/bin/python -m app.db.prepare",
     "db:sql": "cd backend && .venv/bin/alembic upgrade head --sql",
     "db:seed": "cd backend && .venv/bin/python -m app.db.seed",
-    "demo:prepare": "cd backend && .venv/bin/python -m app.db.prepare && .venv/bin/python -m app.db.demo"
+    "demo:prepare": "cd backend && .venv/bin/python -m app.db.prepare && .venv/bin/python -m app.db.demo",
+    "db:verify": "cd backend && .venv/bin/pytest -q tests/test_database_pipeline.py tests/test_postgres_migrations.py",
+    "db:backup": "cd backend && .venv/bin/python -m app.db.backup",
+    "curriculum:validate": "cd backend && .venv/bin/python -m app.db.curriculum --validate-only",
+    "curriculum:import-drafts": "cd backend && .venv/bin/python -m app.db.curriculum --apply-draft",
+    "curriculum:preview:prepare": "backend/.venv/bin/python scripts/preview_curriculum.py prepare",
+    "curriculum:preview": "backend/.venv/bin/python scripts/preview_curriculum.py start",
+    "frontend:test": "node --experimental-vm-modules --test scripts/test-courses.mjs scripts/test-ai-api.mjs scripts/test-ai-stream.mjs scripts/test-ai-widget.mjs"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

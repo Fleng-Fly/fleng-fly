@@ -279,3 +279,14 @@ Normal app uses published-only defaults. QA UI submissions use a second database
 the prepared primary preview starts with zero learner progress. No publication,
 production access or copy of personal accounts. Cleanup removes dedicated /tmp
 folders after stopping their servers; repository screenshots remain available.
+
+## Database release verification — 2026-11-14
+
+Push/PR → SQLite + disposable PostgreSQL CI → fresh Alembic schemas + drift check →
+seed/import reruns → learner XP/vocabulary/card writes → pool reconnect → identity,
+progress and session preservation + FK checks → required success aggregator.
+Render waits for checks only after its external Auto-Deploy setting is configured.
+No CI-to-production database connection or draft publication exists.
+
+Explicit SQLite backup → read-only source + SQLite backup API → private new file →
+integrity/FK checks + counts → operator-managed off-host storage/restore drill.

@@ -11,3 +11,5 @@ Repository-supported static/Python topology, release commands and explicit stora
 - [Troubleshooting](troubleshooting.md)
 
 [Documentation home](../README.md)
+
+- [Database CI and manual hosting gate](database-ci-gate.md)

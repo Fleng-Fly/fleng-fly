@@ -183,3 +183,13 @@ Read [AGENTS.md](AGENTS.md) before making changes. Preserve the existing stack,
 work in logical commits, run relevant checks and perform an independent review.
 Keep `docs/`, `project-map/` and `plans/` aligned with the implementation.
 See [milestones](plans/milestones.md) and [roadmap](plans/roadmap.md) for next steps.
+
+## Database persistence and draft development
+
+Use `npm run db:verify` for migration/integrity/preservation checks and
+`npm run db:backup -- /absolute/private/backup.sqlite3` for an online SQLite backup.
+For all five unpublished A0–B2 courses, use `npm run curriculum:preview:prepare`
+then `npm run curriculum:preview`; this reuses the isolated authenticated reviewer
+workflow and preserves the normal database. See [local drafts](docs/06-learning/local-draft-workflow.md),
+[persistence/recovery](docs/05-database/persistence-and-recovery.md) and
+[CI/hosting configuration](docs/09-deployment/database-ci-gate.md).
