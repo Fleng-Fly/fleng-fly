@@ -3,10 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Встановити Fleng</title>
+    <title>Доступ до Fleng</title>
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/star4life.css">
-    <link rel="stylesheet" href="/css/install.css">
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#101126" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -15,27 +14,16 @@
     <script defer src="/js/pwa.js"></script>
   </head>
   <body>
-    <header class="install-nav"><a class="brand" href="/index.html"><img src="/icons/icon-192.png" alt="" width="40" height="40"> Fleng</a><a href="/dashboard.html">До навчання ↗</a></header>
-    <main class="install-main">
-      <section class="install-hero">
-        <span class="install-kicker">АНГЛІЙСЬКА ЗАВЖДИ ПОРУЧ</span>
-        <img class="install-icon" src="/icons/icon-192.png" alt="Іконка Fleng" width="96" height="96">
-        <h1>Твоя англійська.<br>Твій додаток.</h1>
-        <p class="install-lead">Встанови Fleng на комп’ютер або телефон. Відкривай уроки з власної іконки — в окремому вікні.</p>
-        <div class="install-action"><button id="install-app" class="btn btn-primary btn-lg" type="button" hidden>Встановити Fleng</button><a class="btn btn-secondary btn-lg" href="/dashboard.html">Відкрити Fleng</a></div>
-        <p id="install-status" class="install-status" role="status" aria-live="polite">Відкрий інструкцію для свого пристрою нижче.</p>
-        <p class="install-note">Встановлення з браузера · Для навчання потрібен інтернет</p>
-      </section>
-      <section aria-labelledby="devices-title"><h2 id="devices-title">Обери свій пристрій</h2>
-        <div class="install-grid">
-          <article class="install-card"><span class="install-platform">01 / КОМП’ЮТЕР</span><h3>Windows</h3><p>Відкрий цей сайт у Microsoft Edge або Google Chrome.</p><ol><li>Натисни «Встановити Fleng», якщо кнопка доступна.</li><li>Або відкрий меню браузера → «Встановити цей сайт як додаток» / «Встановити Fleng».</li><li>Підтвердь і запускай Fleng з меню «Пуск».</li></ol></article>
-          <article class="install-card"><span class="install-platform">02 / КОМП’ЮТЕР</span><h3>Linux</h3><p>Використовуй Google Chrome або Chromium із підтримкою встановлення вебдодатків.</p><ol><li>Відкрий сайт і натисни кнопку встановлення.</li><li>Або знайди «Встановити Fleng» у меню браузера чи біля адреси.</li><li>Запускай Fleng із меню програм. Наявність ярлика залежить від середовища Linux.</li></ol></article>
-          <article class="install-card"><span class="install-platform">03 / ТЕЛЕФОН</span><h3>Android</h3><p>Відкрий сайт у Google Chrome.</p><ol><li>Натисни «Встановити Fleng» або меню ⋮.</li><li>Обери «Встановити додаток» чи «Додати на головний екран» → «Встановити», якщо доступно.</li><li>Підтвердь і відкрий іконку Fleng.</li></ol></article>
-          <article class="install-card"><span class="install-platform">04 / ТЕЛЕФОН</span><h3>iPhone</h3><p>Відкрий сайт у Safari, а не у вбудованому браузері месенджера.</p><ol><li>Відкрий меню «Поширити» — квадрат зі стрілкою вгору.</li><li>Обери «На початковий екран» (Add to Home Screen). Увімкни «Відкривати як вебпрограму», якщо цей перемикач є.</li><li>Натисни «Додати». Відкривай Fleng з нової іконки.</li></ol></article>
-        </div>
-      </section>
-      <aside class="install-help"><h2>Що потрібно знати</h2><p>Це встановлюваний вебдодаток (PWA). Окремі файли EXE, APK або IPA не потрібні. Назви пунктів меню можуть відрізнятися залежно від версії браузера.</p><p>Для встановлення на телефон сервер має бути доступний через HTTPS. Адреса localhost на телефоні вказує на сам телефон, а не на твій комп’ютер.</p><p>Обліковий запис і прогрес зберігаються на сервері. Увійди в той самий обліковий запис на тому самому сайті на іншому пристрої.</p></aside>
+    <header class="site-header"><div class="container header-inner"><a class="brand" href="/index.html">Fleng</a><a class="btn btn-secondary" href="/dashboard.html">До навчання</a></div></header>
+    <main class="page">
+      <div class="container">
+        <section class="card">
+          <h1>Доступ до Fleng</h1>
+          <p>Для входу, уроків та збереження прогресу потрібні інтернет і працюючий сервер.</p>
+          <p>Обліковий запис і прогрес зберігаються на сервері. На іншому пристрої відкрий той самий сайт і ввійди у свій обліковий запис.</p>
+          <a class="btn btn-primary" href="/dashboard.html">Перейти до навчання</a>
+        </section>
+      </div>
     </main>
-    <footer class="install-footer">FLENG · Трохи практики щодня.</footer>
   </body>
 </html>

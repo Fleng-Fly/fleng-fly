@@ -326,13 +326,12 @@ Completed: A0 backend + existing-filter button; 50-lesson A0–B2 draft and read
 
 ## PWA — 2026-11-13
 
-Виконано: `/install.html`, маніфест, іконки, спільний `js/pwa.js` на всіх
-онлайн-сторінках, захоплення браузерного встановлення, ручні інструкції для
-Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екраном.
-Дані й автентифікація йдуть до чинного FastAPI; API та сторінки користувача
-не кешуються. Навігація: мережа → при мережевому збої `/offline.html`.
-Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
-на фізичних пристроях. Нативні інсталятори не створено.
+Оновлено 2026-11-14: пропозиції завантажити/встановити додаток вилучено
+з головної сторінки, навігації та offline-екрана; обробники встановлення й
+окремі стилі видалено. `/install.html` зберігає лише довідку про доступ і прогрес.
+Маніфест, іконки, реєстрація worker та offline fallback збережені;
+кеш offline-екрана оновлено до v2. API й дані користувача не кешуються.
+Далі: перевірка на фізичних пристроях.
 Деталі: `docs/pwa-installation.md` (від кореня проєкту).
 
 ### Database persistence checkpoint — 2026-11-14
@@ -352,3 +351,11 @@ Combined desktop/PWA and database persistence work, preserving both sets of
 npm commands and ignore rules. Database commands use the cross-platform backend
 runner; persistence test counts include the new present-perfect lesson. Backup
 permission-bit checks apply on POSIX; Windows backup protection uses inherited ACLs.
+
+## Final infrastructure integration checkpoint — 2026-11-14
+
+Completed locally: typed transfer and regression checks, PostgreSQL transfer/recovery drill definitions, docs/contracts and workflow gate, ruleset JSON and owner runbooks. Public main is unprotected; latest original hosted CI failed full tests; Render DB readiness is up; Netlify API remains 404. Next/external: green revised hosted CI and staging transfer/provider restore, branch/hosting configuration, browser auth/API routing. No commit/push, production cutover or content publication authorized by this task. Details: docs/09-deployment/final-infrastructure-integration.md.
+
+## Default local course visibility — 2026-11-14
+
+`npm run dev` now prepares the existing persistent SQLite database with five unpublished A0–B2 drafts and shows all seven courses to local signed-in learners. Preparation backs up existing data; reruns preserve IDs/progress. Production visibility is unchanged. Editorial approval and hosted publication remain separate.

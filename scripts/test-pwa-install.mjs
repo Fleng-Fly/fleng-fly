@@ -1,50 +1,39 @@
-// Install UI behavior in a minimal DOM: browser event availability, dismissal,
-// acceptance, standalone mode, insecure context and service-worker failures.
+// Browser install offers stay suppressed; offline registration remains available.
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import assert from 'node:assert/strict';
 const source = readFileSync(new URL('../frontend/js/pwa.js', import.meta.url), 'utf8');
-function setup({ secure = true, standalone = false, failWorker = false } = {}) {
+function setup({ secure = true, worker = true, failWorker = false } = {}) {
   const events = {};
-  const clicks = {};
-  const button = { hidden: true, addEventListener: (name, fn) => { clicks[name] = fn; } };
-  const status = { textContent: '' };
-  const window = {
-    isSecureContext: secure, navigator: { standalone },
-    matchMedia: () => ({ matches: standalone }),
-    addEventListener: (name, fn) => { events[name] = fn; },
-  };
+  const registrations = [];
+  const warnings = [];
   runInNewContext(source, {
-    window,
-    navigator: { serviceWorker: { register: async () => {
-      if (failWorker) throw new Error('Unavailable');
-    } } },
-    document: {
-      getElementById: (id) => id === 'install-app' ? button : status,
+    window: {
+      isSecureContext: secure,
       addEventListener: (name, fn) => { events[name] = fn; },
-    }, console: { warn() {} },
+    },
+    navigator: worker ? { serviceWorker: { register: async (path, options) => {
+      registrations.push({ path, options });
+      if (failWorker) throw new Error('Unavailable');
+    } } } : {},
+    console: { warn: (...args) => warnings.push(args) },
   });
-  events.DOMContentLoaded();
-  return { events, button, status, clicks };
+  return { events, registrations, warnings };
 }
 const app = setup();
-assert.equal(app.button.hidden, true);
-let shown = 0;
-app.events.beforeinstallprompt({ preventDefault() {}, prompt: async () => { shown++; },
-  userChoice: Promise.resolve({ outcome: 'dismissed' }) });
-assert.equal(app.button.hidden, false);
-await app.clicks.click();
-assert.equal(shown, 1);
-assert.equal(app.button.hidden, true);
-assert.ok(!app.status.textContent.includes('щойно встановлено'));
-app.events.appinstalled();
-assert.ok(app.status.textContent.includes('щойно встановлено'));
-const installed = setup({ standalone: true });
-assert.equal(installed.button.hidden, true);
-assert.ok(installed.status.textContent.includes('як додаток'));
-assert.ok(setup({ secure: false }).status.textContent.includes('HTTPS'));
+let suppressed = false;
+app.events.beforeinstallprompt({ preventDefault() { suppressed = true; },
+  prompt() { assert.fail('Must not offer installation'); } });
+assert.equal(suppressed, true);
+assert.equal(app.events.appinstalled, undefined);
+app.events.load();
+assert.equal(app.registrations.length, 1);
+assert.equal(app.registrations[0].path, '/sw.js');
+assert.equal(app.registrations[0].options.updateViaCache, 'none');
+assert.equal(setup({ secure: false }).events.load, undefined);
+assert.equal(setup({ worker: false }).events.load, undefined);
 const failed = setup({ failWorker: true });
 failed.events.load();
 await new Promise((resolve) => setTimeout(resolve, 0));
-assert.ok(failed.status.textContent.includes('Не вдалося'));
-console.log('PWA install UI: prompt, cancellation, installed/standalone, HTTPS and registration error passed.');
+assert.equal(failed.warnings.length, 1);
+console.log('PWA: installation offers suppressed; registration, HTTPS and error handling passed.');

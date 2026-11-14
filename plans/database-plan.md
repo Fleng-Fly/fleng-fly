@@ -118,3 +118,18 @@ Verification: `docs/render-sqlite-startup.md`. Prepared for deployment; no push.
 - **Not authorized:** production migration/URL switch and content publication.
 - **Finalization:** one infrastructure commit and ordinary push to main separately
   authorized after final checks; production operations remain separate.
+
+## Final infrastructure integration — 2026-11-14
+
+- **Completed locally:** typed SQLite-to-PostgreSQL utility, mandatory backup, dry-run rollback, strict empty-target policy, UTC/UUID/JSON preservation, FK/row reconciliation and refusal/rollback regression tests.
+- **Completed locally:** real asyncpg transfer test and pg_dump/pg_restore test definitions; docs/contracts, actionlint and no-skips PostgreSQL JUnit gate in existing CI; importable main ruleset; owner runbooks and self-review.
+- **Observed live:** Render readiness 200/database up; Netlify homepage 200/API 404; GitHub main protected=false/no rulesets; original workflow full suites failed although db:verify passed.
+- **Blocked externally:** no staging URL/server/client/container or hosting write credentials here; full hosted failure logs require auth. New live transfer, provider restore and revised hosted CI are not verified.
+- **Next:** owner PR/run, resolve runner failures, activate ruleset/Render CI gate, stage transfer and provider recovery, test Netlify routing and cookies.
+- **Not authorized:** automatic commit/push, production release/URL cutover/restore, paid services or draft publication. This supersedes the earlier checkpoint commit/push authorization for this task.
+
+## Default local courses — 2026-11-14
+
+- **Completed:** npm dev uses existing local SQLite with pre-change backup and idempotent A0–B2 draft import; ordinary accounts see seven courses through authenticated loopback-only routes.
+- **Completed:** reuse current catalog/grading/progress services and private preview; reject hosted/production and non-file-SQLite dev configuration.
+- **Next:** teacher/translator review and separate production publication authorization remain pending. No production database connection or content publication was performed.

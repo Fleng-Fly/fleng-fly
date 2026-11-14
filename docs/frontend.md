@@ -102,16 +102,17 @@ it with `layout.js` helpers, always via `textContent`:
   list; a missing/unpublished course shows a friendly "not found" state.
 - `lesson.js` loads the published lesson and the caller's lesson progress, then
   starts the lesson only if it has not begun. Theory uses the existing safe text
-  renderer. Practice lists all activities; Test shows one at a time with
-  Previous/Next and a current-lesson preview. Both modes share the same server
-  submissions and progress. Radios (`single_choice`), short answers (`text`),
+  renderer. Theory is the default; Practice shows exercises one at a time with
+  Previous/Next and a current-lesson preview. Valid tab query parameters select
+  Practice/Vocabulary; obsolete Test links fall back to Theory. Practice retains
+  the same server submissions and progress. Radios (`single_choice`), short answers (`text`),
   and self-assessment (`self_check`) are supported. The Vocabulary tab loads
   only the caller's saved words filtered by this lesson ID; it shows an honest
   empty state when there are none. Last submitted answers are restored from
   `GET /lessons/{slug}/progress`; unsent drafts exist only in page memory.
   Answer keys remain available only in the submission response. XP and
   completion are computed by the backend. The custom template builder is
-  disabled because it has no API; “Use template” opens the current Test tab.
+  disabled because it has no API; “Use template” opens Practice.
   All server text is inserted with `textContent`.
 
 `dashboard.html` and `lesson.html` use `js/workspace.js` for their sidebar and topbar. The mobile sidebar

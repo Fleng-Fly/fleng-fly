@@ -33,7 +33,6 @@ export function renderMessage(container, title, message, onRetry) {
 
 const NAV_ITEMS = [
   { href: '/index.html', label: 'Home', key: 'home' },
-  { href: '/install.html', label: 'Встановити', key: 'install' },
   { href: '/courses.html', label: 'Courses', key: 'courses' },
   { href: '/dashboard.html', label: 'Dashboard', key: 'dashboard' },
 ];

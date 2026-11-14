@@ -274,13 +274,12 @@ See [integration report](../docs/projectenglich-integration.md).
 
 ## PWA — 2026-11-13
 
-Виконано: `/install.html`, маніфест, іконки, спільний `js/pwa.js` на всіх
-онлайн-сторінках, захоплення браузерного встановлення, ручні інструкції для
-Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екраном.
-Дані й автентифікація йдуть до чинного FastAPI; API та сторінки користувача
-не кешуються. Навігація: мережа → при мережевому збої `/offline.html`.
-Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
-на фізичних пристроях. Нативні інсталятори не створено.
+Оновлено 2026-11-14: пропозиції завантажити/встановити додаток вилучено
+з головної сторінки, навігації та offline-екрана; обробники встановлення й
+окремі стилі видалено. `/install.html` зберігає лише довідку про доступ і прогрес.
+Маніфест, іконки, реєстрація worker та offline fallback збережені;
+кеш offline-екрана оновлено до v2. API й дані користувача не кешуються.
+Далі: перевірка на фізичних пристроях.
 Деталі: `docs/pwa-installation.md` (від кореня проєкту).
 
 ## Persistence and CI verification — 2026-11-14
@@ -301,3 +300,16 @@ Combined desktop/PWA and database persistence work, preserving both sets of
 npm commands and ignore rules. Database commands use the cross-platform backend
 runner; persistence test counts include the new present-perfect lesson. Backup
 permission-bit checks apply on POSIX; Windows backup protection uses inherited ACLs.
+
+## Infrastructure transfer and recovery (2026-11-14)
+
+- `backend/app/db/transfer.py`: explicit snapshot backup → typed schema/FK checks → locked empty PostgreSQL target → transactional import → complete row reconciliation → dry-run rollback or explicit apply. No startup/API hook.
+- `backend/tests/test_database_transfer.py`: disposable SQLite refusal/rollback tests and opt-in real asyncpg learner transfer.
+- `backend/tests/test_postgres_recovery.py`: pg_dump/pg_restore on two newly created disposable databases, typed comparison and auth/card resume.
+- `scripts/check-test-report.py`: mandatory PostgreSQL JUnit gate, rejects missing/skipped/failed evidence.
+- `.github/workflows/database.yml`: existing workflow, now includes docs/contracts, actionlint, pinned Ubuntu and PostgreSQL transfer/recovery tests. `.github/main-ruleset.json`: owner-importable main policy, not applied.
+- Live observations/runbooks: `docs/09-deployment/final-infrastructure-integration.md`, `docs/05-database/transfer-and-recovery.md`. Hosted settings and new PostgreSQL drills remain pending.
+
+## Default local development curriculum — 2026-11-14
+
+`app/development.py` owns the npm dev-only preparation/factory: back up existing SQLite → existing Alembic preparation → idempotent unpublished curriculum import → loopback-only authenticated draft routes. It reuses `preview_router` with ordinary learner authentication; the separate private reviewer still passes its explicit UUID. `scripts/dev.mjs` starts this factory on 127.0.0.1; production/normal factories remain published-only. Existing users, sessions, XP and lesson data stay in the configured local file.

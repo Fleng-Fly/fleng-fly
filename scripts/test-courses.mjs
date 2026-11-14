@@ -305,3 +305,126 @@ test('A0 uses the existing level filter and unchanged course links', async () =>
   assert.equal(p.get('courses-body').querySelectorAll('a')[0].href, '/course.html?slug=fleng-a0');
   assert.equal(a0Filter.attributes['aria-pressed'], 'true');
 });
+
+// Exercise the real lesson module with API fixtures; removed elements deliberately do not exist.
+async function lessonPage(search = '?slug=first') {
+  class LessonNode extends Node {
+    get firstElementChild() { return this.children[0]; }
+    querySelector(selector) {
+      return this.children.flatMap((child) => [child, ...child.querySelectorAll('*')])
+        .find((child) => selector.startsWith('.')
+          ? child.className?.split(' ').includes(selector.slice(1)) : child.tagName === selector);
+    }
+    querySelectorAll(selector) {
+      return this.children.flatMap((child) => [
+        ...(selector === '*' || child.tagName === selector ? [child] : []),
+        ...child.querySelectorAll(selector),
+      ]);
+    }
+  }
+  const nodes = new Map();
+  const html = await readFile(new URL('../frontend/lesson.html', import.meta.url), 'utf8');
+  for (const [, id] of html.matchAll(/\bid="([^"]+)"/g)) nodes.set(id, new LessonNode());
+  const fill = new LessonNode('span');
+  fill.className = 'lesson-fill';
+  nodes.get('lesson-progress').append(fill);
+  const window = {
+    location: new URL('http://localhost/lesson.html' + search),
+    history: { state: null, replaceState(_state, _title, url) { window.location = new URL(url); } },
+  };
+  const document = {
+    getElementById: (id) => nodes.get(id) ?? null,
+    createElement: (tag) => new LessonNode(tag),
+  };
+  let vocabularyReads = 0;
+  const exercise = { id: 'exercise', type: 'single_choice', prompt: 'Choose a word', points: 1, options: [{ id: 'a', text: 'Hello' }] };
+  const progress = {
+    startedAt: '2026-01-01', completed: false, exercisesTotal: 1, exercisesCompleted: 0,
+    xpEarned: 0, exercises: [{ exerciseId: 'exercise', attempts: 0, completed: false }],
+  };
+  const stubs = {
+    'api.js': {
+      getLesson: async () => ({ id: 'lesson', slug: 'first', title: 'First', theory: 'Study words.', exercises: [exercise] }),
+      getLessonProgress: async () => progress,
+      startLesson: async () => progress,
+      submitAnswer: async () => { throw new Error('Navigation must not submit answers'); },
+      getLessonVocabulary: async () => { vocabularyReads++; return [{ word: 'hello', translation: 'привіт' }]; },
+    },
+    'errors.js': { describeApiError: (error) => error.message },
+    'session.js': { requireSession: async () => ({ displayName: 'Learner' }) },
+    'workspace.js': { mountWorkspace() {}, setWorkspaceUser() {}, setWorkspaceAIContext() {} },
+    'letter-tiles.js': { letterTiles() { throw new Error('Not used by this fixture'); } },
+  };
+  const context = vm.createContext({ window, document, URL, URLSearchParams, console });
+  const modules = new Map();
+  async function module(file) {
+    if (modules.has(file)) return modules.get(file);
+    let result;
+    if (stubs[file]) {
+      result = new vm.SyntheticModule(Object.keys(stubs[file]), function () {
+        for (const [key, value] of Object.entries(stubs[file])) this.setExport(key, value);
+      }, { context });
+    } else {
+      let source = await readFile(new URL(`../frontend/js/${file}`, import.meta.url), 'utf8');
+      if (file === 'layout.js') source = source.slice(source.indexOf('/** Small DOM'), source.indexOf('/**\n * Render a card'));
+      result = new vm.SourceTextModule(source, { context });
+    }
+    modules.set(file, result);
+    await result.link((specifier) => module(specifier.replace('./', '')));
+    return result;
+  }
+  await (await module('lesson.js')).evaluate();
+  const settle = () => new Promise((resolve) => setImmediate(resolve));
+  await settle();
+  return { get: (id) => nodes.get(id), window, settle, vocabularyReads: () => vocabularyReads };
+}
+
+test('lesson defaults and obsolete Test links open Theory without losing the lesson URL', async () => {
+  for (const tab of ['', '&tab=test', '&tab=Test', '&tab=unknown']) {
+    const p = await lessonPage('?slug=first&keep=yes' + tab + '#content');
+    assert.equal(p.get('lesson-content').hidden, false);
+    assert.equal(p.get('panel-theory').hidden, false);
+    assert.equal(p.get('tab-theory').attributes['aria-selected'], 'true');
+    assert.equal(p.window.location.searchParams.get('tab'), null);
+    assert.equal(p.window.location.searchParams.get('slug'), 'first');
+    assert.equal(p.window.location.searchParams.get('keep'), 'yes');
+    assert.equal(p.window.location.hash, '#content');
+    assert.equal(p.get('tab-test'), undefined);
+    assert.equal(p.get('panel-test'), undefined);
+  }
+});
+
+test('lesson valid links, click/keyboard navigation and template actions use the three remaining tabs', async () => {
+  const p = await lessonPage('?slug=first&tab=practice');
+  assert.equal(p.get('panel-practice').hidden, false);
+  assert.match(p.get('panel-practice').textContent, /Choose a word/);
+  p.get('tab-practice').events.keydown({ key: 'ArrowRight', preventDefault() {} });
+  await p.settle();
+  assert.equal(p.get('panel-vocabulary').hidden, false);
+  assert.match(p.get('panel-vocabulary').textContent, /hello/);
+  assert.equal(p.vocabularyReads(), 1);
+  assert.equal(p.window.location.searchParams.get('tab'), 'vocabulary');
+  p.get('tab-vocabulary').events.keydown({ key: 'ArrowRight', preventDefault() {} });
+  assert.equal(p.get('panel-theory').hidden, false);
+  p.get('tab-theory').events.keydown({ key: 'End', preventDefault() {} });
+  assert.equal(p.get('panel-vocabulary').hidden, false);
+  p.get('tab-vocabulary').events.keydown({ key: 'Home', preventDefault() {} });
+  assert.equal(p.get('panel-theory').hidden, false);
+  p.get('use-template').events.click();
+  assert.equal(p.get('panel-practice').hidden, false);
+  p.get('tab-vocabulary').events.click();
+  await p.settle();
+  assert.equal(p.vocabularyReads(), 1);
+  const linked = await lessonPage('?slug=first&tab=vocabulary');
+  assert.equal(linked.get('panel-vocabulary').hidden, false);
+  assert.match(linked.get('panel-vocabulary').textContent, /hello/);
+});
+
+test('Dashboard Quick access retains three live destinations and no Course card', async () => {
+  const html = await readFile(new URL('../frontend/dashboard.html', import.meta.url), 'utf8');
+  const quick = html.split('<div class="quick-grid">')[1].split('</section>')[0];
+  assert.deepEqual([...quick.matchAll(/<strong>([^<]+)<\/strong\s*>/g)].map((match) => match[1]), ['Lessons', 'Progress', 'Leaderboard']);
+  assert.deepEqual([...quick.matchAll(/href="([^"]+)"/g)].map((match) => match[1]).filter((href) => !href.startsWith('#icon')), ['/courses.html', '#your-progress', '/leaderboard.html']);
+  assert.match(html, /id="your-progress"/);
+  assert.doesNotMatch(html, /quick-course-link/);
+});

@@ -13,3 +13,5 @@ Twenty-one persisted ORM entities, relationships, migrations and integrity rules
 [Documentation home](../README.md)
 
 - [Persistence, backups, restore and PostgreSQL transfer runbook](persistence-and-recovery.md)
+
+[Typed SQLite transfer and PostgreSQL recovery](transfer-and-recovery.md) documents the implemented utility, disposable drills and unverified provider boundary.

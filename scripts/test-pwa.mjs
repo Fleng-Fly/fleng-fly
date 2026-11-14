@@ -17,7 +17,7 @@ runInNewContext(readFileSync(new URL('../frontend/sw.js', import.meta.url), 'utf
   URL, Response, Promise,
   caches: {
     open: async () => ({ add: async (path) => cached.push(path) }),
-    keys: async () => ['fleng-offline-v0', 'fleng-offline-v1', 'unrelated-app'],
+    keys: async () => ['fleng-offline-v0', 'fleng-offline-v1', 'fleng-offline-v2', 'unrelated-app'],
     delete: async (key) => deleted.push(key),
     match: async () => offline,
   },
@@ -29,7 +29,7 @@ runInNewContext(readFileSync(new URL('../frontend/sw.js', import.meta.url), 'utf
 await new Promise((resolve, reject) => handlers.install({ waitUntil: (p) => p.then(resolve, reject) }));
 assert.deepEqual(cached, ['/offline.html']);
 await new Promise((resolve, reject) => handlers.activate({ waitUntil: (p) => p.then(resolve, reject) }));
-assert.deepEqual(deleted, ['fleng-offline-v0']);
+assert.deepEqual(deleted, ['fleng-offline-v0', 'fleng-offline-v1']);
 function navigate(path, mode = 'navigate', method = 'GET') {
   let result;
   handlers.fetch({ request: { url: new URL(path, 'https://fleng.test').href, mode, method },

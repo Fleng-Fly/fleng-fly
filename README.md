@@ -17,11 +17,11 @@ explicit alternative.
 Для Windows відкрийте [інструкцію запуску](ЗАПУСК-У-WINDOWS.md).
 Можна двічі натиснути `START-WINDOWS.cmd`.
 
-## Встановлення додатка
+## Доступ до Fleng
 
-Fleng можна встановити з сайту на Windows, Linux, Android та iPhone як PWA.
-Відкрийте `/install.html` на вашому HTTPS-сервері. Деталі —
-[інструкція встановлення](ВСТАНОВЛЕННЯ-ДОДАТКА.md). Це проєкт PWA, не набір нативних інсталяторів.
+Fleng працює у браузері на комп’ютері й телефоні. Пропозиції завантажити
+додаток вилучено; PWA-інфраструктура та offline-екран збережені.
+Деталі — [PWA та доступ](docs/pwa-installation.md).
 
 ## Quick start
 
@@ -33,7 +33,8 @@ npm run dev
 ```
 
 The launcher creates the backend virtualenv and installs dependencies if absent,
-applies pending SQLite migrations, seeds an empty catalog and starts the server.
+backs up existing local SQLite data, applies pending migrations, seeds an empty
+catalog, imports unpublished A0–B2 drafts and starts a loopback-only dev server.
 
 - Application: <http://localhost:3001>
 - API documentation: <http://localhost:3001/docs>
@@ -205,8 +206,12 @@ See [milestones](plans/milestones.md) and [roadmap](plans/roadmap.md) for next s
 
 Use `npm run db:verify` for migration/integrity/preservation checks and
 `npm run db:backup -- /absolute/private/backup.sqlite3` for an online SQLite backup.
-For all five unpublished A0–B2 courses, use `npm run curriculum:preview:prepare`
-then `npm run curriculum:preview`; this reuses the isolated authenticated reviewer
-workflow and preserves the normal database. See [local drafts](docs/06-learning/local-draft-workflow.md),
+Normal `npm run dev` shows all five unpublished A0–B2 drafts alongside the two
+legacy courses after ordinary local login. For a separate reviewer database, use
+`npm run curriculum:preview:prepare` then `npm run curriculum:preview`. See [local drafts](docs/06-learning/local-draft-workflow.md),
 [persistence/recovery](docs/05-database/persistence-and-recovery.md) and
 [CI/hosting configuration](docs/09-deployment/database-ci-gate.md).
+
+## Default local course catalog
+
+`npm run dev` now backs up the existing local SQLite file before preparation, imports the five A0–B2 courses idempotently as unpublished drafts, and serves all seven courses to signed-in local learners at http://127.0.0.1:3001/courses.html. Existing accounts and learning progress stay in the same database. This launcher binds loopback and refuses production/hosted or non-file-SQLite configuration. `backend/run.py` and `app.main:app` still expose published content only; no production publication is performed.

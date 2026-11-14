@@ -10,10 +10,14 @@ database pipeline and the full backend suite via isolated per-test schemas.
 No database is uploaded as an artifact and no deployment or publication is run.
 
 The `Required database checks` aggregator runs even after job failure and succeeds
-only if both jobs succeed. Configure GitHub branch protection/rulesets for the
+only if SQLite, PostgreSQL and workflow-validation jobs succeed. Configure GitHub branch protection/rulesets for the
 release branch to require this exact check, prevent bypass and require PR review.
 Do not mark database jobs continue-on-error or allow skipped jobs to count here.
-The Actions file has been prepared locally; no remote workflow run is claimed.
+Current edits are local. The original fc57232 hosted run failed both full pytest
+steps; its migration/pipeline checks passed. See the [current integration audit](final-infrastructure-integration.md)
+for live evidence and owner steps. Documentation links/contracts, actionlint and
+PostgreSQL transfer/logical recovery evidence are now mandatory; no skipped
+PostgreSQL cases are accepted by the JUnit gate.
 
 ## Manual Render configuration
 

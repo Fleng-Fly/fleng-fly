@@ -3,26 +3,29 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  merge_group:
 permissions:
   contents: read
 jobs:
   sqlite:
     name: SQLite and application
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       APP_ENV: development
       DATABASE_URL: sqlite+aiosqlite:////tmp/fleng-ci.sqlite3
       AI_ENABLED: 'false'
       RESET_DELIVERY: disabled
+      JWT_ACCESS_SECRET: disposable-ci-only-secret-at-least-32-characters
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
+          package-manager-cache: false
       - run: python -m venv backend/.venv
       - run: backend/.venv/bin/pip install -e './backend[dev]'
       - run: npm run backend:lint
@@ -31,11 +34,12 @@ jobs:
       - run: npm run curriculum:validate
       - run: backend/.venv/bin/python scripts/validate_curriculum.py --report json > /tmp/curriculum-validation.json
       - run: npm run backend:test -- -q
+      - run: backend/.venv/bin/python scripts/check-docs.py --contracts
       - run: npm run frontend:test
       - run: git diff --check
   postgres:
     name: PostgreSQL integration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
       postgres:
@@ -55,26 +59,43 @@ jobs:
       TEST_DATABASE_URL: postgresql+asyncpg://fleng_ci:disposable_ci_only@127.0.0.1:5432/fleng_ci
       AI_ENABLED: 'false'
       RESET_DELIVERY: disabled
+      JWT_ACCESS_SECRET: disposable-ci-only-secret-at-least-32-characters
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
+          package-manager-cache: false
       - run: python -m venv backend/.venv
       - run: backend/.venv/bin/pip install -e './backend[dev]'
+      - name: Install matching PostgreSQL backup clients
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client-16
+      - name: Require real PostgreSQL test configuration
+        run: test -n "$TEST_DATABASE_URL"
       - run: npm run db:verify
-      - run: npm run backend:test -- -q
+      - run: npm run backend:test -- -q -rs --junitxml=/tmp/postgres-tests.xml
+      - name: Reject unexecuted PostgreSQL tests
+        run: python scripts/check-test-report.py /tmp/postgres-tests.xml
+  workflow:
+    name: Workflow validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate workflow syntax and expressions
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7
   required:
     name: Required database checks
     if: always()
-    needs: [sqlite, postgres]
-    runs-on: ubuntu-latest
+    needs: [sqlite, postgres, workflow]
+    runs-on: ubuntu-24.04
     steps:
       - name: Require successful database jobs
         env:
+          WORKFLOW_RESULT: ${{ needs.workflow.result }}
           SQLITE_RESULT: ${{ needs.sqlite.result }}
           POSTGRES_RESULT: ${{ needs.postgres.result }}
-        run: test "$SQLITE_RESULT" = success && test "$POSTGRES_RESULT" = success
+        run: test "$SQLITE_RESULT" = success && test "$POSTGRES_RESULT" = success && test "$WORKFLOW_RESULT" = success

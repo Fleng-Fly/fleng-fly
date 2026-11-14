@@ -15,7 +15,9 @@ DATABASE_URL=sqlite+aiosqlite:////tmp/fleng-content-review.db .venv/bin/python -
 DATABASE_URL=sqlite+aiosqlite:////tmp/fleng-content-review.db .venv/bin/python -m app.db.curriculum --apply-draft
 ```
 
-Confirm the path before writes. Re-import preserves publication state and rejects conflicting content/IDs before mutation. Startup never runs it.
+Confirm the path before writes. Re-import preserves publication state and rejects conflicting content/IDs before mutation. Production startup never runs it. The guarded loopback-only npm dev launcher
+imports unpublished drafts for existing local learner accounts; it never sets
+publication flags. See [default local workflow](local-draft-workflow.md).
 
 After teacher/translator review, --publish-reviewed-sha acknowledges the exact canonical SHA in a review environment; it is not proof/signature of approval. CLI rejects production writes. Production promotion needs separate backup/release approval. Raw-file SHA for normalization and canonical publication SHA differ; content edits need renewed review rather than overwriting submitted exercises.
 

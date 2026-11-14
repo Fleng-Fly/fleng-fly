@@ -4,6 +4,6 @@ Existing media-query thresholds include dashboard 1100/900/640px, courses 767px,
 
 Check at 360px, tablet and desktop with long titles, forms/errors, keyboard navigation and open chat. Shared workspace/layout code manages drawer/profile interactions. Backend/DOM success does not establish mobile layout quality.
 
-The preserved curriculum visual report contains historical screenshots and known mobile assistant overlap. Lesson initial tab is Test. That evidence is not a full accessibility certification or a new browser run. See [browser testing](../10-testing/browser-tests.md).
+The preserved curriculum visual report contains historical screenshots and known mobile assistant overlap. Lessons now open Theory by default, with three equal-width tabs: Theory, Practice and Vocabulary. Dashboard Quick access has Lessons, Progress and Leaderboard; cards wrap to fill desktop rows and stack on mobile. That evidence is not a full accessibility certification or a new browser run. See [browser testing](../10-testing/browser-tests.md).
 
 [Section index](README.md) · [Documentation home](../README.md)

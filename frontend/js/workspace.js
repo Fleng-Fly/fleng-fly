@@ -90,7 +90,6 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
             ><svg><use href="#icon-settings" /></svg><span>Settings</span></a
           >
         </nav>
-        <a class="sidebar-link" href="/install.html"><span>↓ Встановити Fleng</span></a>
         <div class="sidebar-foot">
           <span class="sidebar-foot-mark">✦</span>
           <p>Keep learning.<br /><strong>Your journey is yours.</strong></p>

@@ -281,13 +281,12 @@ production access or copy of personal accounts. Cleanup removes dedicated /tmp
 folders after stopping their servers; repository screenshots remain available.
 ## PWA — 2026-11-13
 
-Виконано: `/install.html`, маніфест, іконки, спільний `js/pwa.js` на всіх
-онлайн-сторінках, захоплення браузерного встановлення, ручні інструкції для
-Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екраном.
-Дані й автентифікація йдуть до чинного FastAPI; API та сторінки користувача
-не кешуються. Навігація: мережа → при мережевому збої `/offline.html`.
-Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
-на фізичних пристроях. Нативні інсталятори не створено.
+Оновлено 2026-11-14: пропозиції завантажити/встановити додаток вилучено
+з головної сторінки, навігації та offline-екрана; обробники встановлення й
+окремі стилі видалено. `/install.html` зберігає лише довідку про доступ і прогрес.
+Маніфест, іконки, реєстрація worker та offline fallback збережені;
+кеш offline-екрана оновлено до v2. API й дані користувача не кешуються.
+Далі: перевірка на фізичних пристроях.
 Деталі: `docs/pwa-installation.md` (від кореня проєкту).
 
 ## Desktop — 2026-11-14
@@ -308,3 +307,11 @@ No CI-to-production database connection or draft publication exists.
 
 Explicit SQLite backup → read-only source + SQLite backup API → private new file →
 integrity/FK checks + counts → operator-managed off-host storage/restore drill.
+
+## Operator-only database transfer
+
+Existing SQLite → new private online snapshot (read-only typed rows) → exact release/schema/FK validation → explicit PostgreSQL schema with table locks → FK-ordered import and refresh-token links → typed row/count reconciliation → default rollback or explicit --apply commit. No implicit application URL, publishing, deletion, upsert or production cutover. Logical recovery uses pg_dump → private archive → fresh isolated recovery database → row/API validation. See docs/05-database/transfer-and-recovery.md.
+
+## npm run dev default catalog
+
+Local file SQLite → private online backup before preparation → existing migrations → A0–B2 draft import without publication → loopback-only development factory → existing signed-in users see both legacy courses and all five drafts. Grading/progress keep existing user ownership and once-only XP. Production launcher and ordinary app factory never opt into these draft reads.

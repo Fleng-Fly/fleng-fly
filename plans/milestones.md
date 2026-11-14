@@ -187,3 +187,21 @@ authentication. Desktop/mobile Firefox artifacts recorded; source publication an
 main user DB unaffected. Primary reviewer remains at zero XP/lesson progress;
 UI interaction QA used a second database. Next: pedagogical/translation review,
 then separately authorized publication. Evidence: docs/curriculum-visual-review.md.
+
+## Infrastructure finalization checkpoint — 2026-11-14
+
+- **Completed locally:** transfer implementation/refusal/rollback tests; mandatory docs/actionlint/PostgreSQL evidence gates; ruleset import artifact and staging/recovery/security/release documentation.
+- **In progress / externally blocked:** revised hosted CI, PostgreSQL cross-engine and logical/provider restore drills; no staging instance or authenticated hosting management.
+- **Observed:** existing hosted full suites fail, main protected=false, Render readiness 200/database up, Netlify homepage 200/API 404.
+- **Next:** owner-run PR/checks, activate protection and CI-gated hosting, validate staged routing/cookies and restore, then separately approve production cutover. A0–B2 remains draft. No automatic commit/push.
+
+## Default npm dev curriculum — 2026-11-14
+
+Completed: existing local SQLite backed up and populated with all five A0–B2 drafts;
+all seven courses available to ordinary signed-in local users by default. Authenticated
+loopback-only factory reuses existing routes/grading and preserves production filtering.
+Verified: all 50 draft lessons/500 words over HTTP, idempotent rerun, original accounts,
+profile XP and progress preserved; targeted tests/Ruff/mypy/frontend/docs links pass.
+Remaining: pre-existing upstream preview total-count assertion and documentation contract
+drift from letter_tiles remain separate fixes; editorial/production publication pending.
+No commit/push or production operation performed.

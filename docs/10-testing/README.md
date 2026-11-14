@@ -13,3 +13,5 @@ Reproducible automated/operational checks and dated evidence.
 [Documentation home](../README.md)
 
 - [Persistence verification, 2026-11-14](persistence-verification-2026-11-14.md)
+
+[Infrastructure verification, 2026-11-14](infrastructure-verification-2026-11-14.md) separates local checks, public hosted evidence and unexecuted PostgreSQL/provider drills.

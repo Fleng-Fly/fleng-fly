@@ -1,6 +1,6 @@
 // Only the public, self-contained offline screen is cached. Never cache API,
 // credentials, user HTML, answers, chat, or progress.
-const CACHE = 'fleng-offline-v1';
+const CACHE = 'fleng-offline-v2';
 const OFFLINE = '/offline.html';
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.add(OFFLINE)));

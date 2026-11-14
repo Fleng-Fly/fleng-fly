@@ -13,3 +13,5 @@ Repository-supported static/Python topology, release commands and explicit stora
 [Documentation home](../README.md)
 
 - [Database CI and manual hosting gate](database-ci-gate.md)
+
+[Final infrastructure integration audit and owner setup](final-infrastructure-integration.md) records real GitHub/Render/Netlify observations, CI gates, staging steps and release boundaries.

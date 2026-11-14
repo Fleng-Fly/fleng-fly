@@ -1,8 +1,9 @@
 """Local curriculum-review app factory. Never used by normal/production startup.
 
-Authentication uses the existing JWT/refresh flow. Only the freshly provisioned
-reviewer may resolve drafts. Content publication flags remain false; all grading
-and progress writes use unchanged services against the isolated preview database.
+Authentication uses the existing JWT/refresh flow. The private preview factory
+restricts drafts to its freshly provisioned reviewer; the separate loopback-only
+development factory reuses these routes for ordinary local learner accounts.
+Publication flags remain false; grading and progress use the existing services.
 """
 
 import json
@@ -91,9 +92,9 @@ def validate_preview_settings(settings: Settings) -> dict:
     return marker
 
 
-def preview_router(reviewer_id: UUID) -> APIRouter:
+def preview_router(reviewer_id: UUID | None) -> APIRouter:
     async def reviewer(user: User = Depends(get_current_user)) -> User:
-        if user.id != reviewer_id:
+        if reviewer_id is not None and user.id != reviewer_id:
             raise ApiError(403, "FORBIDDEN", "Curriculum preview is restricted to its reviewer")
         return user
 

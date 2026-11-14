@@ -28,10 +28,11 @@ sessions. There were no foreign-key violations. Revision: `20261110_1400`.
 No identities, hashes or token values were exported. This is local evidence,
 not a production inventory. The source database was not migrated, seeded or reset.
 
-All five A0–B2 courses exist only in draft JSON here. Normal startup intentionally
-neither imports nor publishes them. The normal catalog excludes unpublished
-courses/lessons, including their course words. Missing drafts do not mean missing
-user data. See [development curriculum](../06-learning/local-draft-workflow.md).
+The audit above predates enabling the default local draft catalog. The guarded
+`npm run dev` launcher now imports all five A0–B2 drafts into the existing local
+SQLite file after a private backup, without publication. Normal production startup
+still neither imports nor publishes them. The normal catalog excludes unpublished
+courses/lessons, including their course words. Missing drafts in the earlier audit did not mean missing user data. See [development curriculum](../06-learning/local-draft-workflow.md).
 
 ## Local setup
 
@@ -91,7 +92,8 @@ See [Render recovery documentation](https://render.com/docs/postgresql-backups).
    Record release commit, Alembic revision, every table count and FK/integrity checks.
 3. Migrate a new empty PostgreSQL target to the same Alembic head using the reviewed
    release. Never point the transfer at an occupied target or reset an existing DB.
-4. Prepare/review a one-off typed SQLAlchemy transfer against the **snapshot**.
+4. Review/use the implemented `app.db.transfer` against the **snapshot**; see
+   [typed transfer and recovery](transfer-and-recovery.md).
    Read with ORM column types: SQLite UUID hex must become UUID values, timestamps
    need consistent UTC semantics, booleans and JSON need typed conversion. Copy
    explicit primary keys unchanged, not via registration/seed APIs. Include all
@@ -114,9 +116,10 @@ See [Render recovery documentation](https://render.com/docs/postgresql-backups).
    manually change the private DATABASE_URL and release application code. Preserve
    the original SQLite snapshot and URL securely; verify readiness and learner flows.
 
-This is an explicit runbook, **not an implemented or verified cross-engine copy
-utility**. Production migration is not ready until the typed transfer and staging
-rehearsal above pass. No production migration or URL change was performed.
+The reusable typed utility is now implemented with local disposable copy/refusal/
+rollback tests. Live asyncpg transfer and provider recovery rehearsal are still
+**not verified** here. Production migration is not ready until those staging
+checks pass. No production migration or URL change was performed.
 
 ## Rollback
 

@@ -207,7 +207,7 @@ function renderCurrentCourse(progressResult) {
   foot.append(action);
   target.append(head, track, foot);
   animateFill(fill, 'width', `${percent}%`);
-  for (const id of ['sidebar-course-link', 'quick-course-link']) $(id).href = action.href;
+  $('sidebar-course-link').href = action.href;
 }
 
 async function loadDashboardData() {

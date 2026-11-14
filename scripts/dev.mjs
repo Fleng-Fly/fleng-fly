@@ -16,8 +16,9 @@ if (!existsSync(venvUvicorn)) {
   execFileSync(process.execPath, [resolve(root, 'scripts', 'setup.mjs')], { stdio: 'inherit' });
 }
 
-// Fail before serving HTTP if a local migration or initial seed fails.
-execFileSync(venvPython, ['-m', 'app.db.prepare'], { cwd: backendDir, stdio: 'inherit' });
+// Back up local data, prepare migrations and import unpublished development drafts.
+// This entry point refuses hosted/production databases before any preparation.
+execFileSync(venvPython, ['-m', 'app.development'], { cwd: backendDir, stdio: 'inherit' });
 
 const children = [];
 let shuttingDown = false;
@@ -62,6 +63,6 @@ const port = process.env.PORT ?? '3001';
 start(
   'backend',
   venvUvicorn,
-  ['app.main:app', '--reload', '--no-proxy-headers', '--host', '0.0.0.0', '--port', port],
+  ['app.development:create_development_app', '--factory', '--reload', '--no-proxy-headers', '--host', '127.0.0.1', '--port', port],
   backendDir,
 );
