@@ -29,7 +29,7 @@
 - [x] `Course`, `Lesson` (migration `20261011_1200_catalog`).
 - [x] Unique `courses.slug`, globally unique `lessons.slug`, index
       `lessons.course_id`, CEFR `level` check constraint.
-- [x] Seed: two sample courses (A1, B1) with three lessons each.
+- [x] Seed: two sample courses (A1, B1) and seven lessons.
 - [x] `Exercise`, `ExerciseSubmission`, `LessonProgress` (migration
       `20261011_1400_exercises`).
 - [x] Unique `exercises.slug`, `(user_id, exercise_id)` and

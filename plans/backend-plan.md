@@ -40,6 +40,8 @@
       `20261011_1400_exercises`; exercise seed content.
 - [x] `exercises` module: public exercises (answer hidden), submit + grade for
       `single_choice` and `text`; explicit `self_check` (no server grading).
+- [x] Optional letter-tile configuration on short answers, server validation
+  of tile placements, and a sample lesson with fixed-answer exercises.
 - [x] `exercises`/`progress`: lesson start/submit/progress, once-only XP,
       derived exercise and per-course counters on `/progress/me`.
 - [x] Tests for grading, answer secrecy, ownership, completion rules and

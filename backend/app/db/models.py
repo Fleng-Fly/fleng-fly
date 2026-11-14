@@ -8,6 +8,7 @@ Identity (`User`), learner profile (`Profile`), authentication sessions
 
 import uuid
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -241,6 +242,7 @@ class Exercise(Base):
       `correct_option_id` holds the one correct option id.
     - `text`: `accepted_answers` is a list of accepted short answers (compared
       after normalisation: trimmed, collapsed whitespace, case-insensitive).
+      Optional `letter_tiles` config supplies the word pattern and letter bank.
     - `self_check`: the learner answers in their own words and checks it
       themselves; the server records the attempt and never grades free text.
       `model_answer` is revealed only after submission.
@@ -268,6 +270,7 @@ class Exercise(Base):
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
     points: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
     options: Mapped[list[dict[str, str]] | None] = mapped_column(JSON, nullable=True)
+    letter_tiles: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     correct_option_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     accepted_answers: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
     model_answer: Mapped[str | None] = mapped_column(Text, nullable=True)

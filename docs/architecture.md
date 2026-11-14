@@ -161,6 +161,9 @@ Backend (exercises module)
   → upsert ExerciseSubmission (unique per user+exercise), award XP once
   → recompute lesson completion; on first completion bump the progress aggregate
   → responds with the grading result + lesson progress
+Frontend (Practice and Test)
+  → keeps the previous feedback visible and advances to an unfinished exercise
+  → prioritises unseen exercises, then revisits incomplete attempts
 Progress aggregate / XP
   → XP is server-side only, once per exercise; Profile.xp is the running total
   → gamification (streaks, levels, achievements) is still planned

@@ -154,7 +154,7 @@ class Settings(BaseSettings):
             path = Path(database).expanduser()
             if not path.is_absolute():
                 path = BACKEND_ROOT / path
-            url = url.set(database=str(path.resolve()))
+            url = url.set(database=path.resolve().as_posix())
             return url.set(drivername="sqlite+aiosqlite").render_as_string(hide_password=False)
         if value.startswith("postgresql+asyncpg://"):
             return value

@@ -93,7 +93,11 @@ async def sqlite_snapshot(engine: AsyncEngine) -> dict:
         version = await connection.scalar(text("SELECT sqlite_version()"))
         return {
             "database_path": actual_path,
-            "engine_path_matches": actual_path == expected_path,
+            "engine_path_matches": bool(
+                actual_path
+                and expected_path
+                and Path(actual_path).resolve() == Path(expected_path).resolve()
+            ),
             "settings_match_engine": engine.url.render_as_string(hide_password=False)
             == get_settings().database_url,
             "file_writable": os.access(actual_path, os.W_OK) if actual_path else None,

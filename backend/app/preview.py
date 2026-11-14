@@ -53,9 +53,12 @@ def load_marker(directory: Path) -> dict:
         raise ValueError("Preview files must not use symlinks")
     import os
 
+    getuid = getattr(os, "getuid", None)
+    if getuid is None:
+        raise ValueError("Private curriculum preview requires POSIX file permissions")
     for path in (directory, marker, directory / PREVIEW_DATABASE):
         info = path.stat()
-        if info.st_uid != os.getuid() or info.st_mode & 0o077:
+        if info.st_uid != getuid() or info.st_mode & 0o077:
             raise ValueError("Preview files must be private and owned by this user")
     data = json.loads(marker.read_text(encoding="utf-8"))
     if data.get("kind") != PREVIEW_KIND or data.get("database") != PREVIEW_DATABASE:

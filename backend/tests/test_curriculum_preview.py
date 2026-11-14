@@ -1,6 +1,7 @@
 """Preview authorization, real draft rendering payloads and isolation regressions."""
 
 import json
+import os
 from pathlib import Path
 from uuid import uuid4
 
@@ -43,6 +44,8 @@ def marker_directory(tmp_path, reviewer_id):
 
 @pytest_asyncio.fixture
 async def preview(db_session, tmp_path, monkeypatch):
+    if os.name != "posix":
+        pytest.skip("Private preview requires POSIX ownership and permission checks")
     await seed_catalog(db_session)
     await import_curriculum(db_session, load_curriculum(), apply=True)
     user = await register_user(
@@ -246,6 +249,8 @@ def test_configuration_fails_closed(tmp_path, change):
 
 
 def test_marker_permissions_and_symlinks(tmp_path):
+    if os.name != "posix":
+        pytest.skip("POSIX ownership and permission checks")
     directory, _ = marker_directory(tmp_path, uuid4())
     marker = directory / "preview.json"
     marker.chmod(0o644)
@@ -287,3 +292,10 @@ def test_start_refuses_unprepared_directory_without_creating_database(tmp_path):
     )
     assert response.returncode == 2
     assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.skipif(os.name == "posix", reason="Non-POSIX platform guard")
+def test_preview_refuses_platform_without_private_permissions(tmp_path):
+    directory, _ = marker_directory(tmp_path, uuid4())
+    with pytest.raises(ValueError, match="POSIX"):
+        load_marker(directory)

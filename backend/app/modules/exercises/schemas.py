@@ -17,6 +17,11 @@ class ExerciseOptionResponse(CamelModel):
     text: str
 
 
+class LetterTilesResponse(CamelModel):
+    pattern: str
+    letters: list[str]
+
+
 class ExercisePublicResponse(CamelModel):
     """Public exercise content.
 
@@ -32,6 +37,7 @@ class ExercisePublicResponse(CamelModel):
     prompt: str
     points: int
     options: list[ExerciseOptionResponse] | None = None
+    letter_tiles: LetterTilesResponse | None = None
 
 
 class SubmissionRequest(CamelModel):

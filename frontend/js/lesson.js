@@ -1,15 +1,16 @@
 import { getLesson, getLessonProgress, getLessonVocabulary, startLesson, submitAnswer } from './api.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
+import { letterTiles } from './letter-tiles.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
 
 const $ = (id) => document.getElementById(id);
 const tabs = ['theory', 'practice', 'test', 'vocabulary'];
-const labels = { single_choice: 'Multiple choice', text: 'Short answer', self_check: 'Self-check' };
+const labels = { letter_tiles: 'Letter tiles', single_choice: 'Multiple choice', text: 'Short answer', self_check: 'Self-check' };
 const state = {
   lesson: null, progress: null, tab: 'test', index: 0, busy: false,
-  drafts: new Map(), results: new Map(), errors: new Map(),
+  drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
   vocabulary: { items: [], loaded: false, loading: false, more: false, error: null },
 };
 
@@ -33,6 +34,19 @@ function renderTheory(container, theory) {
 
 function exerciseState(exercise) {
   return state.progress.exercises.find((item) => item.exerciseId === exercise.id);
+}
+
+function exerciseType(exercise) {
+  return exercise.letterTiles ? 'letter_tiles' : exercise.type;
+}
+
+function nextUnfinished(after = -1) {
+  const exercises = state.lesson.exercises;
+  const records = new Map(state.progress.exercises.map((record) => [record.exerciseId, record]));
+  const indices = exercises.map((_, index) => (after + 1 + index) % exercises.length);
+  const unfinished = indices.filter((index) => !records.get(exercises[index].id)?.completed);
+  return unfinished.find((index) => !records.get(exercises[index].id)?.attempts)
+    ?? unfinished[0] ?? -1;
 }
 
 function pct(done, total) {
@@ -97,10 +111,16 @@ function feedback(exercise, record) {
     box.classList.add(result.isCorrect ? 'is-correct' : 'is-incorrect');
     let headline = exercise.type === 'self_check'
       ? (result.isCorrect ? 'Marked as correct' : 'Marked for more practice')
-      : (result.isCorrect ? 'Correct' : 'Try again');
+      : (result.isCorrect ? 'Correct' : 'Incorrect');
     if (result.xpAwarded) headline += ` · +${result.xpAwarded} XP`;
     box.append(el('strong', undefined, headline));
     if (result.feedback) box.append(el('p', undefined, result.feedback));
+    if (!result.isCorrect && !result.completed) {
+      const remaining = state.progress.exercisesTotal - state.progress.exercisesCompleted;
+      box.append(el('p', undefined, remaining > 1
+        ? 'This question will return after the other unfinished questions.'
+        : 'Try again to finish this question.'));
+    }
     if (exercise.type === 'single_choice' && result.correctOptionId) {
       const option = exercise.options?.find((item) => item.id === result.correctOptionId);
       if (option) box.append(el('p', undefined, `Correct answer: ${option.text}`));
@@ -136,11 +156,17 @@ function markEdited(exercise) {
 async function submit(exercise, answer, assessment) {
   if (state.busy) return;
   if (!answer?.trim()) {
-    state.errors.set(exercise.id, exercise.type === 'single_choice' ? 'Choose an answer first.' : 'Write an answer first.');
+    const message = {
+      single_choice: 'Choose an answer first.',
+      letter_tiles: 'Fill every blank with a letter tile.',
+    }[exerciseType(exercise)] || 'Write an answer first.';
+    state.errors.set(exercise.id, message);
     renderQuestions();
     return;
   }
   state.busy = true;
+  let advanced = false;
+  $('lesson-last-answer').replaceChildren();
   state.errors.delete(exercise.id);
   setBusy(true);
   const pending = document.querySelector(`[data-exercise-id="${exercise.id}"] .lesson-feedback`);
@@ -152,7 +178,16 @@ async function submit(exercise, answer, assessment) {
     });
     state.progress = result.lesson;
     state.results.set(exercise.id, result);
-    state.drafts.set(exercise.id, answer);
+    state.drafts.set(exercise.id, result.completed ? answer : '');
+    state.tileDrafts.delete(exercise.id);
+    const next = nextUnfinished(state.index);
+    if (next !== -1 && next !== state.index) {
+      const review = feedback(exercise, null);
+      review.prepend(el('p', 'lesson-muted', exercise.prompt));
+      $('lesson-last-answer').append(review);
+      state.index = next;
+      advanced = true;
+    }
     renderHero();
     renderPreview();
   } catch (error) {
@@ -166,12 +201,13 @@ async function submit(exercise, answer, assessment) {
     renderQuestions();
     setBusy(false);
     const card = document.querySelector(`[data-exercise-id="${exercise.id}"]`);
-    card?.querySelector('.lesson-feedback')?.focus();
+    if (advanced) $(`panel-${state.tab}`).querySelector('h2')?.focus();
+    else card?.querySelector('.lesson-feedback')?.focus();
   }
 }
 
 function setBusy(busy) {
-  document.querySelectorAll('.lesson-tabs button, #use-template, #template-preview button, #template-structure button, .lesson-answer-form button, .lesson-question-navigation button').forEach((button) => {
+  document.querySelectorAll('.lesson-tabs button, #use-template, #template-preview button, #template-structure button, .lesson-answer-form button, .lesson-answer-form input, .lesson-answer-form textarea, .lesson-question-navigation button').forEach((button) => {
     if (busy) {
       button.dataset.disabledBeforeSubmit = String(button.disabled);
       button.disabled = true;
@@ -182,13 +218,13 @@ function setBusy(busy) {
   });
 }
 
-function questionCard(exercise, index, mode) {
+function questionCard(exercise, index) {
   const record = exerciseState(exercise);
   const result = state.results.get(exercise.id);
   const card = el('article', 'lesson-card lesson-question lesson-reveal');
   card.dataset.exerciseId = exercise.id;
   const meta = el('div', 'lesson-question-meta');
-  meta.append(el('span', 'lesson-chip', `Question ${index + 1} / ${state.lesson.exercises.length}`), el('span', undefined, `${labels[exercise.type] || exercise.type} · ${exercise.points} XP`));
+  meta.append(el('span', 'lesson-chip', `Question ${index + 1} / ${state.lesson.exercises.length}`), el('span', undefined, `${labels[exerciseType(exercise)] || exercise.type} · ${exercise.points} XP`));
   card.append(meta);
   const track = el('div', 'lesson-track');
   track.setAttribute('role', 'progressbar');
@@ -221,6 +257,18 @@ function questionCard(exercise, index, mode) {
     }
     form.append(field);
     readAnswer = () => field.querySelector('input:checked')?.value || '';
+  } else if (exercise.letterTiles) {
+    const tiles = letterTiles(
+      exercise.letterTiles,
+      state.drafts.get(exercise.id),
+      state.tileDrafts.get(exercise.id),
+      (positions) => {
+        state.tileDrafts.set(exercise.id, positions);
+        markEdited(exercise);
+      },
+    );
+    form.append(tiles.field);
+    readAnswer = tiles.readAnswer;
   } else if (exercise.type === 'text' || exercise.type === 'self_check') {
     const label = el('label', 'lesson-answer-label', 'Your answer');
     const input = document.createElement(exercise.type === 'text' ? 'input' : 'textarea');
@@ -254,19 +302,17 @@ function questionCard(exercise, index, mode) {
   }
   form.append(actions);
   card.append(form, feedback(exercise, record));
-  if (mode === 'test') {
-    const nav = el('div', 'lesson-question-navigation');
-    const previous = el('button', 'lesson-button lesson-button-secondary', '← Previous');
-    previous.type = 'button';
-    previous.disabled = index === 0;
-    previous.addEventListener('click', () => goQuestion(index - 1));
-    const next = el('button', 'lesson-button lesson-button-primary', 'Next →');
-    next.type = 'button';
-    next.disabled = index === state.lesson.exercises.length - 1;
-    next.addEventListener('click', () => goQuestion(index + 1));
-    nav.append(previous, el('span', undefined, 'Your answers are saved when you check them.'), next);
-    card.append(nav);
-  }
+  const nav = el('div', 'lesson-question-navigation');
+  const previous = el('button', 'lesson-button lesson-button-secondary', '← Previous');
+  previous.type = 'button';
+  previous.disabled = index === 0;
+  previous.addEventListener('click', () => goQuestion(index - 1, state.tab));
+  const next = el('button', 'lesson-button lesson-button-primary', 'Next →');
+  next.type = 'button';
+  next.disabled = index === state.lesson.exercises.length - 1;
+  next.addEventListener('click', () => goQuestion(index + 1, state.tab));
+  nav.append(previous, el('span', undefined, 'Your answers are saved when you check them.'), next);
+  card.append(nav);
   return card;
 }
 
@@ -283,18 +329,16 @@ function renderQuestions() {
     $(state.tab === 'practice' ? 'panel-practice' : 'panel-test').append(empty);
     return;
   }
-  if (state.tab === 'practice') {
-    for (let index = 0; index < exercises.length; index++) practice.append(questionCard(exercises[index], index, 'practice'));
-  } else if (state.tab === 'test') {
-    test.append(questionCard(exercises[state.index], state.index, 'test'));
+  if (state.tab === 'practice' || state.tab === 'test') {
+    $(`panel-${state.tab}`).append(questionCard(exercises[state.index], state.index));
   }
 }
 
-function goQuestion(index) {
+function goQuestion(index, tab = 'test') {
   if (state.busy || index < 0 || index >= state.lesson.exercises.length) return;
   state.index = index;
-  switchTab('test');
-  $('panel-test').querySelector('h2')?.focus();
+  switchTab(tab);
+  $(`panel-${tab}`).querySelector('h2')?.focus();
   renderPreview();
 }
 
@@ -337,10 +381,10 @@ function renderStructure() {
   target.textContent = '';
   for (const [type, label] of [
     ['single_choice', 'Multiple choice'], ['true_false', 'True / False'],
-    ['fill_blank', 'Fill in the blank'], ['match_pairs', 'Match the pairs'],
+    ['letter_tiles', 'Letter tiles'], ['match_pairs', 'Match the pairs'],
     ['text', 'Short answer'], ['self_check', 'Self-check'],
   ]) {
-    const indices = state.lesson.exercises.flatMap((item, index) => item.type === type ? [index] : []);
+    const indices = state.lesson.exercises.flatMap((item, index) => exerciseType(item) === type ? [index] : []);
     const row = el('li');
     if (indices.length) {
       const button = el('button', undefined, label);
@@ -357,6 +401,7 @@ function renderStructure() {
 function switchTab(tab) {
   if (!tabs.includes(tab) || state.busy) return;
   state.tab = tab;
+  $('lesson-last-answer').replaceChildren();
   for (const name of tabs) {
     const active = name === tab;
     $(`tab-${name}`).setAttribute('aria-selected', String(active));
@@ -432,12 +477,15 @@ async function loadLesson() {
       exerciseId: ['test', 'practice'].includes(state.tab) ? state.lesson?.exercises[state.index]?.id : undefined,
     }));
     state.progress = progress;
-    state.index = Math.max(0, lesson.exercises.findIndex((item) => !progress.exercises.some((entry) => entry.exerciseId === item.id && entry.completed)));
+    state.index = Math.max(0, nextUnfinished());
     state.drafts.clear();
+    state.tileDrafts.clear();
     state.results.clear();
     state.errors.clear();
     state.vocabulary = { items: [], loaded: false, loading: false, more: false, error: null };
-    for (const entry of progress.exercises) if (entry.answer) state.drafts.set(entry.exerciseId, entry.answer);
+    for (const entry of progress.exercises) {
+      if (entry.attempts) state.drafts.set(entry.exerciseId, entry.completed ? entry.answer || '' : '');
+    }
     const theory = $('panel-theory');
     theory.replaceChildren(el('div', 'lesson-card lesson-theory'));
     const body = theory.firstElementChild;

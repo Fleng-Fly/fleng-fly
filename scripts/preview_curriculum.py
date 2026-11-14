@@ -11,11 +11,14 @@ import os
 import secrets
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BACKEND = ROOT / "backend"
-DEFAULT_DIRECTORY = Path("/tmp") / f"fleng-curriculum-preview-{os.getuid()}"
+DEFAULT_DIRECTORY = Path(tempfile.gettempdir()) / (
+    f"fleng-curriculum-preview-{getattr(os, 'getuid', lambda: 'local')()}"
+)
 sys.path.insert(0, str(BACKEND))
 
 
@@ -155,6 +158,8 @@ def main() -> int:
         parser.error("Use an unprivileged port between 1024 and 65535")
     directory = args.directory.expanduser().absolute()
     try:
+        if os.name != "posix":
+            raise ValueError("Private curriculum preview requires POSIX file permissions")
         if args.action == "prepare":
             prepare(directory, args.port)
         else:

@@ -30,7 +30,7 @@ def draft(tmp_path):
 def mutate(path, callback):
     data = json.loads(path.read_bytes())
     callback(data["courses"][0]["lessons"][0])
-    path.write_text(json.dumps(data, ensure_ascii=False))
+    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 
 def evidence(tmp_path, **changes):
@@ -48,7 +48,7 @@ def evidence(tmp_path, **changes):
     )
     record.update(changes)
     path = tmp_path / "evidence.jsonl"
-    path.write_text(json.dumps(record, ensure_ascii=False) + "\n")
+    path.write_text(json.dumps(record, ensure_ascii=False) + "\n", encoding="utf-8")
     return SourceRegistry(path)
 
 
@@ -170,9 +170,9 @@ def test_tatoeba_linked_sentence(draft, tmp_path):
 def test_unavailable_and_corrupt_sources(draft, tmp_path, kind):
     path = tmp_path / "bad.jsonl"
     if kind == "corrupt":
-        path.write_text('{"english":')
+        path.write_text('{"english":', encoding="utf-8")
     if kind == "empty":
-        path.write_text("")
+        path.write_text("", encoding="utf-8")
     registry = SourceRegistry(path)
     if kind == "license":
         registry = evidence(tmp_path, license="unreviewed")
@@ -359,7 +359,7 @@ def test_wiktextract_projection_preserves_senses(tmp_path):
             dict(code="de", word="Buch", sense="written work"),
         ],
     )
-    path.write_text(json.dumps(entry))
+    path.write_text(json.dumps(entry), encoding="utf-8")
     rows = list(
         wiktextract_records(
             path,
@@ -397,16 +397,18 @@ def test_tatoeba_projection_direct_links_and_individual_licenses(tmp_path):
     sentences.write_text(
         "1\teng\tRead it.\tAlice\t2020\t2020\n"
         "2\tukr\tПрочитай це.\tBob\t2020\t2020\n"
-        "3\tukr\tНе пов'язано.\tCharlie\t2020\t2020\n"
+        "3\tukr\tНе пов'язано.\tCharlie\t2020\t2020\n",
+        encoding="utf-8",
     )
-    links.write_text("1\t2\n2\t1\n")
+    links.write_text("1\t2\n2\t1\n", encoding="utf-8")
     licenses.write_text(
         json.dumps(
             {
                 "1": dict(license="CC0 1.0", attribution="Alice"),
                 "2": dict(license="CC BY 2.0 FR", attribution="Bob"),
             }
-        )
+        ),
+        encoding="utf-8",
     )
     rows = list(tatoeba_records(sentences, links, licenses, {"read it."}, revision="fixture"))
     assert len(rows) == 1
@@ -415,7 +417,7 @@ def test_tatoeba_projection_direct_links_and_individual_licenses(tmp_path):
     assert rows[0].original_license == "CC0 1.0"
     assert rows[0].translation_licenses == ["CC BY 2.0 FR"]
     assert "Bob" in rows[0].attribution
-    licenses.write_text("{}")
+    licenses.write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="license"):
         list(tatoeba_records(sentences, links, licenses, {"read it."}, revision="fixture"))
 
@@ -425,7 +427,7 @@ def test_source_preparation_cli_license_gate_and_corrupt_export(tmp_path):
     result = subprocess.run(command, text=True, capture_output=True)
     assert result.returncode == 2
     raw = tmp_path / "raw.jsonl"
-    raw.write_text("not json")
+    raw.write_text("not json", encoding="utf-8")
     output = tmp_path / "cache.jsonl"
     result = subprocess.run(
         command

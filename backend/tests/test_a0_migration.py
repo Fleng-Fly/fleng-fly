@@ -97,12 +97,22 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
             Profile,
             Progress,
         ]
-        before = {table: connection.execute(select(table)).all() for table in tables}
+        before = {
+            table: connection.execute(
+                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+            ).all()
+            for table in tables
+        }
         connection.commit()
-        command.upgrade(config, "head")
+        command.upgrade(config, "20261110_1400")
         assert connection.scalar(text("PRAGMA foreign_keys")) == 1
         assert connection.execute(text("PRAGMA foreign_key_check")).all() == []
-        assert {table: connection.execute(select(table)).all() for table in tables} == before
+        assert {
+            table: connection.execute(
+                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+            ).all()
+            for table in tables
+        } == before
         connection.execute(
             insert(Course).values(slug="intro", title="Intro", description="Intro", level="A0")
         )
@@ -113,8 +123,14 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
         connection.execute(text("DELETE FROM courses WHERE slug = 'intro'"))
         connection.commit()
         command.downgrade(config, "20261110_1200")
-        command.upgrade(config, "head")
-        assert {table: connection.execute(select(table)).all() for table in tables} == before
+        command.upgrade(config, "20261110_1400")
+        assert {
+            table: connection.execute(
+                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+            ).all()
+            for table in tables
+        } == before
         connection.commit()
+        command.upgrade(config, "head")
         command.check(config)
     engine.dispose()

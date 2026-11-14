@@ -489,4 +489,59 @@ async def test_seed_exercises_are_idempotent(
     await seed_catalog(seeded)
     after = await counts()
 
-    assert before == after == (2, 6, 18)
+    assert before == after == (2, 7, 21)
+
+
+async def test_letter_tiles_grade_available_letters_and_award_xp_once(
+    client: AsyncClient, seeded: AsyncSession
+) -> None:
+    slug = "present-perfect-practice"
+    lesson = await _lesson(client, slug)
+    exercise = next(item for item in lesson["exercises"] if item["slug"] == f"{slug}-q2")
+    assert exercise["letterTiles"] == {"pattern": "b__n", "letters": ["a", "e", "o", "e"]}
+    assert "acceptedAnswers" not in exercise
+    token = await _register(client)
+
+    invalid = await _submit(client, token, slug, exercise["id"], answer="baan")
+    assert invalid.status_code == 422
+    wrong = await _submit(client, token, slug, exercise["id"], answer="boan")
+    assert wrong.status_code == 200
+    assert wrong.json()["isCorrect"] is False
+    assert wrong.json()["xpAwarded"] == 0
+    assert wrong.json()["completed"] is False
+
+    correct = await _submit(client, token, slug, exercise["id"], answer="BEEN")
+    assert correct.status_code == 200
+    assert correct.json()["isCorrect"] is True
+    assert correct.json()["xpAwarded"] == exercise["points"]
+    repeat = await _submit(client, token, slug, exercise["id"], answer="been")
+    assert repeat.status_code == 200
+    assert repeat.json()["xpAwarded"] == 0
+
+
+async def test_self_check_incorrect_waits_for_correct_assessment(
+    client: AsyncClient, seeded: AsyncSession
+) -> None:
+    token = await _register(client)
+    lesson = "greetings-and-introductions"
+    exercise_id = await _exercise_id(client, lesson, f"{lesson}-q3")
+    wrong = await _submit(
+        client, token, lesson, exercise_id,
+        answer="Good night", self_assessment="incorrect",
+    )
+    assert wrong.status_code == 200
+    assert wrong.json()["isCorrect"] is False
+    assert wrong.json()["completed"] is False
+    assert wrong.json()["xpAwarded"] == 0
+    correct = await _submit(
+        client, token, lesson, exercise_id,
+        answer="Good morning", self_assessment="correct",
+    )
+    assert correct.status_code == 200
+    assert correct.json()["completed"] is True
+    assert correct.json()["xpAwarded"] == 1
+    repeat = await _submit(
+        client, token, lesson, exercise_id,
+        answer="Good morning", self_assessment="correct",
+    )
+    assert repeat.json()["xpAwarded"] == 0

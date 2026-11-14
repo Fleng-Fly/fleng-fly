@@ -115,7 +115,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
     with sqlite3.connect(path) as db:
         catalog = db.execute("SELECT count(*) FROM courses").fetchone()
         assert db.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "20261110_1400",
+            "20261114_1200",
         )
         assert not db.execute(
             "SELECT name FROM sqlite_master WHERE name LIKE '_fleng_write_probe_%'"
@@ -228,8 +228,10 @@ def test_production_does_not_serve_when_preparation_fails(tmp_path, broken):
     if broken == "stamped_without_tables":
         with sqlite3.connect(path) as db:
             db.execute("CREATE TABLE alembic_version (version_num VARCHAR(32) PRIMARY KEY)")
-            db.execute("INSERT INTO alembic_version VALUES ('20261110_1400')")
+            db.execute("INSERT INTO alembic_version VALUES ('20261114_1200')")
     if broken.startswith("readonly"):
+        if os.name == "nt":
+            pytest.skip("POSIX directory permission bits are not enforced on Windows")
         if os.geteuid() == 0:
             pytest.skip("Root bypasses filesystem mode bits")
         with sqlite3.connect(path) as db:
@@ -278,7 +280,7 @@ with patch.object(command, 'upgrade', side_effect=AssertionError('automatic PG m
     runpy.run_path('BACKEND_RUN_PATH', run_name='__main__')
     serve.assert_called_once()
     assert serve.call_args.kwargs['workers'] == 1
-""".replace("BACKEND_RUN_PATH", str(BACKEND_ROOT / "run.py")),
+""".replace("BACKEND_RUN_PATH", (BACKEND_ROOT / "run.py").as_posix()),
         ],
         cwd=tmp_path,
         env=env,

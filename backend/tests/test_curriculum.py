@@ -120,7 +120,7 @@ async def test_draft_import_review_and_progress_preservation(client, db_session)
     assert (await client.get("/api/v1/lessons/the-verb-to-be")).json() == old
     assert await db_session.scalar(select(func.count()).select_from(VocabularyItem)) == 0
     assert await db_session.scalar(select(func.count()).select_from(CourseVocabularyItem)) == 500
-    assert await db_session.scalar(select(func.count()).select_from(Exercise)) == 418
+    assert await db_session.scalar(select(func.count()).select_from(Exercise)) == 421
     for level in ["A0", "A1", "A2", "B1", "B2"]:
         courses = (await client.get("/api/v1/courses", params={"level": level})).json()
         course = next(c for c in courses if c["slug"] == f"fleng-{level.lower()}")

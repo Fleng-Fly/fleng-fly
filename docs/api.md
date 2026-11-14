@@ -128,10 +128,13 @@ Pagination is deliberately deferred for the small MVP catalog.
 `LessonDetail` = `{ id, slug, title, summary, theory, position, estimatedMinutes,
 courseSlug, courseTitle, level, exercises: ExercisePublic[] }`.
 
-`ExercisePublic` = `{ id, slug, position, type, prompt, points, options? }` where
+`ExercisePublic` = `{ id, slug, position, type, prompt, points, options?, letterTiles? }` where
 `options` = `[{ id, text }]` and is present only for `single_choice`. Public
 payloads **never** contain `correctOptionId`, `acceptedAnswers`, `modelAnswer`
-or `explanation`.
+or `explanation`. A `text` exercise may include
+`letterTiles: { pattern, letters }` (for example `b__n` with a shuffled letter
+bank). Submit the assembled word as `answer`. The server rejects a word with
+unfilled slots, changed fixed letters or letters unavailable in the bank.
 
 `LessonProgress` = `{ lessonSlug, lessonTitle, status ("in_progress"|"completed"),
 completed, startedAt, completedAt, exercisesTotal, exercisesCompleted, xpEarned,

@@ -65,7 +65,8 @@ its published lessons. Drafts and unpublished lessons are invisible (`404`).
 `GET /lessons/{slug}` returns theory + course context + public exercises (never
 answer keys). Lesson slugs are globally unique. `/start` is idempotent;
 `/submit` takes `{ exerciseId, answer, selfAssessment? }` and returns the grading
-result + lesson progress.
+result + lesson progress. Optional `letterTiles` on a public `text` exercise
+provides a pattern and letter bank. `/submit` accepts the assembled word.
 `GET /lessons/{slug}/progress` includes each exercise's latest answer for the
 authenticated caller; no answer keys are exposed by this read endpoint.
 

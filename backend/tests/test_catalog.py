@@ -163,4 +163,4 @@ async def test_seed_is_idempotent(client: AsyncClient, catalog: AsyncSession) ->
     await seed_catalog(catalog)
     after = await counts()
 
-    assert before == after == (2, 6)
+    assert before == after == (2, 7)

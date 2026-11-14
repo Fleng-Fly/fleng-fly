@@ -35,6 +35,7 @@ in `backend/app/db/models.py`):
   `ON DELETE CASCADE`, indexed), `slug` (unique), `position`, `type`
   (`single_choice`|`text`|`self_check`, check constraint), `prompt`, `points`
   (default 1), `options` (JSON), `correct_option_id`, `accepted_answers` (JSON),
+  optional `letter_tiles` (JSON, added by migration `20261114_1200`),
   `model_answer`, `explanation`, `created_at`, `updated_at`.
 - **`ExerciseSubmission`** (`exercise_submissions`) — `id` (UUID PK), `user_id`
   (FK → `users`, indexed), `exercise_id` (FK → `exercises`, indexed), `answer`,
@@ -74,12 +75,16 @@ in `backend/app/db/models.py`):
   (`accepted_answers` compared after normalisation — trim, collapse whitespace,
   casefold) and `self_check` (the learner assesses their own free-text answer;
   the server never grades it).
+- **Letter tiles.** A `text` exercise with `letter_tiles` displays its pattern
+  (one underscore per blank) and bank (one item per physical tile). The server
+  checks the fixed letters and bank quantities, then grades against
+  `accepted_answers` like any short answer.
 - **Secrecy.** `correct_option_id`, `accepted_answers`, `model_answer` and
   `explanation` are never serialized in a public lesson response. They are
   revealed only in the submission result.
 - **Exercise completion.** A `single_choice`/`text` exercise is completed once a
-  correct answer has been submitted. A `self_check` exercise is completed by
-  attempting it. `exercise_submissions.completed` is sticky.
+  correct answer has been submitted. A `self_check` exercise completes when
+  the learner marks it correct. `exercise_submissions.completed` is sticky.
 - **XP.** Each exercise is worth its `points`; XP is awarded once per
   `(user, exercise)` when the exercise first becomes completed. A conditional
   `UPDATE ... WHERE xp_awarded = false` claims the award atomically, so retries

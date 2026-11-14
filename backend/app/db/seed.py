@@ -375,6 +375,38 @@ SEED_EXERCISES: dict[str, list[dict]] = {
             "explanation": "Use have / has + never + past participle.",
         },
     ],
+    "present-perfect-practice": [
+        {
+            "slug": "present-perfect-practice-q1",
+            "position": 1,
+            "type": "single_choice",
+            "prompt": "Choose the correct verb: 'She ___ visited London twice.'",
+            "options": [
+                {"id": "a", "text": "have"},
+                {"id": "b", "text": "has"},
+                {"id": "c", "text": "are"},
+            ],
+            "correct_option_id": "b",
+            "explanation": "Use 'has' with she, he and it.",
+        },
+        {
+            "slug": "present-perfect-practice-q2",
+            "position": 2,
+            "type": "text",
+            "prompt": "Fill the blanks: 'Have you ever ___ to Ireland?'",
+            "letter_tiles": {"pattern": "b__n", "letters": ["a", "e", "o", "e"]},
+            "accepted_answers": ["been"],
+            "explanation": "'Been' is the past participle of 'be'.",
+        },
+        {
+            "slug": "present-perfect-practice-q3",
+            "position": 3,
+            "type": "text",
+            "prompt": "Type the missing word: 'Have you ___ been to Ireland?'",
+            "accepted_answers": ["ever"],
+            "explanation": "Use 'ever' to ask whether someone has had an experience.",
+        },
+    ],
 }
 
 SEED_COURSES: list[dict] = [
@@ -447,6 +479,16 @@ SEED_COURSES: list[dict] = [
                 "position": 3,
                 "theory": _PAST_EXPERIENCES_THEORY,
             },
+            {
+                "slug": "present-perfect-practice",
+                "title": "Present perfect practice",
+                "summary": (
+                    "Practise the present perfect with choices, letter tiles and a short answer."
+                ),
+                "estimated_minutes": 5,
+                "position": 4,
+                "theory": _PAST_EXPERIENCES_THEORY,
+            },
         ],
     },
 ]
@@ -495,6 +537,7 @@ async def seed_catalog(db: AsyncSession) -> None:
                 exercise.prompt = exercise_spec["prompt"]
                 exercise.points = exercise_spec.get("points", 1)
                 exercise.options = exercise_spec.get("options")
+                exercise.letter_tiles = exercise_spec.get("letter_tiles")
                 exercise.correct_option_id = exercise_spec.get("correct_option_id")
                 exercise.accepted_answers = exercise_spec.get("accepted_answers")
                 exercise.model_answer = exercise_spec.get("model_answer")

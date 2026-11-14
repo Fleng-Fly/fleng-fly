@@ -7,6 +7,7 @@ import sys
 import uuid
 
 import pytest
+from sqlalchemy.engine import make_url
 
 from app.core.config import BACKEND_ROOT, Settings
 
@@ -15,9 +16,12 @@ def test_sqlite_paths_do_not_depend_on_cwd(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("DATABASE_URL", raising=False)
     default = Settings(_env_file=None)
-    expected = f"sqlite+aiosqlite:///{BACKEND_ROOT / 'data' / 'fleng.db'}"
-    assert default.database_url == expected
-    assert Settings(database_url="sqlite:///./data/fleng.db").database_url == expected
+    expected = (BACKEND_ROOT / "data" / "fleng.db").as_posix()
+    assert make_url(default.database_url).database == expected
+    assert (
+        make_url(Settings(database_url="sqlite:///./data/fleng.db").database_url).database
+        == expected
+    )
     assert Settings(database_url="sqlite+aiosqlite:///:memory:").database_url.endswith(":memory:")
 
 
@@ -56,7 +60,7 @@ def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path, app_env):
     user_id = uuid.uuid4().hex
     with sqlite3.connect(path) as db:
         assert db.execute("SELECT version_num FROM alembic_version").fetchone()[0] == (
-            "20261110_1400"
+            "20261114_1200"
         )
         counts = [
             db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]

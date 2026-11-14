@@ -5,8 +5,8 @@ Rules (also documented in `docs/database.md`):
 - An exercise is **completed** when:
   - `single_choice` / `text`: the learner has submitted a *correct* answer at
     least once;
-  - `self_check`: the learner has submitted an answer at least once (the server
-    never grades free text).
+  - `self_check`: the learner has marked an answer as correct (the server
+    records the learner's assessment).
 - **XP** equals the exercise's `points`, awarded once per `(user, exercise)` on
   the first time the exercise becomes completed. A conditional `UPDATE` on
   `exercise_submissions.xp_awarded` guarantees this at the database level, so
@@ -17,6 +17,7 @@ Rules (also documented in `docs/database.md`):
   happens at most once, so aggregate counters cannot double-count.
 """
 
+from collections import Counter
 from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID
@@ -39,6 +40,7 @@ from app.modules.exercises.schemas import (
     ExercisePublicResponse,
     LessonExerciseStateResponse,
     LessonProgressResponse,
+    LetterTilesResponse,
     SubmissionResultResponse,
 )
 from app.modules.gamification.service import lock_learner, record_activity
@@ -119,6 +121,11 @@ def to_public_exercise(exercise: Exercise) -> ExercisePublicResponse:
         prompt=exercise.prompt,
         points=exercise.points,
         options=options,
+        letter_tiles=(
+            LetterTilesResponse.model_validate(exercise.letter_tiles)
+            if exercise.type == "text" and exercise.letter_tiles
+            else None
+        ),
     )
 
 
@@ -253,6 +260,19 @@ def _validate_answer(exercise: Exercise, answer: str, self_assessment: str | Non
     elif exercise.type == "text":
         if not answer.strip():
             raise _invalid("Write a short answer")
+        if exercise.letter_tiles:
+            pattern = exercise.letter_tiles["pattern"].casefold()
+            word = answer.strip().casefold()
+            if len(word) != len(pattern):
+                raise _invalid("Fill every blank with a letter tile")
+            pairs = list(zip(pattern, word, strict=True))
+            used = Counter(letter for fixed, letter in pairs if fixed == "_")
+            available = Counter(letter.casefold() for letter in exercise.letter_tiles["letters"])
+            if used - available or any(
+                fixed != "_" and fixed != letter
+                for fixed, letter in pairs
+            ):
+                raise _invalid("Use the available letter tiles and keep the given letters")
     elif exercise.type == "self_check":
         if not answer.strip():
             raise _invalid("Write an answer before self-checking")
@@ -296,7 +316,7 @@ async def submit_answer(
         is_correct: bool | None = self_assessment == "correct"
     else:
         is_correct = grading.grade_objective(exercise, answer)
-    will_complete = True if exercise.type == "self_check" else bool(is_correct)
+    will_complete = bool(is_correct)
 
     submission.answer = answer
     submission.is_correct = is_correct
