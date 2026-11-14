@@ -2,6 +2,10 @@
 
 Developer documentation: [complete guide](docs/README.md), including API contracts, database, learning/curriculum, security and deployment.
 
+Local desktop launch: `Fleng.exe` when the portable runtime is present, or
+`START-FLENG.cmd` for source setup. See [desktop guide](DESKTOP-UA.md) and
+[integration notes](docs/projectenglich-integration.md).
+
 Fleng is an English-learning web platform with structured courses, graded
 exercises, personal vocabulary, learning progress and an AI tutor API.
 
@@ -9,6 +13,15 @@ The project is a **learning MVP with stabilized backend extensions**. One
 Python/FastAPI application serves both the REST API and a plain HTML/CSS/vanilla
 JavaScript frontend. SQLite is the local default; PostgreSQL is supported as an
 explicit alternative.
+
+Для Windows відкрийте [інструкцію запуску](ЗАПУСК-У-WINDOWS.md).
+Можна двічі натиснути `START-WINDOWS.cmd`.
+
+## Встановлення додатка
+
+Fleng можна встановити з сайту на Windows, Linux, Android та iPhone як PWA.
+Відкрийте `/install.html` на вашому HTTPS-сервері. Деталі —
+[інструкція встановлення](ВСТАНОВЛЕННЯ-ДОДАТКА.md). Це проєкт PWA, не набір нативних інсталяторів.
 
 ## Quick start
 
@@ -37,6 +50,10 @@ npm run db:migrate       # apply migrations
 npm run db:seed          # update demo catalog in place, without duplicate records
 ```
 
+The sample lesson **Everyday Conversations → Present perfect practice** includes
+all three automatically graded interactions. For an existing local database,
+run `npm run db:migrate` and then `npm run db:seed` to load the sample lesson.
+
 For the presentation walkthrough and fictional accounts, see [DEMO.md](DEMO.md).
 `./start.sh` prepares and checks the demo using the existing application.
 
@@ -47,7 +64,7 @@ For the presentation walkthrough and fictional accounts, see [DEMO.md](DEMO.md).
 | Authentication | Register/login/logout, access JWTs, rotating HttpOnly refresh cookies, strict reuse detection |
 | Account settings | Own name/email/language/CEFR updates, password change and password reset API |
 | Catalog | Published courses, lessons, theory and public exercise descriptions |
-| Graded lessons | Start/resume, server-side submissions, single-choice/text/self-check exercises |
+| Graded lessons | Start/resume, server-side submissions, multiple choice, letter tiles, short answers and self-check |
 | Progress | Once-only exercise XP, lesson completion and per-course progress |
 | Vocabulary | Personal words, translations/examples, lesson links, due queue and review history |
 | Leaderboard | Top learners, total XP, completed lessons, current streak and own global rank |

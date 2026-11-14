@@ -279,3 +279,21 @@ Normal app uses published-only defaults. QA UI submissions use a second database
 the prepared primary preview starts with zero learner progress. No publication,
 production access or copy of personal accounts. Cleanup removes dedicated /tmp
 folders after stopping their servers; repository screenshots remain available.
+## PWA — 2026-11-13
+
+Виконано: `/install.html`, маніфест, іконки, спільний `js/pwa.js` на всіх
+онлайн-сторінках, захоплення браузерного встановлення, ручні інструкції для
+Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екраном.
+Дані й автентифікація йдуть до чинного FastAPI; API та сторінки користувача
+не кешуються. Навігація: мережа → при мережевому збої `/offline.html`.
+Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
+на фізичних пристроях. Нативні інсталятори не створено.
+Деталі: `docs/pwa-installation.md` (від кореня проєкту).
+
+## Desktop — 2026-11-14
+
+Launcher → user-data lock and persistent key → owned loopback worker → existing
+SQLite preparation/migrations → normal FastAPI API and static frontend → dedicated
+Edge/Chrome app window. Closing that window or losing the parent process closes
+the worker lifetime pipe and stops only that server. Existing development data
+is copied via SQLite backup only when the desktop database is absent.

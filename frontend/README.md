@@ -56,3 +56,15 @@ frontend/
 - Serving/architecture: `docs/frontend.md`, `project-map/architecture.md`
 - Design tokens: `design/colors.md`, `design/typography.md`
 - Pages/UX: `design/pages.md`, `design/ux-flow.md`
+
+
+## PWA — 2026-11-13
+
+Виконано: `/install.html`, маніфест, іконки, спільний `js/pwa.js` на всіх
+онлайн-сторінках, захоплення браузерного встановлення, ручні інструкції для
+Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екраном.
+Дані й автентифікація йдуть до чинного FastAPI; API та сторінки користувача
+не кешуються. Навігація: мережа → при мережевому збої `/offline.html`.
+Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
+на фізичних пристроях. Нативні інсталятори не створено.
+Деталі: `docs/pwa-installation.md` (від кореня проєкту).

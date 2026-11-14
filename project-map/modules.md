@@ -120,11 +120,20 @@ Runtime PostgreSQL/live AI verification remains blocked in this environment.
 
 `frontend/js/workspace.js` owns the shared Dashboard/Lessons sidebar, mobile
 drawer, catalog search and profile menu. `frontend/js/lesson.js` owns only the
-lesson tabs, questions, submission UI and preview. It calls the existing
+lesson tabs, questions, submission UI and preview. Practice and Test share
+the same automatic advance and retry order. `frontend/js/letter-tiles.js` renders
+the letter bank and slots for configured text exercises. The lesson page calls the existing
 `catalog`, `exercises` and `vocabulary` APIs through `frontend/js/api.js`.
 `exercises` now returns the caller's latest answer in lesson progress, and
-`vocabulary` can filter owned words by `lessonId`. No new database tables or
-migrations are needed.
+`vocabulary` can filter owned words by `lessonId`. Migration `20261114_1200` adds
+optional letter-tile configuration to exercises.
+
+## Windows local launcher (2026-11-11)
+
+`START-WINDOWS.cmd` runs the existing setup and dev scripts from its own folder.
+The backend dependency `tzdata` supplies IANA time zones on Windows. The setup
+instructions are in `ЗАПУСК-У-WINDOWS.md`; developer integration notes are in
+`docs/learning-handoff.md`.
 
 ## SQLite database preparation
 
@@ -243,3 +252,33 @@ resolution, progress reads and course-word selection accept an internal
 publication flags remain unchanged; grading/XP services are reused.
 `review_curriculum_browser.py` provides optional real Firefox BiDi screenshots.
 See `docs/curriculum-visual-review.md` and `reports/curriculum-preview/`.
+## Cross-platform backend commands
+
+`scripts/backend.mjs` runs Python modules from `backend/` using the existing
+virtualenv. npm database, demo and quality commands use it on all platforms.
+It forwards arguments and exit codes and supports paths containing spaces.
+
+## Desktop application and integration — 2026-11-14
+
+`desktop/main.py` coordinates the user-data lock, logging and app window.
+`desktop/runtime.py` owns the backend subprocess; `desktop/worker.py` prepares
+the existing database and serves FastAPI on loopback. `desktop/chromium.py`
+uses a dedicated Windows browser profile to observe the app window lifetime.
+`desktop/bootstrap.py`, `desktop/diagnostics.py`, `desktop/build_windows.py`
+and `desktop/launcher.c` provide source setup, diagnostics and portable builds.
+`desktop/tests/` verifies process lifecycle and data persistence.
+Local runtime/binaries remain ignored. The private curriculum reviewer requires
+POSIX permissions; ordinary desktop learning works on Windows.
+See [integration report](../docs/projectenglich-integration.md).
+
+
+## PWA — 2026-11-13
+
+Виконано: `/install.html`, маніфест, іконки, спільний `js/pwa.js` на всіх
+онлайн-сторінках, захоплення браузерного встановлення, ручні інструкції для
+Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екраном.
+Дані й автентифікація йдуть до чинного FastAPI; API та сторінки користувача
+не кешуються. Навігація: мережа → при мережевому збої `/offline.html`.
+Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
+на фізичних пристроях. Нативні інсталятори не створено.
+Деталі: `docs/pwa-installation.md` (від кореня проєкту).

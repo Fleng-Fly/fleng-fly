@@ -61,3 +61,10 @@ backend/data/
 # Local Fleng SQLite database and journals, wherever configured.
 fleng.db
 fleng.db-*
+
+# Local desktop distribution and generated environments
+/runtime/
+/.desktop-venv/
+/Fleng.exe
+/BUILD-MANIFEST.json
+/WINDOWS-DEPENDENCIES.txt

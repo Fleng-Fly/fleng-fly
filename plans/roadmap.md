@@ -10,6 +10,16 @@ resume, and responsive layouts. Exact Figma comparison awaits the target
 screen reference; Login/Sign Up is the next requested UI phase. The historical
 stage descriptions below record earlier architecture decisions.
 
+## Learning interactions — 2026-11-11
+
+- **Completed:** automatic next question, delayed retries, letter tiles and fixed
+  short answers with server-side grading and once-only XP. Self-check incorrect
+  assessments remain incomplete.
+- **Completed:** tzdata dependency and Windows start instructions/launcher.
+- **Completed 2026-11-14:** integrated into `fleng-fly`, preserving newer curriculum
+  and flashcard work. The copied development database was migrated and seeded.
+  See `docs/projectenglich-integration.md`.
+
 ## Netlify publication boundary — 2026-11-04
 
 - **Completed locally:** root `netlify.toml` uses `base = "frontend"` and
@@ -307,3 +317,20 @@ Completed: A0 backend + existing-filter button; 50-lesson A0–B2 draft and read
 - **Next:** teacher/translator editorial review and separate release approval.
   Existing UX: Vocabulary tab is personal words, initial tab is Test, floating
   AI launcher can overlap mobile text. See docs/curriculum-visual-review.md.
+## Windows command fix — 2026-11-11
+
+- **Completed:** replaced POSIX-only virtualenv paths in npm backend/database
+  commands with `scripts/backend.mjs`. Windows selects `Scripts/python.exe`.
+- **Completed 2026-11-14:** Windows npm preparation and seed on the copied database.
+
+
+## PWA — 2026-11-13
+
+Виконано: `/install.html`, маніфест, іконки, спільний `js/pwa.js` на всіх
+онлайн-сторінках, захоплення браузерного встановлення, ручні інструкції для
+Windows/Linux/Android/iPhone та `sw.js` із публічним offline-екраном.
+Дані й автентифікація йдуть до чинного FastAPI; API та сторінки користувача
+не кешуються. Навігація: мережа → при мережевому збої `/offline.html`.
+Далі: розгорнути оновлення на HTTPS-сервері та перевірити системне встановлення
+на фізичних пристроях. Нативні інсталятори не створено.
+Деталі: `docs/pwa-installation.md` (від кореня проєкту).

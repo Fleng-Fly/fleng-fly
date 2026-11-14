@@ -1,5 +1,11 @@
 # Milestones & Status
 
+Integration (2026-11-14): `projectenglich` learning interactions, PWA and desktop
+sources merged with current curriculum/flashcards. Legacy desktop revision
+collision handled by migration `20261114_1200`; Windows tooling adapted and copied
+development database prepared. No push/deploy. Validation and remaining platform
+limits: [integration report](../docs/projectenglich-integration.md).
+
 Presentation readiness (2026-10-24): local SQLite migration head and seeded
 catalog verified; three fictional accounts seeded through auth and grading;
 HTTP login/catalog/lesson/XP/restart checks passed. Browser inspection remains
@@ -85,7 +91,7 @@ limitations, not project blockers.
 | M4 | Catalog read endpoints are public; catalog **pages** are behind `requireSession` | Content is not sensitive; the UI stays part of the signed-in learning flow |
 | M4 | Lesson-path identifier is the lesson **slug** (e.g. `/lessons/{slug}/submit`) | Consistent with `GET /lessons/{slug}`; no UUID round-trip needed |
 | M4 | XP = exercise `points`, awarded **once per exercise** on first completion; no lesson bonus | Bounded, server-side, and impossible to farm with retries |
-| M4 | `single_choice`/`text` complete on a correct answer; `self_check` completes on attempt | The server cannot objectively grade free text; self-check is explicitly self-assessed |
+| M4 | `single_choice`/`text` complete on a correct answer; `self_check` completes on a correct self-assessment | The server cannot objectively grade free text; self-check is explicitly self-assessed |
 | M4 | A lesson completes only when it has ≥1 exercise and all are completed | Prevents "opened ⇒ completed"; empty lessons never auto-complete |
 | M4 | `exercises_completed` and per-course progress are **derived** on read | No denormalised counters to drift |
 

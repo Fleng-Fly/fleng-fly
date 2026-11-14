@@ -39,6 +39,9 @@
   Exact Figma comparison remains pending; custom test generation, timer and
   unimplemented exercise types are intentionally unavailable.
 
+- [x] Practice and Test advance after grading and revisit unfinished attempts
+  after the unseen questions. Letter tiles support drag and drop, tap and keyboard.
+
 ## Phase C — Progress & profile ⬜
 
 - [x] Dashboard progress summary and current-course view.

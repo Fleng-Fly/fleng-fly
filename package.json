@@ -16,16 +16,17 @@
     "test": "pnpm backend:test",
     "format": "prettier --write . && pnpm backend:format",
     "format:check": "prettier --check .",
-    "backend:dev": "cd backend && .venv/bin/uvicorn app.main:app --reload --no-proxy-headers --host 0.0.0.0 --port ${PORT:-3001}",
-    "backend:lint": "cd backend && .venv/bin/ruff check app tests",
-    "backend:format": "cd backend && .venv/bin/ruff format app tests",
-    "backend:typecheck": "cd backend && .venv/bin/mypy app",
-    "backend:test": "cd backend && .venv/bin/pytest",
-    "db:migrate": "cd backend && .venv/bin/alembic upgrade head",
-    "db:prepare": "cd backend && .venv/bin/python -m app.db.prepare",
-    "db:sql": "cd backend && .venv/bin/alembic upgrade head --sql",
-    "db:seed": "cd backend && .venv/bin/python -m app.db.seed",
-    "demo:prepare": "cd backend && .venv/bin/python -m app.db.prepare && .venv/bin/python -m app.db.demo"
+    "backend:dev": "node scripts/dev.mjs",
+    "backend:lint": "node scripts/backend.mjs ruff check app tests",
+    "backend:format": "node scripts/backend.mjs ruff format app tests",
+    "backend:typecheck": "node scripts/backend.mjs mypy app",
+    "backend:test": "node scripts/backend.mjs pytest",
+    "db:migrate": "node scripts/backend.mjs alembic upgrade head",
+    "db:prepare": "node scripts/backend.mjs app.db.prepare",
+    "db:sql": "node scripts/backend.mjs alembic upgrade head --sql",
+    "db:seed": "node scripts/backend.mjs app.db.seed",
+    "demo:prepare": "node scripts/backend.mjs app.db.prepare && node scripts/backend.mjs app.db.demo",
+    "test:pwa": "node scripts/test-pwa.mjs && node scripts/test-pwa-install.mjs"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

@@ -26,7 +26,7 @@ function start(name, command, args, cwd) {
   const child = spawn(command, args, {
     cwd,
     stdio: 'inherit',
-    shell: isWindows,
+    shell: false,
     env: process.env,
   });
   child.on('exit', (code) => {
