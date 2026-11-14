@@ -323,3 +323,7 @@ catalog only if empty → idempotent packaged A0–B2 draft import → standard 
 API (published content only). No local user DB is committed/uploaded and no
 publication flag is promoted. Ephemeral storage replacement recreates catalog
 content, not lost user accounts/progress.
+
+## Owner-authorized A0–B2 publication — 2026-11-14
+
+Owner-authorized pinned content SHA → importer exact-row preflight → insert missing catalog rows / promote only the five matching course and 50 lesson flags → normal public courses/lessons/course-words APIs → seven visible courses. Existing identities and learner data are preserved; no global draft visibility bypass.

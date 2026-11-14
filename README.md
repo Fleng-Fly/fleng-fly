@@ -34,7 +34,7 @@ npm run dev
 
 The launcher creates the backend virtualenv and installs dependencies if absent,
 backs up existing local SQLite data, applies pending migrations, seeds an empty
-catalog, imports unpublished A0–B2 drafts and starts a loopback-only dev server.
+catalog, imports the owner-authorized A0–B2 release and starts a loopback-only dev server.
 
 - Application: <http://localhost:3001>
 - API documentation: <http://localhost:3001/docs>
@@ -206,7 +206,7 @@ See [milestones](plans/milestones.md) and [roadmap](plans/roadmap.md) for next s
 
 Use `npm run db:verify` for migration/integrity/preservation checks and
 `npm run db:backup -- /absolute/private/backup.sqlite3` for an online SQLite backup.
-Normal `npm run dev` shows all five unpublished A0–B2 drafts alongside the two
+Normal `npm run dev` shows all five released A0–B2 courses alongside the two
 legacy courses after ordinary local login. For a separate reviewer database, use
 `npm run curriculum:preview:prepare` then `npm run curriculum:preview`. See [local drafts](docs/06-learning/local-draft-workflow.md),
 [persistence/recovery](docs/05-database/persistence-and-recovery.md) and
@@ -214,15 +214,18 @@ legacy courses after ordinary local login. For a separate reviewer database, use
 
 ## Default local course catalog
 
-`npm run dev` now backs up the existing local SQLite file before preparation, imports the five A0–B2 courses idempotently as unpublished drafts, and serves all seven courses to signed-in local learners at http://127.0.0.1:3001/courses.html. Existing accounts and learning progress stay in the same database. This launcher binds loopback and refuses production/hosted or non-file-SQLite configuration. `backend/run.py` and `app.main:app` still expose published content only; no production publication is performed.
+`npm run dev` now backs up the existing local SQLite file before preparation, imports and publishes the five A0–B2 courses idempotently for the pinned owner-authorized SHA, and serves all seven courses to signed-in local learners at http://127.0.0.1:3001/courses.html. Existing accounts and learning progress stay in the same database. This launcher binds loopback and refuses production/hosted or non-file-SQLite configuration. `backend/run.py` and `app.main:app` expose published content only; all seven catalog courses are now published for the owner-authorized release.
 
 ## Render with SQLite: populated catalog at startup
 
 Keep `DATABASE_URL=sqlite+aiosqlite:///./data/fleng.db` and start with
 `cd backend && python run.py` (root directory: repository root). The launcher
-creates/migrates SQLite and loads the two legacy courses plus five unpublished
-A0–B2 drafts from the versioned curriculum JSON. Repeated starts preserve existing
+creates/migrates SQLite and loads the two legacy courses plus five A0–B2 courses from the versioned curriculum JSON, published for the
+exact owner-authorized SHA (linguistic review remains incomplete). Repeated starts preserve existing
 accounts/progress and do not duplicate catalog rows. Private local database files
-and account credentials are not committed. Public draft visibility is unchanged.
+and account credentials are not committed. All seven courses are publicly visible
+after startup; unapproved future drafts remain hidden.
 An ephemeral Render filesystem still loses runtime user data on replacement;
 use separately configured persistent storage for durable accounts/progress.
+
+Owner publication approval for A0–B2: [release record](docs/06-learning/content-publication.md#owner-authorized-release--2026-11-14).

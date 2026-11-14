@@ -244,3 +244,40 @@ def test_all_existing_levels_remain_valid():
     for level in LEARNING_LEVELS:
         assert ProfileUpdate(english_level=level).english_level == level
         assert GenerateRequest(level=level, topic="test", exercise_type="fill_blank").level == level
+
+
+async def test_owner_publication_is_sha_bound_and_does_not_claim_editorial_review(
+    client, db_session
+):
+    content = load_curriculum()
+    await seed_catalog(db_session)
+    await import_curriculum(db_session, content, apply=True)
+    ids = set((await db_session.scalars(select(Course.id))).all())
+    with pytest.raises(ValueError, match="SHA"):
+        await import_curriculum(db_session, content, apply=True, owner_authorized_sha="wrong")
+    with pytest.raises(ValueError, match="not both"):
+        await import_curriculum(
+            db_session,
+            content,
+            apply=True,
+            reviewed_sha=content_sha(content),
+            owner_authorized_sha=content_sha(content),
+        )
+    assert len((await client.get("/api/v1/courses")).json()) == 2
+    report = await import_curriculum(
+        db_session, content, apply=True, owner_authorized_sha=content_sha(content)
+    )
+    assert report["status"] == "owner_authorized" and report["new_rows"] == 0
+    assert content.status == "draft"  # Source editorial status was not fabricated.
+    assert set((await db_session.scalars(select(Course.id))).all()) == ids
+    assert len((await client.get("/api/v1/courses")).json()) == 7
+    repeated = await import_curriculum(
+        db_session, content, apply=True, owner_authorized_sha=content_sha(content)
+    )
+    assert repeated["new_rows"] == 0
+
+
+def test_startup_release_approval_matches_exact_packaged_content():
+    from app.db.prepare import OWNER_AUTHORIZED_CURRICULUM_SHA
+
+    assert content_sha(load_curriculum()) == OWNER_AUTHORIZED_CURRICULUM_SHA

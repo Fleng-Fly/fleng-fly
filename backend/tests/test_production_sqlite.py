@@ -76,15 +76,20 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
         with sqlite3.connect(path) as db:
             assert db.execute("SELECT count(*) FROM users").fetchone() == (0,)
             assert db.execute("SELECT count(*) FROM courses").fetchone() == (7,)
-            assert db.execute("SELECT count(*) FROM lessons WHERE is_published=0").fetchone() == (
-                50,
+            assert db.execute("SELECT count(*) FROM lessons WHERE is_published=1").fetchone() == (
+                57,
             )
             assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (500,)
-            draft_ids = db.execute(
-                "SELECT id FROM courses WHERE is_published=0 ORDER BY id"
+            published_ids = db.execute(
+                "SELECT id FROM courses WHERE is_published=1 ORDER BY id"
             ).fetchall()
-        assert len(client.get("/api/v1/courses").json()) == 2
-        assert client.get("/api/v1/courses/fleng-a0").status_code == 404
+        assert len(client.get("/api/v1/courses").json()) == 7
+        for level in ("a0", "a1", "a2", "b1", "b2"):
+            course = client.get("/api/v1/courses/fleng-" + level)
+            assert course.status_code == 200
+            assert len(course.json()["lessons"]) == 10
+            for lesson in course.json()["lessons"]:
+                assert client.get("/api/v1/lessons/" + lesson["slug"]).status_code == 200
         response = client.post(
             "/api/v1/auth/register", json={**login, "displayName": "Render"}, headers=origin
         )
@@ -105,6 +110,13 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
         assert saved_refresh != refresh
         auth = {"Authorization": f"Bearer {response.json()['accessToken']}"}
         assert client.get("/dashboard.html").status_code == 200
+        for level in ("A0", "A1", "A2", "B1", "B2"):
+            words = client.get(
+                "/api/v1/vocabulary/course-words",
+                params={"level": level, "limit": 100},
+                headers=auth,
+            )
+            assert words.status_code == 200 and len(words.json()) == 100
         for route in ("users/me", "progress/me", "streaks/me", "vocabulary/stats"):
             assert client.get(f"/api/v1/{route}", headers=auth).status_code == 200
         lesson = client.get("/api/v1/lessons/greetings-and-introductions").json()
@@ -156,8 +168,8 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
     with sqlite3.connect(path) as db:
         assert db.execute("SELECT count(*) FROM courses").fetchone() == catalog
         assert (
-            db.execute("SELECT id FROM courses WHERE is_published=0 ORDER BY id").fetchall()
-            == draft_ids
+            db.execute("SELECT id FROM courses WHERE is_published=1 ORDER BY id").fetchall()
+            == published_ids
         )
         assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (500,)
         tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}

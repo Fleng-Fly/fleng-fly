@@ -4,14 +4,14 @@ Normal `npm run dev` now uses the existing local SQLite database and shows all
 seven courses (two legacy + five A0–B2 drafts) after ordinary login at
 http://127.0.0.1:3001/courses.html. Existing accounts and progress remain in that
 file. The local-only launcher takes an online private backup before preparation,
-applies existing migrations, and imports drafts idempotently without publishing
-them. Backup paths are printed locally; temporary backup directories may be cleaned
+applies existing migrations, and imports/publishes the exact owner-authorized
+A0–B2 release idempotently. Linguistic review remains incomplete. Backup paths are printed locally; temporary backup directories may be cleaned
 by the OS, so copy important backups to private durable storage.
 
 This dev launcher binds only 127.0.0.1, checks Host/client loopback, and refuses
-production/Render and non-file-SQLite settings. Production `run.py` and ordinary
-`app.main:app` retain published-only routes. SQLite production startup also loads the packaged drafts, but its public routes
-continue to hide unpublished content.
+production/Render and non-file-SQLite settings. Production `run.py` and ordinary `app.main:app` retain published-only routes;
+the owner-authorized A0–B2 release is now published and visible through them.
+Other unapproved drafts remain hidden.
 
 For a separate reviewer account and database, the private preview remains available.
 For a separate isolated review of all five drafts, use the existing private preview:

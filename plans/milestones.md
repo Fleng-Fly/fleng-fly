@@ -212,3 +212,7 @@ Completed: production SQLite preparation reuses packaged seed/curriculum to crea
 a populated database without SSH upload. Five A0–B2 courses retain draft status.
 Existing users/progress and catalog IDs are preserved on restart. Owner deployment
 and persistent hosting storage remain external; no push/deploy performed here.
+
+## Owner-authorized A0–B2 publication — 2026-11-14
+
+Completed: owner authorized all five A0–B2 courses for public release. SHA-pinned SQLite startup publication makes all seven courses visible; private draft import remains available. Linguistic review is not marked complete; hosted deployment remains owner action.

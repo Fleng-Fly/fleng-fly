@@ -322,3 +322,7 @@ so a fresh configured SQLite database is populated without uploading private DB
 files. Import preflight preserves IDs, rejects conflicting draft content and avoids
 duplicates; existing user data and publication flags are not overwritten. Normal
 public routes remain published-only. PostgreSQL startup remains explicit.
+
+## Owner-authorized A0–B2 publication — 2026-11-14
+
+SQLite preparation now publishes only the exact `OWNER_AUTHORIZED_CURRICULUM_SHA` release through `import_curriculum(owner_authorized_sha=...)`. It preserves ordinary draft imports and rejects mismatched/ambiguous publication approvals. All seven catalog courses/50 A0–B2 lessons/500 words become available through standard published-only APIs. Linguistic review is explicitly incomplete.

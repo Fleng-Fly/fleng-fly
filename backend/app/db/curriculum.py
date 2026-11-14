@@ -1,8 +1,9 @@
 """Validate and import the reviewed, versioned curriculum into existing models.
 
-Default CLI mode is read-only. Draft import and reviewed publication are explicit.
+Default CLI mode is read-only. Publication needs an explicit reviewed or owner-authorized SHA.
 Existing content is immutable here: a conflict aborts rather than rewriting work
-with existing submissions. No provider calls, user writes or automatic startup hook.
+with existing submissions. No provider calls or user-data writes. SQLite preparation
+can publish only the separately pinned owner-authorized release.
 """
 
 import argparse
@@ -230,12 +231,16 @@ async def import_curriculum(
     *,
     apply: bool = False,
     reviewed_sha: str | None = None,
+    owner_authorized_sha: str | None = None,
 ) -> dict:
     # Revalidate even when called directly with mutated models.
     content = Curriculum.model_validate(content.model_dump())
     digest = content_sha(content)
-    if reviewed_sha is not None and reviewed_sha != digest:
-        raise ValueError("Reviewed content SHA does not match this content")
+    if reviewed_sha is not None and owner_authorized_sha is not None:
+        raise ValueError("Choose reviewed or owner-authorized publication, not both")
+    publication_sha = reviewed_sha if reviewed_sha is not None else owner_authorized_sha
+    if publication_sha is not None and publication_sha != digest:
+        raise ValueError("Publication SHA does not match this content")
     planned = list(rows(content))
     additions = []
     existing = []
@@ -262,7 +267,11 @@ async def import_curriculum(
             additions.append((model, identity, values))
     report = dict(
         sha256=digest,
-        status="reviewed" if reviewed_sha else "draft",
+        status="reviewed"
+        if reviewed_sha
+        else "owner_authorized"
+        if owner_authorized_sha
+        else "draft",
         courses=5,
         lessons=50,
         exercises=sum(
@@ -279,10 +288,10 @@ async def import_curriculum(
     for model, identity, values in additions:
         row = model(id=identity, **values)
         if isinstance(row, (Course, Lesson)):
-            row.is_published = reviewed_sha is not None
+            row.is_published = publication_sha is not None
         db.add(row)
         await db.flush()
-    if reviewed_sha is not None:
+    if publication_sha is not None:
         for row in existing:
             if isinstance(row, (Course, Lesson)):
                 row.is_published = True

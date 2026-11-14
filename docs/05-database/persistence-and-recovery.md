@@ -30,8 +30,9 @@ not a production inventory. The source database was not migrated, seeded or rese
 
 The audit above predates enabling the default local draft catalog. The guarded
 `npm run dev` launcher now imports all five A0–B2 drafts into the existing local
-SQLite file after a private backup, without publication. SQLite production startup now also imports the packaged drafts without
-publishing them; normal public routes continue to hide them. The normal catalog excludes unpublished
+SQLite file after a private backup, without publication. SQLite startup now imports and publishes the packaged A0–B2 content for the
+pinned owner-authorized release (see [approval](../06-learning/content-publication.md)).
+Linguistic review remains incomplete. The normal catalog excludes unpublished
 courses/lessons, including their course words. Missing drafts in the earlier audit did not mean missing user data. See [development curriculum](../06-learning/local-draft-workflow.md).
 
 ## Local setup

@@ -17,6 +17,10 @@ from app.db.models import Course
 from app.db.seed import seed_catalog
 from app.db.session import SessionLocal, engine
 
+# Owner explicitly authorized publication on 2026-11-14. Linguistic review remains incomplete.
+# A different content SHA needs a new release decision; never derive this approval dynamically.
+OWNER_AUTHORIZED_CURRICULUM_SHA = "27ab5cdc8cdadbfc85353cea58fc2584459c130aea460cf391a2e5d67b108013"
+
 
 async def ensure_catalog() -> None:
     try:
@@ -26,9 +30,14 @@ async def ensure_catalog() -> None:
                 print("Demo catalog loaded.")
             else:
                 print("Catalog already present; use npm run db:seed to update demo content.")
-            result = await import_curriculum(db, load_curriculum(), apply=True)
+            result = await import_curriculum(
+                db,
+                load_curriculum(),
+                apply=True,
+                owner_authorized_sha=OWNER_AUTHORIZED_CURRICULUM_SHA,
+            )
             print(
-                "A0–B2 catalog prepared (unpublished drafts): "
+                "A0–B2 catalog published (owner authorized; linguistic review incomplete): "
                 f"{result['new_rows']} new rows, {result['existing_rows']} existing rows."
             )
     finally:

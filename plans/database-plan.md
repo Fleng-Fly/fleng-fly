@@ -151,3 +151,7 @@ and Markdown links pass; isolated dev startup rerun is idempotent. Separate
 self-review removed the now-redundant dev-only importer so both launchers use
 the same preparation path. Pre-existing stale preview-count/Test-tab assertions
 were aligned with the already implemented catalog/UI.
+
+## Owner-authorized A0–B2 publication — 2026-11-14
+
+Completed: explicit owner request to publish all A0–B2 recorded with canonical SHA; common SQLite preparation publishes the exact release, with new/update/restart and public route checks. Linguistic review remains incomplete; future source changes require new approval. No remote deployment or push is claimed.
