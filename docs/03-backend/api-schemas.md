@@ -460,6 +460,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Options"
+    },
+    "letterTiles": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/LetterTilesResponse"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "type": "object",
@@ -969,6 +979,32 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "total"
   ],
   "title": "LeaderboardResponse"
+}
+```
+
+## LetterTilesResponse
+
+```json
+{
+  "properties": {
+    "pattern": {
+      "type": "string",
+      "title": "Pattern"
+    },
+    "letters": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "title": "Letters"
+    }
+  },
+  "type": "object",
+  "required": [
+    "pattern",
+    "letters"
+  ],
+  "title": "LetterTilesResponse"
 }
 ```
 

@@ -123,6 +123,7 @@ Table: `exercises`.
 | prompt | TEXT | False | — |
 | points | INTEGER | False | — |
 | options | JSON | True | — |
+| letter_tiles | JSON | True | — |
 | correct_option_id | VARCHAR(64) | True | — |
 | accepted_answers | JSON | True | — |
 | model_answer | TEXT | True | — |
