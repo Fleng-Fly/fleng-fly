@@ -31,7 +31,12 @@ async def test_existing_accounts_can_learn_all_drafts_only_on_loopback(db_sessio
     await seed_catalog(db_session)
     await import_curriculum(db_session, load_curriculum(), apply=True)
     assert (await import_curriculum(db_session, load_curriculum(), apply=True))["new_rows"] == 0
-    settings = Settings(_env_file=None, app_env="development", render_external_url="")
+    settings = Settings(
+        _env_file=None,
+        app_env="development",
+        render_external_url="",
+        database_url="sqlite+aiosqlite:///./data/test-drafts.db",
+    )
     monkeypatch.setattr("app.development.get_settings", lambda: settings)
     monkeypatch.setattr("app.main.get_settings", lambda: settings)
     app = create_development_app()

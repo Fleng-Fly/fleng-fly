@@ -20,6 +20,7 @@ def production_env(path: Path) -> dict[str, str]:
     return {
         **os.environ,
         "APP_ENV": "production",
+        "RENDER_EXTERNAL_URL": "",
         "DATABASE_URL": f"sqlite+aiosqlite:///{path}",
         "JWT_ACCESS_SECRET": "isolated-production-test-secret-never-deploy",
         "CORS_ORIGIN": "https://fleng.example",
@@ -291,7 +292,7 @@ def test_production_does_not_serve_when_preparation_fails(tmp_path, broken):
     assert env["JWT_ACCESS_SECRET"] not in response.stderr
 
 
-def test_postgres_launcher_leaves_migrations_to_release_step(tmp_path):
+def test_postgres_launcher_prepares_before_serving(tmp_path):
     env = production_env(tmp_path / "unused.db")
     env["DATABASE_URL"] = "postgresql://test:test@127.0.0.1:1/unreachable"
     response = subprocess.run(
@@ -300,13 +301,15 @@ def test_postgres_launcher_leaves_migrations_to_release_step(tmp_path):
             "-c",
             """
 import runpy
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 from alembic import command
 from app.db import prepare
-with patch.object(command, 'upgrade', side_effect=AssertionError('automatic PG migration')), \
+with patch.object(prepare, 'prepare_postgres', new_callable=AsyncMock) as initialize, \
+     patch.object(command, 'upgrade', side_effect=AssertionError('outside PG preparation')), \
      patch.object(prepare, 'ensure_catalog', side_effect=AssertionError('automatic PG seed')), \
      patch('uvicorn.run') as serve:
     runpy.run_path('BACKEND_RUN_PATH', run_name='__main__')
+    initialize.assert_awaited_once()
     serve.assert_called_once()
     assert serve.call_args.kwargs['workers'] == 1
 """.replace("BACKEND_RUN_PATH", (BACKEND_ROOT / "run.py").as_posix()),

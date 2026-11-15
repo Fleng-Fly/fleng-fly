@@ -6,6 +6,7 @@ import logging
 import uvicorn
 
 from app.core.config import get_settings
+from app.db.storage import DatabaseConfigurationError, validate_render_storage
 
 
 def main() -> None:
@@ -14,10 +15,14 @@ def main() -> None:
     logger.setLevel(logging.INFO)
     settings = get_settings()
     try:
+        validate_render_storage(settings)
         # Run once in the launcher, never in an ASGI worker/lifespan.
         from app.db.prepare import main as prepare_database
 
         prepare_database()
+    except DatabaseConfigurationError as exc:
+        logger.error("Database configuration rejected: %s", exc)
+        raise SystemExit(1) from None
     except Exception as exc:
         # SQLAlchemy exception strings can contain SQL parameters/credentials.
         from app.db.diagnostics import error_details

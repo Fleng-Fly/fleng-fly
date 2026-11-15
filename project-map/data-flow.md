@@ -327,3 +327,7 @@ content, not lost user accounts/progress.
 ## Owner-authorized A0–B2 publication — 2026-11-14
 
 Owner-authorized pinned content SHA → importer exact-row preflight → insert missing catalog rows / promote only the five matching course and 50 lesson flags → normal public courses/lessons/course-words APIs → seven visible courses. Existing identities and learner data are preserved; no global draft visibility bypass.
+
+## Render Free account durability — 2026-11-14
+
+Render Free → external PostgreSQL URL → safe engine creation/pool pre-ping → empty-schema atomic Alembic + catalog initialization OR existing-head validation → normal account/progress writes → app stops/sleeps → fresh process reconnects to the same external store. Ephemeral SQLite is refused before accepting accounts. No user data is embedded in the seed, browser or Git.

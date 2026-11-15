@@ -326,3 +326,7 @@ public routes remain published-only. PostgreSQL startup remains explicit.
 ## Owner-authorized A0–B2 publication — 2026-11-14
 
 SQLite preparation now publishes only the exact `OWNER_AUTHORIZED_CURRICULUM_SHA` release through `import_curriculum(owner_authorized_sha=...)`. It preserves ordinary draft imports and rejects mismatched/ambiguous publication approvals. All seven catalog courses/50 A0–B2 lessons/500 words become available through standard published-only APIs. Linguistic review is explicitly incomplete.
+
+## Render Free account durability — 2026-11-14
+
+`app/db/storage.py` rejects Render SQLite unless the configured file is beneath an actual /var/data mount. `db/session.py` checks before engine creation; `run.py` reports a safe actionable error. `db/prepare.py` initializes only an empty PostgreSQL schema under an advisory lock/transaction, then reuses the approved catalog loader; existing schemas must be at head and are never auto-upgraded/reset. Settings maps sslmode to asyncpg ssl and hides credentials in validation errors. New storage/PostgreSQL startup tests cover process replacement, schema preservation and rollback.

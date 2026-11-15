@@ -10,8 +10,10 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import get_settings
+from app.db.storage import validate_render_storage
 
 settings = get_settings()
+validate_render_storage(settings)
 
 database_url = make_url(settings.database_url)
 is_sqlite = database_url.get_backend_name() == "sqlite"

@@ -2,9 +2,12 @@
 
 Repository-compatible settings: Python runtime, repository root, build `python -m pip install ./backend`, start `cd backend && python run.py`, readiness /api/v1/health/ready. Retain frontend/backend/migrations. Host supplies PORT; set production secrets/settings privately.
 
-run.py prepares file-backed SQLite before binding one worker. PostgreSQL needs explicit Alembic release migrations from backend/. Direct Uvicorn bypasses preparation. Configure exact CORS_ORIGIN; validated platform RENDER_EXTERNAL_URL joins it. TRUSTED_PROXY_IPS must reflect actual ingress knowledge, not wildcard guesses.
+run.py prepares file-backed SQLite before binding one worker. PostgreSQL initializes only an empty schema automatically; existing outdated schemas
+need explicit Alembic release migrations from backend/. Direct Uvicorn bypasses preparation. Configure exact CORS_ORIGIN; validated platform RENDER_EXTERNAL_URL joins it. TRUSTED_PROXY_IPS must reflect actual ingress knowledge, not wildcard guesses.
 
-Ephemeral SQLite is a demo choice and can lose all accounts/progress on storage replacement. Same-file process restart proves no host durability. Durable SQLite requires an explicit persistent volume/single instance; external PostgreSQL still requires backup/restore/TLS validation.
+Ephemeral SQLite loses accounts/progress on storage replacement and is now rejected
+on Render production startup. Same-file process restart proves no host durability. Durable SQLite requires an explicit persistent volume/single instance; external PostgreSQL still requires backup/restore/provider TLS validation.
+For Render Free use [persistent PostgreSQL setup](render-free-persistence.md).
 
 No deployment/host configuration changed here. [Troubleshooting](troubleshooting.md) links historical diagnoses without asserting today's cause.
 
@@ -25,7 +28,9 @@ No SSH/file upload is needed to recreate the curriculum catalog.
 This is catalog initialization, not a transfer of local accounts/history. All seven catalog courses are now public after the owner
 explicitly authorized the pinned A0–B2 release. Linguistic review is still incomplete.
 See [publication approval](../06-learning/content-publication.md).
-PostgreSQL startup remains unchanged and does not migrate/import automatically.
+PostgreSQL now bootstraps only an empty schema transactionally; existing current
+schemas retain users/progress and receive the pinned catalog, while unknown or
+outdated occupied schemas require explicit reviewed migrations.
 
 Render's default filesystem is ephemeral: this bootstraps content after storage
 replacement but cannot recover accounts/progress lost with that filesystem. A
@@ -37,8 +42,9 @@ Local verification for this change: backend pytest **406 passed / 18 skipped**;
 fresh production-mode SQLite startup, public release routes, registration/XP and
 restart persistence pass. Local dev preparation was also run twice on an isolated
 file: seven courses, 50 A0–B2 lessons, 500 words, zero bundled accounts and no new
-rows on rerun. Ruff, mypy, frontend Node tests and Markdown links pass. Live Render
-deployment and PostgreSQL integration are not claimed by these local checks.
+rows on rerun. Ruff, mypy, frontend Node tests and Markdown links pass. Live Render deployment is not claimed by these local checks. See the later
+[durability verification](render-free-persistence.md#regression-checks) for actual
+local PostgreSQL integration evidence.
 
 Owner-publication verification: full backend **408 passed / 18 skipped**.
 Production-mode startup exposes all seven courses and every A0–B2 lesson/word;

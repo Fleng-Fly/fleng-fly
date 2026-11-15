@@ -60,3 +60,10 @@ DEFAULT_DATABASE_URL is sqlite+aiosqlite:///./data/fleng.db, resolved against ba
 TEST_DATABASE_URL opts into PostgreSQL fixtures and is not a Settings field. Compose fixes POSTGRES_USER/PASSWORD/DB to local example values and reads only POSTGRES_PORT from the host, as in [docker-compose.yml](../../docker-compose.yml). PORT is also read directly by dev.mjs. run.py overrides platform FORWARDED_ALLOW_IPS with TRUSTED_PROXY_IPS. Preview supplies isolated Settings, never export its generated credentials. Validator budgets use explicit CLI flags.
 
 See [configuration](../01-getting-started/configuration.md) and [deployment](../09-deployment/environment-variables.md).
+
+Hosted storage validation runs before engine creation and launcher preparation:
+production RENDER_EXTERNAL_URL with SQLite requires a real /var/data mount and a
+file beneath it. Otherwise startup fails with a safe configuration message.
+DATABASE_URL sslmode maps to asyncpg ssl; ambiguous SSL/channel_binding inputs
+are rejected. Settings validation hides input values, including database passwords.
+No additional Settings fields or fallback storage locations were introduced.

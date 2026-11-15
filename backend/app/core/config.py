@@ -23,6 +23,7 @@ class Settings(BaseSettings):
         env_file=(BACKEND_ROOT / ".env", BACKEND_ROOT.parent / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
+        hide_input_in_errors=True,
     )
 
     app_env: str = "development"
@@ -156,12 +157,19 @@ class Settings(BaseSettings):
                 path = BACKEND_ROOT / path
             url = url.set(database=path.resolve().as_posix())
             return url.set(drivername="sqlite+aiosqlite").render_as_string(hide_password=False)
-        if value.startswith("postgresql+asyncpg://"):
-            return value
-        if value.startswith("postgresql://"):
-            return value.replace("postgresql://", "postgresql+asyncpg://", 1)
-        if value.startswith("postgres://"):
-            return value.replace("postgres://", "postgresql+asyncpg://", 1)
+        if value.startswith(("postgres://", "postgresql://", "postgresql+asyncpg://")):
+            url = make_url(value).set(drivername="postgresql+asyncpg")
+            query = dict(url.query)
+            if "sslmode" in query:
+                if "ssl" in query:
+                    raise ValueError("Use ssl or sslmode in DATABASE_URL, not both")
+                query["ssl"] = query.pop("sslmode")
+            if "channel_binding" in query:
+                raise ValueError(
+                    "Use the provider's asyncpg connection string with ssl=require; "
+                    "asyncpg does not support libpq channel_binding parameters"
+                )
+            return url.set(query=query).render_as_string(hide_password=False)
         return value
 
     @model_validator(mode="after")

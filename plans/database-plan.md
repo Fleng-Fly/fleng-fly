@@ -155,3 +155,7 @@ were aligned with the already implemented catalog/UI.
 ## Owner-authorized A0–B2 publication — 2026-11-14
 
 Completed: explicit owner request to publish all A0–B2 recorded with canonical SHA; common SQLite preparation publishes the exact release, with new/update/restart and public route checks. Linguistic review remains incomplete; future source changes require new approval. No remote deployment or push is claimed.
+
+## Render Free account durability — 2026-11-14
+
+Completed locally: ephemeral Render SQLite guard, provider URL/TLS normalization, safe validation errors, transactional empty-PostgreSQL startup and existing-schema protection. Real disposable PostgreSQL startup/restart tests preserve login/refresh/XP/vocabulary/cards. Verification evidence: [durability record](../docs/09-deployment/render-free-persistence.md#verification-record--2026-11-15). External dependency: owner creates/connects a durable free PostgreSQL service and sets its private DATABASE_URL; no hosted account/storage/billing/cutover was changed here.

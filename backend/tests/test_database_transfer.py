@@ -264,8 +264,22 @@ async def test_asyncpg_transfer_and_learner_restore(tmp_path):
                     json={"email": "learner@example.com", "password": PASSWORD},
                 )
             ).status_code == 200
-            assert (await c.get("/api/v1/users/me", headers=auth)).json() == user
-            assert (await c.get("/api/v1/progress/me", headers=auth)).json() == progress
+            restored_user = (await c.get("/api/v1/users/me", headers=auth)).json()
+            # SQLite returns naive UTC; PostgreSQL explicitly marks the same instant as UTC.
+            assert datetime.fromisoformat(restored_user["createdAt"]) == datetime.fromisoformat(
+                user["createdAt"]
+            ).replace(tzinfo=UTC)
+            assert restored_user == {**user, "createdAt": restored_user["createdAt"]}
+            restored_progress = (await c.get("/api/v1/progress/me", headers=auth)).json()
+            for field in ("lastActivityAt", "updatedAt"):
+                assert datetime.fromisoformat(restored_progress[field]) == datetime.fromisoformat(
+                    progress[field]
+                ).replace(tzinfo=UTC)
+            assert restored_progress == {
+                **progress,
+                "lastActivityAt": restored_progress["lastActivityAt"],
+                "updatedAt": restored_progress["updatedAt"],
+            }
             assert (
                 await c.post("/api/v1/lessons/the-verb-to-be/submit", headers=auth, json=submission)
             ).json()["xpAwarded"] == 0
