@@ -62,7 +62,7 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
       <aside id="dashboard-sidebar" class="dashboard-sidebar" aria-label="Main navigation">
         <div class="sidebar-top">
           <a class="dashboard-brand" href="/index.html" aria-label="Fleng home"
-            ><span class="dashboard-brand-mark">F</span><span>FLENG</span></a
+            ><span class="dashboard-brand-mark" aria-hidden="true">✦</span><span class="brand-detail">FLENG<small>ENGLISH</small></span></a
           >
           <button
             id="nav-close"
@@ -89,7 +89,10 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           <a class="sidebar-link" href="/settings.html"
             ><svg><use href="#icon-settings" /></svg><span>Settings</span></a
           >
+          <a class="sidebar-link" data-section="words" href="/vocabulary.html"><svg><use href="#icon-book" /></svg><span>My Words</span></a>
+          <a class="sidebar-link" data-section="practice" href="/vocabulary.html?mode=flashcards"><svg><use href="#icon-layers" /></svg><span>Practice</span></a>
         </nav>
+        <a class="sidebar-link" href="/install.html"><span>↓ Встановити Fleng</span></a>
         <div class="sidebar-foot">
           <span class="sidebar-foot-mark">✦</span>
           <p>Keep learning.<br /><strong>Your journey is yours.</strong></p>
@@ -183,16 +186,14 @@ export function mountWorkspace(active) {
   main.prepend(content.querySelector('#search-results'));
   content.querySelector('#dashboard-main-wrap').append(main);
   for (const link of content.querySelectorAll('.sidebar-link[href]')) {
-    const selected =
-      active === 'leaderboard'
-        ? link.getAttribute('href') === '/leaderboard.html'
-        : active === 'settings'
-          ? link.getAttribute('href') === '/settings.html'
-          : active === 'lessons'
-            ? link.getAttribute('href') === '/courses.html' && link.id !== 'sidebar-course-link'
-            : active === 'courses'
-              ? link.id === 'sidebar-course-link'
-              : link.getAttribute('href') === '/dashboard.html';
+    const destination = {
+      dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
+      settings: '/settings.html', lessons: '/courses.html',
+      words: '/vocabulary.html', practice: '/vocabulary.html?mode=flashcards',
+    }[active];
+    const selected = active === 'courses'
+      ? link.id === 'sidebar-course-link'
+      : link.id !== 'sidebar-course-link' && link.getAttribute('href') === destination;
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');

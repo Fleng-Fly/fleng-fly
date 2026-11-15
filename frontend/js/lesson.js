@@ -6,11 +6,10 @@ import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
 
 const $ = (id) => document.getElementById(id);
-const tabs = ['theory', 'practice', 'vocabulary'];
-const requestedTab = queryParam('tab');
+const tabs = ['theory', 'practice', 'test', 'vocabulary'];
 const labels = { letter_tiles: 'Letter tiles', single_choice: 'Multiple choice', text: 'Short answer', self_check: 'Self-check' };
 const state = {
-  lesson: null, progress: null, tab: tabs.includes(requestedTab) ? requestedTab : 'theory', index: 0, busy: false,
+  lesson: null, progress: null, tab: 'test', index: 0, busy: false,
   drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
   vocabulary: { items: [], loaded: false, loading: false, more: false, error: null },
 };
@@ -320,20 +319,22 @@ function questionCard(exercise, index) {
 function renderQuestions() {
   if (!state.lesson) return;
   const practice = $('panel-practice');
+  const test = $('panel-test');
   practice.textContent = '';
+  test.textContent = '';
   const exercises = state.lesson.exercises;
   if (!exercises.length) {
     const empty = el('div', 'lesson-card lesson-empty');
     empty.append(el('h2', undefined, 'No activities yet'), el('p', undefined, 'This lesson does not have activities to complete.'));
-    practice.append(empty);
+    $(state.tab === 'practice' ? 'panel-practice' : 'panel-test').append(empty);
     return;
   }
-  if (state.tab === 'practice') {
-    practice.append(questionCard(exercises[state.index], state.index));
+  if (state.tab === 'practice' || state.tab === 'test') {
+    $(`panel-${state.tab}`).append(questionCard(exercises[state.index], state.index));
   }
 }
 
-function goQuestion(index, tab = 'practice') {
+function goQuestion(index, tab = 'test') {
   if (state.busy || index < 0 || index >= state.lesson.exercises.length) return;
   state.index = index;
   switchTab(tab);
@@ -400,10 +401,6 @@ function renderStructure() {
 function switchTab(tab) {
   if (!tabs.includes(tab) || state.busy) return;
   state.tab = tab;
-  const url = new URL(window.location.href);
-  if (tab === 'theory') url.searchParams.delete('tab');
-  else url.searchParams.set('tab', tab);
-  window.history.replaceState(window.history.state, '', url);
   $('lesson-last-answer').replaceChildren();
   for (const name of tabs) {
     const active = name === tab;
@@ -521,5 +518,5 @@ for (const tab of tabs) {
     $(`tab-${tabs[next]}`).focus();
   });
 }
-$('use-template').addEventListener('click', () => { switchTab('practice'); $('panel-practice').focus(); });
+$('use-template').addEventListener('click', () => { switchTab('test'); $('panel-test').focus(); });
 loadLesson();
