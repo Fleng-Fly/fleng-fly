@@ -88,7 +88,8 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 | Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Test/Vocabulary, grading, progress and saved words                                     |
 | Settings                                                 | `/settings.html`     | 🟢     | protected; profile/email editing, language preference, password change, logout                                    |
 | Lesson player (quiz)                                     | —                    | 🟢     | exercises, submission and grading via the exercises API                                                           |
-| Vocabulary / Practice / Challenges / Progress / AI Tutor | —                    | 🔴     |                                                                                                                   |
+| Words | `/vocabulary.html`, `/course-words.html` | 🟢 | personal words/practice and published course vocabulary |
+| Challenges / Progress / AI Tutor | — | 🔴 |                                                                                                                   |
 
 ## AI layer
 
@@ -342,3 +343,17 @@ START-FLENG compatibility commands start the browser website. See docs/website-r
 Verification and pending contract boundaries are recorded in
 `docs/security-stability-fixes-2026-11-16.md`. Same-origin Web Locks coordination
 lives in the existing API client; no token is stored in shared browser storage.
+
+## Words navigation and compact AI — 2026-11-16
+
+- `workspace.js`: native Words disclosure, My Words/Course Words child links,
+  current section state; mobile focus trap ignores collapsed links.
+- `course-words.html` / `js/course-words.js`: existing `/vocabulary/course-words`
+  pagination, catalog course filtering, local search and existing personal-word
+  save/practice flow. No API/schema/model change.
+- `js/markdown.js`: fixed DOM tag allowlist, bounded inline parsing, safe URL
+  policy; used only for AI messages. User text remains literal.
+- `ai-assistant.js` / `css/ai-assistant.css`: compact panel, hidden refresh menu,
+  status/retry, 500-character composer, typing and scroll-follow recovery.
+- `scripts/test-markdown-words.mjs`: Markdown/XSS, Words selection, course-word
+  pagination/filter/save/practice; existing widget tests cover limits/manual scroll.

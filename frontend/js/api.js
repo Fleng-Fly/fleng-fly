@@ -282,3 +282,9 @@ export function streamAIChat(payload, { signal } = {}) {
 export function getLeaderboard() {
   return apiFetch('/leaderboard');
 }
+
+export function listCourseWords(courseId = '', offset = 0, limit = 100) {
+  const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+  if (courseId) query.set('courseId', courseId);
+  return apiFetch(`/vocabulary/course-words?${query}`);
+}

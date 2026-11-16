@@ -90,8 +90,13 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           <a class="sidebar-link" href="/settings.html"
             ><svg><use href="#icon-settings" /></svg><span>Settings</span></a
           >
-          <a class="sidebar-link" data-section="words" href="/vocabulary.html"><svg><use href="#icon-book" /></svg><span>My Words</span></a>
-          <a class="sidebar-link" data-section="practice" href="/vocabulary.html?mode=flashcards"><svg><use href="#icon-layers" /></svg><span>Practice</span></a>
+          <details id="words-navigation" class="sidebar-words">
+            <summary class="sidebar-link"><svg><use href="#icon-book" /></svg><span>Words</span><span class="words-chevron" aria-hidden="true">⌄</span></summary>
+            <nav class="words-submenu" aria-label="Words sections">
+              <a class="sidebar-link sidebar-sub-link" data-section="words" href="/vocabulary.html">My Words</a>
+              <a class="sidebar-link sidebar-sub-link" data-section="course-words" href="/course-words.html">Course Words</a>
+            </nav>
+          </details>
           <a class="sidebar-link" href="/team.html"><svg><use href="#icon-team" /></svg><span>Our Team</span></a>
         </nav>
         <div class="sidebar-foot">
@@ -180,18 +185,12 @@ export function setWorkspaceUser(user) {
   mountAIAssistant(user, () => aiContext());
 }
 
-export function mountWorkspace(active) {
-  const template = document.createElement('template');
-  template.innerHTML = templateHtml;
-  const content = template.content;
-  const main = document.querySelector('main');
-  main.prepend(content.querySelector('#search-results'));
-  content.querySelector('#dashboard-main-wrap').append(main);
+export function markWorkspaceNavigation(content, active) {
   for (const link of content.querySelectorAll('.sidebar-link[href]')) {
     const destination = {
       dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
       settings: '/settings.html', lessons: '/courses.html', team: '/team.html',
-      words: '/vocabulary.html', practice: '/vocabulary.html?mode=flashcards',
+      words: '/vocabulary.html', practice: '/vocabulary.html', 'course-words': '/course-words.html',
     }[active];
     const selected = active === 'courses'
       ? link.id === 'sidebar-course-link'
@@ -200,9 +199,22 @@ export function mountWorkspace(active) {
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
+  const wordsNavigation = content.querySelector('#words-navigation');
+  wordsNavigation.open = ['words', 'practice', 'course-words'].includes(active);
+  wordsNavigation.classList.toggle('is-current', wordsNavigation.open);
   if (active === 'courses') {
     content.querySelector('#sidebar-course-link span').textContent = 'Courses';
   }
+}
+
+export function mountWorkspace(active) {
+  const template = document.createElement('template');
+  template.innerHTML = templateHtml;
+  const content = template.content;
+  const main = document.querySelector('main');
+  main.prepend(content.querySelector('#search-results'));
+  content.querySelector('#dashboard-main-wrap').append(main);
+  markWorkspaceNavigation(content, active);
   document.body.prepend(content);
   bindNavigation();
   bindSearch();
@@ -278,7 +290,7 @@ function bindNavigation() {
       if ($('dashboard-sidebar').classList.contains('is-open')) setNavOpen(false);
     }
     if (event.key !== 'Tab' || !$('dashboard-sidebar').classList.contains('is-open')) return;
-    const focusable = [...$('dashboard-sidebar').querySelectorAll('a, button')];
+    const focusable = [...$('dashboard-sidebar').querySelectorAll('a, button, summary')].filter((node) => node.getClientRects().length);
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
     if (event.shiftKey && document.activeElement === first) {

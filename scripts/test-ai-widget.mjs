@@ -10,6 +10,7 @@ class Node extends EventTarget {
     super(); this.tagName = tag; this.children = []; this.attributes = {}; this.dataset = {};
     this.style = { setProperty() {} }; this.className = ''; this.textContent = text;
     this.value = ''; this.hidden = false;
+    this.scrollHeight = 1000; this.clientHeight = 200; this.scrollTop = 800;
     this.classList = {
       contains: (value) => this.className.split(' ').includes(value),
       toggle: (value, enabled) => {
@@ -42,10 +43,10 @@ async function environment() {
   const window = new EventTarget(); window.innerHeight = 900;
   const document = {
     head: new Node('head'), body: new Node('body'),
-    createElement: (tag) => new Node(tag), getElementById: (id) => ids.get(id),
+    createElement: (tag) => new Node(tag), createTextNode: (text) => new Node('#text', text), getElementById: (id) => ids.get(id),
   };
   class Option extends Node { constructor(text, value) { super('option', text); this.value = value; } }
-  let available = true, fail = false, owner = 'A', saved = false;
+  let available = true, fail = false, owner = 'A', saved = false, pause, reply = '<script>alert(1)</script>';
   const calls = [];
   const api = {
     getAIStatus: async () => ({ available, maxInputChars: 4000 }),
@@ -58,14 +59,15 @@ async function environment() {
       calls.push({ payload, signal });
       if (fail) throw Object.assign(new Error('Offline'), { code: 'NETWORK_ERROR' });
       saved = true;
+      if (pause) await pause;
       return new Response(
         'event: delta\ndata: ' + JSON.stringify({ content: '<img src=x onerror=alert(1)>' }) + '\n\n' +
-        'event: done\ndata: ' + JSON.stringify({ conversationId: `chat-${owner}`, message: { content: '<script>alert(1)</script>' } }) + '\n\n',
+        'event: done\ndata: ' + JSON.stringify({ conversationId: `chat-${owner}`, message: { content: reply } }) + '\n\n',
       );
     },
   };
   const context = vm.createContext({
-    window, document, Option, Event, AbortController, TextDecoder, URLSearchParams, console,
+    window, document, Option, Event, AbortController, TextDecoder, URLSearchParams, URL, console,
     crypto: { randomUUID: () => 'fake-request-id' },
     localStorage: {
       getItem: (key) => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value),
@@ -101,7 +103,7 @@ async function environment() {
   const widget = modules.get('ai-assistant.js').namespace;
   return {
     document, window, storage, calls, widget, workspace: workspace.namespace,
-    set: (values) => { if ('available' in values) available = values.available; if ('fail' in values) fail = values.fail; if ('owner' in values) owner = values.owner; },
+    set: (values) => { if ('available' in values) available = values.available; if ('fail' in values) fail = values.fail; if ('owner' in values) owner = values.owner; if ('pause' in values) pause = values.pause; if ('reply' in values) reply = values.reply; },
     root: () => find(document.body, 'fleng-ai'),
   };
 }
@@ -174,7 +176,7 @@ test('unavailable and network errors disable sending without automatic paid retr
   assert.equal(e.root().dataset.state, 'UNAVAILABLE');
   assert.equal(find(e.root(), 'ai-composer').children[1].disabled, true);
   e.set({ available: true, fail: true });
-  find(e.root(), 'ai-tools').children[2].dispatchEvent(new Event('click'));
+  find(e.root(), 'ai-refresh').dispatchEvent(new Event('click'));
   await settle();
   find(e.root(), 'ai-composer').children[0].value = 'Hi';
   find(e.root(), 'ai-composer').dispatchEvent(new Event('submit', { cancelable: true }));
@@ -189,4 +191,36 @@ test('public pages have no assistant/workspace initialization', async () => {
     const source = await readFile(new URL(`../frontend/js/${name}.js`, import.meta.url), 'utf8');
     assert.doesNotMatch(source, /mountAIAssistant|mountWorkspace|setWorkspaceUser/);
   }
+});
+
+
+test('500-character cap, streamed Markdown and manual scroll are preserved', async () => {
+  const e = await environment();
+  const widget = e.widget.mountAIAssistant({ id: 'A' });
+  await widget.open();
+  const form = find(e.root(), 'ai-composer'), input = form.children[0];
+  assert.equal(input.maxLength, 500); // status mock advertises 4000; UI remains capped.
+  input.value = 'x'.repeat(501);
+  input.dispatchEvent(new Event('input'));
+  form.dispatchEvent(new Event('submit', { cancelable: true }));
+  await settle();
+  assert.equal(e.calls.length, 0);
+  let resume;
+  e.set({ pause: new Promise((resolve) => { resume = resolve; }), reply: '**Helpful** and *clear*' });
+  input.value = '**plain user text**';
+  input.dispatchEvent(new Event('input'));
+  form.dispatchEvent(new Event('submit', { cancelable: true }));
+  const messages = find(e.root(), 'ai-messages');
+  assert.equal(find(e.root(), 'ai-typing').hidden, false);
+  messages.scrollTop = 0;
+  messages.dispatchEvent(new Event('scroll'));
+  resume(); await settle();
+  assert.equal(messages.scrollTop, 0);
+  assert.equal(find(e.root(), 'ai-jump').hidden, false);
+  assert.equal(all(find(e.root(), 'ai-assistant'), (node) => node.tagName === 'strong').length, 1);
+  assert.equal(all(find(e.root(), 'ai-user'), (node) => node.tagName === 'strong').length, 0);
+  find(e.root(), 'ai-jump').dispatchEvent(new Event('click'));
+  assert.equal(messages.scrollTop, messages.scrollHeight);
+  assert.equal(find(e.root(), 'ai-typing').hidden, true);
+  assert.match(find(e.root(), 'ai-counter').textContent, /0 \/ 500/);
 });

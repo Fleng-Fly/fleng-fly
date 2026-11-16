@@ -189,7 +189,8 @@ The styles from `CSS.star4life/CSS/` are adapted in `frontend/css/star4life.css`
 
 Authenticated Dashboard and Lessons reuse `js/ai-assistant.js`, `js/ai-stream.js`
 and `css/ai-assistant.css`. The component calls the existing authenticated AI API,
-restores owned conversations and renders streaming/plain text safely. Lessons
+restores owned conversations, renders user text literally and renders assistant
+Markdown through an allowlisted DOM renderer with URL validation. Lessons
 provides a callback for current lesson/exercise IDs; backend owns context loading.
 Close/minimize retains the in-flight response on-page. Navigation disconnects it.
 Responsive/keyboard behavior is implemented but browser/device QA remains pending.
