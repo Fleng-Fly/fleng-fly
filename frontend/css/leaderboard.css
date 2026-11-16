@@ -184,6 +184,108 @@
   padding: 2rem;
   margin-top: 2rem;
 }
+/* Visual accents: champion wings, crown, streak chip, top-three medals --- */
+.podium-card > *:not(.leaderboard-wings):not(.leaderboard-crown) {
+  position: relative;
+  z-index: 1;
+}
+.dashboard-page svg.leaderboard-wings {
+  position: absolute;
+  top: 4.5rem;
+  left: -4%;
+  width: 108%;
+  height: 5.6rem;
+  pointer-events: none;
+  z-index: 0;
+}
+.leaderboard-wing {
+  fill: #f0d9ff42;
+  stroke: #f0d9ff99;
+  stroke-width: 1.2;
+}
+.leaderboard-wing-line {
+  fill: none;
+  stroke: #ffffff66;
+  stroke-width: 1;
+}
+.leaderboard-crown {
+  position: absolute;
+  top: -1.05rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid #ffffff80;
+  background: linear-gradient(140deg, #f3c6ff, #bf40fa 55%, #4928c2);
+  box-shadow: 0 0.7rem 1.6rem #bf40fa73;
+  z-index: 2;
+}
+.leaderboard-crown svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+.leaderboard-crown path {
+  fill: #fff;
+  stroke: none;
+}
+.podium-facts {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.leaderboard-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.5rem;
+  border: 1px solid #f0d9ff57;
+  border-radius: 999px;
+  background: #f0d9ff0f;
+  color: #f3e8ff;
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.leaderboard-streak-dot {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #ffb36b, #bf40fa);
+  box-shadow: 0 0 0 0.15rem #bf40fa2e;
+}
+.leaderboard-medal {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  padding: 0 0.4rem;
+  border: 1px solid #e3d9fc26;
+  border-radius: 999px;
+  background: #e3d9fc14;
+  color: #c3add8;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.leaderboard-medal.is-first {
+  border-color: transparent;
+  background: linear-gradient(135deg, #d789f0, #6f2fd6);
+  color: #fff;
+}
+.leaderboard-medal.is-second {
+  border-color: #e3d9fc80;
+  background: linear-gradient(135deg, #e3d9fc66, #9274ba33);
+  color: #fff;
+}
+.leaderboard-medal.is-third {
+  border-color: #bf40fa73;
+  background: linear-gradient(135deg, #5b2a62cc, #4928c266);
+  color: #f3e8ff;
+}
 @media (max-width: 768px) {
   .leaderboard-podium {
     gap: 0.65rem;
@@ -206,6 +308,18 @@
   }
   .leaderboard-panel {
     padding: 1rem;
+  }
+  .dashboard-page svg.leaderboard-wings {
+    top: 4rem;
+    height: 4.6rem;
+  }
+  .leaderboard-crown {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+  .leaderboard-crown svg {
+    width: 1.2rem;
+    height: 1.2rem;
   }
 }
 @media (max-width: 540px) {
@@ -235,5 +349,11 @@
   .leaderboard-table th,
   .leaderboard-table td {
     padding: 0.8rem 0.5rem;
+  }
+  .dashboard-page svg.leaderboard-wings {
+    top: 2.6rem;
+    left: 0;
+    width: 100%;
+    height: 3.8rem;
   }
 }
