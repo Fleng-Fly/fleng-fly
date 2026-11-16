@@ -325,3 +325,11 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
 `version.json` and sidebar/footer expose the release. Desktop shell removed;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
+
+
+## Progress analytics UI — 2026-11-16
+
+`frontend/progress.html` + `js/progress.js` + page-scoped `css/progress.css` render
+GET /progress/me analytics through existing api/session/workspace helpers. No
+shared CSS or backend changes. Null daily XP history has an explanation, no chart.
+Frontend DOM regressions: scripts/test-progress.mjs; details: docs/frontend.md.

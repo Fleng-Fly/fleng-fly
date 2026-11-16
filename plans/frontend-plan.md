@@ -106,3 +106,14 @@ Implemented latest purple interface, Our Team role areas, personal vocabulary an
 four animated practice modes/results; removed install UI/standalone metadata.
 Main's A0 filter and three lesson tabs preserved. Assets revalidate; footer/sidebar
 show Web 2026.11.16. External publishing and live authenticated QA remain pending.
+
+
+## Progress analytics UI — 2026-11-16
+
+- Completed: isolated feat/progress-ui worktree based on analytics 99879f3;
+  Progress page using real totals, active courses, completion and current/best streak.
+- Completed: null XP-history explanation, loading/empty/error/retry, safe rendering
+  and session lifecycle; frontend regressions and Firefox at 1440/768/390/360 px.
+- Next: integrate the branch with the separately maintained workspace navigation
+  if a global Progress entry is desired; shared files remain untouched here.
+- No backend changes, commit, push or merge. Evidence: docs/frontend.md.
