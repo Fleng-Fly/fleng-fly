@@ -42,16 +42,20 @@ Source: [Settings](../../backend/app/core/config.py). Uppercase field names are 
 | `AI_MAX_OUTPUT_TOKENS` | `Field(default=800, ge=1, le=8192)` |
 | `AI_MAX_INPUT_TOKENS` | `Field(default=24000, ge=1, le=128000)` |
 | `AI_REQUEST_TIMEOUT` | `Field(default=30, gt=0, le=300)` |
-| `AI_MAX_INPUT_CHARS` | `Field(default=4000, ge=1, le=16000)` |
+| `AI_MAX_MESSAGE_LENGTH` | `Field(default=500, ge=1, le=16000)` |
 | `AI_MAX_RESPONSE_CHARS` | `Field(default=16000, ge=1, le=64000)` |
 | `AI_HISTORY_MESSAGES` | `Field(default=20, ge=2, le=100)` |
 | `AI_HISTORY_CHARS` | `Field(default=16000, ge=1, le=100000)` |
 | `AI_MESSAGES_PER_CONVERSATION` | `Field(default=200, ge=2, le=1000)` |
 | `AI_CONVERSATIONS_PER_USER` | `Field(default=50, ge=1, le=500)` |
 | `AI_REQUESTS_PER_MINUTE` | `Field(default=10, ge=1)` |
-| `AI_DAILY_REQUESTS` | `Field(default=100, ge=1)` |
-| `AI_DAILY_TOKEN_BUDGET` | `Field(default=100000, ge=1)` |
+| `AI_DAILY_USER_LIMIT` | `Field(default=30, ge=1)` |
+| `AI_DAILY_TOKEN_BUDGET` | `Field(default=750000, ge=1)` |
 | `AI_CONCURRENCY` | `Field(default=4, ge=1, le=100)` |
+| `AI_MAX_CONCURRENT_REQUESTS` | `Field(default=1, ge=1, le=10)` |
+| `AI_DAILY_BUDGET_USD` | `Field(default=Decimal('1.00'), ge=0, le=100000)` |
+| `AI_INPUT_PRICE_PER_MTOK_USD` | `Field(default=None, ge=0, le=10000)` |
+| `AI_OUTPUT_PRICE_PER_MTOK_USD` | `Field(default=None, ge=0, le=10000)` |
 
 DEFAULT_DATABASE_URL is sqlite+aiosqlite:///./data/fleng.db, resolved against backend/. COOKIE_SECURE=None derives from APP_ENV; production requires true. Production CORS/RENDER_EXTERNAL_URL require exact HTTPS origins. LEARNING_TIMEZONE resolves via ZoneInfo. OpenRouter model requires provider/model syntax and URL must be HTTPS without embedded credentials/query/fragment.
 

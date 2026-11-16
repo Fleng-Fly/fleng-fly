@@ -30,7 +30,7 @@ other modules import that service, not its internals.
 | `gamification`    | 🟢     | daily activity, derived streaks, deterministic achievements                                               | db, config                    |
 | `challenges`      | 🔴     | challenge definitions, participation                                                                      | progress, gamification        |
 | `recommendations` | 🟢     | deterministic analytics in ai/context.py                                                                  | db, progress, vocabulary      |
-| `ai`              | 🟢     | provider, tutor/history, explanation, practice, recommendations, SSE                                      | db, auth, core limits         |
+| `ai`              | 🟢     | provider, tutor/history, explanation, practice, recommendations, SSE, billing.py cost/budget math                                    | db, auth, core limits         |
 | `notifications`   | 🔴     | in-app notification feed                                                                                  | users                         |
 | `subscriptions`   | 🔴     | plans, billing state                                                                                      | users                         |
 | `analytics`       | 🔴     | event recording                                                                                           | —                             |

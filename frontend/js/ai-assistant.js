@@ -68,7 +68,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   const form = el('form', 'ai-composer');
   const input = el('textarea');
   input.rows = 2;
-  input.maxLength = 4000;
+  input.maxLength = 500;
   input.placeholder = 'Ask about English…';
   input.setAttribute('aria-label', 'Message to Fleng AI');
   const send = el('button', '', 'Send');
@@ -314,7 +314,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
       if (unavailable) available = false;
       notice.textContent = unavailable
         ? 'Fleng AI is currently unavailable. Select Reload to check again.'
-        : ['AI_RATE_LIMITED', 'RATE_LIMITED', 'AI_BUSY', 'AI_BUDGET_LIMIT'].includes(error.code)
+        : ['AI_RATE_LIMITED', 'RATE_LIMITED', 'AI_BUSY', 'AI_BUDGET_LIMIT', 'AI_DAILY_LIMIT'].includes(error.code)
           ? 'AI limit reached. Please try later.'
           : 'The request did not complete. Reload history before sending again; no automatic retry was made.';
       phase(unavailable ? 'UNAVAILABLE' : 'ERROR');

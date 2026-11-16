@@ -118,6 +118,7 @@ is NOT VERIFIED; verification results are in `docs/backend-stabilization-report.
   incremental UTF-8 SSE, safe text rendering, minimize/close lifecycle.
 - **Completed:** authenticated readiness API, published lesson/exercise context,
   request-ID deduplication on existing AIUsage (migration `20261101_1200`).
+  UTC-day AI quotas and global USD budget on AIUsage (migration `20261116_1200`, `docs/ai.md`).
 - **Completed:** mocked backend/parser regression checks, dev-server SQLite smoke,
   independent self-review; docs and project map updated.
 - **Next / unverified:** actual browser QA at 360/768/desktop, virtual keyboards,

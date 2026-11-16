@@ -23,8 +23,49 @@ class Provider(Protocol):
     def stream(self, messages: list[dict]) -> AsyncGenerator[Completion, None]: ...
 
 
+class NotBilled(ApiError):
+    """The provider certainly did not generate: the cost reservation may be released.
+
+    Raised only before the request is sent or when the connection was never
+    established. Timeouts, 5xx, broken streams and invalid bodies stay plain
+    ApiError: the upstream model may have run, so the reservation is kept.
+    """
+
+
+class UpstreamRefused(NotBilled):
+    """OpenRouter answered with a 4xx/429 refusal: no completion was generated.
+
+    OpenRouter documents that prompt processing may still be charged when no
+    content is generated, so the prompt cost stays booked (output cost is freed).
+    """
+
+
 def unavailable() -> ApiError:
     return ApiError(503, "AI_UNAVAILABLE", "AI service is unavailable")
+
+
+def not_billed_unavailable() -> NotBilled:
+    return NotBilled(503, "AI_UNAVAILABLE", "AI service is unavailable")
+
+
+def refused_unavailable() -> UpstreamRefused:
+    return UpstreamRefused(503, "AI_UNAVAILABLE", "AI service is unavailable")
+
+
+def priced(settings: Settings) -> bool:
+    """Spending is allowed only for one fixed model with an operator-declared tariff.
+
+    OpenRouter meta-routers (openrouter/auto and friends) pick the model at request
+    time, and :online adds per-request search fees; neither has a price we can bound
+    before sending, so they are refused rather than treated as free.
+    """
+    model = settings.openrouter_model
+    return (
+        settings.ai_input_price_per_mtok_usd is not None
+        and settings.ai_output_price_per_mtok_usd is not None
+        and not model.startswith("openrouter/")
+        and not model.endswith(":online")
+    )
 
 
 class OpenRouterProvider:
@@ -38,8 +79,9 @@ class OpenRouterProvider:
             not s.ai_enabled
             or not s.openrouter_api_key.get_secret_value()
             or not s.openrouter_model
+            or not priced(s)
         ):
-            raise unavailable()
+            raise not_billed_unavailable()
 
     def payload(
         self, messages: list[dict], schema: dict | None = None, stream: bool = False
@@ -50,6 +92,8 @@ class OpenRouterProvider:
             "messages": messages,
             "max_tokens": self.settings.ai_max_output_tokens,
             "stream": stream,
+            # Never route to an endpoint pricier than the tariff used for reservations.
+            "provider": {"max_price": max_price(self.settings)},
         }
         if schema and self.settings.ai_structured_outputs:
             data["response_format"] = {
@@ -76,14 +120,17 @@ class OpenRouterProvider:
     @staticmethod
     def check(response: httpx.Response) -> None:
         if response.status_code == 429:
-            raise ApiError(
+            raise UpstreamRefused(
                 429,
                 "AI_RATE_LIMITED",
                 "AI provider rate limit reached",
                 headers={"Retry-After": "60"},
             )
-        if response.status_code >= 400:
+        if 400 <= response.status_code < 500 and response.status_code != 408:
+            # Refused before generation (auth, credits, price filter, validation).
             # Never reflect provider bodies: they can contain input or credential details.
+            raise refused_unavailable()
+        if response.status_code >= 400:
             raise unavailable()
 
     async def complete(self, messages: list[dict], schema: dict | None = None) -> Completion:
@@ -117,6 +164,9 @@ class OpenRouterProvider:
             return Completion(
                 content, self.settings.openrouter_model, safe_usage(data.get("usage"))
             )
+        except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
+            # No connection means the request body never reached OpenRouter.
+            raise not_billed_unavailable() from exc
         except httpx.TimeoutException as exc:
             raise ApiError(504, "AI_TIMEOUT", "AI request timed out") from exc
         except httpx.HTTPError as exc:
@@ -184,6 +234,9 @@ class OpenRouterProvider:
                             content, self.settings.openrouter_model, safe_usage(data.get("usage"))
                         )
                     raise ValueError("Stream ended without DONE")
+        except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
+            # No connection means the request body never reached OpenRouter.
+            raise not_billed_unavailable() from exc
         except httpx.TimeoutException as exc:
             raise ApiError(504, "AI_TIMEOUT", "AI request timed out") from exc
         except httpx.HTTPError as exc:
@@ -206,6 +259,16 @@ def safe_usage(value: object) -> dict:
         and isinstance(val, (int, float))
         and not isinstance(val, bool)
         and 0 <= val <= 1e12
+    }
+
+
+def max_price(settings: Settings) -> dict:
+    """OpenRouter provider.max_price, in USD per million tokens."""
+    return {
+        "prompt": float(settings.ai_input_price_per_mtok_usd or 0),
+        "completion": float(settings.ai_output_price_per_mtok_usd or 0),
+        # Per-request fees are not part of the reservation, so refuse endpoints with them.
+        "request": 0,
     }
 
 

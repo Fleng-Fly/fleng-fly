@@ -316,7 +316,7 @@ Successful completion uses done with ChatResponse; these frames illustrate a fai
 GET status returns an object with available (boolean) and maxInputChars (integer), for example:
 
 ```json
-{"available":false,"maxInputChars":4000}
+{"available":false,"maxInputChars":500}
 ```
 
 GET recommendations returns level, reviewTopics (slug/topic/missed objects), reviewWords (strings), nextLessons (slug/title objects), and reason. Synthetic empty-state example:

@@ -50,6 +50,10 @@ Table: `ai_usage`.
 | reserved_tokens | INTEGER | False | — |
 | usage | JSON | True | — |
 | created_at | DATETIME | False | — |
+| day | DATE | False | — |
+| reserved_microusd | INTEGER | False | — |
+| cost_microusd | INTEGER | True | — |
+| cost_source | VARCHAR(20) | True | — |
 
 Constraints/indexes beyond primary/foreign keys:
 

@@ -11,7 +11,14 @@ from app.modules.ai.provider import OpenRouterProvider
 
 def settings(**kwargs):
     return Settings(
-        ai_enabled=True, openrouter_api_key="test-only-key", openrouter_model="test/model", **kwargs
+        **{
+            "ai_enabled": True,
+            "openrouter_api_key": "test-only-key",
+            "openrouter_model": "test/model",
+            "ai_input_price_per_mtok_usd": "0.15",
+            "ai_output_price_per_mtok_usd": "0.60",
+            **kwargs,
+        }
     )
 
 

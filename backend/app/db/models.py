@@ -7,7 +7,7 @@ Identity (`User`), learner profile (`Profile`), authentication sessions
 """
 
 import uuid
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import (
@@ -472,6 +472,14 @@ class AIUsage(Base):
     reserved_tokens: Mapped[int] = mapped_column(Integer)
     usage: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # UTC calendar day used for per-learner quotas and the global daily budget.
+    day: Mapped[date] = mapped_column(Date, index=True, default=lambda: datetime.now(UTC).date())
+    # Worst-case cost held before the provider call, in millionths of a USD.
+    reserved_microusd: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Final charge; NULL while in flight, so the reservation counts until settled.
+    cost_microusd: Mapped[int | None] = mapped_column(Integer)
+    # provider | tariff | reserved | released
+    cost_source: Mapped[str | None] = mapped_column(String(20))
 
 
 class CourseVocabularyItem(Base):
