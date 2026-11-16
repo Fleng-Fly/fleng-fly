@@ -155,3 +155,35 @@ production deployment configure Uvicorn `--proxy-headers --forwarded-allow-ips`
 with only actual trusted proxy addresses, restrict direct backend access, and
 have the proxy overwrite forwarded headers. Never trust `*` on a public backend.
 Without a trusted proxy configuration, requests share the proxy's IP quota.
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+Email changes use `POST /api/v1/users/me/email-change/request` (Bearer;
+`{email, currentPassword}`, 204) and `/confirm` (`{token}`, 204; opaque token
+provides authorization). Request requires SMTP (`RESET_DELIVERY=smtp` and SMTP
+settings), verifies the current password under the identity lock and is limited
+to five attempts per user/hour. Configure `EMAIL_CHANGE_URL` to the public HTTPS
+Settings URL; the development default is http://localhost:3001/settings.html.
+The link carries only a random secret in its fragment; Settings removes it from
+browser history before sending it in a POST body. No password is in the link.
+
+Migration `20261116_1400` adds `email_changes`: hashed tokens, target address,
+30-minute expiry, used timestamp and a server-keyed HMAC of the account ID,
+current email and password hash. Confirmation checks this binding under the same
+identity lock as password changes/refresh. Password change/reset or a newer
+request invalidates earlier authorization. The unique email constraint resolves
+races with registration/other changes. Old email remains until confirmation;
+confirmation and refresh/reset-token invalidation commit atomically. Delivery
+failure invalidates its token and returns 503. PATCH cannot change email and
+returns 409 EMAIL_CONFIRMATION_REQUIRED for a different address.
+
+Browser refresh requires the origin-wide `fleng-auth-refresh` Web Lock; concurrent
+calls within a tab share one promise. If Web Locks is unavailable, a valid access
+token continues working. Only when refresh is necessary does the client require
+sign-in, without sending refresh or logout requests. Server reuse detection stays
+strict. Existing access JWTs remain valid until expiry (default 15 minutes).
+
+PWA installation remains retired. Backend tests assert an empty compatibility
+manifest and no manifest links; existing JS tests retain selective legacy worker
+and cache cleanup, no fetch interception and failure tolerance.

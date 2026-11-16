@@ -1,4 +1,4 @@
-import { changePassword, logout, setAccessToken, updateCurrentUser } from './api.js';
+import { requestEmailChange, confirmEmailChange, changePassword, logout, setAccessToken, updateCurrentUser } from './api.js';
 import { describeApiError } from './errors.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
@@ -62,8 +62,14 @@ function bindPage() {
     button.textContent = 'Saving…';
     feedback('profile-feedback', '');
     try {
-      renderUser(await updateCurrentUser({ displayName: name, email }), true);
-      feedback('profile-feedback', 'Account information saved.');
+      const changingEmail = email.toLowerCase() !== user.email;
+      if (changingEmail) {
+        const currentPassword = $('email-current-password').value;
+        await requestEmailChange({ email, currentPassword });
+        $('email-current-password').value = '';
+      }
+      renderUser(await updateCurrentUser({ displayName: name }), true);
+      feedback('profile-feedback', changingEmail ? 'Check your new email within 30 minutes. Your current email remains active.' : 'Account information saved.');
     } catch (error) {
       feedback('profile-feedback', describeApiError(error), true);
     } finally {
@@ -159,6 +165,17 @@ function bindPage() {
 }
 
 async function main() {
+  const token = new URLSearchParams(window.location.hash.slice(1)).get('email-change');
+  if (token) {
+    history.replaceState(null, '', window.location.pathname);
+    try {
+      await confirmEmailChange(token);
+      setAccessToken(null);
+      window.alert('Email updated. Please sign in again.');
+      window.location.replace('/login.html');
+      return;
+    } catch (error) { window.alert(describeApiError(error)); }
+  }
   mountWorkspace('settings');
   $('settings-retry').addEventListener('click', () => window.location.reload());
   try {

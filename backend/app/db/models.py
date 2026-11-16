@@ -424,6 +424,19 @@ class PasswordReset(Base):
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class EmailChange(Base):
+    __tablename__ = "email_changes"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    new_email: Mapped[str] = mapped_column(String(320))
+    authorization_hash: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class RequestLimit(Base):
     """Persistent fixed windows; unique keys and row locks coordinate workers."""
 

@@ -220,3 +220,15 @@ Completed: owner authorized all five A0–B2 courses for public release. SHA-pin
 ## Render Free account durability — 2026-11-14
 
 In progress: fix account loss after Render Free sleep by requiring external durable storage. Local implementation complete: SQLite 419 passed / 22 skipped, PostgreSQL 440 passed / 1 non-applicable platform skip, strict JUnit gate passed; provider connection and hosted sleep/wake verification require owner setup. No paid resources, private database commits or automatic push.
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+- Completed: password-authorized SMTP email confirmation, 30-minute one-use
+  tokens, refresh revocation, migration and regression coverage.
+- Completed: Web Locks required only at refresh time; no automatic fallback;
+  strict server reuse detection preserved.
+- Completed: retired-PWA backend contracts aligned; worker/cache cleanup retained.
+- Next/external: public HTTPS EMAIL_CHANGE_URL/SMTP delivery and live PostgreSQL
+  verification. No paid provider calls, commit or push in this stage.
+- Verification details: docs/security-stability-1.0.md.

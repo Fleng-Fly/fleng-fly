@@ -158,3 +158,11 @@ See [OpenRouter and global assistant audit](ai-security-audit.md) for verified
 boundaries, fixed lifecycle/request/provider-error gaps, automated evidence and
 remaining production checks. API credentials stay backend-only; all AI endpoints
 remain authenticated. This audit does not claim live-host or paid-provider validation.
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+Password-authorized email changes use hashed one-use tokens (30 minutes) and
+server-keyed account-state binding; SMTP is mandatory. Refresh requires Web Locks
+only when renewal is needed, without an automatic fallback. Strict server reuse
+detection remains. See [authentication](authentication.md#fleng-10-securitystability--2026-11-16).

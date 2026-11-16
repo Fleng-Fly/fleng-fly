@@ -347,3 +347,13 @@ official CEFR band. Course/lesson responses, profile updates, vocabulary filters
 and AI exercise requests accept it. JSON shapes and omitted-filter behavior stay
 unchanged. Draft curriculum remains invisible until explicit reviewed publication.
 See [curriculum](curriculum-a0-b2.md) for content and operator commands.
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+`POST /users/me/email-change/request`: Bearer, `{email, currentPassword}`, 204.
+SMTP required (503 otherwise); five attempts/user/hour.
+`POST /users/me/email-change/confirm`: `{token}`, 204; one-use 30-minute token.
+Invalid/stale token: 400; occupied address: 409. Both paths use `/api/v1`.
+`PATCH /users/me` rejects a different email with 409 EMAIL_CONFIRMATION_REQUIRED.
+See [authentication](authentication.md#fleng-10-securitystability--2026-11-16).
