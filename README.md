@@ -2,9 +2,8 @@
 
 Developer documentation: [complete guide](docs/README.md), including API contracts, database, learning/curriculum, security and deployment.
 
-Local desktop launch: `Fleng.exe` when the portable runtime is present, or
-`START-FLENG.cmd` for source setup. See [desktop guide](DESKTOP-UA.md) and
-[integration notes](docs/projectenglich-integration.md).
+Вебверсія **2026.11.16-web**: Fleng відкривається у звичайному браузері.
+Windows EXE, desktop shell і встановлення PWA вилучені.
 
 Fleng is an English-learning web platform with structured courses, graded
 exercises, personal vocabulary, learning progress and an AI tutor API.
@@ -20,7 +19,7 @@ explicit alternative.
 ## Доступ до Fleng
 
 Fleng працює у браузері на комп’ютері й телефоні. Пропозиції завантажити
-додаток вилучено; PWA-інфраструктура та offline-екран збережені.
+додаток вилучено. Старі service worker та кеш Fleng автоматично прибираються.
 Деталі — [PWA та доступ](docs/pwa-installation.md).
 
 ## Quick start
@@ -75,8 +74,8 @@ For the presentation walkthrough and fictional accounts, see [DEMO.md](DEMO.md).
 
 The frontend connects login/register, Dashboard, courses, Lessons and Settings to
 the API. Lessons can save vocabulary; Dashboard displays progress, streaks and
-learned-word metrics. Dedicated Vocabulary, Practice, Challenges, Progress and AI
-Tutor screens remain future work.
+learned-word metrics. Vocabulary and four vocabulary practice modes are available, alongside Our Team.
+Dedicated Challenges, Progress and AI Tutor screens remain future work.
 
 Reviews currently use a basic **1-day retry / 7-day remembered** schedule.
 The all-time Leaderboard ranks learners by earned XP, with stable ties and

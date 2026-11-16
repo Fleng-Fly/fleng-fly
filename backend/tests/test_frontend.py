@@ -28,6 +28,8 @@ async def test_app_pages_are_served(client: AsyncClient) -> None:
         "/courses.html",
         "/course.html",
         "/lesson.html",
+        "/vocabulary.html",
+        "/team.html",
     ):
         response = await client.get(path)
         assert response.status_code == 200, path
@@ -75,3 +77,15 @@ async def test_unknown_api_path_keeps_the_error_envelope(client: AsyncClient) ->
     response = await client.get("/api/v1/does-not-exist")
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
+
+
+async def test_website_assets_revalidate_conditional_requests(client: AsyncClient) -> None:
+    for path in ("/", "/version.json", "/js/workspace.js", "/css/fleng-theme.css", "/sw.js"):
+        response = await client.get(path)
+        assert response.status_code == 200, path
+        assert response.headers["cache-control"] == "no-cache", path
+        cached = await client.get(path, headers={"If-None-Match": response.headers["etag"]})
+        assert cached.status_code == 304, path
+        assert cached.headers["cache-control"] == "no-cache", path
+    release = await client.get("/version.json")
+    assert release.json()["version"] == "2026.11.16-web"

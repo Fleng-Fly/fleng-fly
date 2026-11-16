@@ -279,23 +279,15 @@ Normal app uses published-only defaults. QA UI submissions use a second database
 the prepared primary preview starts with zero learner progress. No publication,
 production access or copy of personal accounts. Cleanup removes dedicated /tmp
 folders after stopping their servers; repository screenshots remain available.
-## PWA — 2026-11-13
+## PWA — 2026-11-13 (retired 2026-11-16)
 
-Оновлено 2026-11-14: пропозиції завантажити/встановити додаток вилучено
-з головної сторінки, навігації та offline-екрана; обробники встановлення й
-окремі стилі видалено. `/install.html` зберігає лише довідку про доступ і прогрес.
-Маніфест, іконки, реєстрація worker та offline fallback збережені;
-кеш offline-екрана оновлено до v2. API й дані користувача не кешуються.
-Далі: перевірка на фізичних пристроях.
-Деталі: `docs/pwa-installation.md` (від кореня проєкту).
+Desktop launch and PWA installation were removed. Fleng runs in a browser;
+legacy worker/cache cleanup is kept for existing visitors. See `docs/website-release.md`.
 
-## Desktop — 2026-11-14
+## Desktop — 2026-11-14 (retired 2026-11-16)
 
-Launcher → user-data lock and persistent key → owned loopback worker → existing
-SQLite preparation/migrations → normal FastAPI API and static frontend → dedicated
-Edge/Chrome app window. Closing that window or losing the parent process closes
-the worker lifetime pipe and stops only that server. Existing development data
-is copied via SQLite backup only when the desktop database is absent.
+Desktop launch and PWA installation were removed. Fleng runs in a browser;
+legacy worker/cache cleanup is kept for existing visitors. See `docs/website-release.md`.
 
 ## Database release verification — 2026-11-14
 
@@ -331,3 +323,11 @@ Owner-authorized pinned content SHA → importer exact-row preflight → insert 
 ## Render Free account durability — 2026-11-14
 
 Render Free → external PostgreSQL URL → safe engine creation/pool pre-ping → empty-schema atomic Alembic + catalog initialization OR existing-head validation → normal account/progress writes → app stops/sleeps → fresh process reconnects to the same external store. Ephemeral SQLite is refused before accepting accounts. No user data is embedded in the seed, browser or Git.
+
+## Website update — 2026-11-16
+
+GitHub main → existing Netlify/Render deployments → revalidated browser HTML/JS/CSS.
+Netlify /api/* → existing Render FastAPI → existing database and learning services.
+Vocabulary practice saves through the shared api.js review endpoints; UI summaries
+count only saved responses. Legacy Fleng workers/caches are retired on page load.
+No new data store, desktop process or schema changes.

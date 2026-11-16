@@ -34,6 +34,7 @@ export function renderMessage(container, title, message, onRetry) {
 const NAV_ITEMS = [
   { href: '/index.html', label: 'Home', key: 'home' },
   { href: '/courses.html', label: 'Courses', key: 'courses' },
+  { href: '/team.html', label: 'Our Team', key: 'team' },
   { href: '/dashboard.html', label: 'Dashboard', key: 'dashboard' },
 ];
 
@@ -50,7 +51,7 @@ export async function mountHeader(active = '', user) {
 
   const brand = el('a', 'brand');
   brand.href = '/index.html';
-  brand.append(el('span', 'brand-mark', 'F'), el('span', 'brand-name', 'Fleng'));
+  brand.append(el('span', 'brand-mark', '✦'), el('span', 'brand-name', 'Fleng'));
 
   const nav = el('nav', 'nav');
   for (const item of NAV_ITEMS) {

@@ -1,43 +1,9 @@
-# PWA та доступ до Fleng
+# Browser access; PWA retired
 
-## Поточний стан — 2026-11-14
+Fleng is website-only as of 2026-11-16. No install links, manifest links,
+standalone Apple metadata or service-worker registration remain in the UI.
+`install.html` redirects to Dashboard; the empty manifest and retiring `sw.js`
+are compatibility endpoints. `js/pwa.js` unregisters only Fleng root workers
+and removes only fleng-offline-v caches. Accounts and database are untouched.
 
-Пропозиції завантажити/встановити додаток вилучено з головної сторінки,
-спільної навігації, workspace (desktop і mobile drawer) та offline-екрана.
-Посилань на інсталятори у frontend немає.
-
-`/install.html` збережено для старих адрес і корисної довідки про підключення,
-обліковий запис та серверне збереження прогресу. Інструкції та кнопка
-встановлення, спеціальні CSS і JS-обробники цієї кнопки вилучені.
-`beforeinstallprompt` пригнічує автоматичну пропозицію браузера без
-збереження події або виклику `prompt()`.
-
-## Збережена інфраструктура
-
-- `frontend/manifest.webmanifest`, PNG-іконки та метадані сторінок.
-- `js/pwa.js`: реєстрація `/sw.js` у захищеному контексті з обробкою помилки.
-- `sw.js`: мережеві HTML-запити з fallback на публічний `/offline.html`.
-  Кеш оновлено до `fleng-offline-v2`, щоб прибрати старе offline-посилання.
-  Попередні кеші Fleng очищаються при активації.
-- API, облікові дані, відповіді, чат і прогрес не кешуються. Офлайн-уроків немає.
-
-Для входу й навчання потрібні інтернет і працюючий сервер.
-Розгортання: [наявна процедура](deployment.md), один HTTPS origin для UI й API.
-
-## Перевірки
-
-- `npm run frontend:test` — DOM/fetch перевірки курсів та AI.
-- `npm run test:pwa` — offline fallback, очищення кешу, API bypass,
-  пригнічення install prompt, HTTPS та помилки реєстрації worker.
-- Desktop/mobile перевіряються окремо у браузері; DOM-тести не доводять верстку.
-
-## Результат перевірки 2026-11-14
-
-- `npm run frontend:test`: 4/4 тестові файли пройдено.
-- `npm run test:pwa`: обидва сценарії пройдено.
-- Firefox 159: головна, Dashboard, Courses, довідка та offline-екран на
-  360/390/768/1440 px; пропозицій встановлення й горизонтального переповнення
-  немає, mobile drawer перевірено. Скриншоти desktop/mobile переглянуто.
-- Синтаксис змінених JS і `git diff --check`: без помилок.
-- Окремий self-review: перевірено відсутність залишкових посилань/стилів,
-  збереження PWA та оновлення offline-кешу; backend і API не змінювалися.
+See [website release](website-release.md) for update and hosting details.

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 set -eu
-cd -- "$(dirname -- "$0")"
-exec python3 desktop/bootstrap.py
+cd "$(dirname "$0")"
+exec npm run dev

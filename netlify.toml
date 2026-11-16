@@ -3,10 +3,10 @@
   base = "frontend"
   publish = "."
 
-# Enable only after FastAPI is deployed at a real public HTTPS URL.
-# Keep the /api/ prefix: frontend requests use /api/v1.
-# [[redirects]]
-#   from = "/api/*"
-#   to = "https://YOUR-BACKEND.example.com/api/:splat"
-#   status = 200
-#   force = true
+# Same-origin API for the existing Fleng FastAPI service.
+# Resume the Render service before validating login and saved progress.
+[[redirects]]
+  from = "/api/*"
+  to = "https://fleng-fly.onrender.com/api/:splat"
+  status = 200
+  force = true
