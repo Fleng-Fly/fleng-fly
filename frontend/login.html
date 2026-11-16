@@ -52,6 +52,16 @@
               Log in
             </button>
           </form>
+          <details>
+            <summary>Forgot your password?</summary>
+            <form id="reset-request-form">
+              <label class="field" for="reset-email">Account email
+                <input id="reset-email" name="email" type="email" autocomplete="email" required />
+              </label>
+              <button id="reset-request-button" class="btn btn-secondary btn-block" type="submit">Send reset link</button>
+              <p id="reset-request-status" role="status" aria-live="polite"></p>
+            </form>
+          </details>
         </div>
 
         <p class="text-sm muted" style="text-align: center; margin-top: 1rem">

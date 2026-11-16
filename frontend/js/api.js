@@ -71,9 +71,17 @@ async function refreshAccessToken() {
 
 let refreshInFlight = null;
 
+// Serialize cookie mutations across same-origin tabs. Each refresh reads the
+// current HttpOnly cookie only after the previous response has updated it.
+function withSessionLock(action) {
+  const locks = globalThis.navigator?.locks;
+  if (locks?.request) return locks.request('fleng.auth-cookie', { mode: 'exclusive' }, action);
+  return action();
+}
+
 function refreshOnce() {
   if (!refreshInFlight) {
-    refreshInFlight = refreshAccessToken().finally(() => {
+    refreshInFlight = withSessionLock(refreshAccessToken).finally(() => {
       refreshInFlight = null;
     });
   }
@@ -140,15 +148,15 @@ export async function apiFetch(path, init = {}, options = {}) {
 /* ── Endpoint helpers ───────────────────────────────────────────────── */
 
 export function register(input) {
-  return apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(input) });
+  return withSessionLock(() => apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(input) }));
 }
 
 export function login(email, password) {
-  return apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+  return withSessionLock(() => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }));
 }
 
 export async function logout() {
-  await apiFetch('/auth/logout', { method: 'POST' }, { retryOnUnauthorized: false });
+  await withSessionLock(() => apiFetch('/auth/logout', { method: 'POST' }, { retryOnUnauthorized: false }));
   setAccessToken(null);
   try {
     localStorage.setItem('fleng.session.logout', crypto.randomUUID());
@@ -167,6 +175,18 @@ export function updateCurrentUser(input) {
 
 export function changePassword(input) {
   return apiFetch('/users/me/password', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function requestPasswordReset(email) {
+  return apiFetch('/auth/password-reset/request', {
+    method: 'POST', body: JSON.stringify({ email }),
+  }, { retryOnUnauthorized: false });
+}
+
+export function confirmPasswordReset(token, password) {
+  return apiFetch('/auth/password-reset/confirm', {
+    method: 'POST', body: JSON.stringify({ token, password }),
+  }, { retryOnUnauthorized: false });
 }
 
 export function getMyProgress() {

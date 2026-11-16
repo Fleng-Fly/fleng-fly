@@ -325,3 +325,20 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
 `version.json` and sidebar/footer expose the release. Desktop shell removed;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
+
+## Security/stability follow-up — 2026-11-16
+
+- `frontend/login.html` / `js/login.js`: password-reset request through the existing
+  rate-limited API; `reset-password.html` / `js/reset-password.js`: in-memory token,
+  confirmation, success/retry/expired states using the existing auth styles.
+- `frontend/js/layout.js`: public-header Logout reports failure and retains the
+  current session until the server confirms revocation.
+- `modules/ai/service.py`: persistent reservation precedes local provider capacity
+  for every transport; portable CASE settlement, no limit/timeout increase.
+- `scripts/test-auth-ui.mjs`: dependency-free DOM behavior regressions, included in
+  `npm run frontend:test`. Backend admission and settlement regressions live in
+  `tests/test_ai_limits.py`.
+
+Verification and pending contract boundaries are recorded in
+`docs/security-stability-fixes-2026-11-16.md`. Same-origin Web Locks coordination
+lives in the existing API client; no token is stored in shared browser storage.

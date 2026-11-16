@@ -56,3 +56,20 @@
   measured contention. No Redis is needed for current correctness.
 - Prompt injection is an open area; treat as ongoing, test continuously.
 - Avoid "security theatre": controls must map to the threat model.
+
+## Fleng 1.0 confirmed findings — 2026-11-16
+
+- Implemented, verification in progress: uniform AI admission order and portable
+  refusal settlement; public-header Logout error/retry; Login password-reset
+  request and reset confirmation page with regression tests.
+- Awaiting user contract approval: password + new-address verification before an
+  email change, and fail-closed refresh behavior in browsers without Web Locks.
+- Next: complete the approved contracts, full pytest/frontend/PWA/Ruff/mypy/docs
+  checks, independent review. No commit/push or paid provider requests authorized.
+
+Verification of the implemented subset: targeted backend 186 passed; full backend
+489 passed / 22 skipped / 2 failed (pre-existing test_pwa.py expectations for the
+retired installation manifest). Frontend 6 test files and legacy-PWA retirement
+checks pass; Ruff/mypy/docs contracts and diff whitespace checks pass. Web Locks
+coordination is implemented/tested for supporting same-origin browsers. Email
+change and unsupported-browser refresh policy remain awaiting user approval.

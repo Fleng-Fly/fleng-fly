@@ -80,15 +80,22 @@ export async function mountHeader(active = '', user) {
     authArea.append(el('span', 'user-name', current.displayName));
     const button = el('button', 'btn btn-ghost btn-sm', 'Log out');
     button.type = 'button';
+    const logoutError = el('p', 'alert alert-error hidden');
+    logoutError.setAttribute('role', 'alert');
     button.addEventListener('click', async () => {
+      button.disabled = true;
+      logoutError.classList.add('hidden');
       try {
         await logoutRequest();
-      } finally {
         setAccessToken(null);
         window.location.href = '/index.html';
+      } catch {
+        logoutError.textContent = 'Unable to confirm logout. Please try again.';
+        logoutError.classList.remove('hidden');
+        button.disabled = false;
       }
     });
-    authArea.append(button);
+    authArea.append(button, logoutError);
   } else {
     const link = el('a', 'btn btn-ghost btn-sm', 'Log in');
     link.href = '/login.html';
