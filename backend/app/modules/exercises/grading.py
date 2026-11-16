@@ -5,12 +5,32 @@ Only `single_choice` and `text` exercise types are graded objectively.
 own assessment instead (see `service.submit_answer`).
 """
 
+import re
+import unicodedata
+
 from app.db.models import Exercise
+
+# Typographic apostrophes (phone keyboards insert U+2019) and look-alikes.
+_APOSTROPHES = str.maketrans(
+    {"\u2018": "'", "\u2019": "'", "\u02bc": "'", "\u0060": "'", "\u00b4": "'"}
+)
+# Sentence punctuation is optional in a short answer. Apostrophes and hyphens are
+# part of words (I'm, well-known) and are kept.
+_OPTIONAL_PUNCTUATION = re.compile(r"[.,;:!?\u2026\"\u201c\u201d()]")
 
 
 def normalize_text(value: str) -> str:
-    """Trim, collapse internal whitespace and casefold for comparison."""
-    return " ".join(value.strip().casefold().split())
+    """Normalise a short answer for comparison.
+
+    Applies NFKC, unifies typographic apostrophes, drops optional sentence
+    punctuation (so "Nice to meet you too." and "Nice to meet you, too" match),
+    trims, collapses whitespace and casefolds. Letters are never changed or
+    merged, so a wrong word stays wrong.
+    """
+    # Map apostrophes first: NFKC would turn U+00B4 into a combining accent.
+    text = unicodedata.normalize("NFKC", value.translate(_APOSTROPHES))
+    text = _OPTIONAL_PUNCTUATION.sub(" ", text)
+    return " ".join(text.casefold().split())
 
 
 def option_ids(exercise: Exercise) -> set[str]:

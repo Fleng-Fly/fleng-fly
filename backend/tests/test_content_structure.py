@@ -2,8 +2,8 @@
 
 These tests read the content directly and do not reuse the importer or the
 validator, so they act as a second opinion on both. Invariants that hold today
-are plain tests. Known content defects from the audit are strict ``xfail``
-tests: they document the defect, and fail loudly (XPASS) once it is fixed so
+are plain tests. Known content defects from the audit that are still open are
+strict ``xfail`` tests: they document the defect, and fail loudly (XPASS) once it is fixed so
 the marker gets removed.
 """
 
@@ -237,15 +237,17 @@ def test_every_vocabulary_word_is_used_in_its_lesson() -> None:
             assert norm(v["word"]) in body, (lesson["slug"], v["word"])
 
 
-@pytest.mark.xfail(strict=True, reason=f"{AUDIT}: text answers reject the typographic apostrophe")
+# Fixed after the audit (branch fix/published-content): kept as regression tests.
+
+
 def test_seed_text_answers_accept_typographic_apostrophe() -> None:
     for _, e in seed_exercises():
         for answer in e.get("accepted_answers") or []:
             if "'" in answer:
-                assert answer.replace("'", "’") in e["accepted_answers"], e["slug"]
+                curly = answer.replace("'", "\u2019")
+                assert normalize_text(curly) in {normalize_text(a) for a in e["accepted_answers"]}
 
 
-@pytest.mark.xfail(strict=True, reason=f"{AUDIT}: present-perfect-practice reuses another theory")
 def test_seed_lessons_have_distinct_theory() -> None:
     theories = Counter(lesson["theory"] for _, lesson in seed_lessons())
     assert max(theories.values()) == 1

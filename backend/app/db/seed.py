@@ -101,6 +101,14 @@ _NUMBERS_THEORY = textwrap.dedent(
 
     - My birthday is on the first of June.
     - The meeting is on Friday.
+
+    ## Ordinal numbers
+
+    Dates use ordinal numbers: first, second, third, fourth, fifth, then add
+    "-th" to most others: sixth, tenth, eleventh, twelfth, twentieth.
+
+    - the first of June
+    - the eleventh of October
     """
 )
 
@@ -187,6 +195,31 @@ _PAST_EXPERIENCES_THEORY = textwrap.dedent(
     """
 )
 
+_PRESENT_PERFECT_PRACTICE_THEORY = textwrap.dedent(
+    """\
+    ## Build the form
+
+    Use have with I, you, we and they, and has with he, she and it. Then add the
+    past participle. Many participles are irregular: be becomes been, see becomes
+    seen and eat becomes eaten.
+
+    - My sister has visited Spain.
+    - We have seen that film.
+
+    ## Ask and answer
+
+    Put have or has before the subject to ask. Answer with a short answer.
+
+    - Have you ever eaten sushi? Yes, I have. / No, I haven't.
+    - Has she finished? Yes, she has.
+
+    ## Remember
+
+    Do not use the present perfect with a finished time such as "yesterday" or
+    "in 2019". Use the past simple instead.
+    """
+)
+
 # Exercises keyed by their lesson's slug. Option ids are local to an exercise.
 SEED_EXERCISES: dict[str, list[dict]] = {
     "greetings-and-introductions": [
@@ -194,7 +227,7 @@ SEED_EXERCISES: dict[str, list[dict]] = {
             "slug": "greetings-and-introductions-q1",
             "position": 1,
             "type": "single_choice",
-            "prompt": "Complete the greeting: '___ , my name is Alex.'",
+            "prompt": "Complete the greeting: '___, my name is Alex.'",
             "options": [
                 {"id": "a", "text": "Hello"},
                 {"id": "b", "text": "Goodbye"},
@@ -208,8 +241,18 @@ SEED_EXERCISES: dict[str, list[dict]] = {
             "position": 2,
             "type": "text",
             "prompt": "How do you usually reply to 'Nice to meet you'?",
-            "accepted_answers": ["nice to meet you too", "nice to meet you as well"],
-            "explanation": "A common reply is 'Nice to meet you too.'",
+            "accepted_answers": [
+                "nice to meet you too",
+                "nice to meet you as well",
+                "it's nice to meet you too",
+                "pleased to meet you too",
+                "nice meeting you too",
+                "you too",
+                "likewise",
+            ],
+            "explanation": (
+                "A common reply is 'Nice to meet you too.' 'You too' and 'Likewise' also work."
+            ),
         },
         {
             "slug": "greetings-and-introductions-q3",
@@ -277,9 +320,11 @@ SEED_EXERCISES: dict[str, list[dict]] = {
             "slug": "numbers-and-days-q3",
             "position": 3,
             "type": "self_check",
-            "prompt": "Write today's date in English.",
-            "model_answer": "It is the eleventh of October.",
-            "explanation": "In British English the day comes before the month.",
+            "prompt": "Write a date in English, for example your birthday.",
+            "model_answer": "My birthday is on the eleventh of October.",
+            "explanation": (
+                "Use an ordinal number. In British English the day comes before the month."
+            ),
         },
     ],
     "small-talk": [
@@ -380,7 +425,7 @@ SEED_EXERCISES: dict[str, list[dict]] = {
             "slug": "present-perfect-practice-q1",
             "position": 1,
             "type": "single_choice",
-            "prompt": "Choose the correct verb: 'She ___ visited London twice.'",
+            "prompt": "Choose the correct verb: 'My sister ___ visited Spain twice.'",
             "options": [
                 {"id": "a", "text": "have"},
                 {"id": "b", "text": "has"},
@@ -402,9 +447,9 @@ SEED_EXERCISES: dict[str, list[dict]] = {
             "slug": "present-perfect-practice-q3",
             "position": 3,
             "type": "text",
-            "prompt": "Type the missing word: 'Have you ___ been to Ireland?'",
-            "accepted_answers": ["ever"],
-            "explanation": "Use 'ever' to ask whether someone has had an experience.",
+            "prompt": "Type the missing word: 'They have ___ been to Japan.' (not once)",
+            "accepted_answers": ["never"],
+            "explanation": "Use 'never' in a negative statement about experience.",
         },
     ],
 }
@@ -487,7 +532,7 @@ SEED_COURSES: list[dict] = [
                 ),
                 "estimated_minutes": 5,
                 "position": 4,
-                "theory": _PAST_EXPERIENCES_THEORY,
+                "theory": _PRESENT_PERFECT_PRACTICE_THEORY,
             },
         ],
     },

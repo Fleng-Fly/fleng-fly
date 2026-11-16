@@ -72,8 +72,8 @@ in `backend/app/db/models.py`):
 ### Exercise, grading and progress rules
 
 - **Types.** `single_choice` (options + one `correct_option_id`), `text`
-  (`accepted_answers` compared after normalisation — trim, collapse whitespace,
-  casefold) and `self_check` (the learner assesses their own free-text answer;
+  (`accepted_answers` compared after normalisation — NFKC, unify apostrophes,
+  drop optional sentence punctuation, collapse whitespace, casefold) and `self_check` (the learner assesses their own free-text answer;
   the server never grades it).
 - **Letter tiles.** A `text` exercise with `letter_tiles` displays its pattern
   (one underscore per blank) and bank (one item per physical tile). The server

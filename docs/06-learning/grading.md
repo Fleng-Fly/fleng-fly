@@ -1,6 +1,6 @@
 # Grading
 
-single_choice compares the submitted ID with correct_option_id exactly. Text comparison trims, casefolds and collapses whitespace for answer and accepted_answers. It does not infer synonyms, normalize NFC, assess essays or call AI. self_check records a learner's own assessment and is not objective grading.
+single_choice compares the submitted ID with correct_option_id exactly. Text comparison applies the same normalisation to the answer and to every accepted_answers entry: NFKC, typographic apostrophes (’ ‘ ʼ ´ `) mapped to ', optional sentence punctuation (. , ; : ! ? … quotes, parentheses) dropped, whitespace trimmed and collapsed, casefold. Apostrophes and hyphens inside words are kept and letters are never altered, so a misspelt or different word stays wrong. It does not infer synonyms, assess essays or call AI; equivalent valid answers must be listed in accepted_answers. self_check records a learner's own assessment and is not objective grading.
 
 Submission feedback reveals applicable correct/model answers and explanations. Authenticated learners can attempt a question to see feedback; answer-key exclusion before submission is not an exam secrecy guarantee. Malformed/empty submissions are rejected before grading.
 
