@@ -88,8 +88,10 @@ client:
 
 `js/api.js` also exposes the catalog reads and lesson flow used by the course
 pages: `listCourses()`, `getCourse(slug)`, `getLesson(slug)`,
-`startLesson(slug)`, `getLessonProgress(slug)`, `submitAnswer(slug, payload)`
-and `getLessonVocabulary(lessonId, offset, limit)`.
+`startLesson(slug)`, `getLessonProgress(slug)`, `submitAnswer(slug, payload)`,
+`getLessonVocabulary(lessonId, offset, limit)` and the flashcards helpers
+`createFlashcardSession()`, `completeFlashcardSession(sessionId)` and
+`reviewVocabularyItem(itemId, remembered)`.
 
 ### Course pages
 
@@ -204,6 +206,23 @@ are highlighted and an out-of-top-100 position stays visible. All names use
 textContent. Cards stack below 540px; the semantic table has a keyboard-focusable
 horizontal scroll region. Loading, empty and retryable error states include
 session-unavailable handling. Browser/Figma visual comparison remains unverified.
+
+## Flashcards - 2026-11-16
+
+`/flashcards.html` mounts the shared workspace and creates a real personal-word
+session with `POST /vocabulary/flashcards/sessions` (`source: my_words`). The
+front face shows the word and example, the back shows the translation; clicking
+the card, pressing Space or the Flip button toggles a 3D flip. After revealing,
+four ratings (again/hard/good/easy) call `POST /vocabulary/{id}/review` and then
+advance. The review API stores only `remembered`, so again/hard schedule 1 day
+and good/easy schedule 7 days; the page states those intervals on the buttons.
+Finishing calls `POST /flashcards/sessions/{id}/complete` and shows a local tally
+summary. Empty decks, load errors and failed ratings use the shared error helper.
+Keyboard: Space flips, 1-4 rate once revealed; focus returns to the card on
+advance. The stage scene (aurora, stars, orbit, floor glow) lives in
+`css/flashcards.css` and is scoped to this page. There is no sidebar entry yet,
+so the screen is reached by URL until a Vocabulary navigation item ships. A test
+grader for `test-words` is still out of scope.
 
 ## Courses Catalog and Course Details — 2026-11-04
 

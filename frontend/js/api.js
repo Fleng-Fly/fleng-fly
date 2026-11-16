@@ -186,6 +186,27 @@ export function getLessonVocabulary(lessonId, offset = 0, limit = 30) {
   return apiFetch(`/vocabulary?${query}`);
 }
 
+export function createFlashcardSession({ source, courseId, level } = {}) {
+  const payload = { source };
+  if (courseId) payload.courseId = courseId;
+  if (level) payload.level = level;
+  return apiFetch('/vocabulary/flashcards/sessions', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function completeFlashcardSession(sessionId) {
+  return apiFetch(`/vocabulary/flashcards/sessions/${sessionId}/complete`, { method: 'POST' });
+}
+
+export function reviewVocabularyItem(itemId, remembered) {
+  return apiFetch(`/vocabulary/${itemId}/review`, {
+    method: 'POST',
+    body: JSON.stringify({ remembered }),
+  });
+}
+
 export function getHealth() {
   return apiFetch('/health');
 }

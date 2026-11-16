@@ -192,7 +192,9 @@ export function mountWorkspace(active) {
             ? link.getAttribute('href') === '/courses.html' && link.id !== 'sidebar-course-link'
             : active === 'courses'
               ? link.id === 'sidebar-course-link'
-              : link.getAttribute('href') === '/dashboard.html';
+              : active === 'flashcards'
+                ? false
+                : link.getAttribute('href') === '/dashboard.html';
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');

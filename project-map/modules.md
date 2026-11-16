@@ -189,6 +189,24 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
 - `.env.production.example` and `docs/deployment.md`: single-service HTTPS release
   with explicit migrations, optional initial catalog and managed PostgreSQL.
 
+## Flashcards deck — 2026-11-16
+
+- `frontend/flashcards.html` + `js/flashcards.js` + `css/flashcards.css` render the
+  personal-word deck on the existing workspace shell. A session is created through
+  `POST /vocabulary/flashcards/sessions` (`source: my_words`), so the cards are a
+  real backend snapshot rather than demo data.
+- Front/back flip (click, Space or the Flip button), four ratings
+  (again/hard/good/easy) and a completion summary. Ratings call
+  `POST /vocabulary/{id}/review`; the bool API schedules 1 day for again/hard and
+  7 days for good/easy. `POST /flashcards/sessions/{id}/complete` closes the deck.
+- Empty deck, load failure and mid-session rating failure states are handled with
+  the shared error helper. Keyboard: Space flips, 1–4 rate once revealed.
+- `js/api.js` gains `createFlashcardSession`, `completeFlashcardSession` and
+  `reviewVocabularyItem`; `workspace.mountWorkspace('flashcards')` leaves the
+  sidebar without a false Dashboard highlight. No backend, schema or nav change.
+- The stage scene (aurora, stars, orbit, floor glow) is page-scoped CSS; the
+  surrounding app background is untouched.
+
 ## Course surfaces — 2026-11-04
 
 - `frontend/courses.html` + `js/courses.js`: published course catalog with local

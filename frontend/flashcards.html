@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flashcards — Fleng</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/flashcards.css" />
+  </head>
+  <body class="dashboard-page flashcards-page">
+    <main class="dashboard-main flashcards-main">
+      <header class="flashcards-head">
+        <div class="flashcards-head-main">
+          <span class="flashcards-mark" aria-hidden="true">
+            <span class="flashcards-mark-card"></span>
+            <span class="flashcards-mark-card"></span>
+          </span>
+          <div>
+            <div class="flashcards-head-title">
+              <h1>Fleng Cards</h1>
+              <span id="flashcards-deck" class="flashcards-deck" hidden>My Words Deck</span>
+            </div>
+            <p class="flashcards-head-subtitle">Interactive translation preview</p>
+          </div>
+        </div>
+        <div id="flashcards-counter" class="flashcards-counter" hidden>
+          <span class="flashcards-counter-text">
+            Card <strong id="flashcards-position">1</strong> of
+            <strong id="flashcards-total">1</strong>
+          </span>
+          <div id="flashcards-dots" class="flashcards-dots" aria-hidden="true"></div>
+        </div>
+      </header>
+
+      <section id="flashcards-error" class="dashboard-alert" role="alert" hidden>
+        <span id="flashcards-error-text"></span>
+        <button id="flashcards-retry" class="dashboard-text-button" type="button">
+          Try again
+        </button>
+      </section>
+
+      <p id="flashcards-status" class="flashcards-status" role="status" aria-live="polite">
+        Loading cards…
+      </p>
+
+      <div id="flashcards-content" hidden>
+        <section class="flashcards-stage" aria-label="Flashcard stage">
+          <span class="flashcards-aurora" aria-hidden="true"></span>
+          <span class="flashcards-stars" aria-hidden="true"></span>
+          <span class="flashcards-orbit" aria-hidden="true"></span>
+
+          <div class="flashcards-card-wrap">
+            <button id="flashcards-card" class="flashcards-card" type="button">
+              <span class="flashcards-card-inner">
+                <span class="flashcards-face flashcards-face-front" aria-hidden="true">
+                  <span class="flashcards-card-label">Word</span>
+                  <span id="flashcards-word" class="flashcards-word"></span>
+                  <span id="flashcards-example" class="flashcards-example"></span>
+                </span>
+                <span class="flashcards-face flashcards-face-back" aria-hidden="true">
+                  <span class="flashcards-card-label">Translation</span>
+                  <span id="flashcards-translation" class="flashcards-word"></span>
+                </span>
+              </span>
+            </button>
+
+            <p id="flashcards-hint" class="flashcards-hint" aria-live="polite">
+              Click the card or press <kbd>Space</kbd> to flip the translation
+            </p>
+
+            <div class="flashcards-controls">
+              <button id="flashcards-flip" class="flashcards-flip" type="button">
+                <span class="flashcards-flip-icon" aria-hidden="true">⇄</span>
+                Flip
+              </button>
+              <div id="flashcards-ratings" class="flashcards-ratings" hidden>
+                <button class="flashcards-rating is-again" data-rating="again" type="button">
+                  <span class="flashcards-rating-label">Again</span>
+                  <span class="flashcards-rating-interval">1 day</span>
+                </button>
+                <button class="flashcards-rating is-hard" data-rating="hard" type="button">
+                  <span class="flashcards-rating-label">Hard</span>
+                  <span class="flashcards-rating-interval">1 day</span>
+                </button>
+                <button class="flashcards-rating is-good" data-rating="good" type="button">
+                  <span class="flashcards-rating-label">Good</span>
+                  <span class="flashcards-rating-interval">7 days</span>
+                </button>
+                <button class="flashcards-rating is-easy" data-rating="easy" type="button">
+                  <span class="flashcards-rating-label">Easy</span>
+                  <span class="flashcards-rating-interval">7 days</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section id="flashcards-empty" class="dashboard-card flashcards-panel" hidden>
+        <h2>Nothing to review yet</h2>
+        <p class="dashboard-muted">
+          Save words from a lesson and they will appear here as flashcards.
+        </p>
+        <div class="actions">
+          <a class="btn btn-primary" href="/courses.html">Browse lessons</a>
+        </div>
+      </section>
+
+      <section id="flashcards-summary" class="dashboard-card flashcards-panel" hidden>
+        <p class="dashboard-eyebrow">SESSION COMPLETE</p>
+        <h2 id="flashcards-summary-title">Nice work</h2>
+        <dl id="flashcards-summary-stats" class="flashcards-summary-stats"></dl>
+        <div class="actions">
+          <button id="flashcards-again" class="btn btn-primary" type="button">
+            Review again
+          </button>
+          <a class="btn btn-secondary" href="/dashboard.html">Back to dashboard</a>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/js/flashcards.js"></script>
+  </body>
+</html>

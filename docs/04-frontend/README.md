@@ -1,6 +1,6 @@
 # Frontend
 
-Nine real HTML pages and shared ES-module/CSS integration; dedicated Flashcards UI remains absent.
+Ten real HTML pages and shared ES-module/CSS integration; `/flashcards.html` now renders the personal-word deck through the existing flashcards API.
 
 - [Api integration](api-integration.md)
 - [Authentication flow](authentication-flow.md)

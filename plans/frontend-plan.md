@@ -55,7 +55,10 @@
 
 ## Later sections ⬜
 
-- [ ] Vocabulary, practice, challenges, gamification surfaces.
+- [~] Vocabulary, practice, challenges, gamification surfaces. Personal-word
+  flashcard deck implemented at `/flashcards.html` (2026-11-16); word management,
+  course-word deck selection, a navigation entry, practice, challenges and
+  gamification surfaces remain.
 - [ ] Browser e2e suite and full accessibility audit.
 
 ## Visual direction
