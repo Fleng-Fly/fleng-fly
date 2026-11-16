@@ -51,7 +51,7 @@ async def status(
         available = True
     except ApiError:
         available = False
-    return {"available": available, "maxInputChars": settings.ai_max_input_chars}
+    return {"available": available, "maxInputChars": settings.ai_max_message_length}
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -171,11 +171,18 @@ async def stream_chat(
     conversation, messages = await service.prepare_chat(db, user, payload, settings)
     usage = await service.reserve(db, user, settings, messages, payload.request_id)
 
+    # Shared with cleanup: the final usage chunk may arrive before a failure/disconnect.
+    usage_info: dict = {}
+
     async def stream():
         completed = False
+        # Until the provider stream is opened nothing was sent upstream, so a
+        # failure here (e.g. local capacity) costs nothing and releases the hold.
+        state: str | None = "released"
         try:
             async with service.capacity(settings):
-                content, usage_info = "", {}
+                content = ""
+                state = None
                 async with asyncio.timeout(settings.ai_request_timeout):
                     async with aclosing(provider.stream(messages)) as chunks:
                         async for chunk in chunks:
@@ -193,7 +200,7 @@ async def stream_chat(
                     raise unavailable()
                 result = Completion(content, settings.openrouter_model, usage_info)
                 saved_conversation, answer = await service.save_turn(
-                    db, user, conversation, payload, result, usage
+                    db, user, conversation, payload, result, usage, settings
                 )
                 completed = True
                 yield event(
@@ -205,6 +212,7 @@ async def stream_chat(
         except asyncio.CancelledError:
             raise
         except (ApiError, TimeoutError) as exc:
+            state = service.outcome(exc) or state
             code = exc.code if isinstance(exc, ApiError) else "AI_TIMEOUT"
             yield event(
                 "error",
@@ -221,8 +229,12 @@ async def stream_chat(
             if not completed:
 
                 async def cleanup():
+                    # Disconnect/cancel/timeout: upstream may still bill, so unless
+                    # the provider reported a cost the reservation stays charged.
                     await db.rollback()
-                    await service.finish_usage(db, usage, None)
+                    await service.finish_usage(
+                        db, usage, settings, None, usage_info=usage_info, state=state
+                    )
 
                 task = asyncio.create_task(cleanup())
                 try:

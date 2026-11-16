@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0917" /><title>Course Words — Fleng English</title>
+  <link rel="stylesheet" href="/css/app.css" /><link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="stylesheet" href="/css/lesson.css" /><link rel="stylesheet" href="/css/vocabulary.css" />
+  <link rel="stylesheet" href="/css/fleng-theme.css" /><link rel="stylesheet" href="/css/motion.css" />
+  <link rel="stylesheet" href="/css/study.css" /><script defer src="/js/pwa.js"></script>
+  <link rel="stylesheet" href="/css/figma-reference.css" />
+</head>
+<body class="dashboard-page course-words-page">
+  <main class="dashboard-main">
+    <header class="collection-heading"><div><p class="dashboard-eyebrow">✦ &nbsp; VOCABULARY / COURSE WORDS</p><h1>Course Words</h1><p>Explore structured vocabulary curated from official English curriculum modules.</p></div><div class="collection-actions"><a class="lesson-button lesson-button-secondary" href="/vocabulary.html?add=1">＋ Add Custom Word</a><a class="lesson-button lesson-button-primary" href="#library-builder">▱ Practice Flashcards</a></div></header>
+    <section id="library-error" class="dashboard-alert" role="alert" hidden><span id="library-error-text"></span> <button id="library-retry" class="dashboard-text-button" type="button">Try again</button></section>
+    <p id="library-loading" class="dashboard-muted" role="status">Opening your word library…</p>
+    <div id="library-content" hidden>
+      <div class="library-stats sr-only"><span id="library-total">0</span><span id="library-course-count">0</span><span id="library-selected-count">0</span></div>
+      <div class="dictionary-layout">
+        <section aria-labelledby="library-heading">
+          <div class="library-toolbar">
+            <div class="section-heading"><h2 id="library-heading" class="sr-only">Course vocabulary</h2><label class="study-sort">Sort<select id="library-sort"><option value="az">A–Z</option><option value="za">Z–A</option></select></label></div>
+            <label class="word-search"><span class="sr-only">Search course words, translations or examples</span><span aria-hidden="true">⌕</span><input id="library-search" type="search" placeholder="Search words or translations…" autocomplete="off" /></label>
+            <div id="library-levels" class="word-filters level-cards" role="group" aria-label="Learning level"><button data-level="" aria-pressed="true" type="button"><strong>All levels</strong><small>All courses</small></button><button data-level="A0" aria-pressed="false" type="button"><strong>A0</strong><small>Absolute Beginner</small></button><button data-level="A1" aria-pressed="false" type="button"><strong>A1</strong><small>Beginner</small></button><button data-level="A2" aria-pressed="false" type="button"><strong>A2</strong><small>Elementary</small></button><button data-level="B1" aria-pressed="false" type="button"><strong>B1</strong><small>Intermediate</small></button><button data-level="B2" aria-pressed="false" type="button"><strong>B2</strong><small>Upper Intermediate</small></button></div>
+            <label class="study-field" for="library-course">Course<select id="library-course"><option value="">All courses</option></select></label>
+            <div class="library-selection"><span id="library-visible-count" role="status"></span><div><button id="library-select" class="dashboard-text-button" type="button">Select visible (up to 50)</button><button id="library-clear" class="dashboard-text-button" type="button">Clear selection</button></div></div>
+          </div>
+          <div id="library-words" class="word-list"></div>
+        </section>
+        <details id="library-builder" class="study-builder"><summary>Practice Flashcards <span aria-hidden="true">⌄</span></summary><div class="builder-fields">
+          <h2 id="builder-title">Your practice session</h2>
+          <form id="library-start-form">
+            <label class="study-field" for="library-limit">Words in this session<input id="library-limit" type="number" min="1" max="50" step="1" value="10" required /></label>
+            <label class="study-field" for="library-mode">After the cards<select id="library-mode"><option value="choice">Multiple choice</option><option value="write">Write the word</option><option value="letters">Missing letters</option></select></label>
+            <label class="study-check"><input id="library-shuffle" type="checkbox" checked /> Mix the word selection</label>
+            <p id="library-session-count" class="study-session-count" role="status"></p>
+            <button id="library-start" class="lesson-button lesson-button-primary btn-block" type="submit">Start flashcards <span aria-hidden="true">↗</span></button>
+          </form>
+          <p class="study-note">Save favourites to My Words for personal reviews.</p>
+        </div></details>
+      </div>
+      <p id="library-feedback" class="word-feedback" role="status"></p>
+    </div>
+  </main>
+  <script type="module" src="/js/course-words.js"></script>
+</body>
+</html>

@@ -9,20 +9,19 @@
   <link rel="stylesheet" href="/css/lesson.css" />
   <link rel="stylesheet" href="/css/vocabulary.css" />
   <link rel="stylesheet" href="/css/fleng-theme.css" />
+  <link rel="stylesheet" href="/css/study.css" />
     <link rel="stylesheet" href="/css/motion.css" />
   <meta name="theme-color" content="#0b0917" />
   <script defer src="/js/pwa.js"></script>
+  <link rel="stylesheet" href="/css/figma-reference.css" />
 </head>
 <body class="dashboard-page vocabulary-page">
   <main class="dashboard-main">
-    <div class="dashboard-page-heading">
-      <div><p class="dashboard-eyebrow">YOUR PERSONAL COLLECTION</p><h1 id="words-title">Vocabulary &amp; WordMaster</h1><p class="dashboard-subtitle">Build your vocabulary. Make every word your own.</p></div>
-      <button id="add-word" class="lesson-button lesson-button-primary" type="button">＋ Add a word</button>
-    </div>
+    <header class="collection-heading"><div><p class="dashboard-eyebrow">VOCABULARY / MY WORDS</p><h1 id="words-title">My Words <span class="personal-bank">Personal Bank</span></h1><p>Your personal vocabulary collection &amp; memorization queue</p></div><div class="collection-actions"><button id="add-word" class="lesson-button lesson-button-secondary" type="button">＋ Add Custom Word</button><a class="lesson-button lesson-button-primary" href="/practice.html">▱ Practice Flashcards</a></div></header>
     <section id="words-error" class="dashboard-alert" role="alert" hidden><span id="words-error-text"></span> <button id="words-retry" class="dashboard-text-button" type="button">Try again</button></section>
     <p id="words-loading" class="dashboard-muted" role="status">Loading your vocabulary…</p>
     <div id="words-content" hidden>
-      <div id="words-stats" class="word-stats" aria-label="Vocabulary statistics"></div>
+      <div id="words-stats" class="word-stats sr-only" aria-label="Vocabulary statistics"></div>
       <div class="word-toolbar">
         <div class="word-filters" role="group" aria-label="Filter vocabulary">
           <button type="button" data-filter="all" aria-pressed="true">All words</button>
@@ -39,7 +38,7 @@
         <button type="button" data-mode="write" aria-pressed="false">⌨ Write the word</button>
         <button type="button" data-mode="letters" aria-pressed="false">▦ Missing letters</button>
       </nav>
-      <section id="word-list-panel" aria-labelledby="word-list-heading"><div class="section-heading"><h2 id="word-list-heading">Your words</h2><span id="word-count" class="dashboard-muted" role="status"></span></div><div id="word-list" class="word-list"></div></section>
+      <section id="word-list-panel" aria-labelledby="word-list-heading"><div class="section-heading"><h2 id="word-list-heading" class="sr-only">Your words</h2><span id="word-count" class="dashboard-muted" role="status"></span></div><div id="word-list" class="word-list"></div></section>
       <section id="word-practice-panel" class="word-practice-panel" aria-label="Vocabulary practice" hidden><div id="word-practice" aria-live="polite"></div></section>
       <p id="word-feedback" class="word-feedback" role="status"></p>
     </div>

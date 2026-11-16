@@ -4,6 +4,7 @@ These are public read models: they deliberately do not expose `is_published`,
 timestamps or any internal bookkeeping.
 """
 
+from typing import Literal
 from uuid import UUID
 
 from app.core.levels import LearningLevel
@@ -58,3 +59,21 @@ class LessonDetailResponse(CamelModel):
     course_title: str
     level: LearningLevel
     exercises: list[ExercisePublicResponse]
+
+
+class CourseLessonStatusResponse(CamelModel):
+    """Compact status for one published lesson, scoped to the current learner."""
+
+    lesson_id: UUID
+    slug: str
+    status: Literal["not_started", "in_progress", "completed"]
+
+
+class CourseLessonProgressResponse(CamelModel):
+    """One read-only snapshot for a course; no exercise answers or account fields."""
+
+    course_id: UUID
+    lessons_total: int
+    lessons_started: int
+    lessons_completed: int
+    lessons: list[CourseLessonStatusResponse]

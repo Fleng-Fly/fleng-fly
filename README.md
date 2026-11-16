@@ -2,7 +2,7 @@
 
 Developer documentation: [complete guide](docs/README.md), including API contracts, database, learning/curriculum, security and deployment.
 
-Вебверсія **2026.11.16-web**: Fleng відкривається у звичайному браузері.
+Вебверсія **2026.11.16-web.3**: Fleng відкривається у звичайному браузері.
 Windows EXE, desktop shell і встановлення PWA вилучені.
 
 Fleng is an English-learning web platform with structured courses, graded
@@ -125,7 +125,8 @@ preserve any existing configuration and keep real credentials out of Git.
 
 - SQLite works with the development defaults.
 - For PostgreSQL, set `DATABASE_URL=postgresql://...` and run migrations explicitly.
-  PostgreSQL migrations remain an explicit release step. The production launcher
+  Only empty PostgreSQL schemas initialize automatically; existing schema upgrades
+  remain explicit release steps. The production launcher
   prepares file-backed SQLite before serving requests.
 - Production requires a real `JWT_ACCESS_SECRET`.
 - AI is disabled by default. Enable it with `AI_ENABLED=true`,
@@ -215,11 +216,11 @@ legacy courses after ordinary local login. For a separate reviewer database, use
 
 `npm run dev` now backs up the existing local SQLite file before preparation, imports and publishes the five A0–B2 courses idempotently for the pinned owner-authorized SHA, and serves all seven courses to signed-in local learners at http://127.0.0.1:3001/courses.html. Existing accounts and learning progress stay in the same database. This launcher binds loopback and refuses production/hosted or non-file-SQLite configuration. `backend/run.py` and `app.main:app` expose published content only; all seven catalog courses are now published for the owner-authorized release.
 
-## Render with SQLite: populated catalog at startup
+## Render: persistent storage and populated catalog
 
-Keep `DATABASE_URL=sqlite+aiosqlite:///./data/fleng.db` and start with
-`cd backend && python run.py` (root directory: repository root). The launcher
-creates/migrates SQLite and loads the two legacy courses plus five A0–B2 courses from the versioned curriculum JSON, published for the
+On Render Free use an external PostgreSQL DATABASE_URL; a local SQLite file is
+ephemeral and now rejected. Start with `cd backend && python run.py` (root
+directory: repository root). [Setup](docs/09-deployment/render-free-persistence.md). The launcher prepares local/persistent SQLite or an empty PostgreSQL schema and loads the two legacy courses plus five A0–B2 courses from the versioned curriculum JSON, published for the
 exact owner-authorized SHA (linguistic review remains incomplete). Repeated starts preserve existing
 accounts/progress and do not duplicate catalog rows. Private local database files
 and account credentials are not committed. All seven courses are publicly visible
@@ -228,3 +229,14 @@ An ephemeral Render filesystem still loses runtime user data on replacement;
 use separately configured persistent storage for durable accounts/progress.
 
 Owner publication approval for A0–B2: [release record](docs/06-learning/content-publication.md#owner-authorized-release--2026-11-14).
+
+Render Free can sleep without losing accounts only when runtime user data is in
+external durable storage. This code change does not provision a database or change
+your hosted URL. PostgreSQL startup verifies existing schemas and never resets
+users/progress; fresh-schema migrations/catalog initialization commit atomically.
+
+
+Course vocabulary: `/course-words.html`. Focused cards and tests:
+`/practice.html`. Select 1–50 words, study the cards and test by choice, typing
+or missing letters. Personal reviews are saved; course-run scores are shown for
+that run. See [reference-board completion](docs/reference-web2.md).

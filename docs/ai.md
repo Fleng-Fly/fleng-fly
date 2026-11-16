@@ -106,30 +106,69 @@ profiles, achievements or official learning completion.
 
 ## Limits and accounting
 
+**Deprecated variables (ignored since migration `20261116_1200`; the settings
+loader drops unknown keys, so old values silently have no effect):**
+`AI_MAX_INPUT_CHARS` → `AI_MAX_MESSAGE_LENGTH` (default now 500);
+`AI_DAILY_REQUESTS` → `AI_DAILY_USER_LIMIT` (default now 30).
+
+
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `AI_MAX_INPUT_CHARS` | 4000 | Chat/structured request character limit |
+| `AI_MAX_MESSAGE_LENGTH` | 500 | Learner-authored text per request (chat message, explain answer, topic) |
+| `AI_MAX_OUTPUT_TOKENS` | 800 | Sent as `max_tokens`; also the reserved output size |
 | `AI_MAX_RESPONSE_CHARS` | 16000 | Response content bound |
 | `AI_HISTORY_MESSAGES` | 20 | Recent messages sent upstream |
 | `AI_HISTORY_CHARS` | 16000 | Recent-history character budget |
 | `AI_MESSAGES_PER_CONVERSATION` | 200 | Stored message cap; start a new conversation |
 | `AI_CONVERSATIONS_PER_USER` | 50 | Stored conversation cap; delete old ones |
 | `AI_REQUESTS_PER_MINUTE` | 10 | Persistent per-user fixed window |
-| `AI_DAILY_REQUESTS` | 100 | Per-user UTC-day fixed window |
-| `AI_DAILY_TOKEN_BUDGET` | 100000 | Conservative daily token reservations |
+| `AI_DAILY_USER_LIMIT` | 30 | Per-user requests per UTC day (all AI endpoints); resets 00:00 UTC |
+| `AI_MAX_CONCURRENT_REQUESTS` | 1 | Per-user in-flight provider requests, across workers |
+| `AI_DAILY_BUDGET_USD` | 1.00 | Global OpenRouter spend per UTC day, across workers |
+| `AI_INPUT_PRICE_PER_MTOK_USD` / `AI_OUTPUT_PRICE_PER_MTOK_USD` | unset | Model tariff (USD per million tokens). **Required**: unset keeps AI unavailable |
+| `AI_DAILY_TOKEN_BUDGET` | 750000 | Per-user worst-case token reservations per UTC day (30 × 24 800, so it never pre-empts the 30-message quota) |
 | `AI_CONCURRENCY` | 4 | Global database reservation limit and per-process bound |
 | `HTTP_MAX_BODY_BYTES` | 131072 | API request body bound, including chunked bodies |
 
-One active AI request per user across workers. PostgreSQL locks serialize quota
-reservation; active leases expire after timeout + 60 seconds if a worker dies.
-Reservations use prompt UTF-8 byte count plus framing allowance and maximum output
-tokens. Failed calls retain reservations, since provider billing may still occur.
-Provider-reported token usage/cost is stored when available, with a strict allowlist.
-Usage rows expire after 30 days during subsequent requests; fixed-window counters
-expire after two days. Conversation/message caps bound retained tutoring content.
+### Daily quota and budget (server-enforced)
 
-The token reservation is a basic cost guard, not a currency guarantee. Configure
-an OpenRouter key credit limit and a suitably priced model. Cancellation may still
+`reserve()` runs in one transaction holding the learner row lock, then the global
+`ai:capacity` row lock, so quotas, the per-user lease and the budget hold across
+processes and restarts (state lives in `ai_usage`; PostgreSQL row locks, SQLite
+write lock). Checks, in order: duplicate `requestId`, per-user concurrency,
+per-user daily count (UTC day), global concurrency, per-minute window, input
+size, per-user token budget, then the global budget.
+
+Before the provider call a worst-case cost is held: prompt UTF-8 bytes (+ framing,
++ the JSON schema when structured outputs are on) at the input tariff plus
+`AI_MAX_OUTPUT_TOKENS` at the output tariff. Settlement: provider `usage.cost`
+(credits = USD) → else provider token counts × tariff → else the hold stays as the
+charge. Unsettled holds count toward the budget even after their lease expires.
+Settlement states (`cost_source`): `provider`, `tariff`, `reserved` (hold kept),
+`released` (cost 0) and `refused`. `released` applies only when nothing reached
+OpenRouter: pre-send failure, connection refused, or local capacity rejection.
+`refused` (OpenRouter 4xx/429) frees the output part but keeps the prompt cost,
+because OpenRouter states that prompt processing may be charged even when no
+content is generated. Both are excluded from the learner's daily count. Timeouts,
+5xx, broken or cancelled SSE and invalid bodies keep the full hold (only some
+providers stop billing on stream cancellation, per OpenRouter's docs).
+
+The request carries `provider.max_price` (tariff, `request: 0`). OpenRouter writes
+its example as `<= $1/m` prompt tokens; we read `/m` as USD per million tokens, and
+the units of `request` and the error returned when no endpoint matches are not
+documented. `usage.cost` is "in credits"; credits = USD is our assumption. The
+Chat Completions stream sends `usage` in a final chunk before `[DONE]`; if it is
+missing the hold stays as the charge. Reasoning tokens share `max_tokens` on most
+providers (not all), so the 800-token output bound is documentation-based. `openrouter/*` auto-routers and `:online`
+models are refused: their price cannot be bounded in advance. Learner-facing
+errors: `AI_DAILY_LIMIT`, `AI_BUDGET_LIMIT` (no amounts disclosed), `AI_BUSY`,
+`AI_INPUT_LIMIT`.
+
+Active leases expire after timeout + 60 seconds if a worker dies. Usage rows
+expire after 30 days; fixed-window counters after two days.
+
+The USD budget is bounded by the declared tariff; a wrong tariff breaks the bound.
+Also set an OpenRouter key credit limit as a backstop. Cancellation may still
 be billed by some providers. No automatic paid retries occur. Upstream 429, HTTP
 errors, malformed output and timeouts produce sanitized errors, with no provider
 body, key or stack trace exposed. SMTP/AI secrets must not be logged.

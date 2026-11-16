@@ -320,6 +320,10 @@ content, not lost user accounts/progress.
 
 Owner-authorized pinned content SHA → importer exact-row preflight → insert missing catalog rows / promote only the five matching course and 50 lesson flags → normal public courses/lessons/course-words APIs → seven visible courses. Existing identities and learner data are preserved; no global draft visibility bypass.
 
+## Render Free account durability — 2026-11-14
+
+Render Free → external PostgreSQL URL → safe engine creation/pool pre-ping → empty-schema atomic Alembic + catalog initialization OR existing-head validation → normal account/progress writes → app stops/sleeps → fresh process reconnects to the same external store. Ephemeral SQLite is refused before accepting accounts. No user data is embedded in the seed, browser or Git.
+
 ## Website update — 2026-11-16
 
 GitHub main → existing Netlify/Render deployments → revalidated browser HTML/JS/CSS.
@@ -327,3 +331,10 @@ Netlify /api/* → existing Render FastAPI → existing database and learning se
 Vocabulary practice saves through the shared api.js review endpoints; UI summaries
 count only saved responses. Legacy Fleng workers/caches are retired on page load.
 No new data store, desktop process or schema changes.
+
+
+Course Words → existing published word API → filters/selection → owned flashcard
+snapshot → reveal/navigation → completion acknowledgement → guarded /test-words
+handoff → three recall formats. Personal answers call existing review writes;
+course recall results stay in the current run. No client XP, schema change or
+private vocabulary sharing. Focus mode changes browser page layout only.

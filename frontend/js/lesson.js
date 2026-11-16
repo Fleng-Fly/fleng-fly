@@ -6,7 +6,7 @@ import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
 
 const $ = (id) => document.getElementById(id);
-const tabs = ['theory', 'practice', 'vocabulary'];
+const tabs = ['theory', 'practice', 'test', 'vocabulary'];
 const requestedTab = queryParam('tab');
 const labels = { letter_tiles: 'Letter tiles', single_choice: 'Multiple choice', text: 'Short answer', self_check: 'Self-check' };
 const state = {
@@ -245,7 +245,7 @@ function questionCard(exercise, index) {
   if (exercise.type === 'single_choice') {
     const field = el('fieldset', 'lesson-options');
     field.append(el('legend', 'sr-only', 'Choose one answer'));
-    for (const option of exercise.options || []) {
+    for (const [optionIndex, option] of (exercise.options || []).entries()) {
       const label = el('label', 'lesson-option');
       const input = document.createElement('input');
       input.type = 'radio';
@@ -253,7 +253,9 @@ function questionCard(exercise, index) {
       input.value = option.id;
       input.checked = (state.drafts.has(exercise.id) ? state.drafts.get(exercise.id) : record?.answer) === option.id;
       input.addEventListener('change', () => { state.drafts.set(exercise.id, input.value); markEdited(exercise); });
-      label.append(input, el('span', undefined, option.text));
+      const letter = el('span', 'lesson-option-letter', String.fromCharCode(65 + optionIndex));
+      letter.setAttribute('aria-hidden', 'true');
+      label.append(input, letter, el('span', undefined, option.text));
       if (result?.correctOptionId === option.id) label.classList.add('is-correct');
       else if (result && !result.isCorrect && input.checked) label.classList.add('is-incorrect');
       field.append(label);
@@ -321,8 +323,10 @@ function questionCard(exercise, index) {
 
 function renderQuestions() {
   if (!state.lesson) return;
-  const practice = $('panel-practice');
-  practice.textContent = '';
+  $('panel-practice').textContent = '';
+  $('panel-test').textContent = '';
+  if (!['practice', 'test'].includes(state.tab)) return;
+  const practice = $(`panel-${state.tab}`);
   const exercises = state.lesson.exercises;
   if (!exercises.length) {
     const empty = el('div', 'lesson-card lesson-empty');
@@ -330,12 +334,10 @@ function renderQuestions() {
     practice.append(empty);
     return;
   }
-  if (state.tab === 'practice') {
-    practice.append(questionCard(exercises[state.index], state.index));
-  }
+  practice.append(questionCard(exercises[state.index], state.index));
 }
 
-function goQuestion(index, tab = 'practice') {
+function goQuestion(index, tab = state.tab === 'test' ? 'test' : 'practice') {
   if (state.busy || index < 0 || index >= state.lesson.exercises.length) return;
   state.index = index;
   switchTab(tab);
@@ -364,6 +366,16 @@ function renderPreview() {
   bar.append(el('span', 'lesson-fill'));
   setProgressBar(bar, progress.exercisesCompleted, progress.exercisesTotal);
   mini.append(bar);
+  const exercise = lesson.exercises[state.index];
+  if (exercise.type === 'single_choice') {
+    const options = el('div', 'template-options');
+    for (const [index, option] of (exercise.options || []).entries()) {
+      const row = el('div', 'template-option');
+      row.append(el('span', undefined, String.fromCharCode(65 + index)), el('span', undefined, option.text));
+      options.append(row);
+    }
+    mini.append(options);
+  }
   const questions = el('div', 'template-questions');
   for (let index = 0; index < lesson.exercises.length; index++) {
     const button = el('button', exerciseState(lesson.exercises[index])?.completed ? 'is-done' : '', String(index + 1));
@@ -523,5 +535,5 @@ for (const tab of tabs) {
     $(`tab-${tabs[next]}`).focus();
   });
 }
-$('use-template').addEventListener('click', () => { switchTab('practice'); $('panel-practice').focus(); });
+$('use-template').addEventListener('click', () => { switchTab('test'); $('panel-test').focus(); });
 loadLesson();

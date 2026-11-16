@@ -1,0 +1,255 @@
+import { createFlashcardSession, getFlashcardSession, completeFlashcardSession, getFlashcardTestWords, reviewVocabulary } from './api.js';
+import { el } from './layout.js';
+import { requireSession } from './session.js';
+import { mountWorkspace, setWorkspaceUser } from './workspace.js';
+import { describeApiError } from './errors.js';
+import { letterTiles } from './letter-tiles.js';
+import { TEST_MODES, normalizeAnswer, shuffleCopy, testCards, translationChoices, sessionMetrics } from './practice-utils.js';
+
+const $ = (id) => document.getElementById(id);
+const query = new URLSearchParams(location.search);
+const state = { session: null, index: 0, seen: new Set(), busy: false, loading: false, mode: TEST_MODES.includes(query.get('mode')) ? query.get('mode') : 'choice', phase: 'cards', answers: [], quiz: [], started: 0, finished: null, speed: .85, autoPlay: false, timer: null };
+function button(text, action, primary = false, cls) {
+  const node = el('button', cls || `lesson-button lesson-button-${primary ? 'primary' : 'secondary'}`, text);
+  node.type = 'button'; node.addEventListener('click', action); return node;
+}
+function link(text, href, cls = 'lesson-button lesson-button-primary') { const node = el('a', cls, text); node.href = href; return node; }
+function showError(error) { $('study-error-text').textContent = typeof error === 'string' ? error : describeApiError(error); $('study-error').hidden = false; }
+function stopAutoplay() { clearTimeout(state.timer); state.timer = null; state.autoPlay = false; }
+function stopSpeech() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+function speak(text) {
+  if (!('speechSynthesis' in window)) { showError('Word playback is unavailable in this browser. You can continue with the written cards.'); return; }
+  stopSpeech(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'en-US'; utterance.rate = state.speed;
+  utterance.voice = window.speechSynthesis.getVoices().find((voice) => voice.lang === 'en-US') || null;
+  utterance.onerror = (event) => { if (!['interrupted', 'canceled'].includes(event.error)) showError('Word playback is unavailable on this device. Written practice is still available.'); };
+  window.speechSynthesis.speak(utterance);
+}
+function stage() { $('study-setup').hidden = true; $('study-stage').hidden = false; $('study-error').hidden = true; return $('study-stage-content'); }
+function empty(title, text) {
+  const box = el('section', 'study-empty'); box.append(el('h2', undefined, title), el('p', undefined, text), link('Find course words ↗', '/course-words.html'));
+  stage().replaceChildren(box);
+}
+function progress(target, label, index, total) {
+  const meta = el('div', 'study-stage-meta'); meta.append(el('span', 'lesson-chip', label), el('span', undefined, `${index} / ${total}`));
+  const track = el('div', 'word-run-track'); track.setAttribute('role', 'progressbar'); track.setAttribute('aria-label', label);
+  track.setAttribute('aria-valuemin', '0'); track.setAttribute('aria-valuemax', String(total)); track.setAttribute('aria-valuenow', String(index));
+  const fill = el('span'); fill.style.width = `${total ? index / total * 100 : 0}%`; track.append(fill); target.append(meta, track);
+  return { track, fill };
+}
+function soundTools(word) {
+  const tools = el('div', 'study-session-tools');
+  const listen = button('Listen', () => speak(word));
+  listen.classList.add('study-listen'); tools.append(listen);
+  const label = el('label', undefined, 'Voice speed '); const select = el('select'); select.setAttribute('aria-label', 'Word playback speed');
+  for (const [value, text] of [['0.7', 'Slow'], ['0.85', 'Steady'], ['1', 'Natural']]) { const option = el('option', undefined, text); option.value = value; select.append(option); }
+  select.value = String(state.speed); select.addEventListener('change', () => { state.speed = Number(select.value); }); label.append(select); tools.append(label); return tools;
+}
+function picker(onChange) {
+  const choices = el('div', 'study-mode-picker'); choices.setAttribute('role', 'group'); choices.setAttribute('aria-label', 'Vocabulary test format');
+  for (const [mode, label] of [['choice', 'Multiple choice'], ['write', 'Write the word'], ['letters', 'Missing letters']]) {
+    const node = button(label, () => { state.mode = mode; onChange(); }, false, 'study-mode'); node.setAttribute('aria-pressed', String(state.mode === mode)); choices.append(node);
+  }
+  return choices;
+}
+async function startTest(ids) {
+  if (state.busy || !state.session) return;
+  stopAutoplay(); state.busy = true; $('study-error').hidden = true;
+  try {
+    // The server must confirm ownership and completion before the test handoff.
+    if (!state.session.testReady) state.session = await completeFlashcardSession(state.session.sessionId);
+    const ready = await getFlashcardTestWords(state.session.sessionId);
+    const cards = ids ? ready.cards.filter((card) => ids.includes(card.wordId)) : ready.cards;
+    state.quiz = testCards(cards, state.mode);
+    if (!state.quiz.length) {
+      empty('Try another format.', 'Missing letters needs single English words with 2–24 letters. Your cards are ready for Write the word.');
+      $('study-stage-content').append(picker(() => startTest(ids))); return;
+    }
+    if (state.mode === 'choice' && new Set(ready.cards.map((card) => normalizeAnswer(card.translation))).size < 2) {
+      state.mode = 'write';
+    }
+    state.phase = 'quiz'; state.index = 0; state.answers = []; state.started = Date.now(); state.finished = null;
+    const url = new URL(location.href); url.searchParams.set('mode', state.mode); history.replaceState(null, '', url);
+    renderQuestion();
+  } catch (error) { showError(error); }
+  finally { state.busy = false; }
+}
+function renderCard() {
+  clearTimeout(state.timer); stopSpeech(); state.phase = 'cards'; document.body.dataset.phase = 'cards'; const target = stage(); target.replaceChildren();
+  const cards = state.session.cards;
+  if (!cards.length) { empty('Your next word is waiting.', 'This collection is empty. Save words to My Words or choose another course.'); return; }
+  const card = cards[state.index]; progress(target, `Card ${state.index + 1} of ${cards.length}`, state.index, cards.length);
+  const flip = button('', () => turn(!revealed), false, 'flashcard-turn');
+  flip.setAttribute('aria-pressed', 'false'); flip.setAttribute('aria-label', `Reveal translation for ${card.word}`);
+  const inner = el('span', 'flashcard-inner'); const front = el('span', 'flashcard-face flashcard-front'); const back = el('span', 'flashcard-face flashcard-back');
+  front.append(el('span', 'flashcard-kicker', 'ENGLISH'), el('span', 'flashcard-word', card.word), el('span', 'flashcard-hint', 'Think of the meaning. Tap to turn.'));
+  back.append(el('span', 'flashcard-kicker', 'TRANSLATION'), el('span', 'flashcard-word', card.translation));
+  if (card.example) back.append(el('span', 'flashcard-example', card.example)); back.setAttribute('aria-hidden', 'true');
+  inner.append(front, back); flip.append(inner); target.append(flip, soundTools(card.word));
+  const hint = el('p', 'study-card-footer', 'Reveal each translation before moving on. '); hint.append(el('strong', undefined, 'One small step at a time.'));
+  const nav = el('div', 'study-next-actions');
+  const previous = button('← Previous', () => { if (state.busy || !state.index) return; state.index--; renderCard(); }); previous.disabled = state.index === 0;
+  const next = button(state.index === cards.length - 1 ? 'Test my memory ↗' : 'Next word →', async () => {
+    if (state.busy || next.disabled) return;
+    if (state.index < cards.length - 1) { state.index++; renderCard(); }
+    else {
+      next.disabled = true; previous.disabled = true; flip.disabled = true;
+      try { await startTest(); }
+      finally { if (state.phase === 'cards') { next.disabled = false; previous.disabled = !state.index; flip.disabled = false; } }
+    }
+  }, true);
+  next.disabled = !state.seen.has(card.wordId); let revealed = false;
+  function turn(show) {
+    if (state.busy) return; revealed = show;
+    flip.classList.toggle('is-flipped', show); flip.setAttribute('aria-pressed', String(show));
+    flip.setAttribute('aria-label', show ? `Show English word ${card.word}` : `Reveal translation for ${card.word}`);
+    front.setAttribute('aria-hidden', String(show)); back.setAttribute('aria-hidden', String(!show));
+    if (show) { state.seen.add(card.wordId); next.disabled = false; }
+  }
+  flip.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight' && !next.disabled) { event.preventDefault(); next.click(); }
+    if (event.key === 'ArrowLeft' && !previous.disabled) { event.preventDefault(); previous.click(); }
+  });
+  const flipControl = button('Flip', () => turn(!revealed));
+  flipControl.classList.add('study-flip');
+  const autoplay = button(state.autoPlay ? 'Ⅱ Pause' : '▷ Auto Play', () => {
+    if (state.autoPlay) { stopAutoplay(); autoplay.textContent = '▷ Auto Play'; autoplay.setAttribute('aria-pressed', 'false'); }
+    else { state.autoPlay = true; autoplay.textContent = 'Ⅱ Pause'; autoplay.setAttribute('aria-pressed', 'true'); scheduleAutoplay(); }
+  });
+  autoplay.setAttribute('aria-pressed', String(state.autoPlay));
+  function scheduleAutoplay() {
+    clearTimeout(state.timer);
+    state.timer = setTimeout(() => {
+      if (!state.autoPlay || state.phase !== 'cards' || state.busy) { stopAutoplay(); return; }
+      if (!revealed) { turn(true); scheduleAutoplay(); }
+      else if (state.index < cards.length - 1) { state.index++; renderCard(); }
+      else { stopAutoplay(); autoplay.textContent = '▷ Auto Play'; autoplay.setAttribute('aria-pressed', 'false'); }
+    }, 2400);
+  }
+  nav.className = 'study-card-controls'; nav.append(previous, flipControl, next, autoplay); target.append(hint, nav, picker(() => renderCard()));
+  const note = el('p', 'study-card-footer', `Study set · ${state.session.source === 'course_words' ? 'Course Words' : 'My Words'}`); target.append(note); flip.focus(); if (state.autoPlay) scheduleAutoplay();
+}
+function renderQuestion() {
+  stopSpeech(); document.body.dataset.phase = 'quiz'; document.body.dataset.mode = state.mode;
+  const target = stage(); target.replaceChildren(); const card = state.quiz[state.index];
+  if (!card) { renderSummary(); return; }
+  const titles = { choice: 'Vocabulary Test — Multiple Choice', write: 'Vocabulary Test — Write the Word', letters: 'Complete the Word — Missing Letters' };
+  const intro = el('header', 'study-question-heading');
+  intro.append(el('span', 'lesson-chip', state.mode === 'letters' ? 'PRACTICE / VOCABULARY TEST · STAGE 2' : 'PRACTICE / VOCABULARY TEST'), el('h1', undefined, titles[state.mode]), el('p', undefined,
+    state.mode === 'choice' ? 'Choose the correct Ukrainian translation for each English word to test your retention.' : state.mode === 'letters' ? 'Drag the missing letters into the correct positions or click a letter tile then an empty slot.' : 'Recall the English word and type your answer below.'));
+  const progressPanel = el('section', 'study-progress-panel');
+  const meter = progress(progressPanel, `Question ${state.index + 1} of ${state.quiz.length}`, state.index, state.quiz.length);
+  target.append(intro, progressPanel);
+  const panel = el('section', 'word-practice-card');
+  const heading = el('h2', undefined, state.mode === 'choice' ? card.word : card.translation); heading.tabIndex = -1;
+  panel.append(el('span', 'lesson-chip', state.session.source === 'course_words' ? 'COURSE WORDS' : 'MY WORDS'), heading);
+  if (state.mode === 'choice') panel.append(soundTools(card.word));
+  const feedback = el('p', 'word-practice-result'); feedback.setAttribute('role', 'status');
+  const actions = el('div', 'word-practice-actions'); const tray = el('footer', 'study-answer-tray');
+  const instruction = el('p'); instruction.append(el('strong', undefined, state.mode === 'letters' ? 'Place missing letters' : state.mode === 'choice' ? 'Select an option above' : 'Write the English word'), el('span', undefined, state.mode === 'letters' ? 'Fill every slot to check your spelling.' : 'Check your answer when you’re ready.'));
+  tray.append(instruction, actions); let answered = false;
+  async function grade(correct, selected) {
+    if (answered || state.busy) return; state.busy = true;
+    const controls = [...panel.querySelectorAll('button, input'), ...tray.querySelectorAll('button')]; for (const node of controls) node.disabled = true;
+    $('study-error').hidden = true;
+    try {
+      if (state.session.source === 'my_words') await reviewVocabulary(card.wordId, correct);
+      answered = true; state.answers.push({ card, correct });
+      panel.classList.toggle('answer-success', correct); panel.classList.toggle('answer-mistake', !correct);
+      feedback.classList.toggle('is-error', !correct); feedback.textContent = `${correct ? '✓ That’s it!' : 'A word to come back to.'} ${card.word} — ${card.translation}`;
+      if (card.example) feedback.append(el('span', undefined, ` · ${card.example}`));
+      for (const option of panel.querySelectorAll('.word-choice')) {
+        option.classList.toggle('is-correct', normalizeAnswer(option.textContent) === normalizeAnswer(card.translation));
+        option.classList.toggle('is-wrong', option === selected && !correct);
+      }
+      meter.track.setAttribute('aria-valuenow', String(state.index + 1)); meter.fill.style.width = `${(state.index + 1) / state.quiz.length * 100}%`;
+      instruction.replaceChildren(el('strong', undefined, correct ? 'Correct answer' : 'Review this word'), el('span', undefined, 'Continue at your own pace.'));
+      actions.replaceChildren(button(state.index + 1 === state.quiz.length ? 'See my results ↗' : 'Next word →', () => { state.index++; renderQuestion(); }, true));
+      actions.querySelector('button').focus();
+    } catch (error) { feedback.classList.add('is-error'); feedback.textContent = `Review not saved. ${describeApiError(error)} Try your answer again.`; for (const node of controls) node.disabled = false; }
+    finally { state.busy = false; }
+  }
+  const skip = button('Skip', () => grade(false)); actions.append(skip);
+  if (state.mode === 'choice') {
+    panel.append(el('p', 'study-answer-label', 'Choose the correct Ukrainian translation:'));
+    const list = el('div', 'word-choice-list'); let selected = null;
+    const check = button('Check Answer ✓', () => { if (selected) grade(normalizeAnswer(selected.textContent) === normalizeAnswer(card.translation), selected); }, true);
+    check.disabled = true;
+    translationChoices(card, state.session.cards).forEach((translation, index) => {
+      const option = button(translation, () => {
+        if (answered || state.busy) return; selected = option;
+        for (const node of list.querySelectorAll('button')) { node.classList.toggle('is-selected', node === option); node.setAttribute('aria-pressed', String(node === option)); }
+        check.disabled = false;
+      }, false, 'word-choice');
+      option.dataset.letter = String.fromCharCode(65 + index); option.setAttribute('aria-pressed', 'false'); list.append(option);
+    });
+    actions.append(check); panel.append(list);
+  } else {
+    const form = el('form'); let read;
+    if (state.mode === 'write') {
+      const label = el('label', 'lesson-answer-label', 'English word or phrase'); const input = el('input', 'lesson-answer');
+      input.required = true; input.autocomplete = 'off'; input.spellcheck = false; input.maxLength = 120; input.setAttribute('autocapitalize', 'none'); label.append(input); form.append(label); read = () => input.value;
+    } else {
+      const letters = [...card.word];
+      // Keep the reference's readable whole word and only two or three missing positions.
+      const blanks = new Set([Math.floor(letters.length / 3), Math.floor(letters.length * 3 / 4)]);
+      const pattern = letters.map((letter, index) => blanks.has(index) ? '_' : letter).join('');
+      const tiles = letterTiles({ pattern, letters: shuffleCopy(letters.filter((_, index) => blanks.has(index))) }, '', null, () => { feedback.textContent = ''; });
+      form.append(tiles.field); read = tiles.readAnswer;
+    }
+    const check = button('Check Answer ✓', () => form.requestSubmit(), true); actions.append(check);
+    form.addEventListener('submit', (event) => { event.preventDefault(); const answer = read(); if (!answer.trim()) { feedback.classList.add('is-error'); feedback.textContent = 'Complete your answer first.'; return; } grade(normalizeAnswer(answer) === normalizeAnswer(card.word)); });
+    panel.append(form);
+  }
+  panel.append(feedback); target.append(panel, tray, el('p', 'study-card-footer', state.session.source === 'my_words' ? 'Your answer updates the review schedule in My Words.' : 'A practice test for this session. Save favourites to My Words for ongoing reviews.'));
+  heading.focus();
+}
+function renderSummary() {
+  state.phase = 'summary'; document.body.dataset.phase = 'summary'; state.finished ??= Date.now(); const target = stage(); target.replaceChildren();
+  const metrics = sessionMetrics(state.answers, state.started, state.finished);
+  const summary = el('section', 'practice-summary'); summary.setAttribute('aria-labelledby', 'session-complete');
+  const celebration = el('div', 'summary-celebration'); celebration.setAttribute('aria-hidden', 'true'); for (let i = 0; i < 12; i++) celebration.append(el('i'));
+  const heading = el('h1', undefined, 'Vocabulary test complete!'); heading.id = 'session-complete'; heading.tabIndex = -1;
+  summary.append(celebration, el('span', 'lesson-chip', '🏆 TEST COMPLETE'), el('span', 'summary-icon', metrics.accuracy === 100 ? '✦' : '✓'), heading,
+    el('p', 'dashboard-muted', state.session.source === 'my_words' ? 'Your reviews are saved. Keep the momentum going.' : 'Your result for this run. A little practice makes a difference.'));
+  const ring = el('div', 'summary-score-ring'); ring.style.background = `conic-gradient(var(--fleng-pink) ${metrics.accuracy}%, var(--fleng-raised) 0)`;
+  const center = el('div', 'summary-score-center'); center.append(el('strong', undefined, `${metrics.accuracy}%`), el('span', undefined, 'correct answers')); ring.append(center); summary.append(ring);
+  const stats = el('div', 'summary-metrics');
+  for (const [label, value] of [['Accuracy', `${metrics.accuracy}%`], ['Correct', `${metrics.correct} / ${metrics.total}`], ['Time taken', metrics.time]]) { const box = el('div', 'summary-metric'); box.append(el('strong', undefined, String(value)), el('span', undefined, label)); stats.append(box); }
+  const list = el('ul', 'summary-word-list');
+  for (const { card, correct } of state.answers) { const row = el('li', `summary-word${correct ? '' : ' is-mistake'}`); const copy = el('span'); copy.append(el('strong', undefined, card.word), el('small', undefined, card.translation)); row.append(copy, el('span', 'word-status', correct ? '✓ Correct' : 'Revisit')); list.append(row); }
+  summary.append(stats, el('h3', undefined, 'Tested vocabulary'), list);
+  const actions = el('div', 'word-practice-actions');
+  if (metrics.mistakes.length) actions.append(button('Repeat mistakes', () => startTest(metrics.mistakes.map((answer) => answer.card.wordId)), true));
+  actions.append(button('Try again', () => startTest(), !metrics.mistakes.length), button('Review the cards', () => { state.index = 0; renderCard(); }));
+  summary.append(actions, picker(() => renderSummary()), link('Back to word collections', '/course-words.html', 'study-back'));
+  target.append(summary); heading.focus();
+}
+async function load() {
+  if (state.loading) return; state.loading = true; $('study-error').hidden = true; $('study-loading').hidden = false;
+  try {
+    const user = await requireSession({ throwOnUnavailable: true }); if (!user) return; setWorkspaceUser(user);
+    const sessionId = new URLSearchParams(location.search).get('session');
+    if (!sessionId) { $('study-setup').hidden = false; $('study-mode').value = state.mode; return; }
+    state.session = await getFlashcardSession(sessionId); state.index = 0; state.seen.clear(); renderCard();
+  } catch (error) { showError(error.status === 404 ? 'This study set is unavailable. Choose a new collection to begin.' : error); }
+  finally { state.loading = false; $('study-loading').hidden = true; }
+}
+mountWorkspace('practice');
+$('study-retry').addEventListener('click', load);
+$('study-setup-form').addEventListener('submit', async (event) => {
+  event.preventDefault(); if (state.busy || !$('study-setup-form').reportValidity()) return;
+  state.busy = true; $('study-create').disabled = true; $('study-error').hidden = true;
+  try {
+    const session = await createFlashcardSession({ source: 'my_words', limit: Number($('study-limit').value) });
+    state.session = session; state.mode = $('study-mode').value; state.index = 0; state.seen.clear();
+    const url = new URL(location.href); url.searchParams.set('session', session.sessionId); url.searchParams.set('mode', state.mode); history.replaceState(null, '', url); renderCard();
+  } catch (error) { showError(error); }
+  finally { state.busy = false; $('study-create').disabled = false; }
+});
+function focusMode(enabled) { document.body.classList.toggle('is-focus', enabled); $('focus-toggle').setAttribute('aria-pressed', String(enabled)); $('focus-toggle').textContent = enabled ? 'Exit focus ✕' : 'Focus view ⛶'; }
+$('focus-toggle').addEventListener('click', () => focusMode(!document.body.classList.contains('is-focus')));
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape') focusMode(false); });
+window.addEventListener('pagehide', () => { stopSpeech(); stopAutoplay(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && state.autoPlay) { stopAutoplay(); if (state.phase === 'cards') renderCard(); } });
+$('focus-toggle').disabled = false;
+load();

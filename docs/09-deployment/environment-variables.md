@@ -7,3 +7,9 @@ FRONTEND_DIR can override the static path. AI_ENABLED stays false until key/mode
 .env.production.example is not automatically loaded. Environment overrides optional .env files. Editing a template does not update hosting settings.
 
 [Section index](README.md) · [Documentation home](../README.md)
+
+On Render Free DATABASE_URL must point to external PostgreSQL. SQLite under the
+source checkout is refused before the server binds; paid SQLite is accepted only
+beneath a real /var/data mount. Ordinary PostgreSQL URLs and sslmode are normalized
+for asyncpg. Keep JWT_ACCESS_SECRET stable across restarts; never generate a new
+production key per process. See [durable storage](render-free-persistence.md).

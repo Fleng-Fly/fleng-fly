@@ -7,13 +7,16 @@ writes here; content is managed through seed/import operations.
 """
 
 from dataclasses import dataclass
+from uuid import UUID
 
 from sqlalchemy import and_, func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Course, Lesson
+from app.db.models import Course, Lesson, LessonProgress
 from app.modules.catalog.schemas import (
     CourseDetailResponse,
+    CourseLessonProgressResponse,
+    CourseLessonStatusResponse,
     CourseSummaryResponse,
     LessonDetailResponse,
     LessonSummaryResponse,
@@ -150,4 +153,49 @@ def to_lesson_detail(
         course_title=course.title,
         level=course.level,
         exercises=exercises,
+    )
+
+
+async def get_course_lesson_progress(
+    db: AsyncSession, slug: str, user_id: UUID
+) -> CourseLessonProgressResponse | None:
+    """Read one course's statuses in two queries, independent of lesson count.
+
+    The learner condition belongs in the outer join so missing own rows remain
+    not_started, even when other learners have progress for the same lessons.
+    No progress rows are created and no draft content is included.
+    """
+    course_id = await db.scalar(
+        select(Course.id).where(Course.slug == slug, Course.is_published.is_(True))
+    )
+    if course_id is None:
+        return None
+    rows = (
+        await db.execute(
+            select(Lesson.id, Lesson.slug, LessonProgress.status)
+            .outerjoin(
+                LessonProgress,
+                and_(LessonProgress.lesson_id == Lesson.id, LessonProgress.user_id == user_id),
+            )
+            .where(Lesson.course_id == course_id, Lesson.is_published.is_(True))
+            .order_by(Lesson.position, Lesson.title, Lesson.id)
+        )
+    ).all()
+    return CourseLessonProgressResponse(
+        course_id=course_id,
+        lessons_total=len(rows),
+        lessons_started=sum(status is not None for _, _, status in rows),
+        lessons_completed=sum(status == "completed" for _, _, status in rows),
+        lessons=[
+            CourseLessonStatusResponse(
+                lesson_id=lesson_id,
+                slug=lesson_slug,
+                status="completed"
+                if status == "completed"
+                else "in_progress"
+                if status
+                else "not_started",
+            )
+            for lesson_id, lesson_slug, status in rows
+        ],
     )

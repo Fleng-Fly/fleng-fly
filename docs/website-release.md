@@ -1,3 +1,8 @@
+> Current prepared release: 2026.11.16-web.3; see [exported Figma alignment](figma-export-web3.md).
+
+> Latest browser release: [reference-board completion](reference-web2.md),
+> version 2026.11.16-web.2. The notes below record the previous release.
+
 # Website release — 2026.11.16-web
 
 Fleng is now a browser website. This release merges the actual GitHub
@@ -41,7 +46,7 @@ had not reached either remote branch. On 2026-11-15 UTC, HTTP checks found:
 
 ## Publish the prepared update
 
-The update package contains UPDATE-SITE.cmd, update-site.ps1 and website.patch.
+The update package contains UPDATE-SITE.cmd, update-website.ps1 and website.patch.
 Extract it and run UPDATE-SITE.cmd on the Windows computer that has Git access.
 Default checkout: C:\Users\Roman\Fleng-GitHub. A different checkout can be passed
 as the first argument. The script checks the origin, refuses tracked local
@@ -69,3 +74,15 @@ and corrected archive regressions to the A0 filter and lesson tab navigation.
 No remote push, deployment, Windows GUI/script run or host dashboard access is
 claimed by preparation of this package. GitHub write authentication and Render
 administration remain required for publishing.
+
+## Windows publishing launcher correction — 2026-11-16
+
+The previous CMD launcher requested update-site.ps1 while the shipped script
+was update-website.ps1. It also treated only positive process error codes as
+failure, so PowerShell startup errors could be followed by a success message.
+The launcher now checks both companion files before execution, uses the shipped
+filename and treats every nonzero exit code as failure. The PowerShell script
+explicitly exits zero only after successful completion. Archive paths and a
+clean-base patch application were verified; Windows execution remains untested
+in this Linux environment. A missing-script screenshot does not confirm any
+GitHub commit, push or live deployment.

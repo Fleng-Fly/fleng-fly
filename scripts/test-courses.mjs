@@ -134,10 +134,14 @@ async function page(name, options = {}) {
       if (options.notFound) throw { status: 404 };
       return options.noLessons ? { ...detail, lessons: [] } : detail;
     },
-    getLessonProgress: async (slug) => ({
-      startedAt: slug === 'lesson-1' ? '2026-01-01' : null,
-      completed: slug === 'lesson-0',
-    }),
+    apiFetch: async (path) => {
+      reads.push(path);
+      if (failure) throw failure;
+      return { ...progress.courses[0], lessons: options.noLessons ? [] : detail.lessons.map((lesson, index) => ({
+        slug: lesson.slug, status: index === 0 ? 'completed' : index === 1 ? 'in_progress' : 'not_started',
+      })) };
+    },
+
   };
   const context = vm.createContext({ document, window, URLSearchParams, Error, console });
   const modules = new Map();
@@ -268,6 +272,7 @@ test('course details show three real statuses and lesson routes', async () => {
     body.querySelectorAll('a').map((link) => link.href),
     [
       '/courses.html',
+      '/course-words.html?courseId=one',
       '/lesson.html?slug=lesson-0',
       '/lesson.html?slug=lesson-1',
       '/lesson.html?slug=lesson-2',
@@ -306,7 +311,7 @@ test('A0 uses the existing level filter and unchanged course links', async () =>
   assert.equal(a0Filter.attributes['aria-pressed'], 'true');
 });
 
-// Exercise the real lesson module with API fixtures; removed elements deliberately do not exist.
+// Exercise the real lesson module with API fixtures and the real page's tab IDs.
 async function lessonPage(search = '?slug=first') {
   class LessonNode extends Node {
     get firstElementChild() { return this.children[0]; }
@@ -379,8 +384,8 @@ async function lessonPage(search = '?slug=first') {
   return { get: (id) => nodes.get(id), window, settle, vocabularyReads: () => vocabularyReads };
 }
 
-test('lesson defaults and obsolete Test links open Theory without losing the lesson URL', async () => {
-  for (const tab of ['', '&tab=test', '&tab=Test', '&tab=unknown']) {
+test('lesson defaults and invalid tabs open Theory without losing the lesson URL', async () => {
+  for (const tab of ['', '&tab=Test', '&tab=unknown']) {
     const p = await lessonPage('?slug=first&keep=yes' + tab + '#content');
     assert.equal(p.get('lesson-content').hidden, false);
     assert.equal(p.get('panel-theory').hidden, false);
@@ -389,16 +394,19 @@ test('lesson defaults and obsolete Test links open Theory without losing the les
     assert.equal(p.window.location.searchParams.get('slug'), 'first');
     assert.equal(p.window.location.searchParams.get('keep'), 'yes');
     assert.equal(p.window.location.hash, '#content');
-    assert.equal(p.get('tab-test'), undefined);
-    assert.equal(p.get('panel-test'), undefined);
+    assert.equal(p.get('panel-test').hidden, true);
   }
 });
 
-test('lesson valid links, click/keyboard navigation and template actions use the three remaining tabs', async () => {
+test('lesson four reference tabs preserve navigation, shared questions and template routing', async () => {
   const p = await lessonPage('?slug=first&tab=practice');
   assert.equal(p.get('panel-practice').hidden, false);
   assert.match(p.get('panel-practice').textContent, /Choose a word/);
   p.get('tab-practice').events.keydown({ key: 'ArrowRight', preventDefault() {} });
+  assert.equal(p.get('panel-test').hidden, false);
+  assert.match(p.get('panel-test').textContent, /Choose a word/);
+  assert.equal(p.get('panel-practice').textContent, '');
+  p.get('tab-test').events.keydown({ key: 'ArrowRight', preventDefault() {} });
   await p.settle();
   assert.equal(p.get('panel-vocabulary').hidden, false);
   assert.match(p.get('panel-vocabulary').textContent, /hello/);
@@ -411,20 +419,43 @@ test('lesson valid links, click/keyboard navigation and template actions use the
   p.get('tab-vocabulary').events.keydown({ key: 'Home', preventDefault() {} });
   assert.equal(p.get('panel-theory').hidden, false);
   p.get('use-template').events.click();
-  assert.equal(p.get('panel-practice').hidden, false);
+  assert.equal(p.get('panel-test').hidden, false);
   p.get('tab-vocabulary').events.click();
   await p.settle();
   assert.equal(p.vocabularyReads(), 1);
   const linked = await lessonPage('?slug=first&tab=vocabulary');
   assert.equal(linked.get('panel-vocabulary').hidden, false);
   assert.match(linked.get('panel-vocabulary').textContent, /hello/);
+  const testLink = await lessonPage('?slug=first&tab=test');
+  assert.equal(testLink.get('panel-test').hidden, false);
+  assert.match(testLink.get('panel-test').textContent, /Choose a word/);
+  assert.equal(testLink.window.location.searchParams.get('tab'), 'test');
 });
 
-test('Dashboard Quick access keeps existing links and adds vocabulary practice without a Course duplicate', async () => {
+test('Dashboard Quick access matches the four supplied Figma shortcuts', async () => {
   const html = await readFile(new URL('../frontend/dashboard.html', import.meta.url), 'utf8');
   const quick = html.split('<div class="quick-grid">')[1].split('</section>')[0];
-  assert.deepEqual([...quick.matchAll(/<strong>([^<]+)<\/strong\s*>/g)].map((match) => match[1]), ['Lessons', 'Progress', 'Leaderboard', 'My Words', 'Practice']);
-  assert.deepEqual([...quick.matchAll(/href="([^"]+)"/g)].map((match) => match[1]).filter((href) => !href.startsWith('#icon')), ['/courses.html', '#your-progress', '/leaderboard.html', '/vocabulary.html', '/vocabulary.html?mode=flashcards']);
+  assert.deepEqual([...quick.matchAll(/<strong>([^<]+)<\/strong\s*>/g)].map((match) => match[1]), ['Lessons', 'Course', 'Progress', 'Leaderboard']);
+  assert.deepEqual([...quick.matchAll(/href="([^"]+)"/g)].map((match) => match[1]).filter((href) => !href.startsWith('#icon')), ['/courses.html', '/courses.html', '#your-progress', '/leaderboard.html']);
   assert.match(html, /id="your-progress"/);
   assert.doesNotMatch(html, /quick-course-link/);
+});
+
+
+test('course status load uses one batch and never calls per-lesson or all-course progress', async () => {
+  const p = await page('course');
+  assert.deepEqual(p.reads, ['/courses/foundations/progress']);
+});
+
+test('course progress failure keeps every lesson navigable and retry restores statuses', async () => {
+  const p = await page('course', { failure: new Error('Offline') });
+  const body = p.get('course-body');
+  assert.equal(body.querySelectorAll('li').length, 3);
+  assert.match(body.textContent, /Could not load progress/);
+  assert.match(body.textContent, /Progress unavailable/);
+  assert.doesNotMatch(body.textContent, /Not Started/);
+  assert.equal(body.querySelectorAll('a').filter((link) => link.href.startsWith('/lesson.html')).length, 3);
+  await p.refresh();
+  assert.match(body.textContent, /Continue Lesson/);
+  assert.doesNotMatch(body.textContent, /Could not load progress/);
 });

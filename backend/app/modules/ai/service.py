@@ -1,19 +1,28 @@
 import asyncio
 import json
+import math
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from uuid import UUID
 
 from pydantic import ValidationError
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
 from app.core.errors import ApiError
 from app.core.limits import consume, lock_ai_capacity
 from app.db.models import AIConversation, AIMessage, AIUsage, Exercise, User
-from app.modules.ai import context, prompts
-from app.modules.ai.provider import Completion, Provider
+from app.modules.ai import billing, context, prompts
+from app.modules.ai.provider import (
+    Completion,
+    NotBilled,
+    Provider,
+    UpstreamRefused,
+    priced,
+    unavailable,
+)
 from app.modules.ai.schemas import (
     ChatRequest,
     ExplainRequest,
@@ -40,7 +49,7 @@ async def capacity(settings: Settings):
 
 
 def validate_input(value: str, settings: Settings) -> None:
-    if not value.strip() or len(value) > settings.ai_max_input_chars:
+    if not value.strip() or len(value) > settings.ai_max_message_length:
         raise ApiError(422, "AI_INPUT_LIMIT", "AI input is empty or too long")
 
 
@@ -115,30 +124,75 @@ async def prepare_chat(db: AsyncSession, user: User, payload: ChatRequest, setti
     return conversation, prompts.messages(learner, payload.message, history)
 
 
+def utcnow() -> datetime:
+    """Single clock for AI quotas; daily windows are UTC calendar days."""
+    return datetime.now(UTC)
+
+
+def until_next_utc_day(now: datetime) -> dict[str, str]:
+    tomorrow = datetime.combine(now.date() + timedelta(days=1), time(), UTC)
+    return {"Retry-After": str(max(1, math.ceil((tomorrow - now).total_seconds())))}
+
+
 async def reserve(
     db: AsyncSession,
     user: User,
     settings: Settings,
     messages: list[dict],
     request_id: UUID | None = None,
+    schema: dict | None = None,
 ) -> AIUsage:
+    """Atomically admit one provider call and hold its worst-case cost.
+
+    Every check reads and writes persistent rows inside one transaction that holds
+    the learner row lock and then the global ai:capacity row lock (row locks on
+    PostgreSQL, the database write lock on SQLite), so concurrent requests from any
+    number of processes are serialized and cannot overshoot a limit.
+    """
+    if not priced(settings):
+        # No reliable tariff: refuse instead of treating the model as free.
+        raise unavailable()
     await lock_learner(db, user.id)
     if request_id and await db.scalar(
         select(AIUsage.id).where(AIUsage.user_id == user.id, AIUsage.request_id == request_id)
     ):
         raise ApiError(409, "AI_REQUEST_DUPLICATE", "Request already received; reload history")
-    now = datetime.now(UTC)
+    now = utcnow()
+    today = now.date()
+    # Reservations of crashed workers stop blocking the learner after the lease,
+    # but keep counting toward the budget until settled.
     lease_start = now - timedelta(seconds=settings.ai_request_timeout + 60)
-    if await db.scalar(
-        select(AIUsage.id)
-        .where(
-            AIUsage.user_id == user.id,
-            AIUsage.status == "reserved",
-            AIUsage.created_at > lease_start,
+    # Released holds (provider certainly never generated) do not use up learner quota.
+    counted = func.coalesce(AIUsage.cost_source, "").notin_(("released", "refused"))
+    running = (
+        await db.scalar(
+            select(func.count())
+            .select_from(AIUsage)
+            .where(
+                AIUsage.user_id == user.id,
+                AIUsage.status == "reserved",
+                AIUsage.created_at > lease_start,
+            )
         )
-        .limit(1)
-    ):
+        or 0
+    )
+    if running >= settings.ai_max_concurrent_requests:
         raise ApiError(429, "AI_BUSY", "An AI request is already running")
+    used_today = (
+        await db.scalar(
+            select(func.count())
+            .select_from(AIUsage)
+            .where(AIUsage.user_id == user.id, AIUsage.day == today, counted)
+        )
+        or 0
+    )
+    if used_today >= settings.ai_daily_user_limit:
+        raise ApiError(
+            429,
+            "AI_DAILY_LIMIT",
+            "Daily AI message limit reached. It resets at 00:00 UTC.",
+            headers=until_next_utc_day(now),
+        )
     await lock_ai_capacity(db)
     active = (
         await db.scalar(
@@ -151,23 +205,40 @@ async def reserve(
     if active >= settings.ai_concurrency:
         raise ApiError(429, "AI_BUSY", "AI is busy; try again shortly")
     await consume(db, f"ai:minute:{user.id}", settings.ai_requests_per_minute, 60)
-    await consume(db, f"ai:day:{user.id}", settings.ai_daily_requests, 86400)
-    # Conservative token reservation: UTF-8 bytes upper-bound text tokens.
-    input_tokens = sum(len(m["content"].encode()) for m in messages) + 32 * len(messages)
+    input_tokens = billing.input_token_bound(
+        messages, schema if settings.ai_structured_outputs else None
+    )
     if input_tokens > settings.ai_max_input_tokens:
         raise ApiError(422, "AI_INPUT_LIMIT", "AI context exceeded input token limit")
     tokens = input_tokens + settings.ai_max_output_tokens
     spent = (
         await db.scalar(
             select(func.sum(AIUsage.reserved_tokens)).where(
-                AIUsage.user_id == user.id,
-                AIUsage.created_at >= now.replace(hour=0, minute=0, second=0, microsecond=0),
+                AIUsage.user_id == user.id, AIUsage.day == today, counted
             )
         )
         or 0
     )
     if spent + tokens > settings.ai_daily_token_budget:
         raise ApiError(429, "AI_BUDGET_LIMIT", "Daily AI budget reached")
+    # Worst case: every prompt byte is a token and the reply uses max_tokens.
+    cost = billing.tariff_microusd(settings, input_tokens, settings.ai_max_output_tokens)
+    committed = (
+        await db.scalar(
+            select(func.sum(func.coalesce(AIUsage.cost_microusd, AIUsage.reserved_microusd))).where(
+                AIUsage.day == today
+            )
+        )
+        or 0
+    )
+    if committed + cost > billing.budget_microusd(settings):
+        # Global spend is not disclosed to learners.
+        raise ApiError(
+            429,
+            "AI_BUDGET_LIMIT",
+            "Fleng AI has reached its daily limit. It resets at 00:00 UTC.",
+            headers=until_next_utc_day(now),
+        )
     await db.execute(
         delete(AIUsage)
         .where(AIUsage.created_at < now - timedelta(days=30))
@@ -178,17 +249,70 @@ async def reserve(
         model=settings.openrouter_model,
         status="reserved",
         reserved_tokens=tokens,
+        reserved_microusd=cost,
         request_id=request_id,
+        day=today,
+        created_at=now,
     )
     db.add(usage)
     await db.commit()
     return usage
 
 
-async def finish_usage(db: AsyncSession, usage: AIUsage, result: Completion | None) -> None:
-    usage.status = "completed" if result else "failed"
-    usage.usage = result.usage if result else None
-    # Failed/unknown requests retain reservation: cancellation can still incur costs.
+def usage_id(usage: AIUsage) -> UUID:
+    """Primary key without a lazy load, which is unavailable after a rollback."""
+    identity = sa_inspect(usage).identity
+    if identity is None:
+        raise RuntimeError("AI usage reservation was not persisted")
+    return identity[0]
+
+
+def outcome(exc: BaseException) -> str | None:
+    """released: nothing sent (free). refused: upstream 4xx (prompt cost only)."""
+    if isinstance(exc, UpstreamRefused):
+        return "refused"
+    return "released" if isinstance(exc, NotBilled) else None
+
+
+def charge_values(settings: Settings, usage_info: dict | None, state: str | None = None) -> dict:
+    """Final charge columns: release, refusal, provider cost, tariff x tokens, or the hold."""
+    if state == "released":
+        return {"cost_microusd": 0, "cost_source": "released"}
+    if state == "refused":
+        # Hold minus the output part; SQL expression because rolled-back ORM
+        # objects cannot be lazily refreshed in async sessions.
+        output = billing.tariff_microusd(settings, 0, settings.ai_max_output_tokens)
+        return {
+            "cost_microusd": func.max(AIUsage.reserved_microusd - output, 0),
+            "cost_source": "refused",
+        }
+    charge = billing.settled_charge(settings, usage_info)
+    if charge is None:
+        # Unknown cost: the conservative reservation becomes the charge.
+        return {"cost_microusd": AIUsage.reserved_microusd, "cost_source": "reserved"}
+    return {"cost_microusd": charge[0], "cost_source": charge[1]}
+
+
+async def finish_usage(
+    db: AsyncSession,
+    usage: AIUsage,
+    settings: Settings,
+    result: Completion | None,
+    *,
+    usage_info: dict | None = None,
+    state: str | None = None,
+) -> None:
+    """Settle a reservation; only pre-generation failures release or reduce it."""
+    info = result.usage if result else usage_info
+    await db.execute(
+        update(AIUsage)
+        .where(AIUsage.id == usage_id(usage))
+        .values(
+            status="completed" if result else "failed",
+            usage=info or None,
+            **charge_values(settings, info, state),
+        )
+    )
     await db.commit()
 
 
@@ -199,6 +323,7 @@ async def save_turn(
     payload: ChatRequest,
     result: Completion,
     usage: AIUsage,
+    settings: Settings,
 ) -> tuple[AIConversation, AIMessage]:
     await lock_learner(db, user.id)
     if conversation:
@@ -227,7 +352,16 @@ async def save_turn(
         created_at=now + timedelta(microseconds=1),
     )
     db.add(answer)
-    usage.status, usage.usage = "completed", result.usage
+    # History and the settled charge commit together.
+    await db.execute(
+        update(AIUsage)
+        .where(AIUsage.id == usage_id(usage))
+        .values(
+            status="completed",
+            usage=result.usage or None,
+            **charge_values(settings, result.usage),
+        )
+    )
     await db.commit()
     await db.refresh(answer)
     return conversation, answer
@@ -242,10 +376,16 @@ async def chat(
         try:
             async with asyncio.timeout(settings.ai_request_timeout):
                 result = await provider.complete(messages)
-            return await save_turn(db, user, conversation, payload, result, usage)
-        except BaseException:
+        except BaseException as exc:
             await db.rollback()
-            await finish_usage(db, usage, None)
+            await finish_usage(db, usage, settings, None, state=outcome(exc))
+            raise
+        try:
+            return await save_turn(db, user, conversation, payload, result, usage, settings)
+        except BaseException:
+            # The provider answered: charge its reported cost even if saving failed.
+            await db.rollback()
+            await finish_usage(db, usage, settings, None, usage_info=result.usage)
             raise
 
 
@@ -262,6 +402,7 @@ async def structured(
         schema_type: type[Explanation] | type[GeneratedExercise]
         if isinstance(payload, ExplainRequest):
             validate_input(payload.student_answer, settings)
+            validate_input(payload.topic, settings)
             if payload.exercise_id:
                 exercise = await db.get(Exercise, payload.exercise_id)
                 if exercise is None or (lesson_id and lesson_id != exercise.lesson_id):
@@ -271,6 +412,7 @@ async def structured(
                 # Official answer keys are deliberately excluded.
             schema_type, task = Explanation, "explain"
         else:
+            validate_input(payload.topic, settings)
             schema_type, task = GeneratedExercise, "generate"
         if lesson_id:
             await context.lesson_context(db, lesson_id)
@@ -280,9 +422,9 @@ async def structured(
         learner.update(extra)
         schema = schema_type.model_json_schema(by_alias=False)
         request = json.dumps(payload.model_dump(mode="json", exclude_none=True))
-        validate_input(request, settings)
         messages = prompts.messages(learner, request, task=task, schema=schema)
-        usage = await reserve(db, user, settings, messages)
+        usage = await reserve(db, user, settings, messages, schema=schema)
+        result = None
         try:
             async with asyncio.timeout(settings.ai_request_timeout):
                 result = await provider.complete(messages, schema)
@@ -291,14 +433,15 @@ async def structured(
                 not isinstance(parsed, GeneratedExercise) or parsed.type != payload.exercise_type
             ):
                 raise ValueError("Exercise type mismatch")
-            await finish_usage(db, usage, result)
+            await finish_usage(db, usage, settings, result)
             return parsed
         except (ValidationError, ValueError) as exc:
-            await finish_usage(db, usage, None)
+            info = result.usage if result else None
+            await finish_usage(db, usage, settings, None, usage_info=info)
             raise ApiError(
                 502, "AI_INVALID_RESPONSE", "AI returned invalid practice material"
             ) from exc
-        except BaseException:
+        except BaseException as exc:
             await db.rollback()
-            await finish_usage(db, usage, None)
+            await finish_usage(db, usage, settings, None, state=outcome(exc))
             raise

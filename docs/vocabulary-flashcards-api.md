@@ -142,3 +142,20 @@ Final pre-commit verification: full pytest **297 passed, 15 skipped**; Ruff,
 mypy, SQLite Alembic upgrade/check/head, PostgreSQL offline SQL and staged
 whitespace/artifact/credential checks passed. Personal-word preservation test
 passed through upgrade/downgrade/upgrade. Live PostgreSQL remains NOT VERIFIED.
+
+## Selected sets and browser player — 2026-11-16
+
+POST session creation additionally accepts optional `limit` (integer 1–50,
+default 10) and `wordIds` (1–50 UUIDs, no duplicates). Course source accepts an
+explicit list without courseId/level. Every ID must still be in the published
+course query (including any supplied course/level filters) or in the caller's
+personal query. An unavailable, private, draft or duplicate selection returns
+400 INVALID_WORD_SELECTION; invalid bounds return 422. No session is stored on
+an invalid selection. Explicit order is retained, truncated to limit only after
+validating the entire list. Existing callers keep deterministic ten-card behavior.
+
+`course-words.html` selects a set; `practice.html` studies the owned snapshot,
+completes it and reads `/test-words` before testing. Three recall formats use
+published snapshot text for low-stakes client-side practice. No test XP is
+awarded. Personal answers update existing saved-word review history; course
+scores are shown for the current run only. No new schema migration is needed.

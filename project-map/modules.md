@@ -30,7 +30,7 @@ other modules import that service, not its internals.
 | `gamification`    | 🟢     | daily activity, derived streaks, deterministic achievements                                               | db, config                    |
 | `challenges`      | 🔴     | challenge definitions, participation                                                                      | progress, gamification        |
 | `recommendations` | 🟢     | deterministic analytics in ai/context.py                                                                  | db, progress, vocabulary      |
-| `ai`              | 🟢     | provider, tutor/history, explanation, practice, recommendations, SSE                                      | db, auth, core limits         |
+| `ai`              | 🟢     | provider, tutor/history, explanation, practice, recommendations, SSE, billing.py cost/budget math                                    | db, auth, core limits         |
 | `notifications`   | 🔴     | in-app notification feed                                                                                  | users                         |
 | `subscriptions`   | 🔴     | plans, billing state                                                                                      | users                         |
 | `analytics`       | 🔴     | event recording                                                                                           | —                             |
@@ -313,6 +313,10 @@ public routes remain published-only. PostgreSQL startup remains explicit.
 
 SQLite preparation now publishes only the exact `OWNER_AUTHORIZED_CURRICULUM_SHA` release through `import_curriculum(owner_authorized_sha=...)`. It preserves ordinary draft imports and rejects mismatched/ambiguous publication approvals. All seven catalog courses/50 A0–B2 lessons/500 words become available through standard published-only APIs. Linguistic review is explicitly incomplete.
 
+## Render Free account durability — 2026-11-14
+
+`app/db/storage.py` rejects Render SQLite unless the configured file is beneath an actual /var/data mount. `db/session.py` checks before engine creation; `run.py` reports a safe actionable error. `db/prepare.py` initializes only an empty PostgreSQL schema under an advisory lock/transaction, then reuses the approved catalog loader; existing schemas must be at head and are never auto-upgraded/reset. Settings maps sslmode to asyncpg ssl and hides credentials in validation errors. New storage/PostgreSQL startup tests cover process replacement, schema preservation and rollback.
+
 ## Website-only release — 2026-11-16
 
 `frontend/vocabulary.html` + vocabulary.js own personal word collection and four
@@ -321,3 +325,25 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
 `version.json` and sidebar/footer expose the release. Desktop shell removed;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
+
+`UPDATE-SITE.cmd` requires adjacent `update-website.ps1` and `website.patch`;
+missing files or any nonzero PowerShell exit prevent its success message.
+
+
+## Reference-board web completion — 2026-11-16
+
+`course-words.html`/`js/course-words.js`: curated word collection and set builder.
+`practice.html`/`js/practice.js`: owned cards → completed handoff → recall test
+and run summary. `js/practice-utils.js` shares normalization, choice generation,
+letter eligibility and session metrics. `css/study.css` scopes responsive styling.
+The existing flashcard service accepts bounded selected IDs; validation reuses
+owned/published queries. Team contributor handles were verified through public
+GitHub repository metadata. No desktop or PWA installation was added.
+
+## Exported Figma alignment — web.3
+
+`css/figma-reference.css` applies measured PNG-export layouts across existing web
+routes. Seven Team cards replace role-area stories; `js/auth-controls.js` provides
+password visibility. `letter-tiles.js` adds keyboard/clear controls; `practice.js`
+adds explicit choice confirmation and bounded autoplay. No app installation.
+The separate catalog batch snapshot is described in docs/figma-export-web3.md.

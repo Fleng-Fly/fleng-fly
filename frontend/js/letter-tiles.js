@@ -117,6 +117,23 @@ export function letterTiles(config, savedAnswer, draft, onChange) {
     word.append(slot);
   });
 
+  const clear = el('button', 'study-clear-letters', '↺ Clear Placed Letters');
+  clear.type = 'button';
+  clear.addEventListener('click', () => {
+    assigned.fill(null); selected = null; refresh(); onChange([...assigned]);
+  });
+  field.append(clear);
+  field.addEventListener('keydown', (event) => {
+    if (event.ctrlKey || event.altKey || event.metaKey || [...slots.values()].some((slot) => slot.disabled)) return;
+    if (event.key === 'Backspace') {
+      const filled = [...slots.keys()].filter((index) => assigned[index] !== null);
+      if (filled.length) { event.preventDefault(); assigned[filled.at(-1)] = null; selected = null; refresh(); onChange([...assigned]); }
+    } else if (/^[a-z]$/i.test(event.key)) {
+      const id = letters.findIndex((letter, index) => letter.toLowerCase() === event.key.toLowerCase() && !assigned.includes(index));
+      const index = [...slots.keys()].find((position) => assigned[position] === null);
+      if (id !== -1 && index !== undefined) { event.preventDefault(); place(id, index); }
+    }
+  });
   refresh();
   return { field, readAnswer };
 }

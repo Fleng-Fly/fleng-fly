@@ -8,11 +8,12 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.core.config import Settings, get_settings
+from app.core.config import get_settings
 from app.db.models import AIUsage
 from app.main import app
 from app.modules.ai.provider import OpenRouterProvider
 from app.modules.ai.router import provider_dependency
+from tests.test_ai import ai_settings
 from tests.test_ai import provider as provider
 from tests.test_learning_extensions import headers
 
@@ -66,7 +67,9 @@ async def test_client_cannot_override_server_fields(client, provider, field, val
 async def test_secret_marker_never_reaches_responses_sse_history_or_logs(
     client, caplog, stream, failure
 ):
-    settings = Settings(ai_enabled=True, openrouter_api_key=MARKER, openrouter_model="test/model")
+    settings = ai_settings(
+        ai_enabled=True, openrouter_api_key=MARKER, openrouter_model="test/model"
+    )
 
     def transport(request):
         assert request.headers["Authorization"] == "Bearer " + MARKER
@@ -115,7 +118,7 @@ async def test_secret_marker_never_reaches_responses_sse_history_or_logs(
         else:
             assert response.status_code == (200 if stream else 503)
         status = await client.get("/api/v1/ai/status", headers=auth)
-        assert status.json() == {"available": True, "maxInputChars": 4000}
+        assert status.json() == {"available": True, "maxInputChars": 500}
         assert MARKER not in status.text
     finally:
         app.dependency_overrides.pop(get_settings, None)
@@ -125,7 +128,7 @@ async def test_secret_marker_never_reaches_responses_sse_history_or_logs(
 @pytest.mark.parametrize(
     "limits,expected",
     [
-        ({"ai_daily_requests": 1}, "RATE_LIMITED"),
+        ({"ai_daily_user_limit": 1}, "AI_DAILY_LIMIT"),
         ({"ai_requests_per_minute": 1}, "RATE_LIMITED"),
         ({"ai_daily_token_budget": 1}, "AI_BUDGET_LIMIT"),
         ({"ai_max_input_tokens": 1}, "AI_INPUT_LIMIT"),
@@ -133,8 +136,8 @@ async def test_secret_marker_never_reaches_responses_sse_history_or_logs(
 )
 async def test_server_limits_apply_across_stream_and_nonstream(client, provider, limits, expected):
     auth = await headers(client)
-    app.dependency_overrides[get_settings] = lambda: Settings(**limits)
-    if "ai_daily_requests" in limits or "ai_requests_per_minute" in limits:
+    app.dependency_overrides[get_settings] = lambda: ai_settings(**limits)
+    if "ai_daily_user_limit" in limits or "ai_requests_per_minute" in limits:
         first = await client.post("/api/v1/ai/chat/stream", headers=auth, json={"message": "Hi"})
         assert "event: done" in first.text
     response = await client.post("/api/v1/ai/chat", headers=auth, json={"message": "Hi"})
@@ -146,7 +149,7 @@ async def test_server_limits_apply_across_stream_and_nonstream(client, provider,
 async def test_persistent_leases_block_same_user_and_global_capacity(client, db_session, provider):
     auth = await headers(client)
     other = await headers(client, "ai-capacity@example.com")
-    app.dependency_overrides[get_settings] = lambda: Settings(ai_concurrency=1)
+    app.dependency_overrides[get_settings] = lambda: ai_settings(ai_concurrency=1)
     # Reserve as the first worker, before its stream iterator starts.
     from app.db.models import User
     from app.modules.ai import service
@@ -157,9 +160,9 @@ async def test_persistent_leases_block_same_user_and_global_capacity(client, db_
         select(User).options(selectinload(User.profile)).where(User.email == "learner@example.com")
     )
     _, messages = await service.prepare_chat(
-        db_session, user, ChatRequest(message="Hi"), Settings()
+        db_session, user, ChatRequest(message="Hi"), ai_settings()
     )
-    lease = await service.reserve(db_session, user, Settings(ai_concurrency=1), messages)
+    lease = await service.reserve(db_session, user, ai_settings(ai_concurrency=1), messages)
     for current in (auth, other):
         response = await client.post(
             "/api/v1/ai/chat/stream", headers=current, json={"message": "Hi"}
@@ -167,7 +170,7 @@ async def test_persistent_leases_block_same_user_and_global_capacity(client, db_
         assert response.status_code == 429
         assert response.json()["error"]["code"] == "AI_BUSY"
     assert provider.requests == []
-    await service.finish_usage(db_session, lease, None)
+    await service.finish_usage(db_session, lease, ai_settings(), None)
     response = await client.post("/api/v1/ai/chat/stream", headers=other, json={"message": "Hi"})
     assert "event: done" in response.text
     assert not await db_session.scalar(select(AIUsage.id).where(AIUsage.status == "reserved"))

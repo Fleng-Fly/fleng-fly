@@ -210,3 +210,14 @@ Vocabulary: GET /vocabulary/course-words; POST /vocabulary/flashcards/sessions; 
 ## A0–B2 curriculum — 2026-11-10
 
 GET /courses optionally accepts level=A0…C2; A0 is internal introductory level. Catalog/lesson schemas, profile englishLevel, vocabulary filters and AI generate-exercise schema share LearningLevel. Existing published-only rules and flashcard contracts remain. No new curriculum HTTP write endpoint.
+
+
+Flashcard creation now accepts optional `limit` 1–50 and selected `wordIds`;
+existing defaults are unchanged. The same ownership/publication query validates
+all IDs before snapshot creation. No schema migration or new endpoint.
+
+## Compact course status snapshot — web.3
+
+GET `/courses/{slug}/progress` (bearer): own published-lesson statuses and course
+counts in one HTTP request, using two catalog reads. No mutations. See
+`docs/03-backend/catalog-api.md`. Detailed lesson progress is unchanged.

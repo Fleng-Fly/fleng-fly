@@ -351,3 +351,17 @@ retirement, main A0–B2/navigation preservation, explicit version, cache revali
 and Netlify API proxy. Prepared guarded Windows git updater with a backup branch.
 Blocked externally: GitHub write access; Render service is user-suspended.
 Next: push main, resume Render, deploy both hosts and verify release/login/reviews.
+
+
+## Reference-board web completion — 2026-11-16
+
+Completed locally: curated Course Words, 1–50-word selection, standalone card-to-
+test flow, focus mode, run summary and actual contributor cards. Website only.
+New writes reuse existing vocabulary/session APIs and do not grant test XP.
+Next: publish on the existing GitHub/Render/Netlify workflow and validate live.
+
+## Exported Figma alignment and course snapshot — 2026-11-16
+
+Completed locally: web.3 alignment from the owner's 2x PNG exports, desktop/390px
+browser checks and the separate scoped course-status batch endpoint. No new commits or pushes authorized.
+Completion evidence and remaining visual differences: docs/figma-export-web3.md.

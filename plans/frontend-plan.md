@@ -106,3 +106,16 @@ Implemented latest purple interface, Our Team role areas, personal vocabulary an
 four animated practice modes/results; removed install UI/standalone metadata.
 Main's A0 filter and three lesson tabs preserved. Assets revalidate; footer/sidebar
 show Web 2026.11.16. External publishing and live authenticated QA remain pending.
+
+Publishing launcher correction: fixed PowerShell companion filename, required
+file checks and all-nonzero failure handling. Repackaged the full website;
+Windows execution and user-side GitHub publication remain unverified.
+
+
+## Reference-board web completion — 2026-11-16
+
+Completed: Course Words filters/selection/save and session builder; standalone
+Study & Test card/reveal/focus/sound journey; three recall modes and detailed
+results/mistakes retry; verified contributor cards. Current main database and
+AI budget safeguards retained. Pending: user-side GitHub/hosting publication;
+real-phone, Windows and hardware audio QA remain outside this run.

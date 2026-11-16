@@ -95,8 +95,9 @@ function renderWords() {
   for (const word of words) {
     const row = el('article', 'word-row');
     const copy = el('div', 'word-copy');
-    copy.append(el('h3', undefined, word.word), el('p', undefined, word.translation));
-    if (word.example) copy.append(el('small', undefined, word.example));
+    copy.append(el('h3', undefined, word.word));
+    const translation = el('div', 'word-translation'); translation.append(el('p', undefined, word.translation));
+    if (word.example) translation.append(el('small', undefined, word.example));
     const status = el('span', `word-status${word.learned ? ' is-learned' : ''}`, word.learned ? '✓ Learned' : isDue(word) ? 'Due today' : 'Learning');
     const actions = el('div', 'word-row-actions');
     const toggle = control(word.learned ? 'Keep learning' : 'Mark learned', async () => {
@@ -111,7 +112,7 @@ function renderWords() {
       }
     });
     actions.append(toggle, control('Practise ↗', () => setMode('flashcards', word.id), 'lesson-button lesson-button-primary'));
-    row.append(speakButton(word.word), copy, status, actions);
+    row.append(speakButton(word.word), copy, translation, status, actions);
     target.append(row);
   }
 }
@@ -439,3 +440,5 @@ window.addEventListener('fleng:session-ended', () => {
 });
 window.addEventListener('pageshow', (event) => { if (event.persisted) load(); });
 load();
+
+if (new URLSearchParams(location.search).get('add') === '1') openAddDialog();

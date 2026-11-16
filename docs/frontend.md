@@ -247,3 +247,16 @@ clears private UI, aborts generation and removes the selection for that user;
 ordinary navigation preserves the selection and restores owned backend history.
 Cached-document restoration verifies the session first. Public pages stay unchanged.
 See [AI security audit](ai-security-audit.md) for checks and deployment limits.
+
+
+## Reference-board completion — 2026-11-16
+
+Course Words adds paged API loading, combined level/course/search filters,
+A–Z/Z–A sorting, explicit selection, save-to-My-Words and a 1–50-word session
+builder. Study & Test adds owned persistent card sets, accessible 3D reveal,
+previous/next, sound speed, browser focus view/Escape, gated test handoff,
+choice/write/letter tiles, actual run results and mistakes-only retry. Network
+failure during a personal review does not advance or count an answer.
+Our Team now includes verified repository handles with initials and profile
+links, without invented names/photos/roles. All additions are browser-only.
+See [reference report](reference-web2.md).

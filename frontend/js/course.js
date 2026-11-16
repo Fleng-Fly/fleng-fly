@@ -1,4 +1,4 @@
-import { getCourse, getLessonProgress, getMyProgress } from './api.js';
+import { apiFetch, getCourse } from './api.js';
 import { catalogMessage, courseProgress } from './catalog-ui.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
@@ -10,8 +10,8 @@ let sessionReady = false;
 let loading = false;
 
 function lessonItem(lesson, progress, index) {
-  const complete = progress.completed;
-  const started = Boolean(progress.startedAt);
+  const complete = progress?.status === 'completed';
+  const started = progress?.status === 'in_progress' || complete;
   const item = el('li', `catalog-panel catalog-lesson${complete ? ' is-complete' : ''}`);
   const number = el('span', 'catalog-lesson-number', String(index + 1).padStart(2, '0'));
   number.setAttribute('aria-label', `Lesson ${index + 1}`);
@@ -23,14 +23,14 @@ function lessonItem(lesson, progress, index) {
     el(
       'span',
       `catalog-status${complete ? ' is-complete' : started ? ' is-started' : ''}`,
-      complete ? 'Completed' : started ? 'In Progress' : 'Not Started',
+      !progress ? 'Progress unavailable' : complete ? 'Completed' : started ? 'In Progress' : 'Not Started',
     ),
   );
   copy.append(meta);
   const link = el(
     'a',
     `catalog-button${started && !complete ? '' : ' is-secondary'}`,
-    complete ? 'Review Lesson' : started ? 'Continue Lesson' : 'Start Lesson',
+    !progress ? 'Open Lesson' : complete ? 'Review Lesson' : started ? 'Continue Lesson' : 'Start Lesson',
   );
   link.href = `/lesson.html?slug=${encodeURIComponent(lesson.slug)}`;
   link.setAttribute('aria-label', `${link.textContent}: ${lesson.title}`);
@@ -38,7 +38,7 @@ function lessonItem(lesson, progress, index) {
   return item;
 }
 
-function renderCourse(course, current, lessonsProgress) {
+function renderCourse(course, current, lessonsProgress, progressError) {
   const breadcrumb = el('nav', 'breadcrumb catalog-breadcrumb');
   breadcrumb.setAttribute('aria-label', 'Breadcrumb');
   const back = el('a', undefined, 'Courses');
@@ -53,8 +53,11 @@ function renderCourse(course, current, lessonsProgress) {
     el('span', 'catalog-badge', course.level),
     el('h1', undefined, course.title),
     el('p', 'catalog-description', course.description),
-    courseProgress(current),
+    current ? courseProgress(current) : el('p', 'dashboard-muted', progressError ? 'Course progress is unavailable.' : 'Loading course progress…'),
   );
+  const words = el('a', 'catalog-button is-secondary', 'Explore Course Words ↗');
+  words.href = `/course-words.html?courseId=${encodeURIComponent(course.id)}`;
+  hero.append(words);
   const section = el('section', 'catalog-lessons');
   section.append(el('h2', undefined, 'Lessons'));
   if (!course.lessons.length) {
@@ -64,11 +67,16 @@ function renderCourse(course, current, lessonsProgress) {
   } else {
     const list = el('ol', 'catalog-lesson-list');
     list.append(
-      ...course.lessons.map((lesson, index) => lessonItem(lesson, lessonsProgress[index], index)),
+      ...course.lessons.map((lesson, index) => lessonItem(lesson, lessonsProgress?.get(lesson.slug), index)),
     );
     section.append(list);
   }
-  container.replaceChildren(breadcrumb, hero, section);
+  if (progressError) {
+    const warning = el('div');
+    catalogMessage(warning, 'Could not load progress', describeApiError(progressError), load, 'Retry progress');
+    warning.setAttribute('role', 'alert');
+    container.replaceChildren(breadcrumb, hero, warning, section);
+  } else container.replaceChildren(breadcrumb, hero, section);
   document.title = `${course.title} — Fleng`;
 }
 
@@ -89,13 +97,17 @@ async function load() {
       catalogMessage(container, 'Course not specified', 'Pick a course from the catalog.');
       return;
     }
-    const [course, progress] = await Promise.all([getCourse(slug), getMyProgress()]);
-    const current = progress.courses.find((item) => item.courseId === course.id);
-    if (!current) throw new Error('Course progress is unavailable. Please try again.');
-    const lessonsProgress = await Promise.all(
-      course.lessons.map((lesson) => getLessonProgress(lesson.slug)),
-    );
-    renderCourse(course, current, lessonsProgress);
+    const course = await getCourse(slug);
+    // Show the catalog immediately; progress failures must never erase lessons.
+    renderCourse(course, null);
+    try {
+      const progress = await apiFetch(`/courses/${encodeURIComponent(slug)}/progress`);
+      const bySlug = new Map(progress.lessons.map((lesson) => [lesson.slug, lesson]));
+      renderCourse(course, progress, bySlug);
+    } catch (error) {
+      if (error.status === 401) { window.location.replace('/login.html'); return; }
+      renderCourse(course, null, undefined, error);
+    }
   } catch (error) {
     if (error.status === 401) {
       window.location.replace('/login.html');

@@ -1,0 +1,372 @@
+{
+  "fixture": true,
+  "sizes": [
+    {
+      "name": "team",
+      "width": 1280,
+      "scroll": 1280,
+      "height": 1024
+    },
+    {
+      "name": "dashboard",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1194
+    },
+    {
+      "name": "settings",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1311
+    },
+    {
+      "name": "login",
+      "width": 1280,
+      "scroll": 1280,
+      "height": 1024
+    },
+    {
+      "name": "signup",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1130
+    },
+    {
+      "name": "leaderboard",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1143
+    },
+    {
+      "name": "my-words",
+      "width": 1280,
+      "scroll": 1280,
+      "height": 1024
+    },
+    {
+      "name": "course-words",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1161
+    },
+    {
+      "name": "lesson-theory",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1164
+    },
+    {
+      "name": "lesson-practice",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1181
+    },
+    {
+      "name": "lesson-vocabulary",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1389
+    },
+    {
+      "name": "course",
+      "width": 1280,
+      "scroll": 1280,
+      "height": 1024
+    },
+    {
+      "name": "cards-workspace",
+      "width": 1280,
+      "scroll": 1280,
+      "height": 1024
+    },
+    {
+      "name": "cards-focus",
+      "width": 1280,
+      "scroll": 1280,
+      "height": 1024
+    },
+    {
+      "name": "cards-revealed",
+      "width": 1280,
+      "scroll": 1280,
+      "height": 1024
+    },
+    {
+      "name": "multiple-choice",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1064
+    },
+    {
+      "name": "choice-feedback",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1064
+    },
+    {
+      "name": "summary",
+      "width": 1280,
+      "scroll": 1280,
+      "height": 1024
+    },
+    {
+      "name": "missing-letters",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1112
+    },
+    {
+      "name": "write-word",
+      "width": 1280,
+      "scroll": 1265,
+      "height": 1064
+    },
+    {
+      "name": "team-390",
+      "width": 390,
+      "scroll": 375,
+      "height": 1282
+    },
+    {
+      "name": "dashboard-390",
+      "width": 390,
+      "scroll": 389,
+      "height": 2052
+    },
+    {
+      "name": "settings-390",
+      "width": 390,
+      "scroll": 375,
+      "height": 1623
+    },
+    {
+      "name": "login-390",
+      "width": 390,
+      "scroll": 390,
+      "height": 1024
+    },
+    {
+      "name": "course-words-390",
+      "width": 390,
+      "scroll": 375,
+      "height": 1580
+    },
+    {
+      "name": "cards-390",
+      "width": 390,
+      "scroll": 390,
+      "height": 1024
+    }
+  ],
+  "requests": [
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/progress/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/streaks/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/stats",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/leaderboard",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/courses",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/course-words",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/lessons/review-lesson",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/lessons/review-lesson/progress",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/lessons/review-lesson",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/lessons/review-lesson/progress",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/lessons/review-lesson",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/lessons/review-lesson/progress",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/courses/review-course",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/courses/review-course/progress",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/flashcards/sessions/review-session",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/flashcards/sessions/review-session/complete",
+      "method": "POST"
+    },
+    {
+      "path": "/api/v1/vocabulary/flashcards/sessions/review-session/test-words",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/flashcards/sessions/review-session",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/flashcards/sessions/review-session/test-words",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/flashcards/sessions/review-session",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/flashcards/sessions/review-session/test-words",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/progress/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/streaks/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/stats",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/courses",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/course-words",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/users/me",
+      "method": "GET"
+    },
+    {
+      "path": "/api/v1/vocabulary/flashcards/sessions/review-session",
+      "method": "GET"
+    }
+  ],
+  "errors": []
+}

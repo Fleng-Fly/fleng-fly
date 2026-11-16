@@ -48,11 +48,26 @@ async def create(db: AsyncSession, user_id: UUID, payload: FlashcardCreate) -> F
             .where(VocabularyItem.user_id == user_id)
             .order_by(VocabularyItem.created_at, VocabularyItem.id)
         )
+        word_id_column = VocabularyItem.id
     else:
-        if payload.course_id is None and payload.level is None:
+        if payload.course_id is None and payload.level is None and payload.word_ids is None:
             raise ApiError(400, "MISSING_COURSE_FILTER", "Provide courseId or level")
         query = await course_query(db, payload.course_id, payload.level)
-    words = (await db.scalars(query.limit(10))).all()
+        word_id_column = CourseVocabularyItem.id
+    if payload.word_ids is not None:
+        requested = set(payload.word_ids)
+        if len(requested) != len(payload.word_ids):
+            raise ApiError(400, "INVALID_WORD_SELECTION", "Select each word only once")
+        matched = (
+            await db.scalars(query.where(word_id_column.in_(requested)).limit(50))
+        ).all()
+        if len(matched) != len(requested):
+            raise ApiError(400, "INVALID_WORD_SELECTION", "Some selected words are unavailable")
+        # Preserve the caller's chosen order only after ownership/publication checks.
+        by_id = {word.id: word for word in matched}
+        words = [by_id[word_id] for word_id in payload.word_ids[: payload.limit]]
+    else:
+        words = list((await db.scalars(query.limit(payload.limit))).all())
     session = FlashcardSession(
         user_id=user_id,
         source=payload.source,

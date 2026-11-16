@@ -46,10 +46,9 @@ Figma screenshot comparison is pending; Login/Sign Up is the next UI phase.
 
 ## Known limitations / not yet verified
 
-- **PostgreSQL runtime is unverified in this environment** (no Docker/PostgreSQL
-  available). Migrations are verified offline with `pnpm db:sql`; applying them
-  to a real PostgreSQL instance and running DB integration tests remain tasks in
-  `plans/testing-plan.md`.
+- **Hosted PostgreSQL remains unverified.** Disposable local PostgreSQL is now
+  available for runtime checks; see the Render Free durability follow-up below.
+  Hosted TLS, sleep/wake and recovery still require provider setup.
 - Auth tests use in-memory SQLite, not PostgreSQL.
 - Settings profile/email editing and password changes are implemented. Email
   verification and broader authentication follow-ups remain separate work.
@@ -119,6 +118,7 @@ is NOT VERIFIED; verification results are in `docs/backend-stabilization-report.
   incremental UTF-8 SSE, safe text rendering, minimize/close lifecycle.
 - **Completed:** authenticated readiness API, published lesson/exercise context,
   request-ID deduplication on existing AIUsage (migration `20261101_1200`).
+  UTC-day AI quotas and global USD budget on AIUsage (migration `20261116_1200`, `docs/ai.md`).
 - **Completed:** mocked backend/parser regression checks, dev-server SQLite smoke,
   independent self-review; docs and project map updated.
 - **Next / unverified:** actual browser QA at 360/768/desktop, virtual keyboards,
@@ -216,3 +216,7 @@ and persistent hosting storage remain external; no push/deploy performed here.
 ## Owner-authorized A0–B2 publication — 2026-11-14
 
 Completed: owner authorized all five A0–B2 courses for public release. SHA-pinned SQLite startup publication makes all seven courses visible; private draft import remains available. Linguistic review is not marked complete; hosted deployment remains owner action.
+
+## Render Free account durability — 2026-11-14
+
+In progress: fix account loss after Render Free sleep by requiring external durable storage. Local implementation complete: SQLite 419 passed / 22 skipped, PostgreSQL 440 passed / 1 non-applicable platform skip, strict JUnit gate passed; provider connection and hosted sleep/wake verification require owner setup. No paid resources, private database commits or automatic push.

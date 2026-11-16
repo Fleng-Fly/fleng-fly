@@ -14,6 +14,13 @@ from app.modules.ai.provider import Completion
 from app.modules.ai.router import provider_dependency
 from tests.test_learning_extensions import headers
 
+# Tests use a declared tariff: unpriced models are refused before any provider call.
+PRICED = {"ai_input_price_per_mtok_usd": "0.15", "ai_output_price_per_mtok_usd": "0.60"}
+
+
+def ai_settings(**kwargs) -> Settings:
+    return Settings(**{**PRICED, **kwargs})
+
 
 class FakeProvider:
     def __init__(self):
@@ -40,7 +47,7 @@ class FakeProvider:
 def provider():
     fake = FakeProvider()
     app.dependency_overrides[provider_dependency] = lambda: fake
-    app.dependency_overrides[get_settings] = lambda: Settings(
+    app.dependency_overrides[get_settings] = lambda: ai_settings(
         ai_enabled=True, openrouter_api_key="test", openrouter_model="test/model"
     )
     yield fake
@@ -217,8 +224,8 @@ async def test_stream_completed_and_failed_persistence(client, db_session, provi
 
 async def test_ai_limits_and_recommendation_fallback(client, provider):
     auth = await headers(client)
-    app.dependency_overrides[get_settings] = lambda: Settings(
-        ai_requests_per_minute=1, ai_max_input_chars=8
+    app.dependency_overrides[get_settings] = lambda: ai_settings(
+        ai_requests_per_minute=1, ai_max_message_length=8
     )
     assert (
         await client.post("/api/v1/ai/chat", headers=auth, json={"message": "far too long"})
@@ -235,12 +242,12 @@ async def test_ai_limits_and_recommendation_fallback(client, provider):
 
 async def test_ai_budget_and_active_request(client, db_session, provider):
     auth = await headers(client)
-    app.dependency_overrides[get_settings] = lambda: Settings(ai_daily_token_budget=1)
+    app.dependency_overrides[get_settings] = lambda: ai_settings(ai_daily_token_budget=1)
     assert (
         await client.post("/api/v1/ai/chat", headers=auth, json={"message": "Hi"})
     ).status_code == 429
     assert provider.requests == []
-    app.dependency_overrides[get_settings] = lambda: Settings()
+    app.dependency_overrides[get_settings] = lambda: ai_settings()
     user = await db_session.scalar(select(User))
     db_session.add(
         AIUsage(user_id=user.id, model="test/model", status="reserved", reserved_tokens=100)
@@ -252,7 +259,7 @@ async def test_ai_budget_and_active_request(client, db_session, provider):
 
 
 async def test_capacity_cleanup():
-    settings = Settings(ai_concurrency=1)
+    settings = ai_settings(ai_concurrency=1)
     async with service.capacity(settings):
         with pytest.raises(ApiError):
             async with service.capacity(settings):
@@ -288,7 +295,7 @@ async def test_stream_client_disconnect_closes_provider(db_session):
         request=Disconnect(),
         user=user,
         db=db_session,
-        settings=Settings(),
+        settings=ai_settings(),
         provider=DisconnectProvider(),
     )
     chunks = [chunk async for chunk in response.body_iterator]
@@ -303,7 +310,7 @@ async def test_history_limit_and_deterministic_recommendations(client, db_sessio
 
     auth = await headers(client)
     await seed_catalog(db_session)
-    app.dependency_overrides[get_settings] = lambda: Settings(ai_messages_per_conversation=2)
+    app.dependency_overrides[get_settings] = lambda: ai_settings(ai_messages_per_conversation=2)
     created = await client.post("/api/v1/ai/chat", headers=auth, json={"message": "Hi"})
     cid = created.json()["conversationId"]
     response = await client.post(
@@ -321,11 +328,11 @@ async def test_history_limit_and_deterministic_recommendations(client, db_sessio
 @pytest.mark.parametrize("enabled,key", [(False, ""), (True, "")])
 async def test_unavailable_status_and_chat(client, enabled, key):
     auth = await headers(client)
-    app.dependency_overrides[get_settings] = lambda: Settings(
+    app.dependency_overrides[get_settings] = lambda: ai_settings(
         ai_enabled=enabled, openrouter_api_key=key, openrouter_model="test/model"
     )
     status = await client.get("/api/v1/ai/status", headers=auth)
-    assert status.json() == {"available": False, "maxInputChars": 4000}
+    assert status.json() == {"available": False, "maxInputChars": 500}
     for path in ["chat", "chat/stream"]:
         response = await client.post(f"/api/v1/ai/{path}", headers=auth, json={"message": "Hi"})
         assert response.status_code == 503
@@ -470,7 +477,7 @@ async def test_cancelled_stream_closes_provider_and_releases_lease(db_session):
         request=Connected(),
         user=user,
         db=db_session,
-        settings=Settings(),
+        settings=ai_settings(),
         provider=WaitingProvider(),
     )
 

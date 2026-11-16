@@ -31,7 +31,7 @@ function setProfile(user) {
   setWorkspaceUser(user);
   $('dashboard-level').textContent = `Level ${user.level} · ${user.xp} XP`;
   $('welcome-message').textContent =
-    `Good to see you, ${name}. Make a little progress today and keep your momentum going.`;
+    `Continue your English learning journey and reach new heights, ${name}!`;
 }
 
 function animateFill(node, property, value) {
@@ -95,18 +95,10 @@ function renderProgress(progressResult, streakResult, wordsResult) {
     el('span', undefined, 'completed'),
   );
   ring.append(svg, center);
-  target.append(
-    ring,
-    el(
-      'p',
-      'ring-description',
-      total
-        ? `${completed} of ${total} published lessons completed`
-        : progress
-          ? 'No published lessons yet'
-          : 'Progress unavailable',
-    ),
-  );
+  const ringDescription = el('div', 'ring-description');
+  ringDescription.append(el('span', undefined, 'Completed lessons'), el('strong', undefined, total ? `${completed} / ${total}` : '—'));
+  if (!total) ringDescription.append(el('small', undefined, progress ? 'No published lessons yet' : 'Progress unavailable'));
+  const progressOverview = el('div', 'progress-overview'); progressOverview.append(ring, ringDescription); target.append(progressOverview);
   if (percent !== null)
     animateFill(
       svg.querySelector('.ring-fill'),
@@ -116,7 +108,6 @@ function renderProgress(progressResult, streakResult, wordsResult) {
 
   const stats = el('div', 'metrics');
   stats.append(
-    metric('Completed lessons', progress ? progress.lessonsCompleted : '—'),
     metric(
       'Words learned',
       wordsResult.status === 'fulfilled' ? wordsResult.value.wordsLearned : '—',
@@ -132,7 +123,6 @@ function renderProgress(progressResult, streakResult, wordsResult) {
       progress ? `${progress.studyMinutes} min` : '—',
       'Estimated lesson time',
     ),
-    metric('XP earned', progress ? progress.xp : '—'),
   );
   target.append(stats);
   if (!progress) target.append(button('Retry progress', loadDashboardData));

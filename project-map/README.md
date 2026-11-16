@@ -1,10 +1,5 @@
 # Project Map
 
-Migration repair (2026-11-16): the canonical Alembic chain ends at
-`20261114_1200`. Removed the obsolete desktop letter-tiles file with duplicate
-ID `20261110_1200`; legacy database compatibility remains in the current
-letter-tiles migration. See [migration documentation](../docs/05-database/migrations.md).
-
 Living map of the Fleng repository. It must stay close to reality:
 when a module, flow, API or dependency changes, update the relevant file here
 **in the same commit** (`AGENTS.md` rule 5).

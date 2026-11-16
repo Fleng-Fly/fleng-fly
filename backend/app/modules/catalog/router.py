@@ -1,18 +1,21 @@
-"""Catalog HTTP endpoints (public, read-only).
+"""Read-only catalog and authenticated own course-status endpoints.
 
 Missing and unpublished resources both return the same `404 NOT_FOUND` so the
 API never reveals the existence of draft content.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_user
 from app.core.errors import ApiError
 from app.core.levels import LearningLevel
+from app.db.models import User
 from app.db.session import get_db
 from app.modules.catalog import service
 from app.modules.catalog.schemas import (
     CourseDetailResponse,
+    CourseLessonProgressResponse,
     CourseSummaryResponse,
     LessonDetailResponse,
 )
@@ -51,3 +54,18 @@ async def get_lesson(slug: str, db: AsyncSession = Depends(get_db)) -> LessonDet
     lesson, course = result
     exercises = await exercises_service.list_public_exercises(db, lesson.id)
     return service.to_lesson_detail(lesson, course, exercises)
+
+
+@router.get("/courses/{slug}/progress", response_model=CourseLessonProgressResponse)
+async def get_course_progress(
+    slug: str,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> CourseLessonProgressResponse:
+    """Return all published lesson statuses for the authenticated learner only."""
+    response.headers["Cache-Control"] = "private, no-store"
+    result = await service.get_course_lesson_progress(db, slug, current_user.id)
+    if result is None:
+        raise _not_found("Course not found")
+    return result

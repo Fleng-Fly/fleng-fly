@@ -1,43 +1,22 @@
 {
-  "name": "fleng",
-  "version": "0.1.1",
-  "private": true,
-  "description": "Fleng \u2014 a web platform for learning English.",
-  "packageManager": "pnpm@12.9.1",
-  "engines": {
-    "node": ">=20"
+  "release": "2026.11.16-web.3",
+  "type": "website",
+  "sourceHead": "6f2abb321e5993be43fa026738709f616a3493dc",
+  "preparedTree": "bab5241f9a2a7be2948c685ab6835cf94289844a",
+  "patchBase": "ba6a4ec321d8eeda71d91470a54ab311b00fc789",
+  "committed": false,
+  "pushed": false,
+  "deployed": false,
+  "backendBranch": "feat/course-progress-batch",
+  "reviewBranch": "review/fleng-web3",
+  "checks": {
+    "backend": 88,
+    "frontend": 49,
+    "ruff": "passed",
+    "mypy": "82 source files passed",
+    "docs": "43 operations, 50 schemas passed",
+    "diffCheck": "passed"
   },
-  "scripts": {
-    "setup": "node scripts/setup.mjs",
-    "dev": "node scripts/dev.mjs",
-    "demo": "node scripts/demo.mjs",
-    "lint": "pnpm backend:lint",
-    "typecheck": "pnpm backend:typecheck",
-    "test": "pnpm backend:test",
-    "format": "prettier --write . && pnpm backend:format",
-    "format:check": "prettier --check .",
-    "backend:dev": "node scripts/dev.mjs",
-    "backend:lint": "node scripts/backend.mjs ruff check app tests",
-    "backend:format": "node scripts/backend.mjs ruff format app tests",
-    "backend:typecheck": "node scripts/backend.mjs mypy app",
-    "backend:test": "node scripts/backend.mjs pytest",
-    "db:migrate": "node scripts/backend.mjs alembic upgrade head",
-    "db:prepare": "node scripts/backend.mjs app.db.prepare",
-    "db:sql": "node scripts/backend.mjs alembic upgrade head --sql",
-    "db:seed": "node scripts/backend.mjs app.db.seed",
-    "demo:prepare": "node scripts/backend.mjs app.db.prepare && node scripts/backend.mjs app.db.demo",
-    "test:pwa": "node scripts/test-pwa.mjs && node scripts/test-pwa-install.mjs",
-    "db:verify": "node scripts/backend.mjs pytest -q tests/test_database_pipeline.py tests/test_postgres_migrations.py",
-    "db:backup": "node scripts/backend.mjs app.db.backup",
-    "curriculum:validate": "node scripts/backend.mjs app.db.curriculum --validate-only",
-    "curriculum:import-drafts": "node scripts/backend.mjs app.db.curriculum --apply-draft",
-    "curriculum:preview:prepare": "backend/.venv/bin/python scripts/preview_curriculum.py prepare",
-    "curriculum:preview": "backend/.venv/bin/python scripts/preview_curriculum.py start",
-    "frontend:test": "node --experimental-vm-modules --test scripts/test-courses.mjs scripts/test-ai-api.mjs scripts/test-ai-stream.mjs scripts/test-ai-widget.mjs scripts/test-vocabulary.mjs",
-    "db:transfer": "node scripts/backend.mjs app.db.transfer",
-    "docs:check": "backend/.venv/bin/python scripts/check-docs.py --contracts"
-  },
-  "devDependencies": {
-    "prettier": "^3.4.2"
-  }
+  "browser": "isolated synthetic fixture; desktop and 390px iframe; no real login",
+  "reference": "owner Untitled (1).zip PNG exports"
 }

@@ -1,0 +1,59 @@
+{
+  "origin": "http://127.0.0.1:3011",
+  "curriculum_sha": "27ab5cdc8cdadbfc85353cea58fc2584459c130aea460cf391a2e5d67b108013",
+  "checks": {
+    "authentication_required": true,
+    "catalog_courses": 7,
+    "draft_courses": 5,
+    "draft_lessons": 50,
+    "draft_words": 500,
+    "draft_exercises": 400,
+    "grader_accepted_and_rejected_probes": true,
+    "drafts_still_unpublished": true,
+    "preview_reviewer_xp": 0,
+    "preview_reviewer_lessons_started": 0,
+    "main_default_database_exists": false
+  },
+  "courses": [
+    {
+      "slug": "fleng-a0",
+      "lessons": 10,
+      "words": 100,
+      "exercises": 80,
+      "theory_matches_source": true,
+      "ukrainian_matches_source": true
+    },
+    {
+      "slug": "fleng-a1",
+      "lessons": 10,
+      "words": 100,
+      "exercises": 80,
+      "theory_matches_source": true,
+      "ukrainian_matches_source": true
+    },
+    {
+      "slug": "fleng-a2",
+      "lessons": 10,
+      "words": 100,
+      "exercises": 80,
+      "theory_matches_source": true,
+      "ukrainian_matches_source": true
+    },
+    {
+      "slug": "fleng-b1",
+      "lessons": 10,
+      "words": 100,
+      "exercises": 80,
+      "theory_matches_source": true,
+      "ukrainian_matches_source": true
+    },
+    {
+      "slug": "fleng-b2",
+      "lessons": 10,
+      "words": 100,
+      "exercises": 80,
+      "theory_matches_source": true,
+      "ukrainian_matches_source": true
+    }
+  ]
+}

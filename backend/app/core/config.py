@@ -4,6 +4,7 @@ Values come from environment variables and an optional `.env` file at the
 repository root. No `os.environ` reads live in feature modules.
 """
 
+from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -23,6 +24,7 @@ class Settings(BaseSettings):
         env_file=(BACKEND_ROOT / ".env", BACKEND_ROOT.parent / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
+        hide_input_in_errors=True,
     )
 
     app_env: str = "development"
@@ -74,16 +76,29 @@ class Settings(BaseSettings):
     ai_max_output_tokens: int = Field(default=800, ge=1, le=8192)
     ai_max_input_tokens: int = Field(default=24000, ge=1, le=128000)
     ai_request_timeout: float = Field(default=30, gt=0, le=300)
-    ai_max_input_chars: int = Field(default=4000, ge=1, le=16000)
+    # Longest learner-authored text accepted per request (chat message, explain answer).
+    ai_max_message_length: int = Field(default=500, ge=1, le=16000)
     ai_max_response_chars: int = Field(default=16000, ge=1, le=64000)
     ai_history_messages: int = Field(default=20, ge=2, le=100)
     ai_history_chars: int = Field(default=16000, ge=1, le=100000)
     ai_messages_per_conversation: int = Field(default=200, ge=2, le=1000)
     ai_conversations_per_user: int = Field(default=50, ge=1, le=500)
     ai_requests_per_minute: int = Field(default=10, ge=1)
-    ai_daily_requests: int = Field(default=100, ge=1)
-    ai_daily_token_budget: int = Field(default=100000, ge=1)
+    # Requests per learner per UTC day, counted from persistent ai_usage rows.
+    ai_daily_user_limit: int = Field(default=30, ge=1)
+    # Per-learner reservation cap. Default = 30 requests x (24000 input + 800 output)
+    # so it never pre-empts AI_DAILY_USER_LIMIT; the USD budget is the spend bound.
+    ai_daily_token_budget: int = Field(default=750000, ge=1)
+    # Global (all workers) in-flight provider requests, and the per-learner bound.
     ai_concurrency: int = Field(default=4, ge=1, le=100)
+    ai_max_concurrent_requests: int = Field(default=1, ge=1, le=10)
+    # Global provider spend per UTC day, shared by every process via the database.
+    ai_daily_budget_usd: Decimal = Field(default=Decimal("1.00"), ge=0, le=100000)
+    # Known OpenRouter tariff of OPENROUTER_MODEL in USD per million tokens. They are
+    # sent as provider.max_price and used for worst-case reservations. Unset prices
+    # keep AI unavailable: an unknown price is never treated as free.
+    ai_input_price_per_mtok_usd: Decimal | None = Field(default=None, ge=0, le=10000)
+    ai_output_price_per_mtok_usd: Decimal | None = Field(default=None, ge=0, le=10000)
 
     @field_validator("render_external_url")
     @classmethod
@@ -156,12 +171,19 @@ class Settings(BaseSettings):
                 path = BACKEND_ROOT / path
             url = url.set(database=path.resolve().as_posix())
             return url.set(drivername="sqlite+aiosqlite").render_as_string(hide_password=False)
-        if value.startswith("postgresql+asyncpg://"):
-            return value
-        if value.startswith("postgresql://"):
-            return value.replace("postgresql://", "postgresql+asyncpg://", 1)
-        if value.startswith("postgres://"):
-            return value.replace("postgres://", "postgresql+asyncpg://", 1)
+        if value.startswith(("postgres://", "postgresql://", "postgresql+asyncpg://")):
+            url = make_url(value).set(drivername="postgresql+asyncpg")
+            query = dict(url.query)
+            if "sslmode" in query:
+                if "ssl" in query:
+                    raise ValueError("Use ssl or sslmode in DATABASE_URL, not both")
+                query["ssl"] = query.pop("sslmode")
+            if "channel_binding" in query:
+                raise ValueError(
+                    "Use the provider's asyncpg connection string with ssl=require; "
+                    "asyncpg does not support libpq channel_binding parameters"
+                )
+            return url.set(query=query).render_as_string(hide_password=False)
         return value
 
     @model_validator(mode="after")

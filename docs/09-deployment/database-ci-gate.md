@@ -33,15 +33,18 @@ PostgreSQL cases are accepted by the JUnit gate.
    neutral/skipped GitHub checks as passing, so the always-running aggregator is
    needed. Verify a deliberately failing PR/check prevents a deploy before relying
    on the gate. Manual deploys remain an operator-controlled bypass.
-4. Retain current production DATABASE_URL. Plan a durable paid PostgreSQL service
-   with recovery retention, TLS and a tested restore; switching the URL and moving
+4. Preserve existing data before changing production DATABASE_URL. Choose durable
+   PostgreSQL with TLS and a tested backup/restore procedure; Render Free needs
+   an external provider ([setup](render-free-persistence.md)). Switching the URL and moving
    data require [separate release approval](../05-database/persistence-and-recovery.md).
-5. If SQLite is retained temporarily, attach a persistent disk and use an absolute
+5. On a paid Render instance, if SQLite is retained, attach a persistent disk and use an absolute
    path within its mount (e.g. `/var/data/fleng.db`), one instance and off-host online
    backups. Move existing data only in a separately approved maintenance procedure.
    Do not change the URL to a new empty file and assume the users were transferred.
-6. PostgreSQL migrations are a reviewed explicit release operation before startup;
-   do not attach seed/import/reset/downgrade commands to deploy. Keep secrets in
+6. Existing PostgreSQL schema upgrades are a reviewed explicit release operation.
+   The launcher initializes a completely empty schema and its approved catalog
+   atomically; it refuses outdated/unknown occupied schemas. Do not attach reset
+   or downgrade commands to deploy. Keep secrets in
    Render's private environment. Preserve exact CORS, cookie and trusted-proxy settings.
 
 Render documents the [CI deployment gate](https://render.com/docs/deploys),
@@ -52,3 +55,9 @@ plan, retention, storage and restore evidence must be confirmed by the operator.
 Netlify's existing static deployment and API routing remain unchanged. Configure
 its deploy/branch policy separately if coordinated frontend/backend releases are
 needed. This backend CI change does not establish a Netlify deployment gate.
+
+The durability release additionally requires real PostgreSQL startup/account
+replacement and atomic-bootstrap rollback evidence. Only the exact non-POSIX
+platform guard is exempted on POSIX, identified by testcase name/class/reason;
+missing or skipped mandatory PostgreSQL cases still fail the aggregate. This
+avoids treating a test that cannot apply to Ubuntu as a skipped database check.

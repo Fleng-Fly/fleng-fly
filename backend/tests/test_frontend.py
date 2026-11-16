@@ -30,6 +30,8 @@ async def test_app_pages_are_served(client: AsyncClient) -> None:
         "/lesson.html",
         "/vocabulary.html",
         "/team.html",
+        "/course-words.html",
+        "/practice.html",
     ):
         response = await client.get(path)
         assert response.status_code == 200, path
@@ -88,4 +90,4 @@ async def test_website_assets_revalidate_conditional_requests(client: AsyncClien
         assert cached.status_code == 304, path
         assert cached.headers["cache-control"] == "no-cache", path
     release = await client.get("/version.json")
-    assert release.json()["version"] == "2026.11.16-web"
+    assert release.json()["version"] == "2026.11.16-web.3"

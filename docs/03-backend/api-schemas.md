@@ -460,6 +460,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Options"
+    },
+    "letterTiles": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/LetterTilesResponse"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "type": "object",
@@ -647,6 +657,30 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Level"
+    },
+    "limit": {
+      "type": "integer",
+      "maximum": 50.0,
+      "minimum": 1.0,
+      "title": "Limit",
+      "default": 10
+    },
+    "wordIds": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": "array",
+          "maxItems": 50,
+          "minItems": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Wordids"
     }
   },
   "additionalProperties": false,
@@ -969,6 +1003,32 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "total"
   ],
   "title": "LeaderboardResponse"
+}
+```
+
+## LetterTilesResponse
+
+```json
+{
+  "properties": {
+    "pattern": {
+      "type": "string",
+      "title": "Pattern"
+    },
+    "letters": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "title": "Letters"
+    }
+  },
+  "type": "object",
+  "required": [
+    "pattern",
+    "letters"
+  ],
+  "title": "LetterTilesResponse"
 }
 ```
 
@@ -2109,3 +2169,81 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 ```
 
 [Backend index](README.md)
+
+## CourseLessonProgressResponse
+
+```json
+{
+  "properties": {
+    "courseId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Courseid"
+    },
+    "lessonsTotal": {
+      "type": "integer",
+      "title": "Lessonstotal"
+    },
+    "lessonsStarted": {
+      "type": "integer",
+      "title": "Lessonsstarted"
+    },
+    "lessonsCompleted": {
+      "type": "integer",
+      "title": "Lessonscompleted"
+    },
+    "lessons": {
+      "items": {
+        "$ref": "#/components/schemas/CourseLessonStatusResponse"
+      },
+      "type": "array",
+      "title": "Lessons"
+    }
+  },
+  "type": "object",
+  "required": [
+    "courseId",
+    "lessonsTotal",
+    "lessonsStarted",
+    "lessonsCompleted",
+    "lessons"
+  ],
+  "title": "CourseLessonProgressResponse",
+  "description": "One read-only snapshot for a course; no exercise answers or account fields."
+}
+```
+
+## CourseLessonStatusResponse
+
+```json
+{
+  "properties": {
+    "lessonId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Lessonid"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "completed"
+      ],
+      "title": "Status"
+    }
+  },
+  "type": "object",
+  "required": [
+    "lessonId",
+    "slug",
+    "status"
+  ],
+  "title": "CourseLessonStatusResponse",
+  "description": "Compact status for one published lesson, scoped to the current learner."
+}
+```

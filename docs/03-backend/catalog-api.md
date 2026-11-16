@@ -74,3 +74,23 @@ Synthetic response shape (not a seeded/live result):
 ```
 
 [Backend index](README.md) · [Schema reference](api-schemas.md)
+
+## `GET /api/v1/courses/{slug}/progress`
+
+Authenticated own-user snapshot for all published lessons of one published course.
+Slug is a required path string. There is no caller-selected userId, no body and
+no exercise/submission payload. Uses two catalog queries independently of lesson
+count, plus the existing authentication reads. It never writes progress or XP.
+
+Response 200: CourseLessonProgressResponse; courseId, lessonsTotal,
+lessonsStarted (includes completed), lessonsCompleted and lessons in catalog
+order (lessonId, slug, status). Status is not_started, in_progress or completed.
+Empty courses return zero totals and an empty list. Own missing rows are
+not_started, including when a different user has completed the same lesson.
+Cache-Control: private, no-store. Missing/invalid bearer identity returns 401;
+missing/draft courses return the same 404 NOT_FOUND. Unpublished lessons are
+excluded. The existing detailed lesson-progress endpoint is unchanged.
+
+The course page makes one status request, renders lessons before that request
+finishes, and retains all lesson links on progress failure. Unknown status is
+shown as unavailable; it is never presented as zero progress or Not Started.

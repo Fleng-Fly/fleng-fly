@@ -8,27 +8,24 @@
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/dashboard.css" />
   <link rel="stylesheet" href="/css/fleng-theme.css" />
-  <link rel="stylesheet" href="/css/team.css" />
   <link rel="stylesheet" href="/css/motion.css" />
   <script defer src="/js/pwa.js"></script>
+  <link rel="stylesheet" href="/css/figma-reference.css" />
 </head>
 <body class="dashboard-page team-page">
   <main class="dashboard-main">
     <section id="team-error" class="dashboard-alert" role="alert" hidden><span id="team-error-text"></span> <button id="team-retry" class="dashboard-text-button" type="button">Try again</button></section>
     <div id="team-content" hidden>
-      <section class="team-hero" aria-labelledby="team-title">
-        <div class="team-hero-copy"><p class="dashboard-eyebrow">THE IDEA BEHIND FLENG</p><h1 id="team-title">Our Team<span aria-hidden="true">✦</span></h1><p>Different skills. One shared goal.<br />Make English part of your everyday life.</p><a class="dashboard-cta" href="/courses.html">Explore your next lesson ↗</a></div>
-        <div class="team-orbit" aria-hidden="true"><span class="team-orbit-ring"></span><span class="team-orbit-ring team-orbit-ring-two"></span><span class="team-orbit-core">F</span><span class="team-orbit-star star-one">✦</span><span class="team-orbit-star star-two">✦</span><span class="team-orbit-star star-three">✧</span></div>
+      <header class="team-reference-heading"><p class="dashboard-eyebrow">AUTHORS</p><h1 id="team-title">Our <span>Team</span></h1><p>Meet the people who create, develop and make FLENG better<br class="desktop-break" /> for you!</p></header>
+      <section class="team-members" aria-labelledby="team-title">
+        <article class="team-member"><div class="member-avatar member-avatar-0" aria-hidden="true"><span></span></div><h2>Slavina</h2><p class="member-role"><svg aria-hidden="true"><use href="/assets/figma/icons.svg#pen" /></svg>UI/UX Designer</p></article>
+        <article class="team-member"><div class="member-avatar member-avatar-1" aria-hidden="true"><span></span></div><h2>David</h2><p class="member-role"><svg aria-hidden="true"><use href="/assets/figma/icons.svg#code" /></svg>Full Stack Dev</p></article>
+        <article class="team-member"><div class="member-avatar member-avatar-2" aria-hidden="true"><span></span></div><h2>Sasha</h2><p class="member-role"><svg aria-hidden="true"><use href="/assets/figma/icons.svg#screen" /></svg>Frontend Developer</p></article>
+        <article class="team-member"><div class="member-avatar member-avatar-3" aria-hidden="true"><span></span></div><h2>Pavlo</h2><p class="member-role"><svg aria-hidden="true"><use href="/assets/figma/icons.svg#shield" /></svg>Q&A</p></article>
+        <article class="team-member"><div class="member-avatar member-avatar-4" aria-hidden="true"><span></span></div><h2>Hlib</h2><p class="member-role"><svg aria-hidden="true"><use href="/assets/figma/icons.svg#shield" /></svg>Q&A</p></article>
+        <article class="team-member"><div class="member-avatar member-avatar-5" aria-hidden="true"><span></span></div><h2>Max</h2><p class="member-role"><svg aria-hidden="true"><use href="/assets/figma/icons.svg#cap" /></svg>Mentor</p></article>
+        <article class="team-member"><div class="member-avatar member-avatar-6" aria-hidden="true"><span></span></div><h2>Anastasiia</h2><p class="member-role"><svg aria-hidden="true"><use href="/assets/figma/icons.svg#case" /></svg>Project Manager</p></article>
       </section>
-      <div class="section-heading team-section-heading"><div><p class="dashboard-eyebrow">WHAT COMES TOGETHER IN FLENG</p><h2>Four parts of a better learning experience</h2></div><span class="team-label">LEARN · BUILD · REFINE</span></div>
-      <section class="team-grid" aria-label="Areas of work">
-        <article class="team-card"><span class="team-card-number">01</span><div class="team-avatar team-avatar-content" aria-hidden="true">Aa<span>✦</span></div><h3>Learning &amp; content</h3><p class="team-role">THE WORDS THAT MATTER</p><p>Clear explanations, useful vocabulary and practice that brings English into real situations.</p><a href="/courses.html">Discover the lessons <span aria-hidden="true">↗</span></a></article>
-        <article class="team-card"><span class="team-card-number">02</span><div class="team-avatar team-avatar-code" aria-hidden="true">&lt;/&gt;<span>✦</span></div><h3>Development</h3><p class="team-role">THE ENGINE BEHIND IT</p><p>Connecting lessons, accounts and saved progress into one comfortable learning space.</p><a href="/dashboard.html">Your workspace <span aria-hidden="true">↗</span></a></article>
-        <article class="team-card"><span class="team-card-number">03</span><div class="team-avatar team-avatar-design" aria-hidden="true">✧<span>✦</span></div><h3>Design &amp; experience</h3><p class="team-role">SMALL DETAILS, BIG DIFFERENCE</p><p>A focused purple world with readable cards, thoughtful interactions and room to keep learning.</p><a href="/vocabulary.html?mode=flashcards">Try the flashcards <span aria-hidden="true">↗</span></a></article>
-        <article class="team-card"><span class="team-card-number">04</span><div class="team-avatar team-avatar-quality" aria-hidden="true">✓<span>✦</span></div><h3>Quality &amp; feedback</h3><p class="team-role">A LITTLE BETTER EVERY DAY</p><p>Checking the learning flow, improving the details and helping each practice session feel clear.</p><a href="/vocabulary.html">Build your vocabulary <span aria-hidden="true">↗</span></a></article>
-      </section>
-      <section class="team-values" aria-labelledby="team-values-title"><div><p class="dashboard-eyebrow">MADE FOR YOUR JOURNEY</p><h2 id="team-values-title">Small steps.<br />Lasting progress.</h2></div><div class="team-value-list"><article><span aria-hidden="true">01</span><div><h3>Learn by doing</h3><p>Read, recall, choose, write and try again.</p></div></article><article><span aria-hidden="true">02</span><div><h3>See where you are</h3><p>Your words and lesson results make the next step clearer.</p></div></article><article><span aria-hidden="true">03</span><div><h3>Make it yours</h3><p>Build a vocabulary collection around the words you want to use.</p></div></article></div></section>
-      <p class="team-signature">FLENG ENGLISH <span aria-hidden="true">✦</span> A little practice. Every day.</p>
     </div>
   </main>
   <script type="module" src="/js/team.js"></script>

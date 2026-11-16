@@ -56,6 +56,8 @@ class FlashcardCreate(CamelModel):
     source: Literal["my_words", "course_words"]
     course_id: UUID | None = None
     level: CefrLevel | None = None
+    limit: int = Field(default=10, ge=1, le=50)
+    word_ids: list[UUID] | None = Field(default=None, min_length=1, max_length=50)
 
 
 class Flashcard(CamelModel):

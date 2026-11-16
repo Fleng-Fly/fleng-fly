@@ -10,15 +10,17 @@
     <script defer src="/js/pwa.js"></script>
     <link rel="stylesheet" href="/css/fleng-theme.css" />
     <link rel="stylesheet" href="/css/motion.css" />
-  </head>
+    <link rel="stylesheet" href="/css/figma-reference.css" />
+</head>
   <body class="log-in">
     <header id="site-header" class="site-header"></header>
 
+    <div class="auth-stars" aria-hidden="true"><span>✦</span><span>✦</span><span>✦</span><span>✦</span></div>
     <main class="container page">
       <div class="auth-wrap">
         <header style="text-align: center; margin-bottom: 1.5rem">
-          <h1>Welcome back</h1>
-          <p class="muted text-sm">Log in to continue your learning.</p>
+          <h1>Welcome back!</h1>
+          <p class="muted text-sm">Log in to continue your cosmic English journey</p>
         </header>
 
         <div class="card">
@@ -46,16 +48,18 @@
                 placeholder="••••••••"
                 required
               />
+              <button class="auth-password-toggle" type="button" aria-label="Show password" aria-pressed="false">Show</button>
             </label>
 
             <button id="submit-button" class="btn btn-primary btn-block" type="submit">
-              Log in
+              Log In →
             </button>
           </form>
         </div>
 
-        <p class="text-sm muted" style="text-align: center; margin-top: 1rem">
-          No account yet? <a href="/register.html">Create one</a>.
+        <div class="auth-alternatives"><p>Or continue with</p><div class="auth-social-row"><button type="button" disabled aria-label="Google sign-in is not available" title="Google sign-in is not available">Google</button><button type="button" disabled aria-label="Apple sign-in is not available" title="Apple sign-in is not available">Apple</button><button type="button" disabled aria-label="Telegram sign-in is not available" title="Telegram sign-in is not available">Telegram</button></div><small>Social sign-in is not available yet.</small></div>
+        <p class="text-sm muted auth-footer" style="text-align: center; margin-top: 1rem">
+          Don’t have an account? <a href="/register.html">Sign up</a>
         </p>
       </div>
     </main>
@@ -65,5 +69,6 @@
     </footer>
 
     <script type="module" src="/js/login.js"></script>
-  </body>
+    <script type="module" src="/js/auth-controls.js"></script>
+</body>
 </html>

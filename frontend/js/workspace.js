@@ -16,6 +16,8 @@ export function setWorkspaceAIContext(callback) {
 // Trusted static navigation markup, shared by Dashboard and Lessons.
 // User and catalog data are assigned with textContent, never interpolated here.
 const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-8 9 8M5 9v12h14V9M10 21v-7h4v7" /></symbol>
+      <symbol id="icon-words" viewBox="0 0 24 24"><path d="M3 4h18v12h-8l-5 5v-5H3V4ZM7 8h10M7 12h6" /></symbol>
       <symbol id="icon-grid" viewBox="0 0 24 24">
         <rect x="3" y="3" width="7" height="7" rx="1.5" />
         <rect x="14" y="3" width="7" height="7" rx="1.5" />
@@ -23,8 +25,7 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
         <rect x="14" y="14" width="7" height="7" rx="1.5" />
       </symbol>
       <symbol id="icon-book" viewBox="0 0 24 24">
-        <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21V4.5Z" />
-        <path d="M4 21a2.5 2.5 0 0 1 2.5-2.5H20M8 7h8M8 11h6" />
+        <path d="M12 5C8 2 3 3 2 4v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-1-1-6-2-10 1Zm0 0v15" />
       </symbol>
       <symbol id="icon-layers" viewBox="0 0 24 24">
         <path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5" />
@@ -43,7 +44,7 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
         />
         <circle cx="12" cy="11" r="2.5" />
       </symbol>
-      <symbol id="icon-team" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3" /><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6m3 11v-3a6 6 0 0 0-3-5" /></symbol>
+      <symbol id="icon-team" viewBox="0 0 24 24"><circle cx="12" cy="6" r="4" /><path d="M4 22v-4c0-7 16-7 16 0v4" /></symbol>
       <symbol id="icon-search" viewBox="0 0 24 24">
         <circle cx="10.8" cy="10.8" r="6.8" />
         <path d="m16 16 5 5" />
@@ -63,7 +64,7 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
       <aside id="dashboard-sidebar" class="dashboard-sidebar" aria-label="Main navigation">
         <div class="sidebar-top">
           <a class="dashboard-brand" href="/index.html" aria-label="Fleng home"
-            ><span class="dashboard-brand-mark" aria-hidden="true">✦</span><span class="brand-detail">FLENG<small>ENGLISH</small></span></a
+            ><span class="dashboard-brand-mark" aria-hidden="true">✦</span><span class="brand-detail">FLENG<small>Fly English</small></span></a
           >
           <button
             id="nav-close"
@@ -74,30 +75,25 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
             <svg><use href="#icon-close" /></svg>
           </button>
         </div>
-        <p class="sidebar-caption">WORKSPACE</p>
         <nav class="sidebar-nav" aria-label="Dashboard sections">
-          <a class="sidebar-link active" href="/dashboard.html" aria-current="page"
-            ><svg><use href="#icon-grid" /></svg><span>Dashboard</span></a
-          >
-          <a class="sidebar-link" href="/leaderboard.html"
-            ><svg><use href="#icon-trophy" /></svg><span>Leaderboard</span></a>
-          <a class="sidebar-link" href="/courses.html"
-            ><svg><use href="#icon-book" /></svg><span>Lessons</span></a
-          >
-          <a id="sidebar-course-link" class="sidebar-link" href="/courses.html"
-            ><svg><use href="#icon-layers" /></svg><span>Course</span></a
-          >
-          <a class="sidebar-link" href="/settings.html"
-            ><svg><use href="#icon-settings" /></svg><span>Settings</span></a
-          >
-          <a class="sidebar-link" data-section="words" href="/vocabulary.html"><svg><use href="#icon-book" /></svg><span>My Words</span></a>
-          <a class="sidebar-link" data-section="practice" href="/vocabulary.html?mode=flashcards"><svg><use href="#icon-layers" /></svg><span>Practice</span></a>
-          <a class="sidebar-link" href="/team.html"><svg><use href="#icon-team" /></svg><span>Our Team</span></a>
+          <a class="sidebar-link" href="/dashboard.html"><svg><use href="#icon-home" /></svg><span>Dashboard</span></a>
+          <a class="sidebar-link" href="/leaderboard.html"><svg><use href="#icon-trophy" /></svg><span>Leaderboard</span></a>
+          <a id="sidebar-course-link" class="sidebar-link" href="/courses.html"><svg><use href="#icon-book" /></svg><span>Lessons</span></a>
+          <div class="sidebar-word-group">
+            <a class="sidebar-link sidebar-words-heading" href="/vocabulary.html"><svg><use href="#icon-words" /></svg><span>Words</span><span aria-hidden="true">⌄</span></a>
+            <div class="sidebar-subnav">
+              <a class="sidebar-link" data-section="words" href="/vocabulary.html"><span>My Words</span></a>
+              <a class="sidebar-link" href="/course-words.html"><span>Course Words</span></a>
+              <a class="sidebar-link" data-section="practice" href="/practice.html"><span>Study &amp; Test</span></a>
+            </div>
+          </div>
+          <a class="sidebar-link" href="/team.html"><svg><use href="#icon-team" /></svg><span>Authors</span></a>
+          <a class="sidebar-link" href="/settings.html"><svg><use href="#icon-settings" /></svg><span>Settings</span></a>
         </nav>
         <div class="sidebar-foot">
           <span class="sidebar-foot-mark">✦</span>
           <p>Keep learning.<br /><strong>Your journey is yours.</strong></p>
-          <small class="website-version">Web · 2026.11.16</small>
+          <small class="website-version">Web · 2026.11.16 · 3</small>
         </div>
       </aside>
       <div id="dashboard-main-wrap" class="dashboard-main-wrap">
@@ -118,7 +114,7 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
             <input
               id="search-query"
               type="search"
-              placeholder="Search courses and lessons"
+              placeholder="Search for lessons, words, topics…"
               autocomplete="off"
               minlength="2"
             />
@@ -191,18 +187,16 @@ export function mountWorkspace(active) {
     const destination = {
       dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
       settings: '/settings.html', lessons: '/courses.html', team: '/team.html',
-      words: '/vocabulary.html', practice: '/vocabulary.html?mode=flashcards',
+      words: '/vocabulary.html', courseWords: '/course-words.html', practice: '/practice.html',
     }[active];
-    const selected = active === 'courses'
+    const selected = ['courses', 'lessons'].includes(active)
       ? link.id === 'sidebar-course-link'
-      : link.id !== 'sidebar-course-link' && link.getAttribute('href') === destination;
+      : link.getAttribute('href') === destination && !link.classList.contains('sidebar-words-heading');
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
-  if (active === 'courses') {
-    content.querySelector('#sidebar-course-link span').textContent = 'Courses';
-  }
+  content.querySelector('.sidebar-word-group').classList.toggle('is-current', ['words', 'courseWords', 'practice'].includes(active));
   document.body.prepend(content);
   bindNavigation();
   bindSearch();

@@ -185,6 +185,29 @@ export function listVocabulary(offset = 0, limit = 100) {
   return apiFetch(`/vocabulary?${new URLSearchParams({ offset: String(offset), limit: String(limit) })}`);
 }
 
+export function listCourseWords({ courseId, level, offset = 0, limit = 100 } = {}) {
+  const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+  if (courseId) query.set('courseId', courseId);
+  if (level) query.set('level', level);
+  return apiFetch(`/vocabulary/course-words?${query}`);
+}
+
+export function createFlashcardSession(input) {
+  return apiFetch('/vocabulary/flashcards/sessions', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function getFlashcardSession(id) {
+  return apiFetch(`/vocabulary/flashcards/sessions/${encodeURIComponent(id)}`);
+}
+
+export function completeFlashcardSession(id) {
+  return apiFetch(`/vocabulary/flashcards/sessions/${encodeURIComponent(id)}/complete`, { method: 'POST' });
+}
+
+export function getFlashcardTestWords(id) {
+  return apiFetch(`/vocabulary/flashcards/sessions/${encodeURIComponent(id)}/test-words`);
+}
+
 export function addVocabulary(input) {
   return apiFetch('/vocabulary', { method: 'POST', body: JSON.stringify(input) });
 }
