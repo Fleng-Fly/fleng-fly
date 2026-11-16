@@ -325,3 +325,12 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
 `version.json` and sidebar/footer expose the release. Desktop shell removed;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
+
+## AI budget concurrency verification — 2026-11-16
+
+`backend/tests/test_ai_limits.py` holds the fake provider until all budget
+competitors finish admission, checks settled charges plus open holds, and covers
+chat/streaming with simultaneous/staggered arrivals and post-settlement retry.
+Existing `test_ai_sqlite_audit.py` covers independent OS processes. Runtime
+reservation/settlement code and dependencies are unchanged. Investigation and
+verification: [AI budget concurrency](../docs/ai-budget-concurrency.md).

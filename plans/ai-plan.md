@@ -55,3 +55,19 @@ Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains d
   production TLS/proxies/logs and PostgreSQL concurrency. Public AI launch awaits
   those checks; keep AI disabled until configured. See `docs/ai-security-audit.md`.
 - **Git:** user subsequently authorized committing the course and AI work.
+
+## AI budget concurrency reliability — 2026-11-16
+
+- **Completed:** reproduce the nearly-exhausted-budget test failure normally and
+  under CPU contention; trace the ledger and review persistent reservation locks.
+- **Completed:** replace the scheduling assumption with explicit completion
+  synchronization; cover chat/streaming, staggered arrivals, held/settled totals
+  and legitimate retry after settlement. Runtime limits and code are unchanged.
+- **Completed:** 80 ordinary + 160 loaded repetitions; AI limits/SQLite audit
+  (68 passed), Ruff, mypy, diff/secret/scope checks and independent self-review.
+- **Completed:** task-scoped test/documentation change prepared for the authorized
+  `fix(ai): stabilize concurrent budget enforcement` commit.
+- **Next:** live provider tariff validation and PostgreSQL concurrency remain
+  separate integration checks; this task uses only SQLite and fake providers.
+
+Evidence: [AI budget concurrency investigation](../docs/ai-budget-concurrency.md).

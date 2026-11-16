@@ -306,7 +306,11 @@ async def test_actual_cost_above_estimate_is_recorded(http, world, fake):
     assert (await chat(http, auth)).json()["error"]["code"] == "AI_BUDGET_LIMIT"
 
 
-async def test_parallel_users_cannot_overspend_nearly_exhausted_budget(http, world):
+@pytest.mark.parametrize("path", ["chat", "chat/stream"])
+@pytest.mark.parametrize("stagger_last", [False, True], ids=["together", "staggered"])
+async def test_parallel_users_cannot_overspend_nearly_exhausted_budget(
+    http, world, path, stagger_last
+):
     configure(ai_concurrency=10, **EXPENSIVE)
     gate = Gate()
     app.dependency_overrides[provider_dependency] = lambda: gate
@@ -326,19 +330,62 @@ async def test_parallel_users_cannot_overspend_nearly_exhausted_budget(http, wor
             )
         )
         await db.commit()
-    tasks = [asyncio.create_task(chat(http, auth)) for auth in users]
-    await asyncio.wait_for(gate.entered.wait(), 5)
-    await asyncio.sleep(0.2)  # let every competitor reach the database
-    gate.release.set()
-    responses = await asyncio.gather(*tasks)
-    codes = sorted(r.json().get("error", {}).get("code", "OK") for r in responses)
-    assert codes == ["AI_BUDGET_LIMIT"] * 4 + ["OK"]
-    assert len(gate.requests) == 1
-    async with world.session() as db:
-        total = await db.scalar(
-            select(func.sum(func.coalesce(AIUsage.cost_microusd, AIUsage.reserved_microusd)))
+    completed = asyncio.Queue()
+    last_arrival = asyncio.Event()
+
+    async def contender(index, auth):
+        if stagger_last and index == len(users) - 1:
+            await last_arrival.wait()
+        response = await chat(http, auth, path=path)
+        completed.put_nowait(response)
+        return response
+
+    tasks = [asyncio.create_task(contender(index, auth)) for index, auth in enumerate(users)]
+    try:
+        # Keep the winning reservation open until every competitor has been
+        # rejected. A sleep cannot ensure this: settlement frees unused budget,
+        # so late arrivals may legitimately succeed after the winner finishes.
+        async with asyncio.timeout(5):
+            await gate.entered.wait()
+            for index in range(len(users) - 1):
+                response = await completed.get()
+                assert response.status_code == 429
+                assert response.json()["error"]["code"] == "AI_BUDGET_LIMIT"
+                if index == len(users) - 3:
+                    last_arrival.set()
+        assert len(gate.requests) == 1
+        held = await rows(world)
+        assert sorted(r.status for r in held) == ["completed", "reserved"]
+        # Settled spend PLUS the active reservation, across both connections.
+        assert (
+            sum(
+                r.cost_microusd if r.cost_microusd is not None else r.reserved_microusd
+                for r in held
+            )
+            == 950000
+            <= 1_000_000
         )
-    assert total <= 1_000_000
+    finally:
+        # Also release a deliberately delayed contender on assertion/timeout,
+        # and drain all tasks before the fixture disposes its database engines.
+        last_arrival.set()
+        gate.release.set()
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+    assert all(isinstance(response, httpx.Response) for response in responses)
+    assert sorted(r.status_code for r in responses) == [200] + [429] * 4
+    if path == "chat/stream":
+        winner = next(r for r in responses if r.status_code == 200)
+        assert "event: done\n" in winner.text
+        assert "event: error\n" not in winner.text
+    settled = await rows(world)
+    assert all(r.status == "completed" for r in settled)
+    assert sum(r.cost_microusd for r in settled) == 150100 <= 1_000_000
+
+    # The other valid schedule: once $0.80 settles at $0.0001, a late
+    # contender/retry may reserve $0.80 again without exceeding the $1 budget.
+    assert (await chat(http, users[-1], path=path)).status_code == 200
+    assert len(gate.requests) == 2
+    assert sum(r.cost_microusd for r in await rows(world)) == 150200 <= 1_000_000
 
 
 # ── Concurrency per learner ─────────────────────────────────────────────────
