@@ -58,12 +58,13 @@ frontend/
 - Pages/UX: `design/pages.md`, `design/ux-flow.md`
 
 
-## PWA — 2026-11-13
+## Browser-only site — 2026-11-15
 
-Оновлено 2026-11-14: пропозиції завантажити/встановити додаток вилучено
-з головної сторінки, навігації та offline-екрана; обробники встановлення й
-окремі стилі видалено. `/install.html` зберігає лише довідку про доступ і прогрес.
-Маніфест, іконки, реєстрація worker та offline fallback збережені;
-кеш offline-екрана оновлено до v2. API й дані користувача не кешуються.
-Далі: перевірка на фізичних пристроях.
-Деталі: `docs/pwa-installation.md` (від кореня проєкту).
+Website installation has been removed. No page links to a web manifest or
+advertises standalone mode. Header, landing, sidebar and offline pages have no
+installation links. `/install.html` redirects to Dashboard. The old manifest is
+an empty compatibility stub, and `js/pwa.js` only suppresses legacy install
+prompts and unregisters this app's old root `/sw.js` worker. The worker itself
+also retires its old registration on update. Only `fleng-offline-v*` caches are
+removed; account data, cookies and other service-worker scopes are untouched.
+The portable Windows launcher remains a separate existing launch method.

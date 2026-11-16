@@ -556,13 +556,11 @@
 }
 
 .quick-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem;
 }
 .quick-card {
-  flex: 1 1 14rem;
-  min-width: 0;
   display: flex;
   align-items: center;
   min-height: 7.6rem;
@@ -870,8 +868,7 @@ a.quick-card:focus-visible {
     font-size: 0.68rem;
   }
   .quick-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
   .welcome-art {
     right: -5rem;

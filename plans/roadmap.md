@@ -324,26 +324,10 @@ Completed: A0 backend + existing-filter button; 50-lesson A0–B2 draft and read
 - **Completed 2026-11-14:** Windows npm preparation and seed on the copied database.
 
 
-## PWA — 2026-11-13
+## PWA — 2026-11-13 (retired 2026-11-16)
 
-Оновлено 2026-11-14: пропозиції завантажити/встановити додаток вилучено
-з головної сторінки, навігації та offline-екрана; обробники встановлення й
-окремі стилі видалено. `/install.html` зберігає лише довідку про доступ і прогрес.
-Маніфест, іконки, реєстрація worker та offline fallback збережені;
-кеш offline-екрана оновлено до v2. API й дані користувача не кешуються.
-Далі: перевірка на фізичних пристроях.
-Деталі: `docs/pwa-installation.md` (від кореня проєкту).
-
-### Database persistence checkpoint — 2026-11-14
-
-Completed locally: populated SQLite audit, backup tooling, draft-preview npm workflow,
-Alembic-based database preservation checks and required SQLite/PostgreSQL CI definition.
-Production recommendation: managed PostgreSQL; no URL or production content changed.
-Next: PostgreSQL CI evidence, staging typed-transfer rehearsal and restore drill.
-External pending: branch protection and Render After CI Checks Pass configuration.
-See `docs/05-database/persistence-and-recovery.md` and
-`docs/09-deployment/database-ci-gate.md`. Final commit and ordinary push separately
-authorized after verification; production migration/publication remain separate.
+Desktop launch and PWA installation were removed. Fleng runs in a browser;
+legacy worker/cache cleanup is kept for existing visitors. See `docs/website-release.md`.
 
 ## Git integration ? 2026-11-14
 
@@ -359,3 +343,11 @@ Completed locally: typed transfer and regression checks, PostgreSQL transfer/rec
 ## Default local course visibility — 2026-11-14
 
 `npm run dev` now prepares the existing persistent SQLite database with five unpublished A0–B2 drafts and shows all seven courses to local signed-in learners. Preparation backs up existing data; reruns preserve IDs/progress. Production visibility is unchanged. Editorial approval and hosted publication remain separate.
+
+## Website-only release — 2026-11-16
+
+Completed locally: latest interface/vocabulary/Team/motion, PWA and desktop
+retirement, main A0–B2/navigation preservation, explicit version, cache revalidation
+and Netlify API proxy. Prepared guarded Windows git updater with a backup branch.
+Blocked externally: GitHub write access; Render service is user-suspended.
+Next: push main, resume Render, deploy both hosts and verify release/login/reviews.

@@ -1,3 +1,8 @@
+> Website release 2026-11-16: Netlify now proxies /api/* to the existing
+> Render service. Resume the suspended Render service before live validation.
+> See [current release](website-release.md); the proxy setup walkthrough below
+> records the previous static-only state.
+
 # Deployment
 
 Fleng can run as **one FastAPI service containing `backend/` and `frontend/`**.

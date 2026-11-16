@@ -91,7 +91,9 @@ function renderHero() {
   if (progress.completed) {
     const course = el('a', undefined, 'Continue in course →');
     course.href = $('lesson-course-link').href;
-    completed.replaceChildren(el('strong', undefined, 'Lesson completed'), el('p', undefined, 'You have finished every activity in this lesson.'), course);
+    const metrics = el('div', 'lesson-finish-metrics');
+    metrics.append(el('span', undefined, `${progress.exercisesCompleted} / ${progress.exercisesTotal} activities`), el('span', undefined, `${progress.xpEarned} XP earned`));
+    completed.replaceChildren(el('strong', undefined, '✦ Lesson completed'), el('p', undefined, 'You have finished every activity in this lesson.'), metrics, course);
   }
   document.title = `${lesson.title} — Fleng`;
 }

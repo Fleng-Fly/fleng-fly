@@ -258,29 +258,15 @@ See `docs/curriculum-visual-review.md` and `reports/curriculum-preview/`.
 virtualenv. npm database, demo and quality commands use it on all platforms.
 It forwards arguments and exit codes and supports paths containing spaces.
 
-## Desktop application and integration — 2026-11-14
+## Desktop application and integration — 2026-11-14 (retired 2026-11-16)
 
-`desktop/main.py` coordinates the user-data lock, logging and app window.
-`desktop/runtime.py` owns the backend subprocess; `desktop/worker.py` prepares
-the existing database and serves FastAPI on loopback. `desktop/chromium.py`
-uses a dedicated Windows browser profile to observe the app window lifetime.
-`desktop/bootstrap.py`, `desktop/diagnostics.py`, `desktop/build_windows.py`
-and `desktop/launcher.c` provide source setup, diagnostics and portable builds.
-`desktop/tests/` verifies process lifecycle and data persistence.
-Local runtime/binaries remain ignored. The private curriculum reviewer requires
-POSIX permissions; ordinary desktop learning works on Windows.
-See [integration report](../docs/projectenglich-integration.md).
+Desktop launch and PWA installation were removed. Fleng runs in a browser;
+legacy worker/cache cleanup is kept for existing visitors. See `docs/website-release.md`.
 
+## PWA — 2026-11-13 (retired 2026-11-16)
 
-## PWA — 2026-11-13
-
-Оновлено 2026-11-14: пропозиції завантажити/встановити додаток вилучено
-з головної сторінки, навігації та offline-екрана; обробники встановлення й
-окремі стилі видалено. `/install.html` зберігає лише довідку про доступ і прогрес.
-Маніфест, іконки, реєстрація worker та offline fallback збережені;
-кеш offline-екрана оновлено до v2. API й дані користувача не кешуються.
-Далі: перевірка на фізичних пристроях.
-Деталі: `docs/pwa-installation.md` (від кореня проєкту).
+Desktop launch and PWA installation were removed. Fleng runs in a browser;
+legacy worker/cache cleanup is kept for existing visitors. See `docs/website-release.md`.
 
 ## Persistence and CI verification — 2026-11-14
 
@@ -326,3 +312,12 @@ public routes remain published-only. PostgreSQL startup remains explicit.
 ## Owner-authorized A0–B2 publication — 2026-11-14
 
 SQLite preparation now publishes only the exact `OWNER_AUTHORIZED_CURRICULUM_SHA` release through `import_curriculum(owner_authorized_sha=...)`. It preserves ordinary draft imports and rejects mismatched/ambiguous publication approvals. All seven catalog courses/50 A0–B2 lessons/500 words become available through standard published-only APIs. Linguistic review is explicitly incomplete.
+
+## Website-only release — 2026-11-16
+
+`frontend/vocabulary.html` + vocabulary.js own personal word collection and four
+existing-API review modes. `team.html` + team.js/team.css present role areas;
+`css/motion.css` provides optional motion with reduced-motion support.
+`app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
+`version.json` and sidebar/footer expose the release. Desktop shell removed;
+START-FLENG compatibility commands start the browser website. See docs/website-release.md.

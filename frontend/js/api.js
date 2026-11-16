@@ -181,6 +181,26 @@ export function getVocabularyStats() {
   return apiFetch('/vocabulary/stats');
 }
 
+export function listVocabulary(offset = 0, limit = 100) {
+  return apiFetch(`/vocabulary?${new URLSearchParams({ offset: String(offset), limit: String(limit) })}`);
+}
+
+export function addVocabulary(input) {
+  return apiFetch('/vocabulary', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function reviewVocabulary(id, remembered) {
+  return apiFetch(`/vocabulary/${encodeURIComponent(id)}/review`, {
+    method: 'POST', body: JSON.stringify({ remembered }),
+  });
+}
+
+export function updateVocabulary(id, learned) {
+  return apiFetch(`/vocabulary/${encodeURIComponent(id)}`, {
+    method: 'PATCH', body: JSON.stringify({ learned }),
+  });
+}
+
 export function getLessonVocabulary(lessonId, offset = 0, limit = 30) {
   const query = new URLSearchParams({ lessonId, offset: String(offset), limit: String(limit) });
   return apiFetch(`/vocabulary?${query}`);

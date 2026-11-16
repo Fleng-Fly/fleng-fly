@@ -1,3 +1,10 @@
+# Historical desktop integration
+
+**Retired 2026-11-16:** this document records an older implementation.
+Desktop sources and launchers described below are no longer distributed.
+Use [website release](website-release.md). Legacy database migrations remain
+to preserve existing learner data.
+
 # Local project integration — 2026-11-14
 
 Integrated `projectenglich` into the Git checkout `fleng-fly`. The source was

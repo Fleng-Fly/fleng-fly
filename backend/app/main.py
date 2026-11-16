@@ -5,6 +5,8 @@ from pathlib import Path
 from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.responses import Response
+from starlette.types import Scope
 
 from app.api.router import api_router
 from app.core.body_limit import BodyLimitMiddleware
@@ -20,6 +22,15 @@ logger.setLevel(logging.INFO)
 # backend/app/main.py -> backend/app -> backend -> repository root
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_FRONTEND_DIR = _REPO_ROOT / "frontend"
+
+
+class WebsiteFiles(StaticFiles):
+    """Revalidate stable asset URLs after every website release."""
+
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
 
 
 def _resolve_frontend_dir(configured: str | None) -> Path | None:
@@ -82,7 +93,7 @@ def create_app(*, local_preview_router: APIRouter | None = None) -> FastAPI:
             "Production requires the frontend directory; ship frontend/ or set FRONTEND_DIR"
         )
     if frontend_dir is not None:
-        app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+        app.mount("/", WebsiteFiles(directory=frontend_dir, html=True), name="frontend")
         logger.info("Serving static frontend from %s", frontend_dir)
 
     return app
