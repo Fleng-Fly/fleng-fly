@@ -199,6 +199,8 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
   state/progress rendering and scoped `css/courses.css`. No new backend module.
 - `scripts/test-courses.mjs`: DOM regression coverage; real HTTP coverage in
   `scripts/backend-stabilization-smoke.py`. Browser/Stitch QA remains pending.
+- `e2e/` (Playwright, Chromium): real-browser student journey against the real backend and a
+  temporary SQLite file; `e2e/server.mjs` starts and cleans up the server. See `docs/qa/e2e.md`.
 
 ## Global assistant and security — 2026-11-04
 

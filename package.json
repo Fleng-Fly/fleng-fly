@@ -2,7 +2,7 @@
   "name": "fleng",
   "version": "0.1.1",
   "private": true,
-  "description": "Fleng \u2014 a web platform for learning English.",
+  "description": "Fleng — a web platform for learning English.",
   "packageManager": "pnpm@12.9.1",
   "engines": {
     "node": ">=20"
@@ -35,9 +35,12 @@
     "curriculum:preview": "backend/.venv/bin/python scripts/preview_curriculum.py start",
     "frontend:test": "node --experimental-vm-modules --test scripts/test-courses.mjs scripts/test-ai-api.mjs scripts/test-ai-stream.mjs scripts/test-ai-widget.mjs scripts/test-vocabulary.mjs",
     "db:transfer": "node scripts/backend.mjs app.db.transfer",
-    "docs:check": "backend/.venv/bin/python scripts/check-docs.py --contracts"
+    "docs:check": "backend/.venv/bin/python scripts/check-docs.py --contracts",
+    "test:e2e": "playwright test -c e2e/playwright.config.mjs",
+    "test:e2e:install": "playwright install chromium"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "prettier": "^3.4.2"
   }
 }

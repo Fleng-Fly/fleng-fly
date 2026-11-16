@@ -56,7 +56,7 @@
 ## Later sections ⬜
 
 - [ ] Vocabulary, practice, challenges, gamification surfaces.
-- [ ] Browser e2e suite and full accessibility audit.
+- [ ] Browser e2e suite (core learning journey done, see `docs/qa/e2e.md`; other flows pending) and full accessibility audit.
 
 ## Visual direction
 
