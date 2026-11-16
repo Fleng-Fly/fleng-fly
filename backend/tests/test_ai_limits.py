@@ -382,6 +382,57 @@ async def test_burst_of_parallel_requests_admits_one(http, world):
     assert len(counted) == len(gate.requests)
 
 
+@pytest.mark.parametrize("path", ["chat", "chat/stream", "explain", "generate-exercise"])
+async def test_all_transports_reserve_before_local_capacity(http, world, fake, monkeypatch, path):
+    original = service.reserve
+    admissions = []
+
+    async def checked_reserve(*args, **kwargs):
+        # Waiting for database locks must never occupy a provider slot.
+        assert service._active == 0
+        admissions.append(path)
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(service, "reserve", checked_reserve)
+    payload = {"message": "Hi"}
+    if path == "explain":
+        payload = {"studentAnswer": "I is"}
+        fake.content = json.dumps({"explanation": "Use am", "correctExample": "I am", "rule": "be"})
+    elif path == "generate-exercise":
+        payload = {"topic": "be", "exerciseType": "fill_blank"}
+        fake.content = json.dumps({
+            "type": "fill_blank", "prompt": "I ___ here", "answer": "am", "explanation": "be"
+        })
+    response = await http.post("/api/v1/ai/" + path, headers=await headers(http), json=payload)
+    assert response.status_code == 200, response.text
+    assert admissions == [path]
+    assert len(fake.requests) == 1
+
+
+async def test_refused_settlement_is_portable_and_never_negative(db_session):
+    from sqlalchemy import update
+    from sqlalchemy.dialects import postgresql
+
+    from app.modules.auth.service import register_user
+
+    user = await register_user(
+        db_session, email="settlement@example.com", password="test-password", display_name="Test"
+    )
+    values = service.charge_values(Settings(**ENABLED, **PRICED), None, "refused")
+    statement = update(AIUsage).values(**values)
+    sql = str(statement.compile(dialect=postgresql.dialect()))
+    assert "CASE WHEN" in sql and "max(" not in sql
+    for reserved, expected in [(1000, 520), (10, 0)]:
+        row = AIUsage(user_id=user.id, model="test/model", reserved_tokens=1,
+                      reserved_microusd=reserved)
+        db_session.add(row)
+        await db_session.flush()
+        await db_session.execute(statement.where(AIUsage.id == row.id))
+        await db_session.refresh(row)
+        assert row.cost_microusd == expected
+        assert row.cost_source == "refused"
+
+
 # ── Provider failures and settlement ────────────────────────────────────────
 
 
