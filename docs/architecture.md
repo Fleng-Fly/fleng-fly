@@ -1,0 +1,239 @@
+# Architecture
+
+> Status: **M2 implemented** — a plain HTML/CSS/JS frontend served by the backend,
+> plus authentication and progress (`/auth/*`, `/users/me`, `/progress/me`), the
+> learning catalog (`/courses`, `/courses/{slug}`, `/lessons/{slug}`) and the
+> graded lesson flow (`/lessons/{slug}/start|submit|progress`). AI is
+> design-only. This document is the canonical description of how Fleng is built;
+> update it when the real architecture diverges.
+
+## 1. Goals and constraints
+
+- A web platform for learning English with structured content, interactive
+  practice, gamified progress and AI assistance.
+- Built and maintained by several agents/developers → strong conventions,
+  explicit boundaries, small commits.
+- Start simple and extensible. **No premature microservices.**
+- Plain JavaScript on the frontend, Python on the backend.
+
+Non-goals for the MVP:
+
+- Native mobile apps, real-time multiplayer, or a custom ML training stack.
+- Multi-region deployment, sharding, or event streaming.
+
+## 2. Architectural style
+
+**Modular monolith.**
+
+- **Frontend** is plain **HTML/CSS/vanilla JavaScript** with no build step. The
+  FastAPI backend serves the static files from the same origin as `/api/v1`, so
+  there is one deployable.
+- **Backend** (FastAPI / Python) is a single deployable that serves both the API
+  and the static frontend, internally split into modules with explicit
+  dependencies. FastAPI is the **only** backend framework: there is no
+  NestJS/Express/Node.js or TypeScript code in `backend/`.
+- **AI layer** is a Python package consumed by the backend. It isolates
+  provider-specific code and prompt/response handling. It is _not_ a service.
+- The configured SQL database is the single source of persistent truth: **SQLite**
+  locally, **PostgreSQL** available through DATABASE_URL. Both use the existing
+  SQLAlchemy async engine and Alembic; frontend accesses only the API.
+
+```
+Browser
+  │  HTTPS
+  ▼
+┌──────────────────────────────────────────────────────────┐
+│ Backend — FastAPI (modular monolith, one deployable)     │
+│                                                          │
+│  Serves: static frontend (HTML/CSS/JS) at /              │
+│          REST /api/v1                                    │
+│                                                          │
+│  Cross-cutting: dependencies · validation · logging      │
+│                 error handlers · rate limiting           │
+│                                                          │
+│  ┌────────┐ ┌────────┐ ┌──────────┐ ┌─────────────┐      │
+│  │ auth   │ │ users  │ │ catalog  │ │ content     │      │
+│  └────────┘ └────────┘ └──────────┘ └─────────────┘      │
+│  ┌────────────┐ ┌────────────┐ ┌──────────────┐          │
+│  │ exercises  │ │ vocabulary │ │ progress     │          │
+│  └────────────┘ └────────────┘ └──────────────┘          │
+│  ┌──────────────┐ ┌────────────┐ ┌──────────────┐        │
+│  │ gamification │ │ challenges │ │ recommend.   │        │
+│  └──────────────┘ └────────────┘ └──────────────┘        │
+│  ┌────────┐ ┌───────────────┐ ┌───────────┐              │
+│  │ ai     │ │ notifications │ │ analytics │              │
+│  └───┬────┘ └───────────────┘ └───────────┘              │
+└──────┼───────────────────────────────────────────────────┘
+       │ imports (in-process, Python)
+       ▼
+┌──────────────────────────┐
+│ AI layer                 │  providers · prompts · parsing · guardrails
+└─────────────┬────────────┘
+              │ HTTPS
+              ▼
+      External AI providers
+
+              ▲
+              │ SQLAlchemy (async)
+┌──────────────────────────┐
+│ SQLite / PostgreSQL      │
+└──────────────────────────┘
+```
+
+## 3. Layer responsibilities
+
+| Layer    | Owns                                                          | Must not                                                          |
+| -------- | ------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Frontend | Rendering, navigation, forms, client state, design system     | Contain business rules, call AI providers directly, store secrets |
+| Backend  | Business rules, validation, authz, persistence, orchestration | Contain UI concerns, expose provider-specific AI payloads         |
+| AI layer | Provider clients, prompts, response parsing, guardrails       | Know about HTTP, FastAPI, SQLAlchemy, or the database             |
+| Database | Data integrity, constraints, indexes                          | Be bypassed by ad-hoc SQL outside migrations                      |
+
+## 4. Backend module boundaries
+
+Each module owns its data and exposes a service. Rules:
+
+1. A module may import another module's **service**, never reach into its
+   internals.
+2. Routers do HTTP + auth + validation only; no business logic.
+3. Persistence lives in services (or thin repositories); complex queries may
+   live in a dedicated query function inside the module.
+4. Cross-cutting concerns (auth, logging, validation, errors, rate limits) are
+   implemented once as dependencies/handlers, not per-module copies.
+
+Modules, responsibilities and dependencies: `project-map/modules.md`.
+
+## 5. Data flow (representative)
+
+### 5.1 Health check
+
+```
+GET /api/v1/health
+  → HealthResponse: `SELECT 1` (database up/down), never fails while the API is up
+```
+
+### 5.2 Authentication and progress (implemented)
+
+```
+POST /api/v1/auth/register | /login
+  → auth module validates input, hashes/verifies the password (argon2id)
+  → issues a short-lived access JWT + an opaque refresh token
+  → refresh token stored hashed; raw value set in an HttpOnly cookie
+  → response: { accessToken, user }
+
+Authenticated request
+  → Authorization: Bearer <access>
+  → get_current_user verifies the JWT and loads the User (+ Profile)
+  → GET /users/me returns the profile; GET /progress/me returns progress
+
+POST /api/v1/auth/refresh
+  → validate the cookie token, rotate it (revoke old, issue new)
+  → replay of a revoked token revokes the whole session set (reuse detection)
+  → response: { accessToken } + rotated cookie
+```
+
+### 5.3 Catalog read (implemented)
+
+```
+GET /api/v1/courses
+  → catalog module lists published courses (ordered by position) with a count of
+    published lessons → 200 [CourseSummary]
+GET /api/v1/courses/{slug}
+  → published course + its published lessons (ordered) → 200 CourseDetail
+GET /api/v1/lessons/{slug}
+  → published lesson of a published course + theory → 200 LessonDetail
+  → missing or unpublished resource → 404 NOT_FOUND (never reveals drafts)
+```
+
+Content is read-only from the API; it is populated by the idempotent seed
+(`backend/app/db/seed.py`).
+
+### 5.4 Completing a lesson (implemented)
+
+```
+Frontend (lesson page)
+  → POST /api/v1/lessons/{slug}/start        (idempotent; moves to in_progress)
+  → POST /api/v1/lessons/{slug}/submit       ({ exerciseId, answer, selfAssessment? })
+Backend (exercises module)
+  → resolve the published lesson (by slug) and the exercise, or 404
+  → validate the answer shape per type
+  → grade single_choice / text; record the self-assessment for self_check
+  → upsert ExerciseSubmission (unique per user+exercise), award XP once
+  → recompute lesson completion; on first completion bump the progress aggregate
+  → responds with the grading result + lesson progress
+Frontend (Practice and Test)
+  → keeps the previous feedback visible and advances to an unfinished exercise
+  → prioritises unseen exercises, then revisits incomplete attempts
+Progress aggregate / XP
+  → XP is server-side only, once per exercise; Profile.xp is the running total
+  → gamification (streaks, levels, achievements) is still planned
+```
+
+### 5.5 AI tutor turn (planned)
+
+```
+Frontend
+  → POST /api/v1/ai/conversations/:id/messages
+Backend (ai module)
+  → loads conversation + learner context from DB
+  → AI layer builds prompt, selects provider, calls provider
+  → validates structured output, persists AIMessage
+  → returns assistant message
+```
+
+Details: `project-map/data-flow.md`.
+
+## 6. Cross-cutting concerns
+
+- **Authentication/authorization** — email/password authentication is
+  implemented: argon2id hashing, short-lived HS256 access JWTs, rotating refresh
+  tokens stored hashed in an HttpOnly cookie, with reuse detection. `auth`,
+  `users` and `progress` modules exist; RBAC (`ADMIN`) and ownership-scoped
+  resources arrive with the learning catalog. See `docs/authentication.md`.
+- **Validation** — Pydantic/FastAPI at the edge; domain invariants in services.
+- **Error handling** — exception handlers map errors to a stable JSON envelope
+  (`app/core/errors.py`).
+- **Logging** — Python `logging` via uvicorn. Structured logging and request
+  correlation ids are deferred. Never log passwords, tokens or raw AI prompts
+  containing PII.
+- **Rate limiting** — planned with auth/AI; not present yet.
+- **Security** — see `docs/security.md`.
+- **Testing** — see `docs/testing.md` and `plans/testing-plan.md`.
+
+## 7. API
+
+Versioned REST at `/api/v1`. Resource map and contracts: `docs/api.md`.
+Conventions: JSON, `camelCase` fields, cursor pagination for large lists, and a
+consistent error envelope.
+
+## 8. Scaling path (deliberately deferred)
+
+Optimize only when there is evidence:
+
+1. Vertical scaling + a Postgres connection pool.
+2. Read replicas / caching (Redis) for hot reads.
+3. Extract the AI layer into a service **only if** it needs independent scaling,
+   language or deployment cadence.
+4. Split a module into a service **only if** its scaling or ownership justifies
+   the operational cost.
+
+## 9. Decisions and open questions
+
+Decisions affecting the whole system are recorded in `plans/milestones.md`
+(Decisions log) and, for architectural choices, in `plans/roadmap.md`. Open
+questions:
+
+- Email provider for verification/reset (deferred).
+- Billing provider (deferred until subscriptions).
+- Whether speaking feedback needs an audio-capable provider (deferred).
+
+## Backend extension status (2026-10-18)
+
+The current modular monolith also includes vocabulary, gamification, password
+reset and AI. OpenRouter transport lives in `backend/app/modules/ai/provider.py`;
+it has no database access. AI services assemble read-only bounded learner context,
+reserve shared PostgreSQL quotas, then persist only complete tutoring turns.
+Deterministic grading/XP/achievements stay in backend learning services. `ai/`
+is a documentation entry point. No separate deployable, backend framework or
+frontend technology was added. See docs/ai.md for actual AI endpoints and limits;
+earlier future-AI design notes do not represent a second implementation.

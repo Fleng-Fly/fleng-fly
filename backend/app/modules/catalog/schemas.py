@@ -1,0 +1,60 @@
+"""Pydantic response schemas for the course/lesson catalog.
+
+These are public read models: they deliberately do not expose `is_published`,
+timestamps or any internal bookkeeping.
+"""
+
+from uuid import UUID
+
+from app.core.levels import LearningLevel
+from app.core.schemas import CamelModel
+from app.modules.exercises.schemas import ExercisePublicResponse
+
+
+class CourseSummaryResponse(CamelModel):
+    """A course in the catalog list."""
+
+    id: UUID
+    slug: str
+    title: str
+    description: str
+    level: LearningLevel
+    lesson_count: int
+
+
+class LessonSummaryResponse(CamelModel):
+    """A lesson inside a course detail response (no theory body)."""
+
+    id: UUID
+    slug: str
+    title: str
+    summary: str
+    position: int
+    estimated_minutes: int
+
+
+class CourseDetailResponse(CamelModel):
+    """A course with its published lessons."""
+
+    id: UUID
+    slug: str
+    title: str
+    description: str
+    level: LearningLevel
+    lessons: list[LessonSummaryResponse]
+
+
+class LessonDetailResponse(CamelModel):
+    """A single lesson with its course context, theory body and public exercises."""
+
+    id: UUID
+    slug: str
+    title: str
+    summary: str
+    theory: str
+    position: int
+    estimated_minutes: int
+    course_slug: str
+    course_title: str
+    level: LearningLevel
+    exercises: list[ExercisePublicResponse]

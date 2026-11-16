@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment / secrets — never commit
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+.nyc_output/
+playwright-report/
+test-results/
+
+# Python (backend)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+
+# Misc
+.netlify/
+.turbo/
+.cache/
+tmp/
+backend/fleng.local.sqlite3*
+backend/data/
+
+# Local Fleng SQLite database and journals, wherever configured.
+fleng.db
+fleng.db-*
+
+# Local desktop distribution and generated environments
+/runtime/
+/.desktop-venv/
+/Fleng.exe
+/BUILD-MANIFEST.json
+/WINDOWS-DEPENDENCIES.txt
+
+# Private database copies / backup files (never publish as CI artifacts).
+backups/
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*

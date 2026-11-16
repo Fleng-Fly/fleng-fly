@@ -1,0 +1,104 @@
+# Project Map — Architecture
+
+> Status: M2/M3 implemented (Phase A: static frontend served by FastAPI).
+> Canonical detail: `docs/architecture.md`.
+
+## Hosting boundary — 2026-11-04
+
+Local development still uses one FastAPI process for frontend and `/api/v1`.
+The Netlify deployment is a static-only alternative, configured by root
+`netlify.toml`: `base = "frontend"`, `publish = "."` (relative to base), so
+`frontend/` is the entire publish tree. The base avoids installing unrelated root
+pnpm dependencies. No build command or SPA fallback. Backend sources, database files, env
+templates, tests, documentation and Git metadata are outside the publish tree.
+
+```text
+Browser → Netlify → frontend/ HTML, CSS, JavaScript
+        → /api/v1 → 404 (FastAPI not externally deployed)
+Future: Netlify /api/* HTTPS proxy → FastAPI → persistent PostgreSQL
+                                          → OpenRouter (backend secret only)
+```
+
+Authentication and API-dependent pages cannot work on Netlify until FastAPI,
+persistent storage and the commented proxy are configured and verified. The
+local fix has not been deployed; public behavior is unverified. See
+`docs/deployment.md` for proxy activation and HTTP/private-file checks.
+
+## System diagram (local FastAPI topology)
+
+```
+User
+ ↓  HTTPS
+FastAPI (Python) 🟢  — one deployable on :3001
+  • serves the static frontend at /  🟢  (frontend/: HTML, CSS, vanilla JS)
+  • serves REST /api/v1              🟢
+  • main.py: CORS, error handlers, /api/v1 router, StaticFiles mount 🟢
+  • modules: health 🟢, auth 🟢, users 🟢, progress 🟢, catalog 🟢, exercises 🟢
+  • infrastructure: core (config, errors, schemas) 🟢, db (models, session) 🟢,
+    api (router, deps) 🟢
+  • planned modules (all 🔴): content, vocabulary, gamification, challenges,
+             recommendations, ai, notifications, subscriptions, analytics
+  ↓  SQLAlchemy 2 (async) → asyncpg
+PostgreSQL 🟢 (models + 2 Alembic migrations committed; runtime needs a running instance)
+
+Backend ↔ AI  (Python AI layer) 🔴  — not built; no AI module or dependency yet
+```
+
+## Frontend (static)
+
+```
+frontend/ (no build step)
+  • pages:  index.html, login.html, register.html, dashboard.html, settings.html
+  • styles: css/app.css (design tokens from design/)
+  • scripts (ES modules):
+      js/api.js       — fetch wrapper, in-memory access token, 401 refresh
+      js/errors.js    — user-facing error messages
+      js/session.js   — loadSession / requireSession
+      js/layout.js    — shared header, backend-status badge, DOM helper
+      js/{home,login,register,dashboard,settings}.js
+```
+
+Served by `app.main` via `StaticFiles(html=True)` mounted at `/` after the API
+router, so `/api/v1` and `/docs` take precedence. The browser talks only to the
+relative `/api/v1`; there is no frontend environment configuration.
+
+## Layer boundaries
+
+| From → To | Allowed? | Notes |
+| --------- | -------- | ----- |
+| Browser (static pages) → Backend API | ✅ | HTTP/JSON only, via `frontend/js/api.js` |
+| Frontend → Database | ❌ | Never |
+| Frontend → AI provider | ❌ | Keys are server-side |
+| Backend → Database | ✅ | Only via SQLAlchemy |
+| Backend → AI layer | 🔴 | Planned, in-process Python import |
+| AI layer → Database | ❌ | Layer is persistence-free |
+| Module → other module's service | ✅ | Import the service, not internals |
+| Module → another module's ORM models | ⚠️ | Prefer going through services |
+
+## Trust boundaries
+
+- Browser is untrusted: validate everything at the API edge (Pydantic).
+- The static frontend renders server/user text with `textContent` (never
+  `innerHTML`).
+- AI provider output will be untrusted: validate against a schema before use.
+- The database is trusted but access is least-privilege.
+
+## Deployment units (target)
+
+1. `backend` — FastAPI app serving the API **and** the static frontend.
+2. AI layer — Python package inside the backend (not deployed separately).
+
+## Evolution rules
+
+- Keep the monolith until evidence justifies extraction (`docs/architecture.md §8`).
+- Any new top-level directory must be added to this map and to `README.md`.
+- New backend modules must be added to `modules.md` and `api-map.md`.
+
+## Backend extension — 2026-10-18
+
+Vocabulary, gamification, password_reset and ai now live in the FastAPI monolith.
+AI wraps an in-process async OpenRouter provider adapter with no database access;
+recommendations use deterministic SQL analytics. No new deployable, frontend
+framework or build step. PostgreSQL adds learning/review/achievement/reset/AI and
+quota tables in revision 20261018_1200. Provider keys remain server-only. Tests are
+mocked/default SQLite fixtures; live PostgreSQL/AI integration is still blocked.
