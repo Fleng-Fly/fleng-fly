@@ -32,5 +32,4 @@
   .flashcard-turn.is-flipped .flashcard-inner,.flashcard-back { transform: none; }
   .flashcard-front[aria-hidden=true],.flashcard-back[aria-hidden=true] { visibility: hidden; }
   .summary-celebration { display: none; }
-  *,*::before,*::after { animation: none !important; transition: none !important; }
 }
