@@ -20,6 +20,6 @@ if (!existsSync(venvPython)) {
 }
 
 console.log('Installing backend dependencies…');
-run(venvPython, ['-m', 'pip', 'install', '--upgrade', 'pip']);
-run(venvPython, ['-m', 'pip', 'install', '-e', '.[dev]']);
+// Tested versions are pinned via constraints.txt; pip itself is not upgraded.
+run(venvPython, ['-m', 'pip', 'install', '-c', 'constraints.txt', '-e', '.[dev]']);
 console.log('Backend setup complete.');

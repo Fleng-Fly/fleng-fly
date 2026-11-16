@@ -164,8 +164,11 @@ class Settings(BaseSettings):
         if value.startswith(("sqlite://", "sqlite+aiosqlite://")):
             url = make_url(value)
             database = url.database
-            if not database or database == ":memory:":
-                return value.replace("sqlite://", "sqlite+aiosqlite://", 1)
+            if database == ":memory:":
+                # render_as_string() would percent-encode ":memory:" into a file name.
+                return "sqlite+aiosqlite:///:memory:"
+            if not database:
+                return url.set(drivername="sqlite+aiosqlite").render_as_string(hide_password=False)
             path = Path(database).expanduser()
             if not path.is_absolute():
                 path = BACKEND_ROOT / path

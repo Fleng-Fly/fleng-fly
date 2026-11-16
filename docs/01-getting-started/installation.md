@@ -12,7 +12,7 @@ Explicit equivalent:
 
 ```sh
 python3 -m venv backend/.venv
-backend/.venv/bin/python -m pip install -e './backend[dev]'
+backend/.venv/bin/python -m pip install -c backend/constraints.txt -e './backend[dev]'
 cd backend
 .venv/bin/python -m app.db.prepare
 .venv/bin/uvicorn app.main:app --reload --no-proxy-headers --host 127.0.0.1 --port 3001
