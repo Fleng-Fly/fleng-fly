@@ -363,3 +363,10 @@ Next: push main, resume Render, deploy both hosts and verify release/login/revie
 - Next/external: public HTTPS EMAIL_CHANGE_URL/SMTP delivery and live PostgreSQL
   verification. No paid provider calls, commit or push in this stage.
 - Verification details: docs/security-stability-1.0.md.
+
+## Placement Test MVP
+
+Isolated implementation on feat/placement-test: owned diagnostic attempts,
+original private bank, autosave/history/retakes and approximate A1–B2 course
+starting-point guidance. No full CEFR certification or C1/C2 determination.
+Status, tests and editorial/calibration limits: [placement plan](placement-test.md).

@@ -357,3 +357,9 @@ SMTP required (503 otherwise); five attempts/user/hour.
 Invalid/stale token: 400; occupied address: 409. Both paths use `/api/v1`.
 `PATCH /users/me` rejects a different email with 409 EMAIL_CONFIRMATION_REQUIRED.
 See [authentication](authentication.md#fleng-10-securitystability--2026-11-16).
+
+## Placement Test MVP
+
+JWT-owned `/placement-test/attempts` start/history/resume, PUT answers and POST
+complete are implemented independently of lesson grading and XP. See the
+[placement API](03-backend/placement-api.md) and [assessment limits](placement-test.md).

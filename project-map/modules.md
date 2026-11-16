@@ -333,3 +333,14 @@ START-FLENG compatibility commands start the browser website. See docs/website-r
 one-use confirmation; `EmailChange` persists authorization until expiry.
 `frontend/js/settings.js` handles the confirmation fragment; `api.js` coordinates
 refresh through Web Locks. Details: ../docs/authentication.md.
+
+## Placement Test MVP
+
+`modules/placement/{bank,scoring,service,schemas,router}.py` owns a separate diagnostic
+flow. `PlacementAttempt` in models.py stores private snapshots and immutable results;
+revision 20261117_1200 adds its table/index after Security 20261116_1400. It reads
+published catalog courses and uses JWT identity/get_db and existing request limits.
+It does not write learning/profile/XP state or invoke AI. `frontend/placement-test.html`,
+`js/placement-api.js`, `js/placement-test.js` and scoped `css/placement-test.css` provide
+the standalone UI. API/storage tests: test_placement*.py; DOM: test-placement.mjs.
+Methodology/limitations: docs/placement-test.md. No global navigation changes.

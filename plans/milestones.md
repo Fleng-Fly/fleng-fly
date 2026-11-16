@@ -232,3 +232,11 @@ In progress: fix account loss after Render Free sleep by requiring external dura
 - Next/external: public HTTPS EMAIL_CHANGE_URL/SMTP delivery and live PostgreSQL
   verification. No paid provider calls, commit or push in this stage.
 - Verification details: docs/security-stability-1.0.md.
+
+## Placement Test MVP
+
+Independent implementation verified: full backend 517 passed / 24 skipped;
+frontend suites, Ruff/mypy and whitespace checks pass. The documentation checker
+retains five baseline Security failures. Editorial/psychometric acceptance remains
+pending and is not implied by code completion. See [placement plan](placement-test.md). Finalization authorizes one Placement-only
+commit; no merge, rebase or push.

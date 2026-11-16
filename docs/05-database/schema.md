@@ -397,3 +397,25 @@ Table: `vocabulary_reviews`.
 Constraints/indexes beyond primary/foreign keys:
 
 - Index `ix_vocabulary_reviews_item_id` on `item_id`; unique=False
+
+## PlacementAttempt
+
+Table: `placement_attempts`. Private owned attempt snapshot and stored result.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| user_id | CHAR(32) | False | FK users.id |
+| bank_version | VARCHAR(40) | False | — |
+| scoring_version | VARCHAR(40) | False | — |
+| status | VARCHAR(20) | False | — |
+| questions | JSON | False | — |
+| answers | JSON | False | — |
+| result | JSON | True | — |
+| started_at | DATETIME | False | — |
+| completed_at | DATETIME | True | — |
+
+Constraint `placement_status_check`: in_progress or completed. Index
+`ix_placement_user_started` on user_id, started_at. User deletion cascades.
+Private question JSON includes keys; public DTO projection excludes them until
+completion. Versions and snapshots retain reproducible results across bank updates.

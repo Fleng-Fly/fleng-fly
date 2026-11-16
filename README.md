@@ -234,3 +234,11 @@ Render Free can sleep without losing accounts only when runtime user data is in
 external durable storage. This code change does not provision a database or change
 your hosted URL. PostgreSQL startup verifies existing schemas and never resets
 users/progress; fresh-schema migrations/catalog initialization commit atomically.
+
+## Placement Test MVP
+
+After applying migrations, signed-in learners can open `/placement-test.html`
+for a separate, resumable diagnostic with saved attempts and course suggestions.
+It awards no XP and never updates profile level or learning progress. Results
+are approximate A1–B2 starting-point guidance; C1/C2 cannot be confirmed and the
+original bank is not externally calibrated. [Scope and methodology](docs/placement-test.md).

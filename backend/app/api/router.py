@@ -7,6 +7,7 @@ from app.modules.exercises.router import router as exercises_router
 from app.modules.gamification.router import router as gamification_router
 from app.modules.health.router import router as health_router
 from app.modules.password_reset.router import router as password_reset_router
+from app.modules.placement.router import router as placement_router
 from app.modules.progress.router import router as progress_router
 from app.modules.users.email_change import router as email_change_router
 from app.modules.users.router import router as users_router
@@ -24,3 +25,5 @@ api_router.include_router(vocabulary_router)
 api_router.include_router(gamification_router)
 api_router.include_router(password_reset_router)
 api_router.include_router(ai_router)
+
+api_router.include_router(placement_router)
