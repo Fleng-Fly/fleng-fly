@@ -325,3 +325,13 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
 `version.json` and sidebar/footer expose the release. Desktop shell removed;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
+
+## Draft quality candidate — 2026-11-16
+
+`backend/app/db/content/curriculum-a0-b2.draft.json` is an explicitly selected
+editorial candidate; normal runtime still uses the unchanged pinned
+`curriculum-a0-b2.json`. No new module, API or grading rule. Validate the candidate
+with `scripts/validate_curriculum.py --input <candidate>`.
+`test_content_structure.py` and `test_draft_quality_fixes.py` cover the four repaired
+draft defects and separation from the published release. Editorial/publication
+limits: `docs/qa/draft-curriculum-fixes.md`.

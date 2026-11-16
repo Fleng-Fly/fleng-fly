@@ -1,10 +1,10 @@
 """Independent structure checks for learning content (see docs/qa/learning-content-audit.md).
 
 These tests read the content directly and do not reuse the importer or the
-validator, so they act as a second opinion on both. Invariants that hold today
-are plain tests. Known content defects from the audit that are still open are
-strict ``xfail`` tests: they document the defect, and fail loudly (XPASS) once it is fixed so
-the marker gets removed.
+validator, so they act as a second opinion on both. The four repaired draft
+defects are regular regressions against the separate
+editorial candidate. Passing these checks is not pedagogical approval. The pinned
+release and published seed remain covered by the existing runtime/seed tests.
 """
 
 import json
@@ -18,7 +18,7 @@ from app.core.levels import LEARNING_LEVELS
 from app.db.seed import SEED_COURSES, SEED_EXERCISES
 from app.modules.exercises.grading import normalize_text
 
-CONTENT = Path(__file__).resolve().parents[1] / "app/db/content/curriculum-a0-b2.json"
+CONTENT = Path(__file__).resolve().parents[1] / "app/db/content/curriculum-a0-b2.draft.json"
 CURRICULUM = json.loads(CONTENT.read_text(encoding="utf-8"))
 COURSES = CURRICULUM["courses"]
 LESSONS = [(c, lesson) for c in COURSES for lesson in c["lessons"]]
@@ -187,38 +187,44 @@ def test_seed_exercise_grading_data(lesson_slug: str, exercise: dict) -> None:
         assert kind == "self_check" and exercise["model_answer"].strip()
 
 
-# --------------------------------------------------------------------------- known defects (audit)
-
-AUDIT = "docs/qa/learning-content-audit.md"
+# Repaired draft defects from the audit: regular regression tests.
 
 
-@pytest.mark.xfail(strict=True, reason=f"{AUDIT}: all 500 vocabulary examples are empty")
 def test_vocabulary_has_example_sentences() -> None:
     assert all(v["example"].strip() for _, lesson in LESSONS for v in lesson["vocabulary"])
 
 
-@pytest.mark.xfail(strict=True, reason=f"{AUDIT}: every lesson uses the same answer positions")
 def test_correct_answer_positions_vary_between_lessons() -> None:
-    patterns = {tuple(e["correct_option_id"] for e in lesson["exercises"]) for _, lesson in LESSONS}
-    assert len(patterns) > 1
+    patterns = []
+    totals = Counter()
+    for _, lesson in LESSONS:
+        positions = tuple(
+            next(
+                i for i, option in enumerate(e["options"]) if option["id"] == e["correct_option_id"]
+            )
+            for e in lesson["exercises"]
+        )
+        assert set(positions) == {0, 1, 2}, lesson["slug"]
+        patterns.append(positions)
+        totals.update(positions)
+    assert len(set(patterns)) == 50
+    assert max(totals.values()) - min(totals.values()) <= 1
 
 
-@pytest.mark.xfail(strict=True, reason=f"{AUDIT}: 145 practice items repeat the worked examples")
 def test_practice_items_are_not_the_worked_examples() -> None:
     def norm(text: str) -> str:
         return re.sub(r"[^a-z0-9 ]", "", text.casefold().replace("’", "'").replace("'", ""))
 
     repeated = 0
     for _, lesson in LESSONS:
-        examples = norm(" ".join(lesson["examples"]))
+        examples = norm(" ".join(lesson["examples"] + [v["example"] for v in lesson["vocabulary"]]))
         for e in lesson["exercises"]:
-            if e["phase"] == "practice" and "___" in e["prompt"]:
+            if e["phase"] == "practice":
                 filled = re.sub(r"\([^)]*\)", "", e["prompt"]).replace("___", correct_text(e))
                 repeated += norm(filled).strip() in examples
     assert repeated == 0
 
 
-@pytest.mark.xfail(strict=True, reason=f"{AUDIT}: 83 vocabulary words never appear in the lesson")
 def test_every_vocabulary_word_is_used_in_its_lesson() -> None:
     def norm(text: str) -> str:
         return re.sub(r"[^a-z0-9 ]", "", text.casefold().replace("’", "'").replace("'", ""))

@@ -84,3 +84,15 @@ The observed sandbox aiosqlite hang reproduces outside pytest and disappears
 with unrestricted execution. No tests are disabled to hide it.
 Next: run the opt-in PostgreSQL tests using a dedicated TEST_DATABASE_URL.
 Live PostgreSQL is NOT VERIFIED. Results: `docs/backend-stabilization-report.md`.
+
+## Draft curriculum quality — 2026-11-16
+
+- Completed: separate editorial candidate repairs 500 missing examples, answer
+  positioning, all 145 confirmed practice copies (+5 non-gap copies) and all 83
+  audit vocabulary-context omissions (+40 stricter-detection gaps).
+- Completed: four repaired strict xfails converted to regular candidate regressions;
+  all keys checked through the existing grader, published source/approval preserved.
+- Completed: explicit candidate validator, runtime-source validator and targeted
+  curriculum/import/grading tests; details in docs/qa/draft-curriculum-fixes.md.
+- Next: teacher/translator review and a separately authorized version/publication
+  strategy. Human review and broader audit findings remain open; no deployment.

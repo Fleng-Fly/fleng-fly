@@ -188,3 +188,23 @@ The two matching `xfail` tests became regular regression tests; 4 strict `xfail`
 2. Draft, before any publication: H2, H1, H3, M1, M6.
 3. Then M2 to M5, M7, M10 and the low items.
 4. Run `scripts/validate_curriculum.py` and this test file after each batch.
+
+## Draft repair candidate — branch `fix/draft-curriculum`
+
+M3, M2, H1 and M4 are repaired in a **separate**
+`backend/app/db/content/curriculum-a0-b2.draft.json` candidate. The primary JSON is
+now pinned as an owner-authorized release despite its `draft` status, so it and
+the published seed are intentionally unchanged. The four former strict xfails
+became ordinary regressions for the corrected draft; the release SHA remains
+covered independently. This does **not** mean the published artifact's defects
+have been repaired or that the candidate has teacher approval.
+
+The four quantitative fixes are 500 examples, balanced positions across 400
+exercises, 145 gap-fill copies plus 5 non-gap copies replaced, and reading context
+for all 83 audit omissions (plus 40 further whole-word/distractor-only gaps).
+The extended detector checks actual displayed positions and complete words, and
+includes new vocabulary examples in its copy check. Other audit findings remain
+open. AI-assisted editorial work is not pedagogical verification.
+
+Details, commands, checks and publication limits:
+[draft quality fixes](draft-curriculum-fixes.md).
