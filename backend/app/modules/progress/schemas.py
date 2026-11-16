@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from app.core.schemas import CamelModel
+from app.modules.gamification.schemas import StreakResponse
 
 
 class CourseProgressResponse(CamelModel):
@@ -14,6 +16,16 @@ class CourseProgressResponse(CamelModel):
     lessons_total: int
     lessons_started: int
     lessons_completed: int
+    completion_percent: float
+
+
+class XPHistoryResponse(CamelModel):
+    """The current schema has no immutable XP award amounts/timestamps."""
+
+    available: Literal[False] = False
+    reason: Literal["XP_AWARD_HISTORY_NOT_RECORDED"] = "XP_AWARD_HISTORY_NOT_RECORDED"
+    last_7_days: None = None
+    last_30_days: None = None
 
 
 class ProgressResponse(CamelModel):
@@ -33,3 +45,6 @@ class ProgressResponse(CamelModel):
     last_activity_at: datetime | None
     updated_at: datetime | None
     courses: list[CourseProgressResponse]
+    active_courses: int
+    streak: StreakResponse
+    xp_history: XPHistoryResponse
