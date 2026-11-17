@@ -200,7 +200,7 @@ From the repository root:
 
 ```bash
 python3 -m venv backend/.venv
-backend/.venv/bin/python -m pip install -e './backend[dev]'
+backend/.venv/bin/python -m pip install -c backend/constraints.txt -e './backend[dev]'
 # Create .env from .env.example only if you do not already have one.
 docker compose up -d --wait db
 cd backend

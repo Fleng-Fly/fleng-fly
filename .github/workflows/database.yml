@@ -27,7 +27,7 @@ jobs:
           node-version: '22'
           package-manager-cache: false
       - run: python -m venv backend/.venv
-      - run: backend/.venv/bin/pip install -e './backend[dev]'
+      - run: backend/.venv/bin/pip install -c backend/constraints.txt -e './backend[dev]'
       - run: npm run backend:lint
       - run: npm run backend:typecheck
       - run: npm run db:verify
@@ -70,7 +70,7 @@ jobs:
           node-version: '22'
           package-manager-cache: false
       - run: python -m venv backend/.venv
-      - run: backend/.venv/bin/pip install -e './backend[dev]'
+      - run: backend/.venv/bin/pip install -c backend/constraints.txt -e './backend[dev]'
       - name: Install matching PostgreSQL backup clients
         run: sudo apt-get update && sudo apt-get install -y postgresql-client-16
       - name: Require real PostgreSQL test configuration
