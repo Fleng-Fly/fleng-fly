@@ -67,9 +67,14 @@ def main() -> None:
                 row[0]
                 for row in connection.execute("SELECT version_num FROM alembic_version")
             ]
-            assert revisions == heads, (revisions, heads)
-            assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
-            assert not connection.execute("PRAGMA foreign_key_check").fetchall()
+            if revisions != heads:
+                raise SystemExit(
+                    f"Applied revisions {revisions} do not match heads {heads}"
+                )
+            if connection.execute("PRAGMA integrity_check").fetchone() != ("ok",):
+                raise SystemExit("SQLite integrity check failed")
+            if connection.execute("PRAGMA foreign_key_check").fetchall():
+                raise SystemExit("SQLite foreign key check failed")
         print(
             f"Migration smoke passed: one head {heads[0]}, repeat upgrade, ORM drift and integrity."
         )

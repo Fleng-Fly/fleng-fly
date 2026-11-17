@@ -33,6 +33,16 @@ for line in (ROOT / "backend/constraints.txt").read_text().splitlines():
 # pnpm 12 stores tool metadata and workspace dependencies in separate YAML documents.
 manifest = json.loads((ROOT / "package.json").read_text())
 lock_documents = list(yaml.safe_load_all((ROOT / "pnpm-lock.yaml").read_text()))
+manager = manifest.get("packageManager", "")
+manager_pins = [
+    doc.get("importers", {}).get(".", {}).get("packageManagerDependencies", {})
+    for doc in lock_documents
+    if doc
+]
+if not any(
+    f"pnpm@{pin.get('pnpm', {}).get('version', '')}" == manager for pin in manager_pins
+):
+    failures.append("Pinned package manager differs between manifest and lock")
 workspace = next(
     (
         doc["importers"]["."]
