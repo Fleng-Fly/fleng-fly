@@ -109,3 +109,11 @@ blocked. See ai-plan.md for completed/blocked/next work. No automatic commits.
 - Verified: full backend 2376 passed / 25 skipped, 77 existing warnings; frontend
   63 passed, Ruff/mypy/docs/whitespace passed. No models or migrations changed.
 - Next: optional live PostgreSQL verification; no push/merge/deploy authorized.
+
+## Worktree launcher integration
+
+Completed: cherry-pick of 9768b7c onto fd3be64 with frontend test-list union.
+Verified: frontend 79 passed; backend launcher/drafts/persistence 15 passed;
+Ruff/mypy/docs passed. Real npm dev smoke on ephemeral ports verified current
+checkout/static files, busy-port/missing-database refusals, two starts preserving
+SQLite inode/sentinel/account and valid backups. Localhost:3001 was not touched.

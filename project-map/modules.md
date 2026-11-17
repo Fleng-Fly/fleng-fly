@@ -389,3 +389,11 @@ loads authored A0–A1 sidecar text; its draft review gate stays disabled in pro
 The existing published curriculum and XP rules are unchanged. Integration browser
 regressions in `e2e/integration-ux.spec.mjs` cover shared pages at four widths,
 EN/UK persistence and A0 hint/guide/feedback rendering.
+
+## Development launcher checkout safety
+
+`scripts/dev-helpers.mjs` detects linked checkouts, resolves the interpreter and
+checks the requested port before preparation. `app/development.py` refuses mixed
+checkout imports/frontends and unintended new worktree databases, reports local
+paths and exposes the loopback-only checkout header. Existing SQLite is backed
+up and prepared in place; no migration or API/business-policy change is introduced.

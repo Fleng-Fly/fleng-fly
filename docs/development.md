@@ -394,3 +394,9 @@ To check startup/auth/Dashboard/Lessons without touching local learner data, run
 only temporary SQLite and checks persistence across two server starts. For a
 sandbox-specific aiosqlite hang, see `testing.md`; use the required execution
 permissions instead of changing the application database or pytest fixtures.
+
+Integration validation: a linked checkout without its own venv served its own
+frontend/backend while borrowing the main interpreter. Two starts against an
+existing disposable SQLite preserved its inode, sentinel row and registered
+account; both backups were readable. Busy-port refusal ran before database
+creation. The user's localhost:3001 process was not stopped or replaced.
