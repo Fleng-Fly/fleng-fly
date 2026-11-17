@@ -1,6 +1,7 @@
-import { getLesson, getLessonProgress, getLessonVocabulary, startLesson, submitAnswer } from './api.js';
+import { getCourse, getLesson, getLessonProgress, getLessonVocabulary, listCourses, startLesson, submitAnswer } from './api.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
+import { t } from './i18n.js';
 import { letterTiles } from './letter-tiles.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
@@ -8,11 +9,12 @@ import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './works
 const $ = (id) => document.getElementById(id);
 const tabs = ['theory', 'practice', 'vocabulary'];
 const requestedTab = queryParam('tab');
-const labels = { letter_tiles: 'Letter tiles', single_choice: 'Multiple choice', text: 'Short answer', self_check: 'Self-check' };
+const typeLabel = (type) => ['letter_tiles', 'single_choice', 'text', 'self_check'].includes(type) ? t(`lesson.type.${type}`) : type;
 const state = {
   lesson: null, progress: null, tab: tabs.includes(requestedTab) ? requestedTab : 'theory', index: 0, busy: false,
   drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
   vocabulary: { items: [], loaded: false, loading: false, more: false, error: null },
+  nextStep: null, nextStepFor: null,
 };
 
 function renderTheory(container, theory) {
@@ -26,7 +28,9 @@ function renderTheory(container, theory) {
       for (const line of lines) list.append(el('li', undefined, line.slice(2)));
       container.append(list);
     } else if (block.startsWith('## ')) {
-      container.append(el('h3', undefined, block.slice(3)));
+      const heading = block.slice(3).trim();
+      const key = `lesson.heading.${heading.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')}`;
+      container.append(el('h3', undefined, t(key) === key ? heading : t(key)));
     } else {
       container.append(el('p', undefined, lines.join(' ')));
     }
@@ -65,37 +69,92 @@ function showError(error) {
   $('lesson-content').hidden = true;
   const box = $('lesson-error');
   box.hidden = false;
-  box.replaceChildren(el('h1', undefined, 'Lesson unavailable'), el('p', undefined, describeApiError(error)));
-  const retry = el('button', 'lesson-button lesson-button-primary', 'Try again');
+  box.replaceChildren(el('h1', undefined, t('lesson.unavailable')), el('p', undefined, describeApiError(error)));
+  const retry = el('button', 'lesson-button lesson-button-primary', t('common.tryAgain'));
   retry.type = 'button';
   retry.addEventListener('click', loadLesson);
-  const catalog = el('a', 'lesson-button lesson-button-secondary', 'Browse lessons');
+  const catalog = el('a', 'lesson-button lesson-button-secondary', t('dashboard.browse'));
   catalog.href = '/courses.html';
   box.append(retry, catalog);
 }
 
 function renderHero() {
   const { lesson, progress } = state;
-  $('lesson-number').textContent = Number.isInteger(lesson.position) ? `LESSON ${lesson.position}` : 'LESSON';
-  $('lesson-level').textContent = lesson.level || 'Course lesson';
-  $('lesson-duration').textContent = lesson.estimatedMinutes ? `${lesson.estimatedMinutes} min` : 'Self-paced';
+  $('lesson-number').textContent = Number.isInteger(lesson.position) ? t('lesson.number', { n: lesson.position }) : t('lesson.numberless');
+  $('lesson-level').textContent = lesson.level || t('lesson.courseLesson');
+  $('lesson-duration').textContent = lesson.estimatedMinutes ? t('catalog.minutes', { n: lesson.estimatedMinutes }) : t('lesson.selfPaced');
   $('lesson-title').textContent = lesson.title;
-  $('lesson-subtitle').textContent = lesson.summary || 'Continue your English practice.';
+  $('lesson-subtitle').textContent = lesson.summary || t('lesson.continuePractice');
   $('lesson-course-link').textContent = lesson.courseTitle;
   $('lesson-course-link').href = `/course.html?slug=${encodeURIComponent(lesson.courseSlug)}`;
-  $('lesson-activity-count').textContent = `${progress.exercisesCompleted} / ${progress.exercisesTotal} activities`;
-  $('lesson-xp').textContent = `${progress.xpEarned} XP earned`;
+  $('lesson-activity-count').textContent = t('lesson.activities', { done: progress.exercisesCompleted, total: progress.exercisesTotal });
+  $('lesson-xp').textContent = t('lesson.xpEarned', { xp: progress.xpEarned });
   setProgressBar($('lesson-progress'), progress.exercisesCompleted, progress.exercisesTotal);
+  renderCompleted();
+  document.title = `${lesson.title} — Fleng`;
+}
+
+function renderCompleted() {
+  const { progress } = state;
   const completed = $('lesson-completed');
   completed.hidden = !progress.completed;
-  if (progress.completed) {
-    const course = el('a', undefined, 'Continue in course →');
-    course.href = $('lesson-course-link').href;
-    const metrics = el('div', 'lesson-finish-metrics');
-    metrics.append(el('span', undefined, `${progress.exercisesCompleted} / ${progress.exercisesTotal} activities`), el('span', undefined, `${progress.xpEarned} XP earned`));
-    completed.replaceChildren(el('strong', undefined, '✦ Lesson completed'), el('p', undefined, 'You have finished every activity in this lesson.'), metrics, course);
+  if (!progress.completed) return;
+  const metrics = el('div', 'lesson-finish-metrics');
+  metrics.append(
+    el('span', undefined, t('lesson.activities', { done: progress.exercisesCompleted, total: progress.exercisesTotal })),
+    el('span', undefined, t('lesson.xpEarned', { xp: progress.xpEarned })),
+  );
+  const actions = el('div', 'lesson-finish-actions');
+  const next = state.nextStep;
+  if (next?.href) {
+    const go = el('a', 'lesson-button lesson-button-primary', next.label);
+    go.href = next.href;
+    actions.append(go);
   }
-  document.title = `${lesson.title} — Fleng`;
+  const course = el('a', 'lesson-button lesson-button-secondary', t('lesson.backToCourse'));
+  course.href = $('lesson-course-link').href;
+  const words = el('button', 'lesson-button lesson-button-secondary', t('lesson.reviewWords'));
+  words.type = 'button';
+  words.addEventListener('click', () => switchTab('vocabulary'));
+  actions.append(course, words);
+  completed.replaceChildren(
+    el('strong', undefined, `✦ ${t('lesson.completedTitle')}`),
+    el('p', undefined, t('lesson.completedText')),
+    metrics,
+    actions,
+  );
+  loadNextStep();
+}
+
+/** Real catalog data only: the next lesson of this course, else the next course. */
+async function loadNextStep() {
+  const { lesson } = state;
+  if (!lesson || state.nextStepFor === lesson.slug) return;
+  state.nextStepFor = lesson.slug;
+  try {
+    const course = await getCourse(lesson.courseSlug);
+    const position = course.lessons.findIndex((item) => item.slug === lesson.slug);
+    const nextLesson = position >= 0 ? course.lessons[position + 1] : null;
+    if (nextLesson) {
+      state.nextStep = { href: `/lesson.html?slug=${encodeURIComponent(nextLesson.slug)}`, label: t('lesson.nextLesson') };
+    } else {
+      const all = await listCourses();
+      const index = all.findIndex((item) => item.slug === lesson.courseSlug);
+      const nextCourse = index >= 0 ? all[index + 1] : null;
+      state.nextStep = nextCourse
+        ? { href: `/course.html?slug=${encodeURIComponent(nextCourse.slug)}`, label: t('lesson.nextCourse', { title: nextCourse.title }) }
+        : null;
+    }
+  } catch {
+    state.nextStep = null; // The completion card still offers the way back to the course.
+  }
+  if (state.progress?.completed && state.lesson === lesson) renderCompleted();
+}
+
+function labelled(label, text) {
+  const row = el('p', 'lesson-feedback-line');
+  row.append(el('span', 'lesson-feedback-label', `${label}: `), text);
+  return row;
 }
 
 function feedback(exercise, record) {
@@ -111,36 +170,35 @@ function feedback(exercise, record) {
   }
   const result = state.results.get(exercise.id);
   if (result) {
-    box.classList.add(result.isCorrect ? 'is-correct' : 'is-incorrect');
+    const ok = result.isCorrect;
+    box.classList.add(ok ? 'is-correct' : 'is-incorrect');
     let headline = exercise.type === 'self_check'
-      ? (result.isCorrect ? 'Marked as correct' : 'Marked for more practice')
-      : (result.isCorrect ? 'Correct' : 'Incorrect');
+      ? (ok ? t('lesson.selfCorrect') : t('lesson.selfIncorrect'))
+      : (ok ? t('lesson.correct') : t('lesson.incorrect'));
     if (result.xpAwarded) headline += ` · +${result.xpAwarded} XP`;
     box.append(el('strong', undefined, headline));
-    if (result.feedback) box.append(el('p', undefined, result.feedback));
-    if (!result.isCorrect && !result.completed) {
+    if (!ok && exercise.type !== 'self_check') box.append(el('p', undefined, t('lesson.mistakeHint')));
+    if (!ok && !result.completed) {
       const remaining = state.progress.exercisesTotal - state.progress.exercisesCompleted;
-      box.append(el('p', undefined, remaining > 1
-        ? 'This question will return after the other unfinished questions.'
-        : 'Try again to finish this question.'));
+      box.append(el('p', undefined, remaining > 1 ? t('lesson.returnsLater') : t('lesson.tryAgain')));
     }
     if (exercise.type === 'single_choice' && result.correctOptionId) {
       const option = exercise.options?.find((item) => item.id === result.correctOptionId);
-      if (option) box.append(el('p', undefined, `Correct answer: ${option.text}`));
+      if (option) box.append(labelled(t('lesson.correctAnswer'), option.text));
     }
     if (exercise.type === 'text' && result.acceptedAnswers?.length) {
-      box.append(el('p', undefined, `Accepted answer: ${result.acceptedAnswers[0]}`));
+      box.append(labelled(t('lesson.acceptedAnswer'), result.acceptedAnswers[0]));
     }
-    if (result.modelAnswer) box.append(el('p', undefined, `Model answer: ${result.modelAnswer}`));
-    if (result.explanation) box.append(el('p', undefined, result.explanation));
+    if (result.modelAnswer) box.append(labelled(t('lesson.modelAnswer'), result.modelAnswer));
+    if (result.explanation) box.append(labelled(t('lesson.explanation'), result.explanation));
   } else if (record?.attempts) {
-    const status = record.completed ? 'Completed' : 'Previous attempt saved';
+    const status = record.completed ? t('lesson.statusDone') : t('lesson.statusSaved');
     box.append(el('strong', undefined, status));
     if (record.answer) {
       const option = exercise.options?.find((item) => item.id === record.answer);
-      box.append(el('p', undefined, `Your latest answer: ${option?.text || record.answer}`));
+      box.append(labelled(t('lesson.latestAnswer'), option?.text || record.answer));
     }
-    if (!record.completed) box.append(el('p', undefined, 'Submit another answer to see feedback.'));
+    if (!record.completed) box.append(el('p', undefined, t('lesson.submitAgain')));
   }
   return box;
 }
@@ -160,9 +218,9 @@ async function submit(exercise, answer, assessment) {
   if (state.busy) return;
   if (!answer?.trim()) {
     const message = {
-      single_choice: 'Choose an answer first.',
-      letter_tiles: 'Fill every blank with a letter tile.',
-    }[exerciseType(exercise)] || 'Write an answer first.';
+      single_choice: t('lesson.needChoice'),
+      letter_tiles: t('lesson.needTiles'),
+    }[exerciseType(exercise)] || t('lesson.needAnswer');
     state.errors.set(exercise.id, message);
     renderQuestions();
     return;
@@ -173,7 +231,7 @@ async function submit(exercise, answer, assessment) {
   state.errors.delete(exercise.id);
   setBusy(true);
   const pending = document.querySelector(`[data-exercise-id="${exercise.id}"] .lesson-feedback`);
-  if (pending) pending.replaceChildren(el('strong', undefined, 'Checking answer…'));
+  if (pending) pending.replaceChildren(el('strong', undefined, t('lesson.checking')));
   try {
     const result = await submitAnswer(state.lesson.slug, {
       exerciseId: exercise.id, answer,
@@ -210,7 +268,7 @@ async function submit(exercise, answer, assessment) {
 }
 
 function setBusy(busy) {
-  document.querySelectorAll('.lesson-tabs button, #use-template, #template-preview button, #template-structure button, .lesson-answer-form button, .lesson-answer-form input, .lesson-answer-form textarea, .lesson-question-navigation button').forEach((button) => {
+  document.querySelectorAll('.lesson-tabs button, #template-preview button, .lesson-answer-form button, .lesson-answer-form input, .lesson-answer-form textarea, .lesson-question-navigation button').forEach((button) => {
     if (busy) {
       button.dataset.disabledBeforeSubmit = String(button.disabled);
       button.disabled = true;
@@ -227,11 +285,11 @@ function questionCard(exercise, index) {
   const card = el('article', 'lesson-card lesson-question lesson-reveal');
   card.dataset.exerciseId = exercise.id;
   const meta = el('div', 'lesson-question-meta');
-  meta.append(el('span', 'lesson-chip', `Question ${index + 1} / ${state.lesson.exercises.length}`), el('span', undefined, `${labels[exerciseType(exercise)] || exercise.type} · ${exercise.points} XP`));
+  meta.append(el('span', 'lesson-chip', t('lesson.questionOf', { n: index + 1, total: state.lesson.exercises.length })), el('span', undefined, `${typeLabel(exerciseType(exercise))} · ${exercise.points} XP`));
   card.append(meta);
   const track = el('div', 'lesson-track');
   track.setAttribute('role', 'progressbar');
-  track.setAttribute('aria-label', 'Completed lesson questions');
+  track.setAttribute('aria-label', t('lesson.questionsDone'));
   track.setAttribute('aria-valuemin', '0');
   track.setAttribute('aria-valuemax', '100');
   track.append(el('span', 'lesson-fill'));
@@ -240,11 +298,14 @@ function questionCard(exercise, index) {
   const prompt = el('h2', undefined, exercise.prompt);
   prompt.tabIndex = -1;
   card.append(prompt);
+  const instructionKey = `lesson.instruction.${exerciseType(exercise)}`;
+  if (t(instructionKey) !== instructionKey) card.append(el('p', 'lesson-instruction', t(instructionKey)));
   const form = el('form', 'lesson-answer-form');
   let readAnswer;
   if (exercise.type === 'single_choice') {
     const field = el('fieldset', 'lesson-options');
-    field.append(el('legend', 'sr-only', 'Choose one answer'));
+    field.append(el('legend', 'sr-only', t('lesson.chooseOne')));
+    let optionIndex = 0;
     for (const option of exercise.options || []) {
       const label = el('label', 'lesson-option');
       const input = document.createElement('input');
@@ -253,7 +314,7 @@ function questionCard(exercise, index) {
       input.value = option.id;
       input.checked = (state.drafts.has(exercise.id) ? state.drafts.get(exercise.id) : record?.answer) === option.id;
       input.addEventListener('change', () => { state.drafts.set(exercise.id, input.value); markEdited(exercise); });
-      label.append(input, el('span', undefined, option.text));
+      label.append(input, el('span', 'lesson-option-key', String.fromCharCode(65 + optionIndex++)), el('span', 'lesson-option-text', option.text));
       if (result?.correctOptionId === option.id) label.classList.add('is-correct');
       else if (result && !result.isCorrect && input.checked) label.classList.add('is-incorrect');
       field.append(label);
@@ -273,7 +334,7 @@ function questionCard(exercise, index) {
     form.append(tiles.field);
     readAnswer = tiles.readAnswer;
   } else if (exercise.type === 'text' || exercise.type === 'self_check') {
-    const label = el('label', 'lesson-answer-label', 'Your answer');
+    const label = el('label', 'lesson-answer-label', t('lesson.yourAnswer'));
     const input = document.createElement(exercise.type === 'text' ? 'input' : 'textarea');
     input.className = 'lesson-answer';
     if (input.tagName === 'INPUT') input.type = 'text';
@@ -287,18 +348,18 @@ function questionCard(exercise, index) {
     form.append(label);
     readAnswer = () => input.value;
   } else {
-    form.append(el('p', 'lesson-muted', 'This activity type is not available in the current lesson player.'));
+    form.append(el('p', 'lesson-muted', t('lesson.unsupported')));
   }
   const actions = el('div', 'lesson-answer-actions');
   if (exercise.type === 'self_check') {
-    for (const [assessment, title] of [['correct', 'I got it right'], ['incorrect', 'I need practice']]) {
+    for (const [assessment, title] of [['correct', t('lesson.gotRight')], ['incorrect', t('lesson.needPractice')]]) {
       const button = el('button', 'lesson-button lesson-button-secondary', title);
       button.type = 'button';
       button.addEventListener('click', () => submit(exercise, readAnswer(), assessment));
       actions.append(button);
     }
   } else if (readAnswer) {
-    const button = el('button', 'lesson-button lesson-button-primary', 'Check answer');
+    const button = el('button', 'lesson-button lesson-button-primary', t('lesson.check'));
     button.type = 'submit';
     actions.append(button);
     form.addEventListener('submit', (event) => { event.preventDefault(); submit(exercise, readAnswer()); });
@@ -306,15 +367,15 @@ function questionCard(exercise, index) {
   form.append(actions);
   card.append(form, feedback(exercise, record));
   const nav = el('div', 'lesson-question-navigation');
-  const previous = el('button', 'lesson-button lesson-button-secondary', '← Previous');
+  const previous = el('button', 'lesson-button lesson-button-secondary', `← ${t('lesson.previous')}`);
   previous.type = 'button';
   previous.disabled = index === 0;
   previous.addEventListener('click', () => goQuestion(index - 1, state.tab));
-  const next = el('button', 'lesson-button lesson-button-primary', 'Next →');
+  const next = el('button', 'lesson-button lesson-button-primary', `${t('lesson.next')} →`);
   next.type = 'button';
   next.disabled = index === state.lesson.exercises.length - 1;
   next.addEventListener('click', () => goQuestion(index + 1, state.tab));
-  nav.append(previous, el('span', undefined, 'Your answers are saved when you check them.'), next);
+  nav.append(previous, el('span', undefined, t('lesson.savedWhenChecked')), next);
   card.append(nav);
   return card;
 }
@@ -326,7 +387,7 @@ function renderQuestions() {
   const exercises = state.lesson.exercises;
   if (!exercises.length) {
     const empty = el('div', 'lesson-card lesson-empty');
-    empty.append(el('h2', undefined, 'No activities yet'), el('p', undefined, 'This lesson does not have activities to complete.'));
+    empty.append(el('h2', undefined, t('lesson.noActivities')), el('p', undefined, t('lesson.noActivitiesText')));
     practice.append(empty);
     return;
   }
@@ -348,17 +409,16 @@ function renderPreview() {
   const target = $('template-preview');
   target.textContent = '';
   if (!lesson.exercises.length) {
-    target.append(el('p', 'lesson-muted', 'No test activities are available.'));
-    $('use-template').disabled = true;
+    target.append(el('p', 'lesson-muted', t('lesson.noActivities')));
     return;
   }
   const mini = el('div', 'template-mini');
   const meta = el('div', 'template-mini-meta');
-  meta.append(el('span', undefined, `Question ${state.index + 1} / ${lesson.exercises.length}`), el('span', undefined, `${progress.exercisesCompleted} complete`));
+  meta.append(el('span', undefined, t('lesson.questionOf', { n: state.index + 1, total: lesson.exercises.length })), el('span', undefined, t('lesson.nComplete', { n: progress.exercisesCompleted })));
   mini.append(meta, el('p', undefined, lesson.exercises[state.index].prompt));
   const bar = el('div', 'lesson-track');
   bar.setAttribute('role', 'progressbar');
-  bar.setAttribute('aria-label', 'Test preview progress');
+  bar.setAttribute('aria-label', t('lesson.questionsDone'));
   bar.setAttribute('aria-valuemin', '0');
   bar.setAttribute('aria-valuemax', '100');
   bar.append(el('span', 'lesson-fill'));
@@ -368,35 +428,13 @@ function renderPreview() {
   for (let index = 0; index < lesson.exercises.length; index++) {
     const button = el('button', exerciseState(lesson.exercises[index])?.completed ? 'is-done' : '', String(index + 1));
     button.type = 'button';
-    button.setAttribute('aria-label', `Open question ${index + 1}`);
+    button.setAttribute('aria-label', t('lesson.openQuestion', { n: index + 1 }));
     if (index === state.index) button.setAttribute('aria-current', 'step');
     button.addEventListener('click', () => goQuestion(index));
     questions.append(button);
   }
   mini.append(questions);
   target.append(mini);
-}
-
-function renderStructure() {
-  const target = $('template-structure');
-  target.textContent = '';
-  for (const [type, label] of [
-    ['single_choice', 'Multiple choice'], ['true_false', 'True / False'],
-    ['letter_tiles', 'Letter tiles'], ['match_pairs', 'Match the pairs'],
-    ['text', 'Short answer'], ['self_check', 'Self-check'],
-  ]) {
-    const indices = state.lesson.exercises.flatMap((item, index) => exerciseType(item) === type ? [index] : []);
-    const row = el('li');
-    if (indices.length) {
-      const button = el('button', undefined, label);
-      button.type = 'button';
-      button.addEventListener('click', () => goQuestion(indices[0]));
-      row.append(button, el('small', undefined, String(indices.length)));
-    } else {
-      row.append(el('span', undefined, label), el('small', undefined, 'Not in this lesson'));
-    }
-    target.append(row);
-  }
 }
 
 function switchTab(tab) {
@@ -422,14 +460,14 @@ function renderVocabulary() {
   const data = state.vocabulary;
   target.textContent = '';
   const card = el('div', 'lesson-card');
-  card.append(el('h2', undefined, 'Vocabulary'), el('p', 'lesson-muted', 'Words you saved for this lesson.'));
-  if (data.loading && !data.items.length) card.append(el('p', undefined, 'Loading vocabulary…'));
-  if (!data.loading && !data.items.length && !data.error) card.append(el('p', undefined, 'You have not saved any words for this lesson yet.'));
+  card.append(el('h2', undefined, t('lesson.tabVocabulary')), el('p', 'lesson-muted', t('lesson.vocabHint')));
+  if (data.loading && !data.items.length) card.append(el('p', undefined, t('common.loading')));
+  if (!data.loading && !data.items.length && !data.error) card.append(el('p', undefined, t('lesson.noWords')));
   const list = el('div', 'lesson-word-list');
   for (const item of data.items) {
     const word = el('article', 'lesson-word');
     const heading = el('h3');
-    heading.append(el('span', undefined, item.word), el('span', 'lesson-chip', item.learned ? 'Learned' : 'Learning'));
+    heading.append(el('span', undefined, item.word), el('span', 'lesson-chip', item.learned ? t('lesson.learned') : t('lesson.learning')));
     word.append(heading, el('p', undefined, item.translation));
     if (item.example) word.append(el('p', 'lesson-muted', item.example));
     list.append(word);
@@ -437,7 +475,7 @@ function renderVocabulary() {
   card.append(list);
   if (data.error) card.append(el('p', 'lesson-feedback is-error', data.error));
   if (data.error || data.more) {
-    const more = el('button', 'lesson-button lesson-button-secondary', data.error ? 'Try again' : 'Load more words');
+    const more = el('button', 'lesson-button lesson-button-secondary', data.error ? t('common.tryAgain') : t('lesson.moreWords'));
     more.type = 'button';
     more.disabled = data.loading;
     more.addEventListener('click', loadVocabulary);
@@ -473,7 +511,7 @@ async function loadLesson() {
     if (!user) return;
     setWorkspaceUser(user);
     const slug = queryParam('slug');
-    if (!slug) throw new Error('Choose a lesson from the catalog to continue.');
+    if (!slug) throw new Error(t('lesson.noSlug'));
     const [lesson, current] = await Promise.all([getLesson(slug), getLessonProgress(slug)]);
     const progress = current.startedAt ? current : await startLesson(slug);
     state.lesson = lesson;
@@ -488,17 +526,18 @@ async function loadLesson() {
     state.results.clear();
     state.errors.clear();
     state.vocabulary = { items: [], loaded: false, loading: false, more: false, error: null };
+    state.nextStep = null;
+    state.nextStepFor = null;
     for (const entry of progress.exercises) {
       if (entry.attempts) state.drafts.set(entry.exerciseId, entry.completed ? entry.answer || '' : '');
     }
     const theory = $('panel-theory');
     theory.replaceChildren(el('div', 'lesson-card lesson-theory'));
     const body = theory.firstElementChild;
-    body.append(el('h2', undefined, 'Theory'));
+    body.append(el('h2', undefined, t('lesson.tabTheory')));
     if (lesson.theory?.trim()) renderTheory(body, `## Theory\n\n${lesson.theory}`);
-    else body.append(el('p', undefined, 'Theory is not available for this lesson yet.'));
+    else body.append(el('p', undefined, t('lesson.noTheory')));
     renderHero();
-    renderStructure();
     renderPreview();
     switchTab(state.tab);
     $('lesson-loading').hidden = true;
@@ -523,5 +562,4 @@ for (const tab of tabs) {
     $(`tab-${tabs[next]}`).focus();
   });
 }
-$('use-template').addEventListener('click', () => { switchTab('practice'); $('panel-practice').focus(); });
 loadLesson();

@@ -351,6 +351,8 @@ async function lessonPage(search = '?slug=first') {
       getLessonProgress: async () => progress,
       startLesson: async () => progress,
       submitAnswer: async () => { throw new Error('Navigation must not submit answers'); },
+      getCourse: async () => ({ lessons: [] }),
+      listCourses: async () => [],
       getLessonVocabulary: async () => { vocabularyReads++; return [{ word: 'hello', translation: 'привіт' }]; },
     },
     'errors.js': { describeApiError: (error) => error.message },
@@ -398,7 +400,7 @@ test('lesson defaults and obsolete Test links open Theory without losing the les
   }
 });
 
-test('lesson valid links, click/keyboard navigation and template actions use the three remaining tabs', async () => {
+test('lesson valid links and click/keyboard navigation use the three tabs', async () => {
   const p = await lessonPage('?slug=first&tab=practice');
   assert.equal(p.get('panel-practice').hidden, false);
   assert.match(p.get('panel-practice').textContent, /Choose a word/);
@@ -414,8 +416,6 @@ test('lesson valid links, click/keyboard navigation and template actions use the
   assert.equal(p.get('panel-vocabulary').hidden, false);
   p.get('tab-vocabulary').events.keydown({ key: 'Home', preventDefault() {} });
   assert.equal(p.get('panel-theory').hidden, false);
-  p.get('use-template').events.click();
-  assert.equal(p.get('panel-practice').hidden, false);
   p.get('tab-vocabulary').events.click();
   await p.settle();
   assert.equal(p.vocabularyReads(), 1);

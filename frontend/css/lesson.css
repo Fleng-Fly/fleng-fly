@@ -119,3 +119,30 @@
 .lesson-tile[aria-pressed="true"], .lesson-tile:focus-visible { outline: 2px solid #bf70fa; outline-offset: 2px; }
 .lesson-tile-fixed { background: #16101f; }
 .lesson-tile-slot { border: 1px dashed #b47dda; background: #100a18; cursor: pointer; }
+
+/* ── UX overhaul: clearer exercises, results and completion ─────────────── */
+.lesson-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.lesson-instruction { margin: -.4rem 0 1.1rem; padding: .6rem .85rem; border-left: 3px solid #bf40fa; border-radius: 0 .5rem .5rem 0; background: rgba(191,64,250,.08); color: #e3d9fc; font-size: .82rem; line-height: 1.55; }
+.lesson-option { min-height: 3.25rem; cursor: pointer; }
+.lesson-option-key { display: inline-grid; place-items: center; flex: none; width: 1.7rem; height: 1.7rem; border: 1px solid rgba(227,217,252,.25); border-radius: .45rem; color: #cdbfe0; font-size: .75rem; font-weight: 700; }
+.lesson-option:has(input:checked) .lesson-option-key { border-color: #bf40fa; background: #3b1d53; color: #fff; }
+.lesson-option.is-correct .lesson-option-key { border-color: #79c5a7; background: rgba(121,197,167,.2); color: #d6f5e7; }
+.lesson-option.is-incorrect .lesson-option-key { border-color: #eb8f9d; background: rgba(235,143,157,.2); color: #ffe0e5; }
+.lesson-option:has(input:focus-visible) { outline: 2px solid #bf70fa; outline-offset: 2px; }
+.lesson-option-text { min-width: 0; overflow-wrap: anywhere; }
+.lesson-feedback-line { margin: .5rem 0 0; }
+.lesson-feedback-label { color: #e3d9fc; font-weight: 600; }
+.lesson-feedback strong { font-size: .95rem; }
+.lesson-finish-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
+.lesson-completed { padding: 1.4rem; }
+.lesson-completed > strong { font-size: 1.15rem; }
+.lesson-button:focus-visible, .lesson-tabs button:focus-visible, .template-questions button:focus-visible { outline: 2px solid #bf70fa; outline-offset: 2px; }
+@media (max-width: 640px) {
+  .lesson-question-navigation { flex-wrap: wrap; }
+  .lesson-question-navigation span { order: 3; flex-basis: 100%; text-align: center; }
+  .lesson-question-navigation .lesson-button { flex: 1 1 8rem; }
+  .lesson-answer-actions .lesson-button, .lesson-finish-actions .lesson-button { flex: 1 1 100%; }
+  .lesson-hero { padding: 1.2rem; }
+}
+.lesson-feedback.is-correct > strong:first-child::before { content: '✓ '; }
+.lesson-feedback.is-incorrect > strong:first-child::before { content: '✕ '; }
