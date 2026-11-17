@@ -135,7 +135,7 @@ lives in the client's HttpOnly cookie.
 
 | Entity             | Owner      | Key fields                                                                                | Status         |
 | ------------------ | ---------- | ----------------------------------------------------------------------------------------- | -------------- |
-| `VocabularyItem`   | vocabulary | `id`, `userId`, optional `lessonId`, `word`, `translation`, `example`, `learned`, `dueAt` | 🟢 implemented |
+| `VocabularyItem`   | vocabulary | `id`, `userId`, optional `lessonId`, `word`, `translation`, `example`, `transcription`, `partOfSpeech`, `topic`, `learned`, `dueAt` | 🟢 implemented |
 | `VocabularyReview` | vocabulary | `id`, `itemId`, `remembered`, `createdAt`                                                 | 🟢 implemented |
 
 ### Progress and gamification
@@ -275,7 +275,7 @@ submissions, XP and progress are retained. It adds `profiles.english_level`
 
 | Table              | Key / relationships                                                     | Purpose                                                                                |
 | ------------------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| vocabulary_items   | UUID; user FK cascade, nullable lesson FK set-null; unique (user, word) | normalized word, translation/example, learned, due/created timestamps                  |
+| vocabulary_items   | UUID; user FK cascade, nullable lesson FK set-null; unique (user, word) | normalized word, translation/example, optional transcription/POS/topic, learned, due/created timestamps |
 | vocabulary_reviews | UUID; item FK cascade                                                   | remembered flag and timestamp                                                          |
 | learning_activity  | UUID; user FK cascade; unique (user, day)                               | server-policy calendar learning days                                                   |
 | achievements       | code primary key                                                        | immutable code/title/metric/threshold definitions                                      |
@@ -320,6 +320,14 @@ There are no additional conversation/message tables.
 ## Vocabulary flashcards — 2026-11-10
 
 Added course_vocabulary_items (course FK, unique course/word) and vocabulary_flashcard_sessions (owner FK, source/status, immutable JSON card snapshot, timestamps), migration 20261110_1200. Personal vocabulary is unchanged. See vocabulary-flashcards-api.md.
+
+## Vocabulary dictionary metadata — 2026-11-16
+
+Migration `20261116_1200` adds `transcription`, `part_of_speech` and `topic` to
+`vocabulary_items`, and `transcription`/`part_of_speech` to
+`course_vocabulary_items`. Existing rows default to empty strings. Flashcard
+snapshots copy the metadata at creation and fall back to the lesson/course title
+(or `My words`) for the topic.
 
 
 ## Introductory A0 and curriculum

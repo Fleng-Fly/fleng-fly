@@ -1,6 +1,6 @@
 # Vocabulary api
 
-Bearer caller only. Personal CRUD/history is owner-scoped (404 foreign/missing); duplicate word can return 409. Course words require published Course and inherit level; missing/draft courseId is 404. Only declared filters/page bounds apply. Review appends VocabularyReview and schedules one-/seven-day due. Models: VocabularyItem, VocabularyReview, CourseVocabularyItem, Course.
+Bearer caller only. Personal CRUD/history is owner-scoped (404 foreign/missing); duplicate word can return 409. Course words require published Course and inherit level; missing/draft courseId is 404. Only declared filters/page bounds apply. Review appends VocabularyReview and schedules one-/seven-day due. Words accept optional `transcription`, `partOfSpeech` and `topic` metadata (empty by default). Models: VocabularyItem, VocabularyReview, CourseVocabularyItem, Course.
 
 Shared runtime failures: 413 body overflow, 422 declared schema validation, 503 DATABASE_UNAVAILABLE and 500 unexpected error. Protected calls add 401 missing/invalid identity. See [error handling](error-handling.md) and [complete schemas](api-schemas.md). Module-specific rules above apply to each operation.
 

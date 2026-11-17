@@ -250,7 +250,7 @@ Uvicorn ignores X-Forwarded-Host. DB/JWT/AI/learning flows are unchanged.
 
 ## Vocabulary flashcards — 2026-11-10
 
-JWT user → own VocabularyItem OR published CourseVocabularyItem → at most 10 DB words → owned persisted FlashcardSession snapshot → owner completion → testReady + test-words → future Roma testing service. No XP/progress/review writes.
+JWT user → own VocabularyItem OR published CourseVocabularyItem → at most 10 DB words → owned persisted FlashcardSession snapshot (word, translation, example, transcription, part of speech, topic) → owner completion → testReady + test-words → future Roma testing service. No XP/progress/review writes.
 
 
 ## A0–B2 curriculum — 2026-11-10

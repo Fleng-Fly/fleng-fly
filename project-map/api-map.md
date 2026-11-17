@@ -204,7 +204,7 @@ shapes remain; no public AI API. `AI_MAX_INPUT_TOKENS` bounds assembled server p
 
 ## Vocabulary flashcards — 2026-11-10
 
-Vocabulary: GET /vocabulary/course-words; POST /vocabulary/flashcards/sessions; GET /vocabulary/flashcards/sessions/{sessionId}; POST .../{sessionId}/complete; GET .../{sessionId}/test-words. All Bearer-protected. Contract: ../docs/vocabulary-flashcards-api.md.
+Vocabulary: GET /vocabulary/course-words; POST /vocabulary/flashcards/sessions; GET /vocabulary/flashcards/sessions/{sessionId}; POST .../{sessionId}/complete; GET .../{sessionId}/test-words. All Bearer-protected. Cards snapshot word, translation, example, transcription, partOfSpeech and topic. Contract: ../docs/vocabulary-flashcards-api.md.
 
 
 ## A0–B2 curriculum — 2026-11-10

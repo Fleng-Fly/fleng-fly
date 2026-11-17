@@ -380,6 +380,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "example": {
       "type": "string",
       "title": "Example"
+    },
+    "transcription": {
+      "type": "string",
+      "title": "Transcription",
+      "default": ""
+    },
+    "partOfSpeech": {
+      "type": "string",
+      "title": "Partofspeech",
+      "default": ""
     }
   },
   "type": "object",
@@ -460,6 +470,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Options"
+    },
+    "letterTiles": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/LetterTilesResponse"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "type": "object",
@@ -590,6 +610,21 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "example": {
       "type": "string",
       "title": "Example"
+    },
+    "transcription": {
+      "type": "string",
+      "title": "Transcription",
+      "default": ""
+    },
+    "partOfSpeech": {
+      "type": "string",
+      "title": "Partofspeech",
+      "default": ""
+    },
+    "topic": {
+      "type": "string",
+      "title": "Topic",
+      "default": ""
     }
   },
   "type": "object",
@@ -1237,6 +1272,32 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
   ],
   "title": "LessonSummaryResponse",
   "description": "A lesson inside a course detail response (no theory body)."
+}
+```
+
+## LetterTilesResponse
+
+```json
+{
+  "properties": {
+    "pattern": {
+      "type": "string",
+      "title": "Pattern"
+    },
+    "letters": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "title": "Letters"
+    }
+  },
+  "type": "object",
+  "required": [
+    "pattern",
+    "letters"
+  ],
+  "title": "LetterTilesResponse"
 }
 ```
 
@@ -1982,6 +2043,24 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "title": "Example",
       "default": ""
     },
+    "transcription": {
+      "type": "string",
+      "maxLength": 120,
+      "title": "Transcription",
+      "default": ""
+    },
+    "partOfSpeech": {
+      "type": "string",
+      "maxLength": 40,
+      "title": "Partofspeech",
+      "default": ""
+    },
+    "topic": {
+      "type": "string",
+      "maxLength": 80,
+      "title": "Topic",
+      "default": ""
+    },
     "lessonId": {
       "anyOf": [
         {
@@ -2025,6 +2104,24 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "type": "string",
       "maxLength": 1000,
       "title": "Example",
+      "default": ""
+    },
+    "transcription": {
+      "type": "string",
+      "maxLength": 120,
+      "title": "Transcription",
+      "default": ""
+    },
+    "partOfSpeech": {
+      "type": "string",
+      "maxLength": 40,
+      "title": "Partofspeech",
+      "default": ""
+    },
+    "topic": {
+      "type": "string",
+      "maxLength": 80,
+      "title": "Topic",
       "default": ""
     },
     "lessonId": {

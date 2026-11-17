@@ -31,6 +31,7 @@ async def test_personal_sets_and_handoff(client, db_session, count):
     assert result["total"] == min(count, 10)
     assert result["status"] == ("active" if count else "empty")
     assert all(c["word"] != "private" for c in result["cards"])
+    assert all(c["topic"] == "My words" for c in result["cards"])
     path = BASE + "/" + result["sessionId"]
     for suffix, method in [("", "get"), ("/complete", "post"), ("/test-words", "get")]:
         assert (await getattr(client, method)(path + suffix, headers=other)).status_code == 404
@@ -54,6 +55,31 @@ async def test_personal_sets_and_handoff(client, db_session, count):
             "cards"
         ]
     assert all(xp == 0 for xp in (await db_session.scalars(select(Profile.xp))).all())
+
+
+async def test_flashcard_dictionary_metadata(client):
+    auth = await headers(client)
+    created = await client.post(
+        "/api/v1/vocabulary",
+        headers=auth,
+        json={
+            "word": "resilient",
+            "translation": "стійкий",
+            "transcription": "/rɪˈzɪliənt/",
+            "partOfSpeech": "adjective",
+            "topic": "Character",
+        },
+    )
+    assert created.status_code == 201
+    body = created.json()
+    assert body["transcription"] == "/rɪˈzɪliənt/"
+    assert body["partOfSpeech"] == "adjective"
+    assert body["topic"] == "Character"
+    result = (await client.post(BASE, headers=auth, json={"source": "my_words"})).json()
+    card = result["cards"][0]
+    assert card["transcription"] == "/rɪˈzɪliənt/"
+    assert card["partOfSpeech"] == "adjective"
+    assert card["topic"] == "Character"
 
 
 async def test_course_words_filters_and_sessions(client, db_session):
@@ -87,6 +113,7 @@ async def test_course_words_filters_and_sessions(client, db_session):
         ).json()
         assert result["cards"][0]["wordId"] == rows[0]["id"]
         assert result["cards"][0]["translation"] == course.level
+        assert result["cards"][0]["topic"] == course.title
     for course_id in [uuid4(), courses[2].id]:
         assert (
             await client.get(route, headers=auth, params={"courseId": str(course_id)})

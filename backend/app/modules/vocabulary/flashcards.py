@@ -7,7 +7,13 @@ from sqlalchemy import select, true, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ApiError
-from app.db.models import Course, CourseVocabularyItem, FlashcardSession, VocabularyItem
+from app.db.models import (
+    Course,
+    CourseVocabularyItem,
+    FlashcardSession,
+    Lesson,
+    VocabularyItem,
+)
 from app.modules.vocabulary.schemas import FlashcardCreate, FlashcardResponse
 
 
@@ -37,6 +43,19 @@ async def course_query(
     return query.order_by(CourseVocabularyItem.word, CourseVocabularyItem.id)
 
 
+def card(word: VocabularyItem | CourseVocabularyItem, topic: str) -> dict[str, str]:
+    """Snapshot a word once so later edits cannot rewrite an owned session."""
+    return {
+        "wordId": str(word.id),
+        "word": word.word,
+        "transcription": word.transcription,
+        "partOfSpeech": word.part_of_speech,
+        "topic": topic,
+        "translation": word.translation,
+        "example": word.example,
+    }
+
+
 async def create(db: AsyncSession, user_id: UUID, payload: FlashcardCreate) -> FlashcardSession:
     if payload.source == "my_words":
         if payload.course_id is not None or payload.level is not None:
@@ -44,28 +63,26 @@ async def create(db: AsyncSession, user_id: UUID, payload: FlashcardCreate) -> F
                 400, "INVALID_SOURCE_FILTER", "Personal words do not accept course filters"
             )
         query = (
-            select(VocabularyItem)
+            select(VocabularyItem, Lesson.title)
+            .outerjoin(Lesson, Lesson.id == VocabularyItem.lesson_id)
             .where(VocabularyItem.user_id == user_id)
             .order_by(VocabularyItem.created_at, VocabularyItem.id)
         )
+        rows = (await db.execute(query.limit(10))).all()
+        cards = [
+            card(word, word.topic or lesson_title or "My words") for word, lesson_title in rows
+        ]
     else:
         if payload.course_id is None and payload.level is None:
             raise ApiError(400, "MISSING_COURSE_FILTER", "Provide courseId or level")
         query = await course_query(db, payload.course_id, payload.level)
-    words = (await db.scalars(query.limit(10))).all()
+        rows = (await db.execute(query.add_columns(Course.title).limit(10))).all()
+        cards = [card(word, course_title) for word, course_title in rows]
     session = FlashcardSession(
         user_id=user_id,
         source=payload.source,
-        status="active" if words else "empty",
-        cards=[
-            {
-                "wordId": str(w.id),
-                "word": w.word,
-                "translation": w.translation,
-                "example": w.example,
-            }
-            for w in words
-        ],
+        status="active" if cards else "empty",
+        cards=cards,
     )
     db.add(session)
     await db.commit()

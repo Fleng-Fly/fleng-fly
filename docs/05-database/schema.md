@@ -102,7 +102,9 @@ Table: `course_vocabulary_items`.
 | course_id | CHAR(32) | False | FK courses.id |
 | word | VARCHAR(120) | False | — |
 | translation | VARCHAR(300) | False | — |
-| example | VARCHAR(1000) | False | — |
+| example | VARCHAR(1000) | False | - |
+| transcription | VARCHAR(120) | False | - |
+| part_of_speech | VARCHAR(40) | False | - |
 
 Constraints/indexes beyond primary/foreign keys:
 
@@ -122,8 +124,9 @@ Table: `exercises`.
 | type | VARCHAR(20) | False | — |
 | prompt | TEXT | False | — |
 | points | INTEGER | False | — |
-| options | JSON | True | — |
-| correct_option_id | VARCHAR(64) | True | — |
+| options | JSON | True | - |
+| letter_tiles | JSON | True | - |
+| correct_option_id | VARCHAR(64) | True | - |
 | accepted_answers | JSON | True | — |
 | model_answer | TEXT | True | — |
 | explanation | TEXT | True | — |
@@ -368,8 +371,11 @@ Table: `vocabulary_items`.
 | lesson_id | CHAR(32) | True | FK lessons.id |
 | word | VARCHAR(120) | False | — |
 | translation | VARCHAR(300) | False | — |
-| example | VARCHAR(1000) | False | — |
-| learned | BOOLEAN | False | — |
+| example | VARCHAR(1000) | False | - |
+| transcription | VARCHAR(120) | False | - |
+| part_of_speech | VARCHAR(40) | False | - |
+| topic | VARCHAR(80) | False | - |
+| learned | BOOLEAN | False | - |
 | due_at | DATETIME | False | — |
 | created_at | DATETIME | False | — |
 

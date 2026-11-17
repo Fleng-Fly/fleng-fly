@@ -75,15 +75,23 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
             )
         )
         connection.execute(insert(LessonProgress).values(user_id=user, lesson_id=lesson))
+        # Vocabulary metadata columns arrive after this revision, so insert the
+        # legacy shape directly instead of letting the ORM apply their defaults.
         connection.execute(
-            insert(VocabularyItem).values(
-                user_id=user, lesson_id=lesson, word="keep", translation="зберігати"
-            )
+            text(
+                "INSERT INTO vocabulary_items "
+                "(id, user_id, lesson_id, word, translation, example, learned, due_at, created_at) "
+                "VALUES (:id, :user_id, :lesson_id, 'keep', 'зберігати', '', 0, "
+                "CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+            ),
+            {"id": uuid4().hex, "user_id": user.hex, "lesson_id": lesson.hex},
         )
         connection.execute(
-            insert(CourseVocabularyItem).values(
-                course_id=course, word="keep", translation="зберігати"
-            )
+            text(
+                "INSERT INTO course_vocabulary_items (id, course_id, word, translation, example) "
+                "VALUES (:id, :course_id, 'keep', 'зберігати', '')"
+            ),
+            {"id": uuid4().hex, "course_id": course.hex},
         )
         connection.commit()
         tables = [
@@ -97,9 +105,13 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
             Profile,
             Progress,
         ]
+        # Columns added after 20261110_1200 cannot be read at that revision.
+        later_columns = {"letter_tiles", "transcription", "part_of_speech", "topic"}
         before = {
             table: connection.execute(
-                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+                select(
+                    *(column for column in table.__table__.c if column.name not in later_columns)
+                )
             ).all()
             for table in tables
         }
@@ -109,7 +121,9 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
         assert connection.execute(text("PRAGMA foreign_key_check")).all() == []
         assert {
             table: connection.execute(
-                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+                select(
+                    *(column for column in table.__table__.c if column.name not in later_columns)
+                )
             ).all()
             for table in tables
         } == before
@@ -126,7 +140,9 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
         command.upgrade(config, "20261110_1400")
         assert {
             table: connection.execute(
-                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+                select(
+                    *(column for column in table.__table__.c if column.name not in later_columns)
+                )
             ).all()
             for table in tables
         } == before

@@ -139,7 +139,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
     with sqlite3.connect(path) as db:
         catalog = db.execute("SELECT count(*) FROM courses").fetchone()
         assert db.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "20261114_1200",
+            "20261116_1200",
         )
         assert not db.execute(
             "SELECT name FROM sqlite_master WHERE name LIKE '_fleng_write_probe_%'"
@@ -257,7 +257,7 @@ def test_production_does_not_serve_when_preparation_fails(tmp_path, broken):
     if broken == "stamped_without_tables":
         with sqlite3.connect(path) as db:
             db.execute("CREATE TABLE alembic_version (version_num VARCHAR(32) PRIMARY KEY)")
-            db.execute("INSERT INTO alembic_version VALUES ('20261114_1200')")
+            db.execute("INSERT INTO alembic_version VALUES ('20261116_1200')")
     if broken.startswith("readonly"):
         if os.name == "nt":
             pytest.skip("POSIX directory permission bits are not enforced on Windows")

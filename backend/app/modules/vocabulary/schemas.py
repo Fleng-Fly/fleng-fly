@@ -12,6 +12,9 @@ class VocabularyCreate(CamelModel):
     word: str = Field(min_length=1, max_length=120)
     translation: str = Field(min_length=1, max_length=300)
     example: str = Field(default="", max_length=1000)
+    transcription: str = Field(default="", max_length=120)
+    part_of_speech: str = Field(default="", max_length=40)
+    topic: str = Field(default="", max_length=80)
     lesson_id: UUID | None = None
 
     @field_validator("word", "translation")
@@ -63,6 +66,10 @@ class Flashcard(CamelModel):
     word: str
     translation: str
     example: str
+    # Older snapshots predate the dictionary metadata, so keep the defaults.
+    transcription: str = ""
+    part_of_speech: str = ""
+    topic: str = ""
 
 
 class FlashcardResponse(CamelModel):
@@ -80,3 +87,5 @@ class CourseWordResponse(CamelModel):
     word: str
     translation: str
     example: str
+    transcription: str = ""
+    part_of_speech: str = ""

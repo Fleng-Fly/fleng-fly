@@ -371,6 +371,9 @@ class VocabularyItem(Base):
     word: Mapped[str] = mapped_column(String(120))
     translation: Mapped[str] = mapped_column(String(300))
     example: Mapped[str] = mapped_column(String(1000), default="")
+    transcription: Mapped[str] = mapped_column(String(120), default="", server_default="")
+    part_of_speech: Mapped[str] = mapped_column(String(40), default="", server_default="")
+    topic: Mapped[str] = mapped_column(String(80), default="", server_default="")
     learned: Mapped[bool] = mapped_column(Boolean, default=False)
     due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -486,6 +489,8 @@ class CourseVocabularyItem(Base):
     word: Mapped[str] = mapped_column(String(120))
     translation: Mapped[str] = mapped_column(String(300))
     example: Mapped[str] = mapped_column(String(1000), default="", server_default="")
+    transcription: Mapped[str] = mapped_column(String(120), default="", server_default="")
+    part_of_speech: Mapped[str] = mapped_column(String(40), default="", server_default="")
 
 
 class FlashcardSession(Base):

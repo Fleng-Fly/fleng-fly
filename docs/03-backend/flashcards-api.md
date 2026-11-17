@@ -1,6 +1,6 @@
 # Flashcards api
 
-JWT-owned persistent snapshot, foreign/missing returns 404. Creation selects at most ten. my_words rejects course filters (400 INVALID_SOURCE_FILTER); course_words requires courseId/level (400 MISSING_COURSE_FILTER). Empty creation valid; complete empty returns 400 EMPTY_SESSION. Premature handoff 409 FLASHCARDS_NOT_COMPLETED. No XP/test grader. Models: FlashcardSession, VocabularyItem, CourseVocabularyItem.
+JWT-owned persistent snapshot, foreign/missing returns 404. Creation selects at most ten. my_words rejects course filters (400 INVALID_SOURCE_FILTER); course_words requires courseId/level (400 MISSING_COURSE_FILTER). Empty creation valid; complete empty returns 400 EMPTY_SESSION. Premature handoff 409 FLASHCARDS_NOT_COMPLETED. No XP/test grader. Each card snapshots word, translation, example, transcription, partOfSpeech and topic (lesson/course title fallback). Models: FlashcardSession, VocabularyItem, CourseVocabularyItem.
 
 Shared runtime failures: 413 body overflow, 422 declared schema validation, 503 DATABASE_UNAVAILABLE and 500 unexpected error. Protected calls add 401 missing/invalid identity. See [error handling](error-handling.md) and [complete schemas](api-schemas.md). Module-specific rules above apply to each operation.
 
