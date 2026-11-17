@@ -1,0 +1,90 @@
+name: Повідомлення про помилку (Bug Report)
+description: Повідомити про помилку або неочікувану поведінку у Fleng
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Дякуємо, що повідомляєте про помилку у **Fleng**! Будь ласка, заповніть форму нижче, щоб ми могли швидко відтворити та виправити проблему.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Частина проєкту
+      description: Якої частини Fleng стосується ця помилка?
+      options:
+        - Фронтенд / UI (HTML/CSS/JS)
+        - Бекенд API (FastAPI)
+        - Курси та вправи з оцінюванням
+        - Особистий словник / Прогрес навчання
+        - API ШІ-тьютора
+        - База даних та міграції (SQLite / PostgreSQL)
+        - Локальний запуск і скрипти (npm run dev / START-WINDOWS.cmd / start.sh)
+        - Docker / Деплой
+        - Інше
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Опис помилки
+      description: Чіткий і стислий опис того, що пішло не так.
+      placeholder: Опишіть проблему...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Кроки для відтворення
+      description: Точні кроки, які призводять до помилки.
+      value: |
+        1. Запустіть Fleng за допомогою `...`
+        2. Перейдіть до `...`
+        3. Виконайте дію `...`
+        4. Помилка / неочікуваний результат: `...`
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Очікувана поведінка
+      description: Що мало відбутися замість цього?
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Середовище
+      description: Будь ласка, вкажіть деталі вашого середовища.
+      value: |
+        - **ОС:** (напр., Windows 11, macOS, Ubuntu 24.04)
+        - **Браузер і версія:** (напр., Chrome 130, Firefox 132, Mobile Safari)
+        - **Спосіб запуску:** (напр., `npm run dev`, `START-WINDOWS.cmd`, Docker, вебверсія)
+        - **Версія Python / Node.js:** (напр., Python 3.11, Node 20)
+        - **База даних:** (напр., SQLite за замовчуванням, PostgreSQL)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи, текст помилки або скриншоти
+      description: Вставте трейсбек FastAPI, помилки з консолі браузера або перетягніть сюди скриншоти.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Перевірка перед надсиланням
+      options:
+        - label: Я перевірив(ла) наявні issues, щоб переконатися, що це не дублікат.
+          required: true
+        - label: Я видалив(ла) усі API-ключі, секрети з `.env` та особисті дані з логів/скриншотів.
+          required: true

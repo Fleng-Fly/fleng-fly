@@ -1,0 +1,60 @@
+name: Пропозиція функції (Feature Request)
+description: Запропонувати нову функцію, тип вправи або покращення для Fleng
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Дякуємо за ідею щодо покращення **Fleng**! Будь ласка, опишіть вашу пропозицію нижче.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Розділ проєкту
+      description: До якої частини Fleng належить ця пропозиція?
+      options:
+        - Курси та навчальна програма (A0–B2)
+        - Вправи з оцінюванням та інтерактивність
+        - Особистий словник / Прогрес навчання
+        - API ШІ-тьютора
+        - Фронтенд / UI та доступність
+        - Бекенд API / База даних
+        - Досвід розробника та документація
+        - Інше
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Проблема / Мотивація
+      description: Яку проблему це вирішує або яку навчальну чи технічну потребу закриває?
+      placeholder: "Як учень / розробник, я стикаюся з тим, що..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Запропоноване рішення
+      description: Опишіть функцію або поведінку, яку ви хотіли б бачити.
+      placeholder: Опишіть, як це має працювати...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Розглянуті альтернативи
+      description: Чи розглядали ви альтернативні підходи або тимчасові рішення?
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Додатковий контекст
+      description: Додайте макети, ідеї щодо API-контракту, приклади матеріалів або посилання.
+    validations:
+      required: false
