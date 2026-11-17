@@ -126,12 +126,15 @@ Pagination is deliberately deferred for the small MVP catalog.
 | GET ✅ | `/{slug}/progress` | The caller's progress through a lesson | bearer | — | `200 LessonProgress` |
 
 `LessonDetail` = `{ id, slug, title, summary, theory, position, estimatedMinutes,
-courseSlug, courseTitle, level, exercises: ExercisePublic[] }`.
+courseSlug, courseTitle, level, guide?: LessonGuide, exercises: ExercisePublic[] }`.
+`LessonGuide` = `{ explanation: Localized, examples: [{ en, uk }] }`; `Localized` = `{ en, uk }`.
+Both are additive and absent when no authored guidance is available (see
+`docs/exercise-guidance.md`).
 
-`ExercisePublic` = `{ id, slug, position, type, prompt, points, options?, letterTiles? }` where
+`ExercisePublic` = `{ id, slug, position, type, prompt, points, options?, letterTiles?, hint?: Localized }` where
 `options` = `[{ id, text }]` and is present only for `single_choice`. Public
 payloads **never** contain `correctOptionId`, `acceptedAnswers`, `modelAnswer`
-or `explanation`. A `text` exercise may include
+`explanation`, `explanationLocalized` or `wrongAnswerNote`. `hint` is authored text that guides without revealing the answer; it never affects XP. A `text` exercise may include
 `letterTiles: { pattern, letters }` (for example `b__n` with a shuffled letter
 bank). Submit the assembled word as `answer`. The server rejects a word with
 unfilled slots, changed fixed letters or letters unavailable in the bank.
@@ -143,7 +146,9 @@ exercises: [{ exerciseId, completed, isCorrect, attempts, pointsAwarded, answer 
 
 `SubmissionResult` = `{ exerciseId, type, isCorrect, completed, points,
 xpAwarded, feedback, correctOptionId?, acceptedAnswers?, modelAnswer?,
-explanation?, lesson: LessonProgress }`. The correct answer / model answer /
+explanation?, explanationLocalized?: Localized, wrongAnswerNote?: Localized,
+lesson: LessonProgress }`. `wrongAnswerNote` explains why the chosen option does not fit and is
+only present for an incorrect single choice. The correct answer / model answer /
 explanation are revealed here (and only after submission) so the learner can
 review. `theory` is plain text with light markup (see `docs/database.md`). Lesson
 slugs are globally unique, so no course context is needed in the path.

@@ -120,6 +120,9 @@ Runtime PostgreSQL/live AI verification remains blocked in this environment.
 
 ## Lessons workspace (2026-10-22)
 
+`backend/app/modules/exercises/guidance.py` serves authored hints, EN/UK explanations and lesson
+guides from `db/content/exercise-guidance-a0-a1.json` (`docs/exercise-guidance.md`); `lesson.js` shows
+the hint toggle, explanations and the Explanation block.
 `frontend/js/i18n.js` + `frontend/js/i18n/{en,uk}.js` provide EN/UK interface i18n
 (`docs/frontend-i18n.md`); `frontend/js/placement-guidance.js` renders the dashboard
 placement next-step card from the Placement API.
