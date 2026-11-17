@@ -337,3 +337,11 @@ user_id, unique SHA-256 token_hash, new_email, authorization_hash (server-keyed
 HMAC of account ID/current email/password hash), expires_at and nullable used_at.
 No raw token/password is stored. Downgrade drops only this table.
 See [authentication](authentication.md#fleng-10-securitystability--2026-11-16).
+
+## Placement attempts
+
+Revision `20261117_1200` adds `placement_attempts` only, after `20261116_1400`.
+Snapshots contain private keys; only the placement service may project them into
+public questions or completed review. No existing learning/auth table is altered.
+See [placement methodology and data flow](placement-test.md) and the
+[exact model schema](05-database/schema.md#placementattempt).

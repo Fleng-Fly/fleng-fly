@@ -528,3 +528,27 @@ class FlashcardSession(Base):
     cards: Mapped[list[dict]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class PlacementAttempt(Base):
+    """Private, versioned diagnostic snapshot, independent of learning progress."""
+
+    __tablename__ = "placement_attempts"
+    __table_args__ = (
+        CheckConstraint("status IN ('in_progress', 'completed')", name="placement_status_check"),
+        Index("ix_placement_user_started", "user_id", "started_at"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    bank_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    scoring_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="in_progress", nullable=False)
+    questions: Mapped[list[dict[str, Any]]] = mapped_column(JSON, nullable=False)
+    answers: Mapped[dict[str, str]] = mapped_column(JSON, default=dict, nullable=False)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -1,0 +1,943 @@
+{
+  "version": "placement-1",
+  "review_status": "internal_checks_only",
+  "provenance": "Original Fleng items. Keys and explanations reviewed in implementation; no external teacher sign-off or psychometric calibration.",
+  "questions": [
+    {
+      "id": "q01",
+      "level": "A1",
+      "skill": "grammar",
+      "prompt": "Choose the correct sentence: She ___ a teacher.",
+      "options": [
+        {
+          "id": "a",
+          "text": "are"
+        },
+        {
+          "id": "b",
+          "text": "am"
+        },
+        {
+          "id": "c",
+          "text": "be"
+        },
+        {
+          "id": "d",
+          "text": "is"
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "A singular third-person subject takes is."
+    },
+    {
+      "id": "q02",
+      "level": "A1",
+      "skill": "grammar",
+      "prompt": "My brother ___ in Kyiv.",
+      "options": [
+        {
+          "id": "a",
+          "text": "living"
+        },
+        {
+          "id": "b",
+          "text": "to live"
+        },
+        {
+          "id": "c",
+          "text": "lives"
+        },
+        {
+          "id": "d",
+          "text": "live"
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "The present simple takes -s with he or she."
+    },
+    {
+      "id": "q03",
+      "level": "A1",
+      "skill": "grammar",
+      "prompt": "There are two ___ on the table.",
+      "options": [
+        {
+          "id": "a",
+          "text": "book’s"
+        },
+        {
+          "id": "b",
+          "text": "books"
+        },
+        {
+          "id": "c",
+          "text": "book"
+        },
+        {
+          "id": "d",
+          "text": "a book"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "Two requires the plural noun books."
+    },
+    {
+      "id": "q04",
+      "level": "A1",
+      "skill": "grammar",
+      "prompt": "We meet ___ Monday.",
+      "options": [
+        {
+          "id": "a",
+          "text": "on"
+        },
+        {
+          "id": "b",
+          "text": "in"
+        },
+        {
+          "id": "c",
+          "text": "at"
+        },
+        {
+          "id": "d",
+          "text": "to"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "Use on with a named day of the week."
+    },
+    {
+      "id": "q05",
+      "level": "A1",
+      "skill": "reading",
+      "prompt": "The library closes at 6 p.m. It is now 5:30 p.m. When can you visit today?",
+      "options": [
+        {
+          "id": "a",
+          "text": "After 7 p.m."
+        },
+        {
+          "id": "b",
+          "text": "Only tomorrow"
+        },
+        {
+          "id": "c",
+          "text": "Only in the morning"
+        },
+        {
+          "id": "d",
+          "text": "Before 6 p.m."
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "The library is still open for thirty minutes."
+    },
+    {
+      "id": "q06",
+      "level": "A1",
+      "skill": "reading",
+      "prompt": "Tom has a red bike. Anna has a blue bike. Whose bike is blue?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Both bikes"
+        },
+        {
+          "id": "b",
+          "text": "Neither bike"
+        },
+        {
+          "id": "c",
+          "text": "Anna’s"
+        },
+        {
+          "id": "d",
+          "text": "Tom’s"
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "The second sentence identifies Anna’s bike as blue."
+    },
+    {
+      "id": "q07",
+      "level": "A2",
+      "skill": "grammar",
+      "prompt": "Yesterday we ___ the last bus home.",
+      "options": [
+        {
+          "id": "a",
+          "text": "missing"
+        },
+        {
+          "id": "b",
+          "text": "missed"
+        },
+        {
+          "id": "c",
+          "text": "miss"
+        },
+        {
+          "id": "d",
+          "text": "have miss"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "A finished event yesterday takes the past simple."
+    },
+    {
+      "id": "q08",
+      "level": "A2",
+      "skill": "grammar",
+      "prompt": "This train is ___ than the bus.",
+      "options": [
+        {
+          "id": "a",
+          "text": "faster"
+        },
+        {
+          "id": "b",
+          "text": "fastest"
+        },
+        {
+          "id": "c",
+          "text": "most fast"
+        },
+        {
+          "id": "d",
+          "text": "more faster"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "A comparison with than takes the comparative faster."
+    },
+    {
+      "id": "q09",
+      "level": "A2",
+      "skill": "grammar",
+      "prompt": "She started this job in 2022 and still works here. She has worked here ___ 2022.",
+      "options": [
+        {
+          "id": "a",
+          "text": "for"
+        },
+        {
+          "id": "b",
+          "text": "during"
+        },
+        {
+          "id": "c",
+          "text": "by"
+        },
+        {
+          "id": "d",
+          "text": "since"
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "Since introduces the starting point of an unfinished period."
+    },
+    {
+      "id": "q10",
+      "level": "A2",
+      "skill": "vocabulary",
+      "prompt": "Please ___ the light before you leave the empty room.",
+      "options": [
+        {
+          "id": "a",
+          "text": "get up"
+        },
+        {
+          "id": "b",
+          "text": "find out"
+        },
+        {
+          "id": "c",
+          "text": "turn off"
+        },
+        {
+          "id": "d",
+          "text": "look after"
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "Turn off means stop a light or device operating."
+    },
+    {
+      "id": "q11",
+      "level": "A2",
+      "skill": "reading",
+      "prompt": "Shop notice: You may return a jacket within fourteen days if you bring the receipt. What must you bring?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A letter from a friend"
+        },
+        {
+          "id": "b",
+          "text": "The receipt"
+        },
+        {
+          "id": "c",
+          "text": "A new jacket"
+        },
+        {
+          "id": "d",
+          "text": "A membership card"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "The notice makes bringing the receipt a condition of a return."
+    },
+    {
+      "id": "q12",
+      "level": "A2",
+      "skill": "reading",
+      "prompt": "Nadia used to cycle to school, but now she takes the bus. How did Nadia usually travel in the past?",
+      "options": [
+        {
+          "id": "a",
+          "text": "By bicycle"
+        },
+        {
+          "id": "b",
+          "text": "By bus"
+        },
+        {
+          "id": "c",
+          "text": "By train"
+        },
+        {
+          "id": "d",
+          "text": "On foot"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "Used to describes a former habit; cycle means travel by bicycle."
+    },
+    {
+      "id": "q13",
+      "level": "B1",
+      "skill": "grammar",
+      "prompt": "If it rains tomorrow, we ___ indoors.",
+      "options": [
+        {
+          "id": "a",
+          "text": "would stayed"
+        },
+        {
+          "id": "b",
+          "text": "had stay"
+        },
+        {
+          "id": "c",
+          "text": "staying"
+        },
+        {
+          "id": "d",
+          "text": "will stay"
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "A real future condition uses present simple in the if-clause and will in the result."
+    },
+    {
+      "id": "q14",
+      "level": "B1",
+      "skill": "grammar",
+      "prompt": "I was halfway through my report. I ___ it when the power went out.",
+      "options": [
+        {
+          "id": "a",
+          "text": "was write"
+        },
+        {
+          "id": "b",
+          "text": "am wrote"
+        },
+        {
+          "id": "c",
+          "text": "was writing"
+        },
+        {
+          "id": "d",
+          "text": "have writing"
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "The past continuous describes an action in progress interrupted by a past event."
+    },
+    {
+      "id": "q15",
+      "level": "B1",
+      "skill": "grammar",
+      "prompt": "All visitors ___ sign in at reception. This is compulsory.",
+      "options": [
+        {
+          "id": "a",
+          "text": "used to"
+        },
+        {
+          "id": "b",
+          "text": "must"
+        },
+        {
+          "id": "c",
+          "text": "might"
+        },
+        {
+          "id": "d",
+          "text": "would"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "Must expresses the stated obligation."
+    },
+    {
+      "id": "q16",
+      "level": "B1",
+      "skill": "vocabulary",
+      "prompt": "Despite the delay, we arrived on time. What does despite mean here?",
+      "options": [
+        {
+          "id": "a",
+          "text": "In spite of"
+        },
+        {
+          "id": "b",
+          "text": "Because of"
+        },
+        {
+          "id": "c",
+          "text": "Instead of"
+        },
+        {
+          "id": "d",
+          "text": "As a result of"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "Despite introduces a contrast with an obstacle, not a cause."
+    },
+    {
+      "id": "q17",
+      "level": "B1",
+      "skill": "reading",
+      "prompt": "Amir takes the train because he can work during the journey, although the ticket costs more than the bus fare. Why does he choose the train?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It is cheaper than the bus"
+        },
+        {
+          "id": "b",
+          "text": "He dislikes working"
+        },
+        {
+          "id": "c",
+          "text": "There is no bus service"
+        },
+        {
+          "id": "d",
+          "text": "He can work while travelling"
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "The stated reason is the ability to work; the extra cost is a disadvantage."
+    },
+    {
+      "id": "q18",
+      "level": "B1",
+      "skill": "reading",
+      "prompt": "Email: I cannot join on Tuesday. I am free after 2 p.m. on Wednesday, but unavailable all Thursday. Which meeting can the writer attend?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Wednesday at 10 a.m."
+        },
+        {
+          "id": "b",
+          "text": "Thursday at 3 p.m."
+        },
+        {
+          "id": "c",
+          "text": "Wednesday at 3 p.m."
+        },
+        {
+          "id": "d",
+          "text": "Tuesday at 3 p.m."
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "Only Wednesday at 3 p.m. meets the stated availability."
+    },
+    {
+      "id": "q19",
+      "level": "B2",
+      "skill": "grammar",
+      "prompt": "By the time the presentation began, we ___ the technical problem.",
+      "options": [
+        {
+          "id": "a",
+          "text": "will resolve"
+        },
+        {
+          "id": "b",
+          "text": "had resolved"
+        },
+        {
+          "id": "c",
+          "text": "have resolved"
+        },
+        {
+          "id": "d",
+          "text": "are resolving"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "The past perfect places the resolution before another past event."
+    },
+    {
+      "id": "q20",
+      "level": "B2",
+      "skill": "grammar",
+      "prompt": "The proposal, ___ was revised twice, was finally approved.",
+      "options": [
+        {
+          "id": "a",
+          "text": "which"
+        },
+        {
+          "id": "b",
+          "text": "what"
+        },
+        {
+          "id": "c",
+          "text": "whose"
+        },
+        {
+          "id": "d",
+          "text": "where"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "Which introduces a non-defining relative clause referring to the proposal."
+    },
+    {
+      "id": "q21",
+      "level": "B2",
+      "skill": "grammar",
+      "prompt": "The deadline is in an hour. I wish I ___ more time to finish the report.",
+      "options": [
+        {
+          "id": "a",
+          "text": "have"
+        },
+        {
+          "id": "b",
+          "text": "will have"
+        },
+        {
+          "id": "c",
+          "text": "am having"
+        },
+        {
+          "id": "d",
+          "text": "had"
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "Wish plus past simple expresses an unreal present situation."
+    },
+    {
+      "id": "q22",
+      "level": "B2",
+      "skill": "vocabulary",
+      "prompt": "The committee gave tentative approval, subject to a final safety check. How should tentative be understood?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Unrelated to the decision"
+        },
+        {
+          "id": "b",
+          "text": "Publicly withdrawn"
+        },
+        {
+          "id": "c",
+          "text": "Provisional rather than final"
+        },
+        {
+          "id": "d",
+          "text": "Permanent and unconditional"
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "The remaining condition makes the approval provisional."
+    },
+    {
+      "id": "q23",
+      "level": "B2",
+      "skill": "reading",
+      "prompt": "A survey finds that 80% of respondents support more cycle lanes. Every respondent belongs to a cycling club. Why is generalising this figure to the whole town questionable?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A percentage cannot describe survey results"
+        },
+        {
+          "id": "b",
+          "text": "The sample may overrepresent people interested in cycling"
+        },
+        {
+          "id": "c",
+          "text": "The sample includes everyone in town"
+        },
+        {
+          "id": "d",
+          "text": "The survey proves that nobody drives"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "A specialised group may not represent the opinions of the wider population."
+    },
+    {
+      "id": "q24",
+      "level": "B2",
+      "skill": "reading",
+      "prompt": "A manager says: Flexible working could help our team, but let us trial it for a month before changing the policy permanently. What is the manager’s position?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Cautious support pending a trial"
+        },
+        {
+          "id": "b",
+          "text": "An unconditional permanent commitment"
+        },
+        {
+          "id": "c",
+          "text": "Complete opposition to any trial"
+        },
+        {
+          "id": "d",
+          "text": "A claim that a trial has already failed"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "The manager supports exploring the idea while withholding a permanent commitment."
+    },
+    {
+      "id": "q25",
+      "level": "C1",
+      "skill": "grammar",
+      "prompt": "Only after the audit ___ the full extent of the loss.",
+      "options": [
+        {
+          "id": "a",
+          "text": "they did realised"
+        },
+        {
+          "id": "b",
+          "text": "had they realising"
+        },
+        {
+          "id": "c",
+          "text": "they had realise"
+        },
+        {
+          "id": "d",
+          "text": "did they realise"
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "A fronted restrictive only phrase triggers subject-auxiliary inversion: did they realise."
+    },
+    {
+      "id": "q26",
+      "level": "C1",
+      "skill": "grammar",
+      "prompt": "___ the funding been withdrawn, the programme would have closed.",
+      "options": [
+        {
+          "id": "a",
+          "text": "Should"
+        },
+        {
+          "id": "b",
+          "text": "Has"
+        },
+        {
+          "id": "c",
+          "text": "Had"
+        },
+        {
+          "id": "d",
+          "text": "Were"
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "Had introduces an inverted past counterfactual conditional: if the funding had been withdrawn."
+    },
+    {
+      "id": "q27",
+      "level": "C1",
+      "skill": "vocabulary",
+      "prompt": "The limited evidence does not ___ the sweeping conclusion that every participant benefited.",
+      "options": [
+        {
+          "id": "a",
+          "text": "wane"
+        },
+        {
+          "id": "b",
+          "text": "warrant"
+        },
+        {
+          "id": "c",
+          "text": "waive"
+        },
+        {
+          "id": "d",
+          "text": "waver"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "Warrant means justify; the other verbs do not fit this meaning and construction."
+    },
+    {
+      "id": "q28",
+      "level": "C1",
+      "skill": "reading",
+      "prompt": "Far from endorsing the model, the author treats its central assumptions as hypotheses still requiring evidence. What is the author doing?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Withholding endorsement until the assumptions are supported"
+        },
+        {
+          "id": "b",
+          "text": "Declaring that all assumptions are established facts"
+        },
+        {
+          "id": "c",
+          "text": "Claiming that evidence is unnecessary"
+        },
+        {
+          "id": "d",
+          "text": "Recommending immediate adoption without testing"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "Far from rejects endorsement; the assumptions remain unconfirmed."
+    },
+    {
+      "id": "q29",
+      "level": "C1",
+      "skill": "reading",
+      "prompt": "A policy is called efficient because applications are processed faster. A later review finds that applicants now spend many extra hours preparing documents. What criticism does the review support?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The processing time necessarily increased"
+        },
+        {
+          "id": "b",
+          "text": "All applicants opposed the policy"
+        },
+        {
+          "id": "c",
+          "text": "The policy eliminated preparation work"
+        },
+        {
+          "id": "d",
+          "text": "The efficiency measure overlooks costs shifted to applicants"
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "Faster internal processing can conceal an increased external burden."
+    },
+    {
+      "id": "q30",
+      "level": "C1",
+      "skill": "reading",
+      "prompt": "The technique is undeniably elegant; its practical value, however, depends on validation in conditions less favourable than those of the initial study. What is the function of the opening concession?",
+      "options": [
+        {
+          "id": "a",
+          "text": "To equate elegance with proven reliability"
+        },
+        {
+          "id": "b",
+          "text": "To withdraw the need for further validation"
+        },
+        {
+          "id": "c",
+          "text": "To recognise a strength while qualifying a claim about usefulness"
+        },
+        {
+          "id": "d",
+          "text": "To show that the initial study never took place"
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "The concession acknowledges elegance but separates it from demonstrated practical value."
+    },
+    {
+      "id": "q31",
+      "level": "C2",
+      "skill": "vocabulary",
+      "prompt": "His apology was so ___ that it seemed designed merely to satisfy a procedural requirement, with no sign of genuine engagement.",
+      "options": [
+        {
+          "id": "a",
+          "text": "fastidious"
+        },
+        {
+          "id": "b",
+          "text": "perfunctory"
+        },
+        {
+          "id": "c",
+          "text": "assiduous"
+        },
+        {
+          "id": "d",
+          "text": "effusive"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "Perfunctory describes something done as a formality with little care or engagement."
+    },
+    {
+      "id": "q32",
+      "level": "C2",
+      "skill": "vocabulary",
+      "prompt": "Her ostensible aim was economy, although her private letters reveal a different priority. What does ostensible identify?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The aim presented publicly, rather than necessarily the real motive"
+        },
+        {
+          "id": "b",
+          "text": "An aim that has been conclusively disproved by statistics"
+        },
+        {
+          "id": "c",
+          "text": "A motive shared equally by every colleague"
+        },
+        {
+          "id": "d",
+          "text": "An aim that was never mentioned to anyone"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "Ostensible distinguishes an apparent or professed aim from a possibly different underlying motive."
+    },
+    {
+      "id": "q33",
+      "level": "C2",
+      "skill": "reading",
+      "prompt": "The committee, renowned for its swift decisions, scheduled yet another meeting to decide when to begin considering the matter. What effect is created by renowned for its swift decisions?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A literal report of the committee’s proven speed"
+        },
+        {
+          "id": "b",
+          "text": "An explanation that the decision is already final"
+        },
+        {
+          "id": "c",
+          "text": "A neutral statement that no meetings are required"
+        },
+        {
+          "id": "d",
+          "text": "Irony that highlights the committee’s repeated delays"
+        }
+      ],
+      "correct_option_id": "d",
+      "explanation": "The praise is undermined by the exaggerated delay described immediately afterwards."
+    },
+    {
+      "id": "q34",
+      "level": "C2",
+      "skill": "reading",
+      "prompt": "The report treats the failure to detect an effect as proof that no effect exists, even though its own methods could not detect effects of that size. Which objection most precisely addresses the inference?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The report has demonstrated the opposite effect"
+        },
+        {
+          "id": "b",
+          "text": "Any use of measurement makes a conclusion invalid"
+        },
+        {
+          "id": "c",
+          "text": "A method’s lack of sensitivity cannot establish the absence of what it cannot detect"
+        },
+        {
+          "id": "d",
+          "text": "Every undetected effect must therefore exist"
+        }
+      ],
+      "correct_option_id": "c",
+      "explanation": "Non-detection by an insensitive method does not establish absence; it also does not prove presence."
+    },
+    {
+      "id": "q35",
+      "level": "C2",
+      "skill": "reading",
+      "prompt": "Even if the archival gap were closed, the historian’s explanation would remain underdetermined: several incompatible accounts would still fit the surviving evidence. What follows from this claim?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The existing evidence already uniquely identifies the explanation"
+        },
+        {
+          "id": "b",
+          "text": "Additional archival material alone would not necessarily select one explanation"
+        },
+        {
+          "id": "c",
+          "text": "No explanation can ever be supported by historical evidence"
+        },
+        {
+          "id": "d",
+          "text": "The accounts are compatible with one another"
+        }
+      ],
+      "correct_option_id": "b",
+      "explanation": "The stated problem is that more than one account fits; filling one gap need not resolve it."
+    },
+    {
+      "id": "q36",
+      "level": "C2",
+      "skill": "grammar",
+      "prompt": "So intricate ___ that even the designer needed a diagram to explain its operation.",
+      "options": [
+        {
+          "id": "a",
+          "text": "was the mechanism"
+        },
+        {
+          "id": "b",
+          "text": "the mechanism was"
+        },
+        {
+          "id": "c",
+          "text": "did the mechanism"
+        },
+        {
+          "id": "d",
+          "text": "the mechanism is"
+        }
+      ],
+      "correct_option_id": "a",
+      "explanation": "A fronted so plus adjective construction uses inversion: so intricate was the mechanism that ..."
+    }
+  ]
+}

@@ -15,3 +15,7 @@
 Course/lesson URLs use ?slug=. Public metadata is distinct from authenticated learning/private state. No standalone Vocabulary, Flashcards, Progress, Challenges, Practice, AI Tutor or reset-password page exists. The lesson Vocabulary tab contains personal saved words, not the shared course dictionary.
 
 [Section index](README.md) · [Documentation home](../README.md)
+
+Placement Test MVP uses `/placement-test.html`, `js/placement-test.js` and
+`js/placement-api.js`, with its own scoped stylesheet. It is deliberately not wired
+into Dashboard/sidebar in this stage. [Methodology and limitations](../placement-test.md).

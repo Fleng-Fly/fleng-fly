@@ -340,3 +340,10 @@ address → fragment read and removed → POST confirmation → account-state HM
 check under identity lock → email update + refresh/reset revocation in one commit.
 Access renewal → origin-wide Web Lock → refresh; unavailable lock support →
 re-authentication only when renewal is needed. Details: ../docs/authentication.md.
+
+## Placement
+
+JWT user → placement start → private bank snapshot in PlacementAttempt → public
+question DTO → owned partial answers → completion under an attempt-row write lock
+→ deterministic stored score/review → published catalog suggestions. History reads
+only the caller's attempts. No flow enters AI, XP, Profile, Progress or lesson writes.

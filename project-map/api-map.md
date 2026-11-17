@@ -217,3 +217,17 @@ GET /courses optionally accepts level=A0…C2; A0 is internal introductory level
 Added POST /users/me/email-change/request (Bearer; email/currentPassword) and
 POST /users/me/email-change/confirm (one-use token); both return 204. PATCH no
 longer changes email directly. Details: ../docs/api.md.
+
+## Placement Test MVP
+
+Bearer JWT required, /api/v1 prefix:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | /placement-test/attempts | New owned attempt (20 starts/UTC day) |
+| GET | /placement-test/attempts | Paginated owned history |
+| GET | /placement-test/attempts/{attempt_id} | Resume/result |
+| PUT | /placement-test/attempts/{attempt_id}/answers | Validated partial saves, no correctness |
+| POST | /placement-test/attempts/{attempt_id}/complete | Deterministic immutable result and course suggestions |
+
+No keys before completion, no XP/profile update. Details: docs/03-backend/placement-api.md.

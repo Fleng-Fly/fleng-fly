@@ -22,3 +22,5 @@ Ten included routers, 42 ordinary API operations, exact schemas and runtime beha
 - [Domain error source index](domain-errors.md)
 
 [Documentation home](../README.md)
+
+- [Placement test API](placement-api.md)

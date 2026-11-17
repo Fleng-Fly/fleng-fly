@@ -2145,3 +2145,526 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 ```
 
 [Backend index](README.md)
+
+## PlacementAnswer
+
+```json
+{
+  "properties": {
+    "questionId": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Questionid"
+    },
+    "optionId": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Optionid"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "questionId",
+    "optionId"
+  ],
+  "title": "PlacementAnswer"
+}
+```
+
+## PlacementAnswers
+
+```json
+{
+  "properties": {
+    "answers": {
+      "items": {
+        "$ref": "#/components/schemas/PlacementAnswer"
+      },
+      "type": "array",
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Answers"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "answers"
+  ],
+  "title": "PlacementAnswers"
+}
+```
+
+## PlacementBandScore
+
+```json
+{
+  "properties": {
+    "level": {
+      "type": "string",
+      "enum": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "title": "Level"
+    },
+    "correct": {
+      "type": "integer",
+      "title": "Correct"
+    },
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    }
+  },
+  "type": "object",
+  "required": [
+    "level",
+    "correct",
+    "total"
+  ],
+  "title": "PlacementBandScore"
+}
+```
+
+## PlacementDetail
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed"
+      ],
+      "title": "Status"
+    },
+    "bankVersion": {
+      "type": "string",
+      "title": "Bankversion"
+    },
+    "scoringVersion": {
+      "type": "string",
+      "title": "Scoringversion"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Startedat"
+    },
+    "completedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Completedat"
+    },
+    "answered": {
+      "type": "integer",
+      "title": "Answered"
+    },
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    },
+    "estimatedLevel": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "A1",
+            "A2",
+            "B1",
+            "B2"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Estimatedlevel"
+    },
+    "resultLabel": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Resultlabel"
+    },
+    "questions": {
+      "items": {
+        "$ref": "#/components/schemas/PlacementQuestion"
+      },
+      "type": "array",
+      "title": "Questions"
+    },
+    "answers": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object",
+      "title": "Answers"
+    },
+    "result": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/PlacementResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recommendedCourses": {
+      "items": {
+        "$ref": "#/components/schemas/CourseSummaryResponse"
+      },
+      "type": "array",
+      "title": "Recommendedcourses"
+    },
+    "recommendationNote": {
+      "type": "string",
+      "title": "Recommendationnote"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "status",
+    "bankVersion",
+    "scoringVersion",
+    "startedAt",
+    "completedAt",
+    "answered",
+    "total",
+    "estimatedLevel",
+    "resultLabel",
+    "questions",
+    "answers",
+    "result",
+    "recommendedCourses",
+    "recommendationNote"
+  ],
+  "title": "PlacementDetail"
+}
+```
+
+## PlacementOption
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "title": "Id"
+    },
+    "text": {
+      "type": "string",
+      "title": "Text"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "text"
+  ],
+  "title": "PlacementOption"
+}
+```
+
+## PlacementQuestion
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "title": "Id"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "title": "Level"
+    },
+    "skill": {
+      "type": "string",
+      "title": "Skill"
+    },
+    "prompt": {
+      "type": "string",
+      "title": "Prompt"
+    },
+    "options": {
+      "items": {
+        "$ref": "#/components/schemas/PlacementOption"
+      },
+      "type": "array",
+      "title": "Options"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "level",
+    "skill",
+    "prompt",
+    "options"
+  ],
+  "title": "PlacementQuestion"
+}
+```
+
+## PlacementResult
+
+```json
+{
+  "properties": {
+    "correct": {
+      "type": "integer",
+      "title": "Correct"
+    },
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    },
+    "estimatedLevel": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "A1",
+            "A2",
+            "B1",
+            "B2"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Estimatedlevel"
+    },
+    "label": {
+      "type": "string",
+      "title": "Label"
+    },
+    "assessmentRange": {
+      "type": "string",
+      "title": "Assessmentrange"
+    },
+    "ceilingReached": {
+      "type": "boolean",
+      "title": "Ceilingreached"
+    },
+    "insufficientEvidence": {
+      "type": "boolean",
+      "title": "Insufficientevidence"
+    },
+    "reliability": {
+      "type": "string",
+      "const": "limited",
+      "title": "Reliability"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "title": "Limitations"
+    },
+    "bands": {
+      "items": {
+        "$ref": "#/components/schemas/PlacementBandScore"
+      },
+      "type": "array",
+      "title": "Bands"
+    },
+    "review": {
+      "items": {
+        "$ref": "#/components/schemas/PlacementReview"
+      },
+      "type": "array",
+      "title": "Review"
+    }
+  },
+  "type": "object",
+  "required": [
+    "correct",
+    "total",
+    "estimatedLevel",
+    "label",
+    "assessmentRange",
+    "ceilingReached",
+    "insufficientEvidence",
+    "reliability",
+    "limitations",
+    "bands",
+    "review"
+  ],
+  "title": "PlacementResult"
+}
+```
+
+## PlacementReview
+
+```json
+{
+  "properties": {
+    "questionId": {
+      "type": "string",
+      "title": "Questionid"
+    },
+    "selectedOptionId": {
+      "type": "string",
+      "title": "Selectedoptionid"
+    },
+    "correctOptionId": {
+      "type": "string",
+      "title": "Correctoptionid"
+    },
+    "isCorrect": {
+      "type": "boolean",
+      "title": "Iscorrect"
+    },
+    "explanation": {
+      "type": "string",
+      "title": "Explanation"
+    }
+  },
+  "type": "object",
+  "required": [
+    "questionId",
+    "selectedOptionId",
+    "correctOptionId",
+    "isCorrect",
+    "explanation"
+  ],
+  "title": "PlacementReview"
+}
+```
+
+## PlacementSummary
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed"
+      ],
+      "title": "Status"
+    },
+    "bankVersion": {
+      "type": "string",
+      "title": "Bankversion"
+    },
+    "scoringVersion": {
+      "type": "string",
+      "title": "Scoringversion"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Startedat"
+    },
+    "completedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Completedat"
+    },
+    "answered": {
+      "type": "integer",
+      "title": "Answered"
+    },
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    },
+    "estimatedLevel": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "A1",
+            "A2",
+            "B1",
+            "B2"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Estimatedlevel"
+    },
+    "resultLabel": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Resultlabel"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "status",
+    "bankVersion",
+    "scoringVersion",
+    "startedAt",
+    "completedAt",
+    "answered",
+    "total",
+    "estimatedLevel",
+    "resultLabel"
+  ],
+  "title": "PlacementSummary"
+}
+```
