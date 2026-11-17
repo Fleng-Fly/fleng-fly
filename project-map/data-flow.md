@@ -351,3 +351,6 @@ only the caller's attempts. No flow enters AI, XP, Profile, Progress or lesson w
 Logout now takes the existing user identity lock and revokes the presented
 refresh-token successor chain through a recursive query. It adds no model,
 endpoint or migration and retains separate-device sessions.
+
+Saved-word input normalizes through VocabularyCreate before length validation;
+canonical words reaching vocabulary/service.py fit the persisted/public contract.

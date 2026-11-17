@@ -96,3 +96,10 @@ blocked. See ai-plan.md for completed/blocked/next work. No automatic commits.
 - next: optional real PostgreSQL suite/migration drift, real SMTP/OpenRouter checks.
 - blocked: live PostgreSQL verification lacks a configured test database;
   no local server/credentials are changed for this phase.
+
+## Existing platform polish
+
+- Completed: delayed-cookie logout revokes linked successor sessions.
+- Completed: reject oversized canonical vocabulary before persistence; Unicode
+  expansion and duplicate regression verified.
+- In progress: fresh profile responses under overlapping settings requests.

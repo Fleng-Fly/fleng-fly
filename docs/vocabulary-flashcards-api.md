@@ -142,3 +142,8 @@ Final pre-commit verification: full pytest **297 passed, 15 skipped**; Ruff,
 mypy, SQLite Alembic upgrade/check/head, PostgreSQL offline SQL and staged
 whitespace/artifact/credential checks passed. Personal-word preservation test
 passed through upgrade/downgrade/upgrade. Live PostgreSQL remains NOT VERIFIED.
+
+Personal-word input is trimmed and casefolded before enforcing the existing
+120-character limit. Unicode expansion cannot persist an oversized word that
+breaks response/list validation. Duplicate checks still use the same canonical
+word, with the existing 409 response. Regression: test_platform_polish.py.

@@ -14,6 +14,12 @@ class VocabularyCreate(CamelModel):
     example: str = Field(default="", max_length=1000)
     lesson_id: UUID | None = None
 
+    @field_validator("word", mode="before")
+    @classmethod
+    def normalize_word(cls, value: object) -> object:
+        # Validate the exact stored form: casefold can expand Unicode characters.
+        return value.strip().casefold() if isinstance(value, str) else value
+
     @field_validator("word", "translation")
     @classmethod
     def not_blank(cls, value: str) -> str:
