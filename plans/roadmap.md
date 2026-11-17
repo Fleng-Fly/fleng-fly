@@ -284,7 +284,7 @@ Evidence and safe procedure: `docs/render-sqlite-registration-diagnostics.md`.
 
 ## Vocabulary flashcards — 2026-11-10
 
-Vocabulary backend completed: categories, saved sets up to 10, owner completion and test handoff. Frontend integration and Roma testing/XP remain next; shared A0 course support deferred. See docs/vocabulary-flashcards-api.md.
+Vocabulary backend completed: categories, saved sets up to 10, owner completion and test handoff. 2026-11-17: the personal-word deck frontend (/flashcards.html) uses two answers (correct/incorrect) and shows dictionary metadata (transcription, part of speech, topic) added by migration 20261116_1200. Roma testing/XP and shared A0 course support remain next. See docs/vocabulary-flashcards-api.md.
 
 
 ## A0–B2 curriculum — 2026-11-10

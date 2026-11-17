@@ -68,7 +68,7 @@
 
 ## Vocabulary flashcards — 2026-11-10
 
-Completed: vocabulary audit, course-word catalog and filters, persistent owned flashcard sessions, completion and Roma handoff contract. 2026-11-16: personal-word flashcard deck frontend (`flashcards.html`, `js/flashcards.js`, `css/flashcards.css`) with flip, four ratings and summary wired to the real session/review/complete APIs. Next: course-word deck selection, sidebar/navigation entry, word management; Roma test engine and XP; curated catalog import. A0 course model extension deferred for shared catalog coordination. Live PostgreSQL NOT VERIFIED.
+Completed: vocabulary audit, course-word catalog and filters, persistent owned flashcard sessions, completion and Roma handoff contract. 2026-11-16: personal-word flashcard deck frontend (`flashcards.html`, `js/flashcards.js`, `css/flashcards.css`) with flip, two answers (correct/incorrect) and summary wired to the real session/review/complete APIs. 2026-11-17: word metadata (`transcription`, `partOfSpeech`, `topic`) through migration `20261116_1200`, shown in the card pill and front face. Next: course-word deck selection, sidebar/navigation entry, word management; Roma test engine and XP; curated catalog import. A0 course model extension deferred for shared catalog coordination. Live PostgreSQL NOT VERIFIED.
 
 Validation: full pytest 293 passed / 15 skipped; expanded flashcard tests 7 passed,
 SQLite migration preservation 1 passed; Ruff, mypy, Alembic SQLite check/head,

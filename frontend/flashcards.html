@@ -55,8 +55,9 @@
             <button id="flashcards-card" class="flashcards-card" type="button">
               <span class="flashcards-card-inner">
                 <span class="flashcards-face flashcards-face-front" aria-hidden="true">
-                  <span class="flashcards-card-label">Word</span>
+                  <span id="flashcards-topic" class="flashcards-card-label">Word</span>
                   <span id="flashcards-word" class="flashcards-word"></span>
+                  <span id="flashcards-transcription" class="flashcards-transcription"></span>
                   <span id="flashcards-example" class="flashcards-example"></span>
                 </span>
                 <span class="flashcards-face flashcards-face-back" aria-hidden="true">
@@ -76,21 +77,17 @@
                 Flip
               </button>
               <div id="flashcards-ratings" class="flashcards-ratings" hidden>
-                <button class="flashcards-rating is-again" data-rating="again" type="button">
-                  <span class="flashcards-rating-label">Again</span>
-                  <span class="flashcards-rating-interval">1 day</span>
-                </button>
-                <button class="flashcards-rating is-hard" data-rating="hard" type="button">
-                  <span class="flashcards-rating-label">Hard</span>
-                  <span class="flashcards-rating-interval">1 day</span>
-                </button>
-                <button class="flashcards-rating is-good" data-rating="good" type="button">
-                  <span class="flashcards-rating-label">Good</span>
+                <button class="flashcards-rating is-correct" data-rating="correct" type="button">
+                  <span class="flashcards-rating-label">Correct</span>
                   <span class="flashcards-rating-interval">7 days</span>
                 </button>
-                <button class="flashcards-rating is-easy" data-rating="easy" type="button">
-                  <span class="flashcards-rating-label">Easy</span>
-                  <span class="flashcards-rating-interval">7 days</span>
+                <button
+                  class="flashcards-rating is-incorrect"
+                  data-rating="incorrect"
+                  type="button"
+                >
+                  <span class="flashcards-rating-label">Incorrect</span>
+                  <span class="flashcards-rating-interval">1 day</span>
                 </button>
               </div>
             </div>

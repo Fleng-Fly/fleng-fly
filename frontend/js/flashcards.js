@@ -10,18 +10,15 @@ import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 
 /**
  * The review endpoint schedules by `remembered` only (1 day vs 7 days), so the
- * four design ratings map onto two scheduling buckets:
- * Again/Hard -> forgotten, Good/Easy -> remembered.
+ * two answers map directly onto the two scheduling buckets.
  */
 const RATINGS = {
-  again: { remembered: false },
-  hard: { remembered: false },
-  good: { remembered: true },
-  easy: { remembered: true },
+  correct: { remembered: true },
+  incorrect: { remembered: false },
 };
-const RATING_KEYS = ['again', 'hard', 'good', 'easy'];
+const RATING_KEYS = ['correct', 'incorrect'];
 const HINT_FRONT = ['Click the card or press ', 'Space', ' to flip the translation'];
-const HINT_BACK = ['Rate how well you remembered it — keys ', '1–4', ' also work'];
+const HINT_BACK = ['Mark the answer — keys ', '1–2', ' also work'];
 
 const node = {
   deck: document.getElementById('flashcards-deck'),
@@ -35,7 +32,9 @@ const node = {
   status: document.getElementById('flashcards-status'),
   content: document.getElementById('flashcards-content'),
   card: document.getElementById('flashcards-card'),
+  topic: document.getElementById('flashcards-topic'),
   word: document.getElementById('flashcards-word'),
+  transcription: document.getElementById('flashcards-transcription'),
   example: document.getElementById('flashcards-example'),
   translation: document.getElementById('flashcards-translation'),
   hint: document.getElementById('flashcards-hint'),
@@ -54,7 +53,7 @@ const state = {
   index: 0,
   revealed: false,
   busy: false,
-  tally: { again: 0, hard: 0, good: 0, easy: 0 },
+  tally: { correct: 0, incorrect: 0 },
 };
 
 function currentCard() {
@@ -67,7 +66,7 @@ function resetState() {
   state.index = 0;
   state.revealed = false;
   state.busy = false;
-  state.tally = { again: 0, hard: 0, good: 0, easy: 0 };
+  state.tally = { correct: 0, incorrect: 0 };
 }
 
 function hideAll() {
@@ -122,15 +121,24 @@ function updateProgress() {
 }
 
 function describeCard(card) {
-  return card.example
-    ? `Word: ${card.word}. Example: ${card.example}. Activate to reveal the translation.`
-    : `Word: ${card.word}. Activate to reveal the translation.`;
+  const parts = [`Word: ${card.word}`];
+  if (card.transcription) parts.push(`Transcription: ${card.transcription}`);
+  if (card.partOfSpeech) parts.push(`Part of speech: ${card.partOfSpeech}`);
+  if (card.example) parts.push(`Example: ${card.example}`);
+  parts.push('Activate to reveal the translation.');
+  return parts.join(' ');
+}
+
+function topicLabel(card) {
+  return [card.topic, card.partOfSpeech].filter(Boolean).join(' · ') || 'Word';
 }
 
 function renderCard() {
   const card = currentCard();
   if (!card) return;
+  node.topic.textContent = topicLabel(card);
   node.word.textContent = card.word;
+  node.transcription.textContent = card.transcription || '';
   node.translation.textContent = card.translation;
   node.example.textContent = card.example || '';
   node.card.classList.remove('is-revealed');
@@ -149,7 +157,10 @@ function reveal() {
   if (!card) return;
   state.revealed = true;
   node.card.classList.add('is-revealed');
-  node.card.setAttribute('aria-label', `Translation: ${card.translation}. Choose a rating.`);
+  node.card.setAttribute(
+    'aria-label',
+    `Translation: ${card.translation}. Choose correct or incorrect.`,
+  );
   node.flip.hidden = true;
   node.ratings.hidden = false;
   setHint(HINT_BACK);
@@ -261,9 +272,16 @@ node.retry.addEventListener('click', load);
 node.again.addEventListener('click', load);
 
 document.addEventListener('keydown', (event) => {
+  if (event.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+  if (event.key === ' ' || event.key === 'Spacebar') {
+    if (!state.revealed && !state.busy && currentCard()) {
+      event.preventDefault();
+      reveal();
+    }
+    return;
+  }
   if (!state.revealed || state.busy) return;
-  if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
-  const selected = { 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' }[event.key];
+  const selected = { 1: 'correct', 2: 'incorrect' }[event.key];
   if (!selected) return;
   event.preventDefault();
   rate(selected);

@@ -211,14 +211,15 @@ session-unavailable handling. Browser/Figma visual comparison remains unverified
 
 `/flashcards.html` mounts the shared workspace and creates a real personal-word
 session with `POST /vocabulary/flashcards/sessions` (`source: my_words`). The
-front face shows the word and example, the back shows the translation; clicking
+front face shows the topic and part of speech in the top pill, the word, its
+transcription and an example sentence; the back shows the translation. Clicking
 the card, pressing Space or the Flip button toggles a 3D flip. After revealing,
-four ratings (again/hard/good/easy) call `POST /vocabulary/{id}/review` and then
-advance. The review API stores only `remembered`, so again/hard schedule 1 day
-and good/easy schedule 7 days; the page states those intervals on the buttons.
+two answers (Correct/Incorrect) call `POST /vocabulary/{id}/review` and then
+advance. The review API stores only `remembered`, so Incorrect schedules 1 day
+and Correct schedules 7 days; the page states those intervals on the buttons.
 Finishing calls `POST /flashcards/sessions/{id}/complete` and shows a local tally
 summary. Empty decks, load errors and failed ratings use the shared error helper.
-Keyboard: Space flips, 1-4 rate once revealed; focus returns to the card on
+Keyboard: Space flips, 1-2 answer once revealed; focus returns to the card on
 advance. The stage scene (aurora, stars, orbit, floor glow) lives in
 `css/flashcards.css` and is scoped to this page. There is no sidebar entry yet,
 so the screen is reached by URL until a Vocabulary navigation item ships. A test

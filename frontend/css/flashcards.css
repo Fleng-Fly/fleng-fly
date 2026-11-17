@@ -338,6 +338,15 @@
   overflow-wrap: anywhere;
   text-shadow: 0 0.4rem 1.4rem rgba(191, 64, 250, 0.35);
 }
+.flashcards-transcription {
+  color: #c9b6dc;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+.flashcards-transcription:empty {
+  display: none;
+}
 .flashcards-example {
   max-width: 26rem;
   color: #bda9cc;
@@ -411,9 +420,9 @@
 /* Ratings -------------------------------------------------------------- */
 .flashcards-ratings {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.6rem;
-  width: min(32rem, 100%);
+  width: min(24rem, 100%);
 }
 .flashcards-ratings[hidden] {
   display: none;
@@ -453,29 +462,17 @@
   color: var(--dash-muted);
   font-size: 0.65rem;
 }
-.flashcards-rating.is-again {
-  border-color: rgba(248, 113, 113, 0.4);
+.flashcards-rating.is-correct {
+  border-color: rgba(52, 211, 153, 0.45);
 }
-.flashcards-rating.is-again:hover {
-  background: rgba(248, 113, 113, 0.14);
-}
-.flashcards-rating.is-hard {
-  border-color: rgba(251, 191, 36, 0.4);
-}
-.flashcards-rating.is-hard:hover {
-  background: rgba(251, 191, 36, 0.14);
-}
-.flashcards-rating.is-good {
-  border-color: rgba(167, 139, 250, 0.5);
-}
-.flashcards-rating.is-good:hover {
-  background: rgba(167, 139, 250, 0.16);
-}
-.flashcards-rating.is-easy {
-  border-color: rgba(52, 211, 153, 0.4);
-}
-.flashcards-rating.is-easy:hover {
+.flashcards-rating.is-correct:hover {
   background: rgba(52, 211, 153, 0.14);
+}
+.flashcards-rating.is-incorrect {
+  border-color: rgba(248, 113, 113, 0.45);
+}
+.flashcards-rating.is-incorrect:hover {
+  background: rgba(248, 113, 113, 0.14);
 }
 
 /* Empty / summary panels ----------------------------------------------- */
@@ -491,7 +488,7 @@
 }
 .flashcards-summary-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
   margin: 1.5rem 0;
 }
