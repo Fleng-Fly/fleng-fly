@@ -12,7 +12,8 @@ from sqlalchemy import and_, func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Course, ExerciseSubmission, Lesson, LessonProgress, Progress
-from app.modules.progress.schemas import CourseProgressResponse, ProgressResponse
+from app.modules.gamification.service import streak
+from app.modules.progress.schemas import CourseProgressResponse, ProgressResponse, XPHistoryResponse
 
 
 async def get_progress(db: AsyncSession, user_id: UUID) -> Progress | None:
@@ -80,6 +81,9 @@ async def list_course_progress(
             lessons_total=lessons_total,
             lessons_started=lessons_started,
             lessons_completed=lessons_completed,
+            completion_percent=round(100 * lessons_completed / lessons_total, 2)
+            if lessons_total
+            else 0.0,
         )
         for course, lessons_total, lessons_started, lessons_completed in rows
     ]
@@ -95,27 +99,30 @@ async def to_progress_response(
 ) -> ProgressResponse:
     exercises_completed = await count_completed_exercises(db, user_id)
     courses = await list_course_progress(db, user_id, include_drafts=include_drafts)
-    if progress is None:
-        # Safety net for accounts created before registration seeded progress.
-        return ProgressResponse(
-            user_id=user_id,
-            lessons_started=0,
-            lessons_completed=0,
-            exercises_completed=exercises_completed,
-            study_minutes=0,
-            xp=xp,
-            last_activity_at=None,
-            updated_at=None,
-            courses=courses,
+    # Read actual lesson state even for legacy accounts without an aggregate row.
+    # Counts span the learner's history; course breakdown follows catalog visibility.
+    totals = (
+        await db.execute(
+            select(
+                func.count(LessonProgress.id),
+                func.count(LessonProgress.id).filter(LessonProgress.status == "completed"),
+            ).where(LessonProgress.user_id == user_id)
         )
+    ).one()
     return ProgressResponse(
-        user_id=progress.user_id,
-        lessons_started=progress.lessons_started,
-        lessons_completed=progress.lessons_completed,
+        user_id=user_id,
+        lessons_started=totals[0],
+        lessons_completed=totals[1],
         exercises_completed=exercises_completed,
-        study_minutes=progress.study_minutes,
+        study_minutes=progress.study_minutes if progress else 0,
         xp=xp,
-        last_activity_at=progress.last_activity_at,
-        updated_at=progress.updated_at,
+        last_activity_at=progress.last_activity_at if progress else None,
+        updated_at=progress.updated_at if progress else None,
         courses=courses,
+        active_courses=sum(
+            0 < course.lessons_started and course.lessons_completed < course.lessons_total
+            for course in courses
+        ),
+        streak=await streak(db, user_id),
+        xp_history=XPHistoryResponse(),
     )
