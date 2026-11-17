@@ -283,6 +283,10 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "lessonsCompleted": {
       "type": "integer",
       "title": "Lessonscompleted"
+    },
+    "completionPercent": {
+      "type": "number",
+      "title": "Completionpercent"
     }
   },
   "type": "object",
@@ -293,7 +297,8 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "level",
     "lessonsTotal",
     "lessonsStarted",
-    "lessonsCompleted"
+    "lessonsCompleted",
+    "completionPercent"
   ],
   "title": "CourseProgressResponse",
   "description": "The caller's progress through one published course."
@@ -1511,6 +1516,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       },
       "type": "array",
       "title": "Courses"
+    },
+    "activeCourses": {
+      "type": "integer",
+      "title": "Activecourses"
+    },
+    "streak": {
+      "$ref": "#/components/schemas/StreakResponse"
+    },
+    "xpHistory": {
+      "$ref": "#/components/schemas/XPHistoryResponse"
     }
   },
   "type": "object",
@@ -1523,7 +1538,10 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "xp",
     "lastActivityAt",
     "updatedAt",
-    "courses"
+    "courses",
+    "activeCourses",
+    "streak",
+    "xpHistory"
   ],
   "title": "ProgressResponse",
   "description": "Aggregate progress plus a per-course breakdown.\n\nNew fields are additive: existing clients that read only `lessonsStarted`,\n`lessonsCompleted`, `studyMinutes`, `lastActivityAt`, `updatedAt` and\n`userId` keep working."
@@ -2666,5 +2684,86 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "resultLabel"
   ],
   "title": "PlacementSummary"
+}
+```
+
+
+## XPHistoryResponse
+
+```json
+{
+  "properties": {
+    "available": {
+      "type": "boolean",
+      "const": false,
+      "title": "Available",
+      "default": false
+    },
+    "reason": {
+      "type": "string",
+      "const": "XP_AWARD_HISTORY_NOT_RECORDED",
+      "title": "Reason",
+      "default": "XP_AWARD_HISTORY_NOT_RECORDED"
+    },
+    "last7Days": {
+      "type": "null",
+      "title": "Last7Days"
+    },
+    "last30Days": {
+      "type": "null",
+      "title": "Last30Days"
+    }
+  },
+  "type": "object",
+  "title": "XPHistoryResponse",
+  "description": "The current schema has no immutable XP award amounts/timestamps."
+}
+```
+
+
+## EmailChangeConfirm
+
+```json
+{
+  "properties": {
+    "token": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 32,
+      "title": "Token"
+    }
+  },
+  "type": "object",
+  "required": [
+    "token"
+  ],
+  "title": "EmailChangeConfirm"
+}
+```
+
+
+## EmailChangeRequest
+
+```json
+{
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email"
+    },
+    "currentPassword": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Currentpassword"
+    }
+  },
+  "type": "object",
+  "required": [
+    "email",
+    "currentPassword"
+  ],
+  "title": "EmailChangeRequest"
 }
 ```

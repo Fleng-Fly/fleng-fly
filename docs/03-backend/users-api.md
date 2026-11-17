@@ -112,3 +112,28 @@ curl -i -X POST http://localhost:3001/api/v1/users/me/password \
 No JSON body for 204; unmodeled/stream responses follow the transport notes.
 
 [Backend index](README.md) · [Schema reference](api-schemas.md)
+
+## `POST /api/v1/users/me/email-change/request`
+
+Bearer identity, current password, configured SMTP and five attempts per user/hour required. Old email remains until confirmation.
+
+Returns 204 with no body. Errors: 422 validation, 429 rate limit, 503 unavailable delivery/database; see [authentication](../authentication.md) for invalidation rules.
+
+```sh
+curl -i -X POST http://localhost:3001/api/v1/users/me/email-change/request \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $FLENG_ACCESS_TOKEN" \
+  --data '{"email": "new@example.com", "currentPassword": "Synthetic-password-123!"}'
+```
+
+## `POST /api/v1/users/me/email-change/confirm`
+
+The opaque one-use token authorizes confirmation; no Bearer required. Bound to current credentials; expires after 30 minutes. Confirmation revokes refresh/reset sessions atomically.
+
+Returns 204 with no body. Errors: 422 validation, 429 rate limit, 503 unavailable delivery/database; see [authentication](../authentication.md) for invalidation rules.
+
+```sh
+curl -i -X POST http://localhost:3001/api/v1/users/me/email-change/confirm \
+  -H "Content-Type: application/json" \
+  --data '{"token": "synthetic-one-use-email-change-token"}'
+```

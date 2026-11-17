@@ -419,3 +419,17 @@ Constraint `placement_status_check`: in_progress or completed. Index
 `ix_placement_user_started` on user_id, started_at. User deletion cascades.
 Private question JSON includes keys; public DTO projection excludes them until
 completion. Versions and snapshots retain reproducible results across bank updates.
+
+## EmailChange
+
+Table: `email_changes`. One-use authorization; see [authentication](../authentication.md).
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| user_id | CHAR(32) | False | FK users.id |
+| token_hash | VARCHAR(64) | False | — |
+| new_email | VARCHAR(320) | False | — |
+| authorization_hash | VARCHAR(64) | False | — |
+| expires_at | DATETIME | False | — |
+| used_at | DATETIME | True | — |

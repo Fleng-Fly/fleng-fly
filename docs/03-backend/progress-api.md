@@ -39,7 +39,10 @@ Synthetic response shape (not a seeded/live result):
   "xp": 0,
   "lastActivityAt": "2026-11-13T00:00:00Z",
   "updatedAt": "2026-11-13T00:00:00Z",
-  "courses": []
+  "courses": [],
+  "activeCourses": 0,
+  "streak": {"current": 0, "longest": 0, "lastActivityDate": null, "timezone": "UTC"},
+  "xpHistory": {"available": false, "reason": "XP_AWARD_HISTORY_NOT_RECORDED", "last7Days": null, "last30Days": null}
 }
 ```
 

@@ -71,3 +71,5 @@ file beneath it. Otherwise startup fails with a safe configuration message.
 DATABASE_URL sslmode maps to asyncpg ssl; ambiguous SSL/channel_binding inputs
 are rejected. Settings validation hides input values, including database passwords.
 No additional Settings fields or fallback storage locations were introduced.
+
+| `EMAIL_CHANGE_URL` | `http://localhost:3001/settings.html`; public confirmation page, HTTPS in production |
