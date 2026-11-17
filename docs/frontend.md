@@ -216,7 +216,7 @@ transcription and an example sentence; the back shows the translation. Clicking
 the card, pressing Space or the Flip button toggles a 3D flip. After revealing,
 two answers (Correct/Incorrect) call `POST /vocabulary/{id}/review` and then
 advance. The review API stores only `remembered`, so Incorrect schedules 1 day
-and Correct schedules 7 days; the page states those intervals on the buttons.
+and Correct schedules 7 days. The intervals are not shown on the buttons.
 Finishing calls `POST /flashcards/sessions/{id}/complete` and shows a local tally
 summary. Empty decks, load errors and failed ratings use the shared error helper.
 Keyboard: Space flips, 1-2 answer once revealed; focus returns to the card on

@@ -458,10 +458,6 @@
 .flashcards-rating-label {
   font-weight: 600;
 }
-.flashcards-rating-interval {
-  color: var(--dash-muted);
-  font-size: 0.65rem;
-}
 .flashcards-rating.is-correct {
   border-color: rgba(52, 211, 153, 0.45);
 }
