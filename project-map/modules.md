@@ -327,12 +327,11 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
 
 
-## Draft quality candidate — 2026-11-16
+## AI budget concurrency verification — 2026-11-16
 
-`backend/app/db/content/curriculum-a0-b2.draft.json` is an explicitly selected
-editorial candidate; normal runtime still uses the unchanged pinned
-`curriculum-a0-b2.json`. No new module, API or grading rule. Validate the candidate
-with `scripts/validate_curriculum.py --input <candidate>`.
-`test_content_structure.py` and `test_draft_quality_fixes.py` cover the four repaired
-draft defects and separation from the published release. Editorial/publication
-limits: `docs/qa/draft-curriculum-fixes.md`.
+`backend/tests/test_ai_limits.py` holds the fake provider until all budget
+competitors finish admission, checks settled charges plus open holds, and covers
+chat/streaming with simultaneous/staggered arrivals and post-settlement retry.
+Existing `test_ai_sqlite_audit.py` covers independent OS processes. Runtime
+reservation/settlement code and dependencies are unchanged. Investigation and
+verification: [AI budget concurrency](../docs/ai-budget-concurrency.md).
