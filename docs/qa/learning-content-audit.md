@@ -164,9 +164,23 @@ IDs: `fleng-…` are draft-curriculum IDs; seed IDs are the slugs in `seed.py`.
 `backend/tests/test_content_structure.py` adds 1,333 test cases that read the content directly:
 
 - **Passing invariants (1,327):** unique slugs, CEFR course order, contiguous positions, prerequisite chain, complete lesson material, Cyrillic translations, well-formed options and answers, explanations name the answer, check items match vocabulary, no repeated prompts, and seed consistency (unique slugs, exercises reference real lessons, every lesson has exercises, normalised accepted answers, letter tiles can form the answer).
-- **Known defects as strict `xfail` (6):** empty vocabulary examples (M3), identical answer positions (M2), practice equals examples (H1), unused vocabulary (M4), typographic apostrophe (M8), duplicated seed theory (M9). When a defect is fixed the test XPASSes and fails, which is the signal to remove its marker.
+- **Known defects as strict `xfail` (6 at audit time, 4 open now):** empty vocabulary examples (M3), identical answer positions (M2), practice equals examples (H1), unused vocabulary (M4). The typographic-apostrophe (M8) and duplicated-theory (M9) checks were fixed and are now regular tests. When a defect is fixed the test XPASSes and fails, which is the signal to remove its marker.
 
 No production code was changed. The tests import `app.db.seed` and `normalize_text` only to read them.
+
+## Resolution status (branch `fix/published-content`)
+
+Published seed content only; the draft curriculum was not touched.
+
+| ID | Status |
+| --- | --- |
+| M8 typographic apostrophe, end punctuation, equivalent replies | **Fixed.** `normalize_text` maps typographic apostrophes to `'`, drops optional sentence punctuation, applies NFKC. `greetings-and-introductions-q2` now lists "you too", "likewise", "it's nice to meet you too", "pleased to meet you too", "nice meeting you too". Letters are never altered, so wrong words stay wrong. |
+| M9 duplicated theory and exercises | **Fixed.** `present-perfect-practice` has its own theory. `-q1` uses a new sentence and `-q3` now tests "never" in a new sentence. `-q2` (letter tiles, "been") is unchanged because docs and tests use it as the documented letter-tile example. |
+| M7 (seed part) ordinals not taught | **Fixed.** `numbers-and-days` theory has an "Ordinal numbers" section. |
+| L9 seed polish | **Fixed** (stray space; the fixed "today's date" self-check is now "a date, for example your birthday"). |
+| M11 level gap, overlap with the draft A0 course | **Open** (pedagogical decision). |
+
+The two matching `xfail` tests became regular regression tests; 4 strict `xfail` remain (M2, M3, M4, H1).
 
 ## Suggested order of work
 
