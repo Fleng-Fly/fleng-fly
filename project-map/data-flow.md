@@ -347,3 +347,7 @@ JWT user → placement start → private bank snapshot in PlacementAttempt → p
 question DTO → owned partial answers → completion under an attempt-row write lock
 → deterministic stored score/review → published catalog suggestions. History reads
 only the caller's attempts. No flow enters AI, XP, Profile, Progress or lesson writes.
+
+Logout now takes the existing user identity lock and revokes the presented
+refresh-token successor chain through a recursive query. It adds no model,
+endpoint or migration and retains separate-device sessions.

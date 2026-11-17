@@ -209,3 +209,9 @@ Same-origin tabs with Web Locks now serialize refresh/login/register/logout unde
 one `fleng.auth-cookie` lock. Refresh single-flight within a page is preserved;
 access/refresh tokens are never shared through localStorage. The server's strict
 replay revocation is unchanged. Browsers without Web Locks retain the Security fail-closed refresh contract: refresh requires signing in again.
+
+Logout serializes with refresh rotation under the existing identity lock and
+revokes the presented token's linked successors. A delayed logout carrying the
+previous cookie cannot leave its rotated session usable. Other devices' token
+chains are preserved; access JWT expiry policy and strict refresh reuse detection
+are unchanged. Regression: `test_logout_revokes_rotated_descendants_without_other_devices`.

@@ -162,15 +162,34 @@ async def rotate_session(
 
 
 async def revoke_session(db: AsyncSession, *, raw_token: str) -> None:
-    """Revoke the presented refresh token. Idempotent: unknown tokens are ignored."""
-    await db.execute(
-        update(RefreshToken)
-        .where(
-            RefreshToken.token_hash == hash_refresh_token(raw_token),
-            RefreshToken.revoked_at.is_(None),
-        )
-        .values(revoked_at=datetime.now(UTC))
+    """Revoke this device's token chain, including an already-rotated successor."""
+    token_hash = hash_refresh_token(raw_token)
+    user_id = await db.scalar(
+        select(RefreshToken.user_id).where(RefreshToken.token_hash == token_hash)
     )
+    if user_id is not None:
+        # Same identity lock as rotation: logout cannot miss a successor committed
+        # by a refresh while the browser was still sending the previous cookie.
+        await lock_learner(db, user_id)
+        chain = (
+            select(RefreshToken.id, RefreshToken.replaced_by_id)
+            .where(RefreshToken.token_hash == token_hash, RefreshToken.user_id == user_id)
+            .cte("logout_chain", recursive=True)
+        )
+        chain = chain.union(
+            select(RefreshToken.id, RefreshToken.replaced_by_id)
+            .join(chain, RefreshToken.id == chain.c.replaced_by_id)
+            .where(RefreshToken.user_id == user_id)
+        )
+        await db.execute(
+            update(RefreshToken)
+            .where(
+                RefreshToken.id.in_(select(chain.c.id)),
+                RefreshToken.revoked_at.is_(None),
+            )
+            .values(revoked_at=datetime.now(UTC))
+            .execution_options(synchronize_session="fetch")
+        )
     await db.commit()
 
 

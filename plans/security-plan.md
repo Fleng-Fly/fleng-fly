@@ -85,3 +85,8 @@ retired installation manifest). Frontend 6 test files and legacy-PWA retirement
 checks pass; Ruff/mypy/docs contracts and diff whitespace checks pass. Web Locks
 coordination is implemented/tested for supporting same-origin browsers. Email
 change and unsupported-browser refresh policy remain awaiting user approval.
+
+## Platform polish
+
+- Completed: delayed-cookie logout revokes its linked refresh successors while
+  preserving other devices; regression added.
