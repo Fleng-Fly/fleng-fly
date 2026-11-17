@@ -41,7 +41,10 @@
 
 - [x] Static frontend served and asserted over the ASGI app
       (`backend/tests/test_frontend.py`); same-origin CSRF origin behaviour.
-- [ ] Playwright: auth, lesson completion, vocabulary review, AI tutor turn.
+- [x] Playwright (`e2e/`, `npm run test:e2e`): register/login/logout, catalog, course → lesson,
+      correct/incorrect answers, saved progress, once-only XP, private-page protection.
+      See `docs/qa/e2e.md`. Not yet in CI.
+- [ ] Playwright: vocabulary review, AI tutor turn.
 - [ ] Accessibility checks (axe) on key screens.
 
 ## Stage 6 — AI 🔴
