@@ -3,11 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Fleng — Learn English</title>
+    <title data-i18n="home.title">Fleng — Learn English</title>
     <meta
       name="description"
-      content="A focused, premium platform for learning English every day."
+      content="Learn English step by step from A0 to B2: short lessons, instant feedback and saved progress."
+      data-i18n-attr="content:home.description"
     />
+    <script src="/js/i18n-boot.js"></script>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
     <meta name="theme-color" content="#0b0917" />
@@ -20,45 +22,68 @@
 
     <main class="container">
       <section class="hero">
-        <span class="pill">ENGLISH, ONE STEP AT A TIME</span>
-        <h1>Build your English. Find your next step.</h1>
-        <p>
-          Fleng brings short English lessons, vocabulary practice and clear progress
-          into one place. Find a starting course with a placement test, then build
-          a daily learning habit at your own pace.
+        <span class="pill" data-i18n="home.pill">English from A0 to B2</span>
+        <h1 data-i18n="home.heading">Learn English step by step.</h1>
+        <p data-i18n="home.lead">
+          Short lessons with instant feedback, your own word collection and progress that is
+          saved to your account. Study a little every day.
         </p>
-        <div class="actions" style="justify-content: center">
-          <a class="btn btn-primary btn-lg" href="/register.html">Create your account</a>
-          <a class="btn btn-secondary btn-lg" href="/login.html">Log in</a>
-
+        <div class="actions hero-actions">
+          <a class="btn btn-primary btn-lg" href="/register.html" data-i18n="home.start">Start learning</a>
+          <a class="btn btn-secondary btn-lg" href="/login.html" data-i18n="auth.login">Log in</a>
         </div>
+        <p class="hero-note muted text-sm" data-i18n="home.note">Free to join. It takes less than a minute.</p>
       </section>
 
-      <section class="feature-grid" style="margin-top: 2rem">
+      <section class="how" aria-labelledby="how-title">
+        <h2 id="how-title" class="section-title" data-i18n="home.howTitle">What happens after you sign up</h2>
+        <ol class="steps">
+          <li class="card">
+            <span class="step-number" aria-hidden="true">1</span>
+            <h3 data-i18n="home.step1Title">Create an account</h3>
+            <p class="text-sm muted" data-i18n="home.step1Text">Just a name, an email and a password.</p>
+          </li>
+          <li class="card">
+            <span class="step-number" aria-hidden="true">2</span>
+            <h3 data-i18n="home.step2Title">Find your level</h3>
+            <p class="text-sm muted" data-i18n="home.step2Text">
+              Take the short placement test, or skip it and choose any course yourself.
+            </p>
+          </li>
+          <li class="card">
+            <span class="step-number" aria-hidden="true">3</span>
+            <h3 data-i18n="home.step3Title">Learn in short lessons</h3>
+            <p class="text-sm muted" data-i18n="home.step3Text">
+              Read the explanation, do the exercises and see the result right away.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="feature-grid" aria-label="Features" data-i18n-attr="aria-label:home.featuresLabel">
         <div class="card">
-          <h2 class="section-title">Structured lessons</h2>
-          <p class="text-sm muted" style="margin: 0">
-            Short, focused sessions that build from where you are.
+          <h2 class="section-title" data-i18n="home.f1Title">Structured courses</h2>
+          <p class="text-sm muted" data-i18n="home.f1Text">
+            Courses from A0 to B2 with lessons that build on each other.
           </p>
         </div>
         <div class="card">
-          <h2 class="section-title">Progress that sticks</h2>
-          <p class="text-sm muted" style="margin: 0">
-            See completed lessons, earned XP and your learning streak.
+          <h2 class="section-title" data-i18n="home.f2Title">Progress you can see</h2>
+          <p class="text-sm muted" data-i18n="home.f2Text">
+            Completed lessons, XP and your study streak are saved on the server.
           </p>
         </div>
         <div class="card">
-          <h2 class="section-title">Help when you need it</h2>
-          <p class="text-sm muted" style="margin: 0">
-            Get extra explanations in lessons when the tutor is available.
+          <h2 class="section-title" data-i18n="home.f3Title">Your own words</h2>
+          <p class="text-sm muted" data-i18n="home.f3Text">
+            Save new words from lessons and practise them with flashcards.
           </p>
         </div>
       </section>
-
     </main>
 
     <footer class="site-footer">
-      <div class="container">Fleng — learn English, every day. <small class="website-version">Web · 2026.11.16</small></div>
+      <div class="container" data-i18n="footer.tagline">Fleng — learn English, every day.</div>
     </footer>
 
     <script type="module" src="/js/home.js"></script>

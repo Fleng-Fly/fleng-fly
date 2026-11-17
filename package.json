@@ -33,7 +33,7 @@
     "curriculum:import-drafts": "node scripts/backend.mjs app.db.curriculum --apply-draft",
     "curriculum:preview:prepare": "backend/.venv/bin/python scripts/preview_curriculum.py prepare",
     "curriculum:preview": "backend/.venv/bin/python scripts/preview_curriculum.py start",
-    "frontend:test": "node --experimental-vm-modules --test scripts/test-courses.mjs scripts/test-ai-api.mjs scripts/test-ai-stream.mjs scripts/test-ai-widget.mjs scripts/test-vocabulary.mjs scripts/test-auth-refresh.mjs scripts/test-placement.mjs scripts/test-progress.mjs scripts/test-auth-ui.mjs scripts/test-markdown-words.mjs",
+    "frontend:test": "node --experimental-vm-modules --test scripts/test-courses.mjs scripts/test-ai-api.mjs scripts/test-ai-stream.mjs scripts/test-ai-widget.mjs scripts/test-vocabulary.mjs scripts/test-auth-refresh.mjs scripts/test-placement.mjs scripts/test-progress.mjs scripts/test-auth-ui.mjs scripts/test-markdown-words.mjs scripts/test-i18n.mjs",
     "db:transfer": "node scripts/backend.mjs app.db.transfer",
     "docs:check": "backend/.venv/bin/python scripts/check-docs.py --contracts",
     "test:e2e": "playwright test -c e2e/playwright.config.mjs",

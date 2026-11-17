@@ -1,6 +1,7 @@
 import { register, setAccessToken } from './api.js';
 import { describeApiError } from './errors.js';
 import { mountHeader } from './layout.js';
+import { t } from './i18n.js';
 
 mountHeader('register');
 
@@ -12,7 +13,7 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   errorBox.classList.add('hidden');
   submit.disabled = true;
-  submit.textContent = 'Creating account…';
+  submit.textContent = t('register.submitting');
   try {
     const result = await register({
       email: form.email.value.trim(),
@@ -25,6 +26,6 @@ form.addEventListener('submit', async (event) => {
     errorBox.textContent = describeApiError(error);
     errorBox.classList.remove('hidden');
     submit.disabled = false;
-    submit.textContent = 'Create account';
+    submit.textContent = t('auth.register');
   }
 });

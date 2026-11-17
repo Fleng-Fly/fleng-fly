@@ -1,29 +1,35 @@
 import { ApiError } from './api.js';
+import { t } from './i18n.js';
 
 /**
- * Turn any thrown value into a user-facing message. Centralises the error states
- * the frontend must handle: 401, 403, 422, 500, backend unavailable and
- * database unavailable (503).
+ * Turn any thrown value into a user-facing message in the current language.
+ * Known backend error codes (`errors.<CODE>`) and statuses are translated; an
+ * unknown code falls back to the status text, and finally to the server message.
  */
 export function describeApiError(error) {
   if (error instanceof ApiError) {
+    if (error.status === 0) return t('errors.network');
+    const byCode = error.code ? `errors.${error.code}` : '';
+    if (byCode && t(byCode) !== byCode) return t(byCode);
     switch (error.status) {
-      case 0:
-        return 'Cannot reach the backend. Make sure it is running.';
       case 401:
-        return error.message || 'Your session has expired. Please sign in again.';
+        return t('errors.401');
       case 403:
-        return 'You do not have permission to do that.';
+        return t('errors.403');
+      case 404:
+        return t('errors.404');
       case 422:
-        return 'Please check the form and try again.';
+        return t('errors.422');
+      case 429:
+        return t('errors.429');
       case 503:
-        return 'The service is temporarily unavailable. Please try again shortly.';
+        return t('errors.503');
       default:
-        return error.message;
+        return error.status >= 500 ? t('errors.500') : error.message || t('errors.unknown');
     }
   }
   if (error instanceof Error) {
     return error.message;
   }
-  return 'Something went wrong. Please try again.';
+  return t('errors.unknown');
 }

@@ -1,4 +1,5 @@
 import { getCurrentUser, logout as logoutRequest, setAccessToken } from './api.js';
+import { applyUserLanguage, createLanguageSwitch, t } from './i18n.js';
 
 /** Small DOM helper: create an element with text content (never innerHTML). */
 export function el(tag, className, text) {
@@ -23,7 +24,7 @@ export function renderMessage(container, title, message, onRetry) {
   if (title) card.append(el('h3', undefined, title));
   if (message) card.append(el('p', 'muted text-sm', message));
   if (onRetry) {
-    const retry = el('button', 'btn btn-secondary', 'Try again');
+    const retry = el('button', 'btn btn-secondary', t('common.tryAgain'));
     retry.type = 'button';
     retry.addEventListener('click', onRetry);
     card.append(retry);
@@ -32,14 +33,15 @@ export function renderMessage(container, title, message, onRetry) {
 }
 
 const NAV_ITEMS = [
-  { href: '/index.html', label: 'Home', key: 'home' },
-  { href: '/courses.html', label: 'Courses', key: 'courses' },
-  { href: '/dashboard.html', label: 'Dashboard', key: 'dashboard' },
+  { href: '/index.html', key: 'home', label: 'nav.home', signedInOnly: false },
+  { href: '/courses.html', key: 'courses', label: 'nav.courses', signedInOnly: true },
+  { href: '/dashboard.html', key: 'dashboard', label: 'nav.dashboard', signedInOnly: true },
 ];
 
 /**
- * Render the shared header. When `user` is omitted the session is resolved here;
+ * Render the shared public header. When `user` is omitted the session is resolved here;
  * pass a resolved user (e.g. from `requireSession()`) to avoid a second request.
+ * Signed-out visitors only see links they can use (no pages that bounce to login).
  */
 export async function mountHeader(active = '', user) {
   const header = document.getElementById('site-header');
@@ -53,15 +55,10 @@ export async function mountHeader(active = '', user) {
   brand.append(el('span', 'brand-mark', '✦'), el('span', 'brand-name', 'Fleng'));
 
   const nav = el('nav', 'nav');
-  for (const item of NAV_ITEMS) {
-    const link = el('a', undefined, item.label);
-    link.href = item.href;
-    if (item.key === active) link.className = 'active';
-    nav.append(link);
-  }
-
+  nav.setAttribute('aria-label', t('nav.main'));
   const authArea = el('div', 'auth-area');
-  authArea.append(el('span', 'muted', '…'));
+  let signedIn = false;
+  authArea.append(createLanguageSwitch(() => signedIn));
   inner.append(brand, nav, authArea);
   header.append(inner);
 
@@ -73,11 +70,25 @@ export async function mountHeader(active = '', user) {
       current = null;
     }
   }
+  signedIn = Boolean(current);
+  if (current) await applyUserLanguage(current);
 
-  authArea.textContent = '';
+  for (const item of NAV_ITEMS) {
+    if (item.signedInOnly && !current) continue;
+    const link = el('a', undefined, t(item.label));
+    link.dataset.i18n = item.label;
+    link.href = item.href;
+    if (item.key === active) {
+      link.className = 'active';
+      link.setAttribute('aria-current', 'page');
+    }
+    nav.append(link);
+  }
+
   if (current) {
-    authArea.append(el('span', 'user-name', current.displayName));
-    const button = el('button', 'btn btn-ghost btn-sm', 'Log out');
+    const name = el('span', 'user-name', current.displayName);
+    const button = el('button', 'btn btn-ghost btn-sm', t('auth.logout'));
+    button.dataset.i18n = 'auth.logout';
     button.type = 'button';
     const logoutError = el('p', 'alert alert-error hidden');
     logoutError.setAttribute('role', 'alert');
@@ -89,18 +100,21 @@ export async function mountHeader(active = '', user) {
         setAccessToken(null);
         window.location.href = '/index.html';
       } catch {
-        logoutError.textContent = 'Unable to confirm logout. Please try again.';
+        logoutError.textContent = t('auth.logoutFailed');
         logoutError.classList.remove('hidden');
         button.disabled = false;
       }
     });
-    authArea.append(button, logoutError);
+    authArea.append(name, button, logoutError);
   } else {
-    const link = el('a', 'btn btn-ghost btn-sm', 'Log in');
-    link.href = '/login.html';
-    authArea.append(link);
+    const login = el('a', 'btn btn-ghost btn-sm', t('auth.login'));
+    login.dataset.i18n = 'auth.login';
+    login.href = '/login.html';
+    const signup = el('a', 'btn btn-primary btn-sm', t('auth.signup'));
+    signup.dataset.i18n = 'auth.signup';
+    signup.href = '/register.html';
+    authArea.append(login, signup);
   }
 
   return current;
 }
-

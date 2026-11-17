@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Create account — Fleng</title>
+    <title data-i18n="register.title">Create account — Fleng</title>
+    <script src="/js/i18n-boot.js"></script>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
     <meta name="theme-color" content="#0b0917" />
@@ -16,16 +17,16 @@
 
     <main class="container page">
       <div class="auth-wrap">
-        <header style="text-align: center; margin-bottom: 1.5rem">
-          <h1>Create your account</h1>
-          <p class="muted text-sm">Start learning English today.</p>
+        <header class="auth-heading">
+          <h1 data-i18n="register.heading">Create your account</h1>
+          <p class="muted text-sm" data-i18n="register.sub">After signing up you can take a short level test or go straight to the courses.</p>
         </header>
 
         <div class="card">
           <p id="form-error" class="alert alert-error hidden" role="alert"></p>
           <form id="register-form">
             <label class="field" for="displayName">
-              Display name
+              <span data-i18n="field.displayName">Display name</span>
               <input
                 id="displayName"
                 name="displayName"
@@ -38,7 +39,7 @@
             </label>
 
             <label class="field" for="email">
-              Email
+              <span data-i18n="field.email">Email</span>
               <input
                 id="email"
                 name="email"
@@ -50,7 +51,7 @@
             </label>
 
             <label class="field" for="password">
-              Password
+              <span data-i18n="field.password">Password</span>
               <input
                 id="password"
                 name="password"
@@ -58,24 +59,28 @@
                 autocomplete="new-password"
                 minlength="8"
                 placeholder="At least 8 characters"
+                data-i18n-attr="placeholder:field.passwordHint"
+                aria-describedby="password-hint"
                 required
               />
             </label>
 
-            <button id="submit-button" class="btn btn-primary btn-block" type="submit">
+            <p id="password-hint" class="field-hint" data-i18n="field.passwordRule">Use at least 8 characters.</p>
+
+            <button id="submit-button" class="btn btn-primary btn-block" type="submit" data-i18n="auth.register">
               Create account
             </button>
           </form>
         </div>
 
-        <p class="text-sm muted" style="text-align: center; margin-top: 1rem">
-          Already have an account? <a href="/login.html">Log in</a>.
+        <p class="text-sm muted auth-switch">
+          <span data-i18n="register.haveAccount">Already have an account?</span> <a href="/login.html" data-i18n="auth.login">Log in</a>
         </p>
       </div>
     </main>
 
     <footer class="site-footer">
-      <div class="container">Fleng — learn English, every day.</div>
+      <div class="container" data-i18n="footer.tagline">Fleng — learn English, every day.</div>
     </footer>
 
     <script type="module" src="/js/register.js"></script>
