@@ -8,6 +8,7 @@ from uuid import UUID
 
 from app.core.levels import LearningLevel
 from app.core.schemas import CamelModel
+from app.modules.exercises.guidance import LessonGuideResponse
 from app.modules.exercises.schemas import ExercisePublicResponse
 
 
@@ -57,4 +58,6 @@ class LessonDetailResponse(CamelModel):
     course_slug: str
     course_title: str
     level: LearningLevel
+    # Short EN/UK rule explanation with examples (authored guidance; absent when unavailable).
+    guide: LessonGuideResponse | None = None
     exercises: list[ExercisePublicResponse]

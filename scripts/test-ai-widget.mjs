@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { i18nStub } from './i18n-stub.mjs';
 
 class Node extends EventTarget {
   constructor(tag = 'div', text = '') {
@@ -81,6 +82,7 @@ async function environment() {
       'api.js': api,
       'session.js': { requireSession: async () => ({ id: owner, displayName: owner }) },
       'errors.js': { describeApiError: () => 'Unavailable' },
+      'i18n.js': i18nStub,
     };
     let result;
     if (stubs[file]) {

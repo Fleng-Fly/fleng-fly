@@ -5,6 +5,9 @@
 > origin as `/api/v1`. Routes: `/index.html`, `/login.html`, `/register.html`,
 > `/dashboard.html`, `/settings.html`.
 
+> **UX overhaul:** EN/UK interface i18n is described in `docs/frontend-i18n.md`; the Our Team
+> page was removed; the dashboard, catalog and lesson player were simplified.
+
 ## 1. Responsibilities
 
 The frontend renders the product, manages navigation and local UI state, and

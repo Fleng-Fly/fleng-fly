@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dashboard — Fleng</title>
+    <title data-i18n="dashboard.title">Dashboard — Fleng</title>
+    <script src="/js/i18n-boot.js"></script>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
     <link rel="stylesheet" href="/css/dashboard.css" />
@@ -13,113 +14,63 @@
     <link rel="stylesheet" href="/css/motion.css" />
   </head>
   <body class="dashboard-page">
-        <main class="dashboard-main">
-          <section id="session-error" class="dashboard-alert" role="alert" hidden>
-            <span id="session-error-text"></span>
-            <button id="session-retry" class="dashboard-text-button" type="button">
-              Try again
-            </button>
-          </section>
+    <main class="dashboard-main">
+      <section id="session-error" class="dashboard-alert" role="alert" hidden>
+        <span id="session-error-text"></span>
+        <button id="session-retry" class="dashboard-text-button" type="button" data-i18n="common.tryAgain">
+          Try again
+        </button>
+      </section>
 
-          <div id="dashboard-content" hidden>
-            <div class="dashboard-page-heading">
-              <div>
-                <p class="dashboard-eyebrow">OVERVIEW</p>
-                <h1>Dashboard</h1>
-                <p class="dashboard-subtitle">Your learning space, all in one place.</p>
-              </div>
-              <span id="dashboard-level" class="dashboard-level">Level —</span>
-            </div>
-            <div class="dashboard-grid">
-              <div class="dashboard-primary">
-                <section class="welcome-card dashboard-reveal" aria-labelledby="welcome-title">
-                  <div class="welcome-copy">
-                    <span class="welcome-kicker">WELCOME TO FLENG</span>
-                    <h2 id="welcome-title">Welcome back!</h2>
-                    <p id="welcome-message">
-                      Make a little progress today and keep your momentum going.
-                    </p>
-                    <a class="dashboard-cta" href="/courses.html"
-                      >Go to lessons <svg><use href="#icon-arrow" /></svg
-                    ></a>
-                  </div>
-                  <div class="welcome-art" aria-hidden="true">
-                    <span class="art-orbit art-orbit-one"></span
-                    ><span class="art-orbit art-orbit-two"></span><span class="art-core">✦</span>
-                  </div>
-                </section>
-                <section class="dashboard-section dashboard-reveal" aria-labelledby="quick-heading">
-                  <div class="section-heading">
-                    <div>
-                      <p class="dashboard-eyebrow">YOUR SPACE</p>
-                      <h2 id="quick-heading">Quick access</h2>
-                    </div>
-                  </div>
-                  <div class="quick-grid">
-                    <a class="quick-card dashboard-card" href="/courses.html"
-                      ><span class="quick-icon"
-                        ><svg><use href="#icon-book" /></svg></span
-                      ><span class="quick-copy"
-                        ><strong>Lessons</strong
-                        ><small>Pick up a lesson and keep learning.</small></span
-                      ><svg class="quick-arrow"><use href="#icon-arrow" /></svg
-                    ></a>
-                    <a class="quick-card dashboard-card" href="#your-progress"
-                      ><span class="quick-icon"
-                        ><svg><use href="#icon-chart" /></svg></span
-                      ><span class="quick-copy"
-                        ><strong>Progress</strong><small>See how far you have come.</small></span
-                      ><svg class="quick-arrow"><use href="#icon-arrow" /></svg
-                    ></a>
-                    <a class="quick-card dashboard-card" href="/leaderboard.html">
-                      <span class="quick-icon"
-                        ><svg><use href="#icon-trophy" /></svg></span
-                      ><span class="quick-copy"
-                        ><strong>Leaderboard</strong><small>Meet the top learners.</small></span>
-                    </a>
-                    <a class="quick-card dashboard-card" href="/vocabulary.html"><span class="quick-icon"><svg><use href="#icon-book" /></svg></span><span class="quick-copy"><strong>My Words</strong><small>Your personal vocabulary collection.</small></span></a>
-                    <a class="quick-card dashboard-card" href="/vocabulary.html?mode=flashcards"><span class="quick-icon"><svg><use href="#icon-layers" /></svg></span><span class="quick-copy"><strong>Practice</strong><small>Turn new words into lasting knowledge.</small></span></a>
-                  </div>
-                </section>
-                <section
-                  class="dashboard-section dashboard-reveal"
-                  aria-labelledby="current-course-heading"
-                >
-                  <div class="section-heading">
-                    <div>
-                      <p class="dashboard-eyebrow">KEEP GOING</p>
-                      <h2 id="current-course-heading">Current course</h2>
-                    </div>
-                  </div>
-                  <div
-                    id="current-course-body"
-                    class="dashboard-card current-course-card"
-                    aria-live="polite"
-                  >
-                    <p class="dashboard-muted">Loading course…</p>
-                  </div>
-                </section>
-              </div>
-              <aside
-                id="your-progress"
-                class="dashboard-secondary dashboard-reveal"
-                aria-labelledby="progress-heading"
-              >
-                <div class="dashboard-card progress-panel">
-                  <div class="section-heading">
-                    <div>
-                      <p class="dashboard-eyebrow">AT A GLANCE</p>
-                      <h2 id="progress-heading">Your progress</h2>
-                    </div>
-                  </div>
-                  <div id="progress-body" aria-live="polite">
-                    <p class="dashboard-muted">Loading progress…</p>
-                  </div>
-                </div>
-              </aside>
-            </div>
+      <div id="dashboard-content" hidden>
+        <div class="dashboard-page-heading">
+          <div>
+            <p class="dashboard-eyebrow" data-i18n="dashboard.eyebrow">YOUR LEARNING</p>
+            <h1 id="welcome-title" data-i18n="dashboard.heading">Dashboard</h1>
+            <p id="welcome-message" class="dashboard-subtitle" data-i18n="dashboard.subtitle">
+              Pick up where you left off.
+            </p>
           </div>
-        </main>
+          <span id="dashboard-level" class="dashboard-level" hidden></span>
+        </div>
+        <div class="dashboard-grid">
+          <div class="dashboard-primary">
+            <section class="dashboard-section dashboard-reveal" aria-labelledby="current-course-heading">
+              <div class="section-heading">
+                <div>
+                  <p class="dashboard-eyebrow" data-i18n="dashboard.keepGoing">CONTINUE LEARNING</p>
+                  <h2 id="current-course-heading" data-i18n="dashboard.currentCourse">Current course</h2>
+                </div>
+              </div>
+              <div id="current-course-body" class="dashboard-card current-course-card" aria-live="polite">
+                <p class="dashboard-muted" data-i18n="common.loading">Loading…</p>
+              </div>
+            </section>
+            <section
+              id="placement-guidance"
+              class="dashboard-card placement-guidance dashboard-reveal"
+              aria-label="Your next step"
+              data-i18n-attr="aria-label:dashboard.nextStep"
+              aria-live="polite"
+            ></section>
+          </div>
+          <aside id="your-progress" class="dashboard-secondary dashboard-reveal" aria-labelledby="progress-heading">
+            <div class="dashboard-card progress-panel">
+              <div class="section-heading">
+                <div>
+                  <p class="dashboard-eyebrow" data-i18n="dashboard.atAGlance">AT A GLANCE</p>
+                  <h2 id="progress-heading" data-i18n="dashboard.progress">Your progress</h2>
+                </div>
+                <a class="dashboard-text-button" href="/progress.html" data-i18n="dashboard.details">Details</a>
+              </div>
+              <div id="progress-body" aria-live="polite">
+                <p class="dashboard-muted" data-i18n="common.loading">Loading…</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
     <script type="module" src="/js/dashboard.js"></script>
   </body>
 </html>

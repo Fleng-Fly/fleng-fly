@@ -1,4 +1,3 @@
-import { mountBackendStatus, mountHeader } from './layout.js';
+import { mountHeader } from './layout.js';
 
 mountHeader('home');
-mountBackendStatus();

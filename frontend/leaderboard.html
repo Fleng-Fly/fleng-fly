@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Leaderboard — Fleng</title>
+    <title data-i18n="lb.pageTitle">Leaderboard — Fleng</title>
+    <script src="/js/i18n-boot.js"></script>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
     <link rel="stylesheet" href="/css/dashboard.css" />
@@ -17,16 +18,16 @@
     <main class="dashboard-main">
       <div class="dashboard-page-heading">
         <div>
-          <p class="dashboard-eyebrow">THE FLENG COMMUNITY</p>
-          <h1>Top Learners<span class="leaderboard-spark" aria-hidden="true">✦</span></h1>
-          <p class="dashboard-subtitle">
-            Small steps. Big progress. Celebrate the learners leading the way.
+          <p class="dashboard-eyebrow" data-i18n="lb.eyebrow">THE FLENG COMMUNITY</p>
+          <h1><span data-i18n="lb.heading">Top Learners</span><span class="leaderboard-spark" aria-hidden="true">✦</span></h1>
+          <p class="dashboard-subtitle" data-i18n="lb.subtitle">
+            The learners with the most XP. Keep learning to climb the ranking.
           </p>
         </div>
-        <span class="dashboard-level">All-time ranking</span>
+        <span class="dashboard-level" data-i18n="lb.allTime">All-time ranking</span>
       </div>
       <div id="leaderboard-body" aria-live="polite" aria-busy="true">
-        <div class="dashboard-card leaderboard-message" role="status">Loading learners…</div>
+        <div class="dashboard-card leaderboard-message" role="status" data-i18n="lb.loading">Loading learners…</div>
       </div>
     </main>
     <script type="module" src="/js/leaderboard.js"></script>

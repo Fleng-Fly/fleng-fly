@@ -120,6 +120,12 @@ Runtime PostgreSQL/live AI verification remains blocked in this environment.
 
 ## Lessons workspace (2026-10-22)
 
+`backend/app/modules/exercises/guidance.py` serves authored hints, EN/UK explanations and lesson
+guides from `db/content/exercise-guidance-a0-a1.json` (`docs/exercise-guidance.md`); `lesson.js` shows
+the hint toggle, explanations and the Explanation block.
+`frontend/js/i18n.js` + `frontend/js/i18n/{en,uk}.js` provide EN/UK interface i18n
+(`docs/frontend-i18n.md`); `frontend/js/placement-guidance.js` renders the dashboard
+placement next-step card from the Placement API.
 `frontend/js/workspace.js` owns the shared Dashboard/Lessons sidebar, mobile
 drawer, catalog search and profile menu. `frontend/js/lesson.js` owns only the
 lesson tabs, questions, submission UI and preview. Practice and Test share
@@ -322,7 +328,7 @@ SQLite preparation now publishes only the exact `OWNER_AUTHORIZED_CURRICULUM_SHA
 ## Website-only release — 2026-11-16
 
 `frontend/vocabulary.html` + vocabulary.js own personal word collection and four
-existing-API review modes. `team.html` + team.js/team.css present role areas;
+existing-API review modes. The former Our Team page (`team.html`) was removed in the UX overhaul;
 `css/motion.css` provides optional motion with reduced-motion support.
 `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
 `version.json` and sidebar/footer expose the release. Desktop shell removed;

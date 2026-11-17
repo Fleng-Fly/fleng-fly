@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { i18nStub } from './i18n-stub.mjs';
 
 class Element {
   constructor(tag = 'div', text = '') { this.tag = tag; this.text = text; this.children = []; this.events = {}; this.disabled = false; this.hidden = false; this.value = ''; }
@@ -49,7 +50,8 @@ async function page({ resume = false, unavailable = false } = {}) {
   const module = new vm.SourceTextModule(await readFile('frontend/js/placement-test.js', 'utf8'), { context });
   await module.link((name) => {
     const values = name === './placement-api.js' ? api
-      : name === './layout.js' ? { el: (tag, cls, text) => new Element(tag, text || '') }
+      : name === './layout.js' ? { el: (tag, cls, text) => new Element(tag, text || ''), mountHeader() {} }
+      : name === './i18n.js' ? i18nStub
       : name === './session.js' ? { requireSession: async () => { if (unavailable) throw new Error('Backend unavailable'); return { id: 'user' }; } }
       : { describeApiError: (error) => error.message };
     return new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context });

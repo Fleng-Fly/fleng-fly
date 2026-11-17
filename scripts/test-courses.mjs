@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { i18nStub } from './i18n-stub.mjs';
 
 class Node {
   constructor(tag = 'div', text) {
@@ -11,6 +12,7 @@ class Node {
     this.children = [];
     this.attributes = {};
     this.dataset = {};
+    this.classList = { add() {}, remove() {}, toggle() {}, contains: () => false };
     this.style = {};
     this.events = {};
     this.value = '';
@@ -159,6 +161,8 @@ async function page(name, options = {}) {
       setWorkspaceUser() {},
     },
     'errors.js': { describeApiError: (error) => error.message ?? 'Service unavailable' },
+    'i18n.js': i18nStub,
+    'placement-api.js': { listPlacements: async () => [], getPlacement: async () => { throw new Error('unused'); } },
   };
   async function module(file) {
     if (modules.has(file)) return modules.get(file);
@@ -307,13 +311,14 @@ test('A0 uses the existing level filter and unchanged course links', async () =>
 });
 
 // Exercise the real lesson module with API fixtures; removed elements deliberately do not exist.
-async function lessonPage(search = '?slug=first') {
+async function lessonPage(search = '?slug=first', overrides = {}) {
   class LessonNode extends Node {
     get firstElementChild() { return this.children[0]; }
     querySelector(selector) {
       return this.children.flatMap((child) => [child, ...child.querySelectorAll('*')])
-        .find((child) => selector.startsWith('.')
-          ? child.className?.split(' ').includes(selector.slice(1)) : child.tagName === selector);
+        .find((child) => selector === 'input:checked' ? child.tagName === 'input' && child.checked
+          : selector.startsWith('.')
+            ? child.className?.split(' ').includes(selector.slice(1)) : child.tagName === selector);
     }
     querySelectorAll(selector) {
       return this.children.flatMap((child) => [
@@ -335,22 +340,27 @@ async function lessonPage(search = '?slug=first') {
   const document = {
     getElementById: (id) => nodes.get(id) ?? null,
     createElement: (tag) => new LessonNode(tag),
+    querySelector: () => null,
+    querySelectorAll: () => [],
   };
   let vocabularyReads = 0;
-  const exercise = { id: 'exercise', type: 'single_choice', prompt: 'Choose a word', points: 1, options: [{ id: 'a', text: 'Hello' }] };
+  const exercise = { id: 'exercise', type: 'single_choice', prompt: 'Choose a word', points: 1, options: [{ id: 'a', text: 'Hello' }, { id: 'b', text: 'Bye' }], ...overrides.exercise };
   const progress = {
     startedAt: '2026-01-01', completed: false, exercisesTotal: 1, exercisesCompleted: 0,
     xpEarned: 0, exercises: [{ exerciseId: 'exercise', attempts: 0, completed: false }],
   };
   const stubs = {
     'api.js': {
-      getLesson: async () => ({ id: 'lesson', slug: 'first', title: 'First', theory: 'Study words.', exercises: [exercise] }),
-      getLessonProgress: async () => progress,
-      startLesson: async () => progress,
-      submitAnswer: async () => { throw new Error('Navigation must not submit answers'); },
+      getLesson: async () => ({ id: 'lesson', slug: 'first', title: 'First', theory: 'Study words.', guide: overrides.guide, exercises: [exercise] }),
+      getLessonProgress: async () => overrides.progress ?? progress,
+      startLesson: async () => overrides.progress ?? progress,
+      submitAnswer: overrides.submit ?? (async () => { throw new Error('Navigation must not submit answers'); }),
+      getCourse: async () => ({ lessons: [] }),
+      listCourses: async () => [],
       getLessonVocabulary: async () => { vocabularyReads++; return [{ word: 'hello', translation: 'привіт' }]; },
     },
     'errors.js': { describeApiError: (error) => error.message },
+    'i18n.js': i18nStub,
     'session.js': { requireSession: async () => ({ displayName: 'Learner' }) },
     'workspace.js': { mountWorkspace() {}, setWorkspaceUser() {}, setWorkspaceAIContext() {} },
     'letter-tiles.js': { letterTiles() { throw new Error('Not used by this fixture'); } },
@@ -394,7 +404,7 @@ test('lesson defaults and obsolete Test links open Theory without losing the les
   }
 });
 
-test('lesson valid links, click/keyboard navigation and template actions use the three remaining tabs', async () => {
+test('lesson valid links and click/keyboard navigation use the three tabs', async () => {
   const p = await lessonPage('?slug=first&tab=practice');
   assert.equal(p.get('panel-practice').hidden, false);
   assert.match(p.get('panel-practice').textContent, /Choose a word/);
@@ -410,8 +420,6 @@ test('lesson valid links, click/keyboard navigation and template actions use the
   assert.equal(p.get('panel-vocabulary').hidden, false);
   p.get('tab-vocabulary').events.keydown({ key: 'Home', preventDefault() {} });
   assert.equal(p.get('panel-theory').hidden, false);
-  p.get('use-template').events.click();
-  assert.equal(p.get('panel-practice').hidden, false);
   p.get('tab-vocabulary').events.click();
   await p.settle();
   assert.equal(p.vocabularyReads(), 1);
@@ -420,11 +428,84 @@ test('lesson valid links, click/keyboard navigation and template actions use the
   assert.match(linked.get('panel-vocabulary').textContent, /hello/);
 });
 
-test('Dashboard Quick access keeps existing links and adds vocabulary practice without a Course duplicate', async () => {
+test('Dashboard shows continue-learning, next-step and progress sections without duplicate navigation cards', async () => {
   const html = await readFile(new URL('../frontend/dashboard.html', import.meta.url), 'utf8');
-  const quick = html.split('<div class="quick-grid">')[1].split('</section>')[0];
-  assert.deepEqual([...quick.matchAll(/<strong>([^<]+)<\/strong\s*>/g)].map((match) => match[1]), ['Lessons', 'Progress', 'Leaderboard', 'My Words', 'Practice']);
-  assert.deepEqual([...quick.matchAll(/href="([^"]+)"/g)].map((match) => match[1]).filter((href) => !href.startsWith('#icon')), ['/courses.html', '#your-progress', '/leaderboard.html', '/vocabulary.html', '/vocabulary.html?mode=flashcards']);
-  assert.match(html, /id="your-progress"/);
-  assert.doesNotMatch(html, /quick-course-link/);
+  for (const id of ['current-course-body', 'placement-guidance', 'progress-body', 'your-progress']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.doesNotMatch(html, /quick-grid|quick-card|welcome-card|quick-course-link/);
+});
+
+test('hint stays hidden until requested and uses the interface language', async () => {
+  const hint = { en: 'Think about the first sound.', uk: 'Подумай про перший звук.' };
+  const p = await lessonPage('?slug=first&tab=practice', { exercise: { hint } });
+  const panel = p.get('panel-practice');
+  const note = panel.querySelector('.lesson-hint-text');
+  const toggle = panel.querySelector('.lesson-hint-toggle');
+  assert.equal(note.hidden, true);
+  assert.equal(toggle.attributes['aria-expanded'], 'false');
+  assert.match(note.textContent, /first sound/);
+  toggle.events.click();
+  assert.equal(note.hidden, false);
+  assert.equal(toggle.attributes['aria-expanded'], 'true');
+  toggle.events.click();
+  assert.equal(note.hidden, true);
+});
+
+test('no hint control is shown when the API provides no hint', async () => {
+  const p = await lessonPage('?slug=first&tab=practice');
+  assert.equal(p.get('panel-practice').querySelector('.lesson-hint-toggle'), undefined);
+});
+
+test('wrong answer shows the localized explanation, wrong-answer note and the correct option', async () => {
+  let calls = 0;
+  const submit = async (_slug, payload) => {
+    calls++;
+    return {
+      exerciseId: 'exercise', type: 'single_choice', isCorrect: false, completed: false, points: 1, xpAwarded: 0,
+      correctOptionId: 'a', explanation: 'Correct choice: Hello.',
+      explanationLocalized: { en: 'Greet people with “Hello”.', uk: 'Вітайся словом “Hello”.' },
+      wrongAnswerNote: { en: '“Bye” is for leaving.', uk: '“Bye” — для прощання.' },
+      lesson: { startedAt: '2026-01-01', completed: false, exercisesTotal: 1, exercisesCompleted: 0, xpEarned: 0, exercises: [{ exerciseId: 'exercise', attempts: 1, completed: false, isCorrect: false }] },
+    };
+  };
+  const p = await lessonPage('?slug=first&tab=practice', { submit });
+  const panel = p.get('panel-practice');
+  const wrong = panel.querySelectorAll('input')[1];
+  wrong.value = 'b'; wrong.checked = true;
+  await panel.querySelector('form').events.submit({ preventDefault() {} });
+  await p.settle();
+  assert.equal(calls, 1);
+  const text = panel.textContent;
+  assert.match(text, /Why this does not fit:\s*“Bye” is for leaving\./);
+  assert.match(text, /Explanation:\s*Greet people with “Hello”\./);
+  assert.doesNotMatch(text, /Correct choice: Hello/);
+  assert.match(text, /Correct answer:\s*Hello/);
+});
+
+test('lesson guide shows the rule and English examples', async () => {
+  const guide = { explanation: { en: 'Use “am” with I.', uk: 'Вживай “am” з I.' }, examples: [{ en: 'I am Eva.', uk: 'Я Єва.' }, { en: 'I am happy.', uk: 'Я щасливий.' }] };
+  const p = await lessonPage('?slug=first', { guide });
+  const text = p.get('panel-theory').textContent;
+  assert.match(text, /Explanation/);
+  assert.match(text, /Use “am” with I\./);
+  assert.match(text, /I am Eva\./);
+  assert.match(text, /Study words\./);
+});
+
+test('completion screen shows only real counts from lesson progress', async () => {
+  const done = {
+    startedAt: '2026-01-01', completed: true, exercisesTotal: 3, exercisesCompleted: 3, xpEarned: 3,
+    exercises: [
+      { exerciseId: 'exercise', attempts: 1, completed: true, isCorrect: true },
+      { exerciseId: 'x2', attempts: 2, completed: true, isCorrect: true },
+      { exerciseId: 'x3', attempts: 1, completed: true, isCorrect: true },
+    ],
+  };
+  const p = await lessonPage('?slug=first', { progress: done });
+  const text = p.get('lesson-completed').textContent;
+  assert.match(text, /3 \/ 3 activities/);
+  assert.match(text, /Correct on the first try: 2 \/ 3/);
+  assert.match(text, /Result: 67%/);
+  assert.match(text, /3 XP earned/);
 });

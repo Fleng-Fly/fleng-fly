@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import english from '../frontend/js/i18n/en.js';
 
 class Element {
   constructor(tag = 'div') {
-    this.tag = tag; this.children = []; this.events = {}; this.value = '';
+    this.tag = tag; this.children = []; this.dataset = {}; this.events = {}; this.value = '';
     this.disabled = false; this.hidden = false; this.textContent = '';
     const classes = new Set();
     this.classList = { add: (v) => classes.add(v), remove: (v) => classes.delete(v), contains: (v) => classes.has(v) };
@@ -31,6 +32,7 @@ async function page(name, api = {}, search = '?token=private-reset-secret') {
   await module.link((specifier) => {
     const values = specifier === './api.js' ? api
       : specifier === './errors.js' ? { describeApiError: (e) => e.message }
+      : specifier === './i18n.js' ? { t: (key) => english[key] ?? key, applyUserLanguage: async () => {}, createLanguageSwitch: () => new Element() }
       : { mountHeader: () => {} };
     return new vm.SyntheticModule(Object.keys(values), function () {
       for (const [key, value] of Object.entries(values)) this.setExport(key, value);

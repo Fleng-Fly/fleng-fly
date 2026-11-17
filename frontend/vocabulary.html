@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Words — Fleng English</title>
+  <title data-i18n="vocab.pageTitle">My Words — Fleng</title>
+  <script src="/js/i18n-boot.js"></script>
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/dashboard.css" />
   <link rel="stylesheet" href="/css/lesson.css" />
@@ -16,43 +17,43 @@
 <body class="dashboard-page vocabulary-page">
   <main class="dashboard-main">
     <div class="dashboard-page-heading">
-      <div><p class="dashboard-eyebrow">YOUR PERSONAL COLLECTION</p><h1 id="words-title">Vocabulary &amp; WordMaster</h1><p class="dashboard-subtitle">Build your vocabulary. Make every word your own.</p></div>
-      <button id="add-word" class="lesson-button lesson-button-primary" type="button">＋ Add a word</button>
+      <div><p class="dashboard-eyebrow" data-i18n="vocab.eyebrow">YOUR PERSONAL COLLECTION</p><h1 id="words-title" data-i18n="ws.myWords">My Words</h1><p class="dashboard-subtitle" data-i18n="vocab.subtitle">Save new words and practise them until you remember them.</p></div>
+      <button id="add-word" class="lesson-button lesson-button-primary" type="button" data-i18n="vocab.add">＋ Add a word</button>
     </div>
-    <section id="words-error" class="dashboard-alert" role="alert" hidden><span id="words-error-text"></span> <button id="words-retry" class="dashboard-text-button" type="button">Try again</button></section>
-    <p id="words-loading" class="dashboard-muted" role="status">Loading your vocabulary…</p>
+    <section id="words-error" class="dashboard-alert" role="alert" hidden><span id="words-error-text"></span> <button id="words-retry" class="dashboard-text-button" type="button" data-i18n="common.tryAgain">Try again</button></section>
+    <p id="words-loading" class="dashboard-muted" role="status" data-i18n="vocab.loading">Loading your vocabulary…</p>
     <div id="words-content" hidden>
-      <div id="words-stats" class="word-stats" aria-label="Vocabulary statistics"></div>
+      <div id="words-stats" class="word-stats" aria-label="Vocabulary statistics" data-i18n-attr="aria-label:vocab.stats"></div>
       <div class="word-toolbar">
-        <div class="word-filters" role="group" aria-label="Filter vocabulary">
-          <button type="button" data-filter="all" aria-pressed="true">All words</button>
-          <button type="button" data-filter="learning" aria-pressed="false">Learning</button>
-          <button type="button" data-filter="learned" aria-pressed="false">Learned</button>
-          <button type="button" data-filter="due" aria-pressed="false">Due today</button>
+        <div class="word-filters" role="group" aria-label="Filter vocabulary" data-i18n-attr="aria-label:vocab.filter">
+          <button type="button" data-filter="all" aria-pressed="true" data-i18n="vocab.fAll">All words</button>
+          <button type="button" data-filter="learning" aria-pressed="false" data-i18n="vocab.learning">Learning</button>
+          <button type="button" data-filter="learned" aria-pressed="false" data-i18n="vocab.learned">Learned</button>
+          <button type="button" data-filter="due" aria-pressed="false" data-i18n="vocab.due">Due today</button>
         </div>
-        <label class="word-search"><span class="sr-only">Search your words or translations</span><span aria-hidden="true">⌕</span><input id="word-search" type="search" placeholder="Search your words…" autocomplete="off" /></label>
+        <label class="word-search"><span class="sr-only" data-i18n="vocab.searchLabel">Search your words or translations</span><span aria-hidden="true">⌕</span><input id="word-search" type="search" placeholder="Search your words…" data-i18n-attr="placeholder:vocab.searchPlaceholder" autocomplete="off" /></label>
       </div>
-      <nav class="word-modes" aria-label="Vocabulary activity">
-        <button type="button" data-mode="list" aria-pressed="true">☷ My words</button>
-        <button type="button" data-mode="flashcards" aria-pressed="false">▱ Flashcards</button>
-        <button type="button" data-mode="choice" aria-pressed="false">◉ Multiple choice</button>
-        <button type="button" data-mode="write" aria-pressed="false">⌨ Write the word</button>
-        <button type="button" data-mode="letters" aria-pressed="false">▦ Missing letters</button>
+      <nav class="word-modes" aria-label="Vocabulary activity" data-i18n-attr="aria-label:vocab.activity">
+        <button type="button" data-mode="list" aria-pressed="true" data-i18n="vocab.mList">☷ My words</button>
+        <button type="button" data-mode="flashcards" aria-pressed="false" data-i18n="vocab.mFlash">▱ Flashcards</button>
+        <button type="button" data-mode="choice" aria-pressed="false" data-i18n="vocab.mChoice">◉ Multiple choice</button>
+        <button type="button" data-mode="write" aria-pressed="false" data-i18n="vocab.mWrite">⌨ Write the word</button>
+        <button type="button" data-mode="letters" aria-pressed="false" data-i18n="vocab.mLetters">▦ Missing letters</button>
       </nav>
-      <section id="word-list-panel" aria-labelledby="word-list-heading"><div class="section-heading"><h2 id="word-list-heading">Your words</h2><span id="word-count" class="dashboard-muted" role="status"></span></div><div id="word-list" class="word-list"></div></section>
-      <section id="word-practice-panel" class="word-practice-panel" aria-label="Vocabulary practice" hidden><div id="word-practice" aria-live="polite"></div></section>
+      <section id="word-list-panel" aria-labelledby="word-list-heading"><div class="section-heading"><h2 id="word-list-heading" data-i18n="vocab.yourWords">Your words</h2><span id="word-count" class="dashboard-muted" role="status"></span></div><div id="word-list" class="word-list"></div></section>
+      <section id="word-practice-panel" class="word-practice-panel" aria-label="Vocabulary practice" data-i18n-attr="aria-label:vocab.practiceLabel" hidden><div id="word-practice" aria-live="polite"></div></section>
       <p id="word-feedback" class="word-feedback" role="status"></p>
     </div>
   </main>
   <dialog id="word-dialog" class="word-dialog" aria-labelledby="word-dialog-title">
     <form id="word-form">
-      <div class="section-heading"><h2 id="word-dialog-title">Add to your collection</h2><button id="word-dialog-close" class="word-close" type="button" aria-label="Close add word dialog">×</button></div>
-      <p class="dashboard-muted">Save a word, its translation and an example.</p>
-      <label class="field" for="new-word">English word or phrase<input id="new-word" name="word" required maxlength="120" placeholder="e.g. resilience" autocomplete="off" /></label>
-      <label class="field" for="new-translation">Translation<input id="new-translation" name="translation" required maxlength="300" placeholder="e.g. стійкість" autocomplete="off" /></label>
-      <label class="field" for="new-example">Example sentence (optional)<textarea id="new-example" name="example" maxlength="1000" rows="3" placeholder="Write a sentence to help you remember."></textarea></label>
+      <div class="section-heading"><h2 id="word-dialog-title" data-i18n="vocab.dialogTitle">Add to your collection</h2><button id="word-dialog-close" class="word-close" type="button" aria-label="Close add word dialog" data-i18n-attr="aria-label:vocab.dialogClose">×</button></div>
+      <p class="dashboard-muted" data-i18n="vocab.dialogHint">Save a word, its translation and an example.</p>
+      <label class="field" for="new-word"><span data-i18n="vocab.fieldWord">English word or phrase</span><input id="new-word" name="word" required maxlength="120" placeholder="e.g. resilience" autocomplete="off" /></label>
+      <label class="field" for="new-translation"><span data-i18n="vocab.translation2">Translation</span><input id="new-translation" name="translation" required maxlength="300" placeholder="e.g. стійкість" autocomplete="off" /></label>
+      <label class="field" for="new-example"><span data-i18n="vocab.fieldExample">Example sentence (optional)</span><textarea id="new-example" name="example" maxlength="1000" rows="3" placeholder="Write a sentence to help you remember." data-i18n-attr="placeholder:vocab.examplePlaceholder"></textarea></label>
       <p id="word-form-error" class="alert alert-error" role="alert" hidden></p>
-      <button id="word-save" class="lesson-button lesson-button-primary btn-block" type="submit">Save word</button>
+      <button id="word-save" class="lesson-button lesson-button-primary btn-block" type="submit" data-i18n="vocab.saveWord">Save word</button>
     </form>
   </dialog>
   <script type="module" src="/js/vocabulary.js"></script>

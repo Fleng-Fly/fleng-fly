@@ -3,44 +3,45 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>English placement test — Fleng</title>
+  <title data-i18n="pt.title">English placement test — Fleng</title>
+  <script src="/js/i18n-boot.js"></script>
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/fleng-theme.css" />
   <link rel="stylesheet" href="/css/placement-test.css" />
   <script defer src="/js/pwa.js"></script>
 </head>
-<body class="placement-page">
-  <header class="placement-header container"><a class="brand" href="/index.html">Fleng</a><nav aria-label="Placement navigation"><a href="/courses.html">Courses</a><a href="/settings.html">Settings</a></nav></header>
+<body class="placement-page" data-reload-on-language>
+  <header id="site-header" class="site-header"></header>
   <main class="container">
     <section class="card placement-intro">
-      <p class="muted text-sm">FIND YOUR STARTING POINT</p>
-      <h1>English placement test</h1>
-      <p>36 questions about grammar, vocabulary and short reading. Allow around 20–30 minutes. Your answers are saved as you go.</p>
-      <p><strong>Approximate study guidance, not a CEFR certificate.</strong> This MVP estimates a starting point up to B2. Advanced questions are exploratory: C1 and C2 cannot be confirmed. Listening, speaking and writing are not assessed; question levels and cutoffs are not externally calibrated.</p>
-      <p class="muted text-sm">No XP is awarded. Your profile level, courses and learning progress will not change. Retakes use the same bank, so familiarity can raise later scores.</p>
-      <button id="placement-start" class="btn btn-primary" type="button" disabled>Start a new test</button>
+      <p class="muted text-sm" data-i18n="pt.eyebrow">FIND YOUR STARTING POINT</p>
+      <h1 data-i18n="pt.heading">English placement test</h1>
+      <p data-i18n="pt.intro">36 questions about grammar, vocabulary and short reading. Allow around 20–30 minutes. Your answers are saved as you go, so you can stop and continue later.</p>
+      <p data-i18n="pt.disclaimer">This is approximate study guidance, not a CEFR certificate. It estimates a starting point up to B2. Listening, speaking and writing are not assessed.</p>
+      <p class="muted text-sm" data-i18n="pt.note">No XP is awarded and your courses and progress will not change. Retakes use the same questions, so familiarity can raise later scores. You can skip the test and choose any course yourself.</p>
+      <button id="placement-start" class="btn btn-primary" type="button" disabled data-i18n="pt.start">Start a new test</button>
     </section>
-    <p id="placement-status" role="status" aria-live="polite">Checking your session…</p>
-    <section id="placement-error" class="alert alert-error" role="alert" hidden><span id="placement-error-text"></span> <button id="placement-retry" class="btn btn-secondary" type="button">Try again</button></section>
-    <section id="placement-player" class="card" aria-label="Placement questions" hidden>
+    <p id="placement-status" role="status" aria-live="polite" data-i18n="pt.checking">Checking your session…</p>
+    <section id="placement-error" class="alert alert-error" role="alert" hidden><span id="placement-error-text"></span> <button id="placement-retry" class="btn btn-secondary" type="button" data-i18n="common.tryAgain">Try again</button></section>
+    <section id="placement-player" class="card" aria-label="Placement questions" data-i18n-attr="aria-label:pt.questions" hidden>
       <div class="placement-meta"><p id="placement-count"></p><p id="placement-saved" class="muted"></p></div>
-      <progress id="placement-progress" aria-label="Answers saved" value="0" max="36"></progress>
+      <progress id="placement-progress" aria-label="Answers saved" data-i18n-attr="aria-label:pt.answersSaved" value="0" max="36"></progress>
       <form id="placement-form">
         <div id="placement-question"></div>
         <div class="placement-actions">
-          <button id="placement-previous" class="btn btn-secondary" type="button">Previous</button>
-          <button id="placement-next" class="btn btn-secondary" type="button">Next</button>
-          <button id="placement-unanswered" class="btn btn-ghost" type="button">Next unanswered</button>
-          <button id="placement-finish" class="btn btn-primary" type="submit">Finish test</button>
+          <button id="placement-previous" class="btn btn-secondary" type="button" data-i18n="pt.previous">Previous</button>
+          <button id="placement-next" class="btn btn-secondary" type="button" data-i18n="pt.next">Next</button>
+          <button id="placement-unanswered" class="btn btn-ghost" type="button" data-i18n="pt.nextUnanswered">Next unanswered</button>
+          <button id="placement-finish" class="btn btn-primary" type="submit" data-i18n="pt.finish">Finish test</button>
         </div>
       </form>
     </section>
-    <section id="placement-result" class="card" aria-label="Placement result" hidden></section>
+    <section id="placement-result" class="card" aria-label="Placement result" data-i18n-attr="aria-label:pt.result" hidden></section>
     <section class="card placement-history" aria-labelledby="placement-history-title">
-      <div class="placement-meta"><h2 id="placement-history-title">Your attempts</h2><button id="placement-history-refresh" class="btn btn-ghost" type="button">Refresh history</button></div>
+      <div class="placement-meta"><h2 id="placement-history-title" data-i18n="pt.attempts">Your attempts</h2><button id="placement-history-refresh" class="btn btn-ghost" type="button" data-i18n="pt.refresh">Refresh history</button></div>
       <p id="placement-history-status" class="muted" role="status"></p>
       <ol id="placement-history-list"></ol>
-      <button id="placement-history-more" class="btn btn-secondary" type="button" hidden>Load more</button>
+      <button id="placement-history-more" class="btn btn-secondary" type="button" hidden data-i18n="pt.loadMore">Load more</button>
     </section>
   </main>
   <script type="module" src="/js/placement-test.js"></script>

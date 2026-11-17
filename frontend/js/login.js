@@ -1,6 +1,7 @@
 import { login, requestPasswordReset, setAccessToken } from './api.js';
 import { describeApiError } from './errors.js';
 import { mountHeader } from './layout.js';
+import { t } from './i18n.js';
 
 mountHeader('login');
 
@@ -12,7 +13,7 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   errorBox.classList.add('hidden');
   submit.disabled = true;
-  submit.textContent = 'Logging in…';
+  submit.textContent = t('login.submitting');
   try {
     const result = await login(form.email.value.trim(), form.password.value);
     setAccessToken(result.accessToken);
@@ -21,7 +22,7 @@ form.addEventListener('submit', async (event) => {
     errorBox.textContent = describeApiError(error);
     errorBox.classList.remove('hidden');
     submit.disabled = false;
-    submit.textContent = 'Log in';
+    submit.textContent = t('auth.login');
   }
 });
 
@@ -31,10 +32,10 @@ document.getElementById('reset-request-form').addEventListener('submit', async (
   const status = document.getElementById('reset-request-status');
   if (button.disabled) return;
   button.disabled = true;
-  status.textContent = 'Sending…';
+  status.textContent = t('login.sending');
   try {
     await requestPasswordReset(document.getElementById('reset-email').value.trim());
-    status.textContent = 'If the account exists and email delivery is enabled, a reset link will be sent. Check your inbox and spam folder.';
+    status.textContent = t('login.resetSent');
   } catch (error) {
     status.textContent = describeApiError(error);
   } finally {

@@ -322,7 +322,7 @@ SQLite preparation now publishes only the exact `OWNER_AUTHORIZED_CURRICULUM_SHA
 ## Website-only release — 2026-11-16
 
 `frontend/vocabulary.html` + vocabulary.js own personal word collection and four
-existing-API review modes. `team.html` + team.js/team.css present role areas;
+existing-API review modes. The former Our Team page (`team.html`) was removed in the UX overhaul;
 `css/motion.css` provides optional motion with reduced-motion support.
 `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
 `version.json` and sidebar/footer expose the release. Desktop shell removed;

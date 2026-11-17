@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { i18nStub } from './i18n-stub.mjs';
 
 class Node {
   constructor(tag = 'div', text = '') {
@@ -63,8 +64,9 @@ await workspace.link((specifier) => {
   const exports = specifier === './api.js' ? ['getCourse', 'listCourses', 'logout', 'setAccessToken']
     : specifier === './ai-assistant.js' ? ['mountAIAssistant', 'unmountAIAssistant']
     : specifier === './session.js' ? ['requireSession']
-    : specifier === './errors.js' ? ['describeApiError'] : ['el'];
-  return new vm.SyntheticModule(exports, function () { for (const name of exports) this.setExport(name, () => {}); }, { context });
+    : specifier === './errors.js' ? ['describeApiError']
+    : specifier === './i18n.js' ? Object.keys(i18nStub) : ['el'];
+  return new vm.SyntheticModule(exports, function () { for (const name of exports) this.setExport(name, specifier === './i18n.js' ? i18nStub[name] : () => {}); }, { context });
 }); await workspace.evaluate();
 
 for (const active of ['words', 'practice', 'course-words', 'dashboard']) {
@@ -107,6 +109,7 @@ test('Course Words pages real API data, filters by course, saves and opens exist
       : specifier === './layout.js' ? { el: (tag, cls, text) => new Element(tag, text || '') }
       : specifier === './session.js' ? { requireSession: async () => ({ id: 'user' }) }
       : specifier === './errors.js' ? { describeApiError: (error) => error.message }
+      : specifier === './i18n.js' ? i18nStub
       : { mountWorkspace: (section) => assert.equal(section, 'course-words'), setWorkspaceUser() {} };
     return new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context: courseContext });
   });

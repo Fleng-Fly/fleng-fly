@@ -1,5 +1,6 @@
 import { addVocabulary, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
 import { el } from './layout.js';
+import { t, tn } from './i18n.js';
 import { describeApiError } from './errors.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
@@ -26,20 +27,20 @@ function feedback(text = '', error = false) {
 
 function speak(word) {
   if (!('speechSynthesis' in window)) {
-    feedback('Your browser does not support word playback.', true);
+    feedback(t('vocab.noSpeech'), true);
     return;
   }
   speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.lang = 'en-US';
   utterance.rate = .85;
-  utterance.onerror = () => feedback('Word playback is unavailable on this device.', true);
+  utterance.onerror = () => feedback(t('vocab.speechFailed'), true);
   speechSynthesis.speak(utterance);
 }
 
 function speakButton(word) {
   const node = control('', () => speak(word), 'word-speak');
-  node.setAttribute('aria-label', `Listen to ${word}`);
+  node.setAttribute('aria-label', t('vocab.listen', { word }));
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('aria-hidden', 'true');
@@ -59,7 +60,7 @@ function filteredWords() {
 }
 
 function renderStats() {
-  const stats = [['Saved words', state.words.length], ['Learning', state.words.filter((w) => !w.learned).length], ['Learned', state.words.filter((w) => w.learned).length], ['Due today', state.words.filter(isDue).length]];
+  const stats = [[t('vocab.saved'), state.words.length], [t('vocab.learning'), state.words.filter((w) => !w.learned).length], [t('vocab.learned'), state.words.filter((w) => w.learned).length], [t('vocab.due'), state.words.filter(isDue).length]];
   $('words-stats').replaceChildren(...stats.map(([label, value]) => {
     const card = el('div', 'word-stat');
     const copy = el('div');
@@ -86,10 +87,10 @@ function renderWords() {
   const words = filteredWords();
   const target = $('word-list');
   target.replaceChildren();
-  $('word-count').textContent = `${words.length} ${words.length === 1 ? 'word' : 'words'}`;
+  $('word-count').textContent = tn('vocab.count', words.length);
   if (!words.length) {
-    const card = empty(target, state.words.length ? 'No matching words' : 'Your collection starts here', state.words.length ? 'Try another search or choose All words.' : 'Add your first word and start practising.');
-    if (!state.words.length) card.append(control('＋ Add your first word', openAddDialog, 'lesson-button lesson-button-primary'));
+    const card = empty(target, state.words.length ? t('vocab.noMatch') : t('vocab.emptyTitle'), state.words.length ? t('vocab.noMatchText') : t('vocab.emptyText'));
+    if (!state.words.length) card.append(control(t('vocab.addFirst'), openAddDialog, 'lesson-button lesson-button-primary'));
     return;
   }
   for (const word of words) {
@@ -97,20 +98,20 @@ function renderWords() {
     const copy = el('div', 'word-copy');
     copy.append(el('h3', undefined, word.word), el('p', undefined, word.translation));
     if (word.example) copy.append(el('small', undefined, word.example));
-    const status = el('span', `word-status${word.learned ? ' is-learned' : ''}`, word.learned ? '✓ Learned' : isDue(word) ? 'Due today' : 'Learning');
+    const status = el('span', `word-status${word.learned ? ' is-learned' : ''}`, word.learned ? `✓ ${t('vocab.learned')}` : isDue(word) ? t('vocab.due') : t('vocab.learning'));
     const actions = el('div', 'word-row-actions');
-    const toggle = control(word.learned ? 'Keep learning' : 'Mark learned', async () => {
+    const toggle = control(word.learned ? t('vocab.keepLearning') : t('vocab.markLearned'), async () => {
       toggle.disabled = true;
       try {
         updateWord(await updateVocabulary(word.id, !word.learned));
         renderWords();
-        feedback('Vocabulary updated.');
+        feedback(t('vocab.updated'));
       } catch (error) {
         feedback(describeApiError(error), true);
         toggle.disabled = false;
       }
     });
-    actions.append(toggle, control('Practise ↗', () => setMode('flashcards', word.id), 'lesson-button lesson-button-primary'));
+    actions.append(toggle, control(t('vocab.practise'), () => setMode('flashcards', word.id), 'lesson-button lesson-button-primary'));
     row.append(speakButton(word.word), copy, status, actions);
     target.append(row);
   }
@@ -159,18 +160,18 @@ function renderSummary(target) {
   for (let i = 0; i < 12; i++) celebration.append(el('i'));
   const icon = el('span', 'summary-icon', accuracy === 100 ? '✦' : '✓');
   icon.setAttribute('aria-hidden', 'true');
-  const title = el('h2', undefined, 'Practice complete!');
+  const title = el('h2', undefined, t('vocab.complete'));
   title.id = 'practice-summary-title';
   title.tabIndex = -1;
-  summary.append(celebration, icon, el('span', 'lesson-chip', 'YOUR SESSION'), title,
-    el('p', 'dashboard-muted', `${correct} remembered · ${mistakes.length} to practise again. Your review progress has been saved.`));
+  summary.append(celebration, icon, el('span', 'lesson-chip', t('vocab.session')), title,
+    el('p', 'dashboard-muted', t('vocab.summary', { correct, mistakes: mistakes.length })));
   const ring = el('div', 'summary-score-ring');
   ring.style.background = `conic-gradient(var(--fleng-pink) ${accuracy}%, var(--fleng-raised) 0)`;
   const center = el('div', 'summary-score-center');
-  center.append(el('strong', undefined, `${accuracy}%`), el('span', undefined, state.mode === 'flashcards' ? 'self-assessed recall' : 'correct answers'));
+  center.append(el('strong', undefined, `${accuracy}%`), el('span', undefined, state.mode === 'flashcards' ? t('vocab.selfRecall') : t('vocab.correctAnswers')));
   ring.append(center);
   const metrics = el('div', 'summary-metrics');
-  for (const [label, value] of [['Reviewed', ids.length], ['Remembered', correct], ['To practise', mistakes.length], ['Time', time]]) {
+  for (const [label, value] of [[t('vocab.reviewed'), ids.length], [t('vocab.remembered'), correct], [t('vocab.toPractise'), mistakes.length], [t('vocab.time'), time]]) {
     const metric = el('div', 'summary-metric');
     metric.append(el('strong', undefined, String(value)), el('span', undefined, label));
     metrics.append(metric);
@@ -184,13 +185,13 @@ function renderSummary(target) {
     const row = el('li', needsPractice ? 'summary-word is-mistake' : 'summary-word');
     const copy = el('span');
     copy.append(el('strong', undefined, word.word), el('small', undefined, word.translation));
-    row.append(copy, el('span', 'word-status', needsPractice ? 'Practise again' : '✓ Remembered'));
+    row.append(copy, el('span', 'word-status', needsPractice ? t('vocab.practiseAgain') : `✓ ${t('vocab.remembered')}`));
     list.append(row);
   }
-  summary.append(el('h3', undefined, 'Words from this session'), list);
+  summary.append(el('h3', undefined, t('vocab.sessionWords')), list);
   const actions = el('div', 'word-practice-actions');
-  if (mistakes.length) actions.append(control('Repeat mistakes', () => startPractice(undefined, mistakes), 'lesson-button lesson-button-primary'));
-  actions.append(control('Practise again', () => startPractice(undefined, ids), mistakes.length ? 'lesson-button lesson-button-secondary' : 'lesson-button lesson-button-primary'), control('Back to my words', () => setMode('list')));
+  if (mistakes.length) actions.append(control(t('vocab.repeat'), () => startPractice(undefined, mistakes), 'lesson-button lesson-button-primary'));
+  actions.append(control(t('vocab.practiseAgain'), () => startPractice(undefined, ids), mistakes.length ? 'lesson-button lesson-button-secondary' : 'lesson-button lesson-button-primary'), control(t('vocab.back'), () => setMode('list')));
   summary.append(actions);
   target.replaceChildren(summary);
   title.focus();
@@ -221,7 +222,7 @@ function renderPractice() {
   const target = $('word-practice');
   target.replaceChildren();
   if (!state.queue.length) {
-    empty(target, 'No words for this activity', state.mode === 'letters' ? 'Add a single English word with 2–24 letters, or choose another activity.' : 'Add some words or change your filters to begin.');
+    empty(target, t('vocab.noActivityWords'), state.mode === 'letters' ? t('vocab.lettersHint') : t('vocab.beginHint'));
     return;
   }
   if (state.index >= state.queue.length) {
@@ -230,12 +231,12 @@ function renderPractice() {
   }
   const word = state.words.find((item) => item.id === state.queue[state.index]);
   state.reviewing = word.id;
-  const modeLabels = { flashcards: 'FLASHCARDS', choice: 'MULTIPLE CHOICE', write: 'WRITE THE WORD', letters: 'MISSING LETTERS' };
+  const modeLabels = { flashcards: t('vocab.modeFlash'), choice: t('vocab.modeChoice'), write: t('vocab.modeWrite'), letters: t('vocab.modeLetters') };
   const meta = el('div', 'word-practice-meta');
   meta.append(el('span', undefined, modeLabels[state.mode]), el('span', undefined, `${state.index + 1} / ${state.queue.length}`));
   const track = el('div', 'word-run-track');
   track.setAttribute('role', 'progressbar');
-  track.setAttribute('aria-label', 'Words reviewed in this session');
+  track.setAttribute('aria-label', t('vocab.runLabel'));
   track.setAttribute('aria-valuemin', '0');
   track.setAttribute('aria-valuemax', String(state.queue.length));
   track.setAttribute('aria-valuenow', String(state.index));
@@ -244,7 +245,7 @@ function renderPractice() {
   track.append(fill);
   const card = el('div', 'word-practice-card');
   const heading = el('h2', undefined, state.mode === 'write' || state.mode === 'letters' ? word.translation : word.word);
-  card.append(el('span', 'lesson-chip', state.mode === 'flashcards' ? 'WORD CARD' : 'VOCABULARY PRACTICE'), heading);
+  card.append(el('span', 'lesson-chip', state.mode === 'flashcards' ? t('vocab.wordCard') : t('vocab.practiceChip')), heading);
   const result = el('p', 'word-practice-result');
   result.setAttribute('role', 'status');
   const actions = el('div', 'word-practice-actions');
@@ -267,13 +268,13 @@ function renderPractice() {
       card.classList.toggle('answer-success', remembered);
       card.classList.toggle('answer-mistake', !remembered);
       result.classList.toggle('is-error', !remembered);
-      result.textContent = `${remembered ? '✓ Well done!' : 'Keep practising.'} ${word.word} — ${word.translation}`;
+      result.textContent = `${remembered ? `✓ ${t('vocab.wellDone')}` : t('vocab.keepPractising')} ${word.word} — ${word.translation}`;
       if (word.example) result.append(el('span', undefined, ` · ${word.example}`));
-      actions.replaceChildren(control(state.index + 1 === state.queue.length ? 'See results →' : 'Next word →', () => { state.index++; renderPractice(); }, 'lesson-button lesson-button-primary'));
+      actions.replaceChildren(control(state.index + 1 === state.queue.length ? t('vocab.results') : t('vocab.nextWord'), () => { state.index++; renderPractice(); }, 'lesson-button lesson-button-primary'));
       actions.querySelector('button').focus();
     } catch (error) {
       result.classList.add('is-error');
-      result.textContent = `Your review was not saved. ${describeApiError(error)} Try again.`;
+      result.textContent = t('vocab.notSaved', { error: describeApiError(error) });
     } finally {
       state.busy = false;
       setControlsDisabled(false);
@@ -285,13 +286,13 @@ function renderPractice() {
     heading.className = 'sr-only';
     const flip = control('', () => turnCard(!revealed), 'flashcard-turn');
     flip.setAttribute('aria-pressed', 'false');
-    flip.setAttribute('aria-label', `Reveal translation for ${word.word}`);
+    flip.setAttribute('aria-label', t('vocab.revealFor', { word: word.word }));
     const inner = el('span', 'flashcard-inner');
     const front = el('span', 'flashcard-face flashcard-front');
-    front.append(el('span', 'flashcard-kicker', 'ENGLISH'), el('span', 'flashcard-word', word.word), el('span', 'flashcard-hint', 'Tap the card or press Enter to reveal'));
+    front.append(el('span', 'flashcard-kicker', t('vocab.english')), el('span', 'flashcard-word', word.word), el('span', 'flashcard-hint', t('vocab.tapReveal')));
     const back = el('span', 'flashcard-face flashcard-back');
     back.setAttribute('aria-hidden', 'true');
-    back.append(el('span', 'flashcard-kicker', 'TRANSLATION'), el('span', 'flashcard-word', word.translation));
+    back.append(el('span', 'flashcard-kicker', t('vocab.translation')), el('span', 'flashcard-word', word.translation));
     if (word.example) back.append(el('span', 'flashcard-example', word.example));
     inner.append(front, back);
     flip.append(inner);
@@ -301,22 +302,22 @@ function renderPractice() {
       revealed = show;
       flip.classList.toggle('is-flipped', show);
       flip.setAttribute('aria-pressed', String(show));
-      flip.setAttribute('aria-label', show ? 'Show English word' : `Reveal translation for ${word.word}`);
+      flip.setAttribute('aria-label', show ? t('vocab.showEnglish') : t('vocab.revealFor', { word: word.word }));
       front.setAttribute('aria-hidden', String(show));
       back.setAttribute('aria-hidden', String(!show));
       if (show) {
-        actions.replaceChildren(control('I need practice', () => grade(false)), control('I knew it ✓', () => grade(true), 'lesson-button lesson-button-primary'));
+        actions.replaceChildren(control(t('vocab.needPractice'), () => grade(false)), control(t('vocab.knewIt'), () => grade(true), 'lesson-button lesson-button-primary'));
         actions.querySelector('button').focus();
-      } else actions.replaceChildren(control('Reveal translation', () => turnCard(true), 'lesson-button lesson-button-primary'));
+      } else actions.replaceChildren(control(t('vocab.reveal'), () => turnCard(true), 'lesson-button lesson-button-primary'));
     }
-    card.append(flip, speakButton(word.word), el('p', 'dashboard-muted', 'Think of the translation before turning the card.'));
-    actions.append(control('Reveal translation', () => turnCard(true), 'lesson-button lesson-button-primary'));
+    card.append(flip, speakButton(word.word), el('p', 'dashboard-muted', t('vocab.thinkFirst')));
+    actions.append(control(t('vocab.reveal'), () => turnCard(true), 'lesson-button lesson-button-primary'));
   } else if (state.mode === 'choice') {
-    card.append(speakButton(word.word), el('p', 'dashboard-muted', 'Choose the correct translation.'));
+    card.append(speakButton(word.word), el('p', 'dashboard-muted', t('vocab.chooseTranslation')));
     const alternatives = [...new Set(state.words.map((item) => item.translation))].filter((translation) => normalize(translation) !== normalize(word.translation));
     if (!alternatives.length) {
-      card.append(el('p', 'dashboard-muted', 'Add at least two words with different translations to use Multiple choice.'));
-      actions.append(control('Try flashcards', () => setMode('flashcards'), 'lesson-button lesson-button-primary'));
+      card.append(el('p', 'dashboard-muted', t('vocab.needTwo')));
+      actions.append(control(t('vocab.tryFlash'), () => setMode('flashcards'), 'lesson-button lesson-button-primary'));
     } else {
       const choices = el('div', 'word-choice-list');
       for (const choice of shuffle([word.translation, ...shuffle(alternatives).slice(0, 3)])) choices.append(control(choice, () => grade(normalize(choice) === normalize(word.translation)), 'word-choice'));
@@ -326,7 +327,7 @@ function renderPractice() {
     const form = el('form');
     let readAnswer;
     if (state.mode === 'write') {
-      const label = el('label', 'lesson-answer-label', 'Type the English word');
+      const label = el('label', 'lesson-answer-label', t('vocab.typeEnglish'));
       const input = el('input', 'lesson-answer');
       input.required = true;
       input.autocomplete = 'off';
@@ -344,7 +345,7 @@ function renderPractice() {
       form.append(tiles.field);
       readAnswer = tiles.readAnswer;
     }
-    const check = el('button', 'lesson-button lesson-button-primary', 'Check answer');
+    const check = el('button', 'lesson-button lesson-button-primary', t('lesson.check'));
     check.type = 'submit';
     const formActions = el('div', 'word-practice-actions');
     formActions.append(check);
@@ -352,7 +353,7 @@ function renderPractice() {
     form.addEventListener('submit', (event) => {
       event.preventDefault();
       const answer = readAnswer();
-      if (!answer.trim()) { result.classList.add('is-error'); result.textContent = 'Complete your answer first.'; return; }
+      if (!answer.trim()) { result.classList.add('is-error'); result.textContent = t('vocab.completeFirst'); return; }
       grade(normalize(answer) === normalize(word.word));
     });
     card.append(form);
@@ -423,9 +424,9 @@ $('word-form').addEventListener('submit', async (event) => {
     $('word-form').reset();
     renderStats();
     setMode('list');
-    feedback(`Saved “${word.word}” to your vocabulary.`);
+    feedback(t('vocab.savedWord', { word: word.word }));
   } catch (error) {
-    $('word-form-error').textContent = error.code === 'WORD_EXISTS' ? 'This word is already in your collection.' : describeApiError(error);
+    $('word-form-error').textContent = error.code === 'WORD_EXISTS' ? t('errors.WORD_EXISTS') : describeApiError(error);
     $('word-form-error').hidden = false;
   } finally { save.disabled = false; }
 });

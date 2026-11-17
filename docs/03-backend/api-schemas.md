@@ -399,6 +399,75 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
+## EmailChangeConfirm
+
+```json
+{
+  "properties": {
+    "token": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 32,
+      "title": "Token"
+    }
+  },
+  "type": "object",
+  "required": [
+    "token"
+  ],
+  "title": "EmailChangeConfirm"
+}
+```
+
+## EmailChangeRequest
+
+```json
+{
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email"
+    },
+    "currentPassword": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Currentpassword"
+    }
+  },
+  "type": "object",
+  "required": [
+    "email",
+    "currentPassword"
+  ],
+  "title": "EmailChangeRequest"
+}
+```
+
+## ExampleResponse
+
+```json
+{
+  "properties": {
+    "en": {
+      "type": "string",
+      "title": "En"
+    },
+    "uk": {
+      "type": "string",
+      "title": "Uk"
+    }
+  },
+  "type": "object",
+  "required": [
+    "en",
+    "uk"
+  ],
+  "title": "ExampleResponse"
+}
+```
+
 ## ExerciseOptionResponse
 
 ```json
@@ -475,6 +544,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
           "type": "null"
         }
       ]
+    },
+    "hint": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/LocalizedText"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "type": "object",
@@ -487,7 +566,7 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "points"
   ],
   "title": "ExercisePublicResponse",
-  "description": "Public exercise content.\n\nDeliberately excludes every grading secret (`correct_option_id`,\n`accepted_answers`, `model_answer`, `explanation`). Options are only present\nfor `single_choice` exercises."
+  "description": "Public exercise content.\n\nDeliberately excludes every grading secret (`correct_option_id`,\n`accepted_answers`, `model_answer`, `explanation`, `explanation_localized`).\nOptions are only present for `single_choice` exercises."
 }
 ```
 
@@ -987,32 +1066,6 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
-## LetterTilesResponse
-
-```json
-{
-  "properties": {
-    "pattern": {
-      "type": "string",
-      "title": "Pattern"
-    },
-    "letters": {
-      "items": {
-        "type": "string"
-      },
-      "type": "array",
-      "title": "Letters"
-    }
-  },
-  "type": "object",
-  "required": [
-    "pattern",
-    "letters"
-  ],
-  "title": "LetterTilesResponse"
-}
-```
-
 ## LessonDetailResponse
 
 ```json
@@ -1067,6 +1120,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         "C2"
       ],
       "title": "Level"
+    },
+    "guide": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/LessonGuideResponse"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "exercises": {
       "items": {
@@ -1150,6 +1213,32 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
   ],
   "title": "LessonExerciseStateResponse",
   "description": "The caller's state for one exercise within a lesson."
+}
+```
+
+## LessonGuideResponse
+
+```json
+{
+  "properties": {
+    "explanation": {
+      "$ref": "#/components/schemas/LocalizedText"
+    },
+    "examples": {
+      "items": {
+        "$ref": "#/components/schemas/ExampleResponse"
+      },
+      "type": "array",
+      "title": "Examples"
+    }
+  },
+  "type": "object",
+  "required": [
+    "explanation",
+    "examples"
+  ],
+  "title": "LessonGuideResponse",
+  "description": "Short plain-language explanation of the lesson rule with examples."
 }
 ```
 
@@ -1281,6 +1370,60 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
+## LetterTilesResponse
+
+```json
+{
+  "properties": {
+    "pattern": {
+      "type": "string",
+      "title": "Pattern"
+    },
+    "letters": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "title": "Letters"
+    }
+  },
+  "type": "object",
+  "required": [
+    "pattern",
+    "letters"
+  ],
+  "title": "LetterTilesResponse"
+}
+```
+
+## LocalizedText
+
+```json
+{
+  "properties": {
+    "en": {
+      "type": "string",
+      "maxLength": 1200,
+      "minLength": 1,
+      "title": "En"
+    },
+    "uk": {
+      "type": "string",
+      "maxLength": 1200,
+      "minLength": 1,
+      "title": "Uk"
+    }
+  },
+  "type": "object",
+  "required": [
+    "en",
+    "uk"
+  ],
+  "title": "LocalizedText",
+  "description": "The same text in both interface languages (English is the fallback)."
+}
+```
+
 ## LoginRequest
 
 ```json
@@ -1386,783 +1529,6 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
   "title": "PasswordChange"
 }
 ```
-
-## ProfileUpdate
-
-```json
-{
-  "properties": {
-    "email": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "email"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Email"
-    },
-    "displayName": {
-      "anyOf": [
-        {
-          "type": "string",
-          "maxLength": 80,
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Displayname"
-    },
-    "englishLevel": {
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "A0",
-            "A1",
-            "A2",
-            "B1",
-            "B2",
-            "C1",
-            "C2"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Englishlevel"
-    },
-    "preferredLanguage": {
-      "anyOf": [
-        {
-          "type": "string",
-          "maxLength": 40,
-          "minLength": 1
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Preferredlanguage"
-    }
-  },
-  "type": "object",
-  "title": "ProfileUpdate"
-}
-```
-
-## ProgressResponse
-
-```json
-{
-  "properties": {
-    "userId": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Userid"
-    },
-    "lessonsStarted": {
-      "type": "integer",
-      "title": "Lessonsstarted"
-    },
-    "lessonsCompleted": {
-      "type": "integer",
-      "title": "Lessonscompleted"
-    },
-    "exercisesCompleted": {
-      "type": "integer",
-      "title": "Exercisescompleted"
-    },
-    "studyMinutes": {
-      "type": "integer",
-      "title": "Studyminutes"
-    },
-    "xp": {
-      "type": "integer",
-      "title": "Xp"
-    },
-    "lastActivityAt": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Lastactivityat"
-    },
-    "updatedAt": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date-time"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Updatedat"
-    },
-    "courses": {
-      "items": {
-        "$ref": "#/components/schemas/CourseProgressResponse"
-      },
-      "type": "array",
-      "title": "Courses"
-    },
-    "activeCourses": {
-      "type": "integer",
-      "title": "Activecourses"
-    },
-    "streak": {
-      "$ref": "#/components/schemas/StreakResponse"
-    },
-    "xpHistory": {
-      "$ref": "#/components/schemas/XPHistoryResponse"
-    }
-  },
-  "type": "object",
-  "required": [
-    "userId",
-    "lessonsStarted",
-    "lessonsCompleted",
-    "exercisesCompleted",
-    "studyMinutes",
-    "xp",
-    "lastActivityAt",
-    "updatedAt",
-    "courses",
-    "activeCourses",
-    "streak",
-    "xpHistory"
-  ],
-  "title": "ProgressResponse",
-  "description": "Aggregate progress plus a per-course breakdown.\n\nNew fields are additive: existing clients that read only `lessonsStarted`,\n`lessonsCompleted`, `studyMinutes`, `lastActivityAt`, `updatedAt` and\n`userId` keep working."
-}
-```
-
-## RegisterRequest
-
-```json
-{
-  "properties": {
-    "email": {
-      "type": "string",
-      "format": "email",
-      "title": "Email"
-    },
-    "password": {
-      "type": "string",
-      "maxLength": 128,
-      "minLength": 8,
-      "title": "Password"
-    },
-    "displayName": {
-      "type": "string",
-      "maxLength": 80,
-      "minLength": 1,
-      "title": "Displayname"
-    }
-  },
-  "type": "object",
-  "required": [
-    "email",
-    "password",
-    "displayName"
-  ],
-  "title": "RegisterRequest"
-}
-```
-
-## ResetConfirm
-
-```json
-{
-  "properties": {
-    "token": {
-      "type": "string",
-      "maxLength": 200,
-      "minLength": 32,
-      "title": "Token"
-    },
-    "password": {
-      "type": "string",
-      "maxLength": 128,
-      "minLength": 8,
-      "title": "Password"
-    }
-  },
-  "type": "object",
-  "required": [
-    "token",
-    "password"
-  ],
-  "title": "ResetConfirm"
-}
-```
-
-## ResetRequest
-
-```json
-{
-  "properties": {
-    "email": {
-      "type": "string",
-      "maxLength": 254,
-      "format": "email",
-      "title": "Email"
-    }
-  },
-  "type": "object",
-  "required": [
-    "email"
-  ],
-  "title": "ResetRequest"
-}
-```
-
-## ResetResponse
-
-```json
-{
-  "properties": {
-    "message": {
-      "type": "string",
-      "title": "Message",
-      "default": "If the account exists, password reset instructions will be sent."
-    }
-  },
-  "type": "object",
-  "title": "ResetResponse"
-}
-```
-
-## ReviewRequest
-
-```json
-{
-  "properties": {
-    "remembered": {
-      "type": "boolean",
-      "title": "Remembered"
-    }
-  },
-  "type": "object",
-  "required": [
-    "remembered"
-  ],
-  "title": "ReviewRequest"
-}
-```
-
-## ReviewResponse
-
-```json
-{
-  "properties": {
-    "id": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Id"
-    },
-    "remembered": {
-      "type": "boolean",
-      "title": "Remembered"
-    },
-    "createdAt": {
-      "type": "string",
-      "format": "date-time",
-      "title": "Createdat"
-    }
-  },
-  "type": "object",
-  "required": [
-    "id",
-    "remembered",
-    "createdAt"
-  ],
-  "title": "ReviewResponse"
-}
-```
-
-## StreakResponse
-
-```json
-{
-  "properties": {
-    "current": {
-      "type": "integer",
-      "title": "Current"
-    },
-    "longest": {
-      "type": "integer",
-      "title": "Longest"
-    },
-    "lastActivityDate": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "date"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Lastactivitydate"
-    },
-    "timezone": {
-      "type": "string",
-      "title": "Timezone"
-    }
-  },
-  "type": "object",
-  "required": [
-    "current",
-    "longest",
-    "lastActivityDate",
-    "timezone"
-  ],
-  "title": "StreakResponse"
-}
-```
-
-## SubmissionRequest
-
-```json
-{
-  "properties": {
-    "exerciseId": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Exerciseid"
-    },
-    "answer": {
-      "type": "string",
-      "maxLength": 2000,
-      "title": "Answer"
-    },
-    "selfAssessment": {
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": [
-            "correct",
-            "incorrect"
-          ]
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Selfassessment"
-    }
-  },
-  "type": "object",
-  "required": [
-    "exerciseId",
-    "answer"
-  ],
-  "title": "SubmissionRequest"
-}
-```
-
-## SubmissionResultResponse
-
-```json
-{
-  "properties": {
-    "exerciseId": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Exerciseid"
-    },
-    "type": {
-      "type": "string",
-      "title": "Type"
-    },
-    "isCorrect": {
-      "anyOf": [
-        {
-          "type": "boolean"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Iscorrect"
-    },
-    "completed": {
-      "type": "boolean",
-      "title": "Completed"
-    },
-    "points": {
-      "type": "integer",
-      "title": "Points"
-    },
-    "xpAwarded": {
-      "type": "integer",
-      "title": "Xpawarded"
-    },
-    "feedback": {
-      "type": "string",
-      "title": "Feedback"
-    },
-    "correctOptionId": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Correctoptionid"
-    },
-    "acceptedAnswers": {
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Acceptedanswers"
-    },
-    "modelAnswer": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Modelanswer"
-    },
-    "explanation": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Explanation"
-    },
-    "lesson": {
-      "$ref": "#/components/schemas/LessonProgressResponse"
-    }
-  },
-  "type": "object",
-  "required": [
-    "exerciseId",
-    "type",
-    "isCorrect",
-    "completed",
-    "points",
-    "xpAwarded",
-    "feedback",
-    "lesson"
-  ],
-  "title": "SubmissionResultResponse",
-  "description": "The result of one graded submission.\n\nThe correct answer / model answer / explanation are revealed here (and only\nhere) so the learner can review the attempt."
-}
-```
-
-## TokenResponse
-
-```json
-{
-  "properties": {
-    "accessToken": {
-      "type": "string",
-      "title": "Accesstoken"
-    },
-    "tokenType": {
-      "type": "string",
-      "title": "Tokentype",
-      "default": "bearer"
-    },
-    "expiresIn": {
-      "type": "integer",
-      "title": "Expiresin"
-    },
-    "user": {
-      "$ref": "#/components/schemas/UserResponse"
-    }
-  },
-  "type": "object",
-  "required": [
-    "accessToken",
-    "expiresIn",
-    "user"
-  ],
-  "title": "TokenResponse"
-}
-```
-
-## UserResponse
-
-```json
-{
-  "properties": {
-    "id": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Id"
-    },
-    "email": {
-      "type": "string",
-      "title": "Email"
-    },
-    "displayName": {
-      "type": "string",
-      "title": "Displayname"
-    },
-    "level": {
-      "type": "integer",
-      "title": "Level"
-    },
-    "xp": {
-      "type": "integer",
-      "title": "Xp"
-    },
-    "englishLevel": {
-      "type": "string",
-      "title": "Englishlevel",
-      "default": "A1"
-    },
-    "preferredLanguage": {
-      "type": "string",
-      "title": "Preferredlanguage",
-      "default": "English"
-    },
-    "createdAt": {
-      "type": "string",
-      "format": "date-time",
-      "title": "Createdat"
-    }
-  },
-  "type": "object",
-  "required": [
-    "id",
-    "email",
-    "displayName",
-    "level",
-    "xp",
-    "createdAt"
-  ],
-  "title": "UserResponse"
-}
-```
-
-## ValidationError
-
-```json
-{
-  "properties": {
-    "loc": {
-      "items": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "integer"
-          }
-        ]
-      },
-      "type": "array",
-      "title": "Location"
-    },
-    "msg": {
-      "type": "string",
-      "title": "Message"
-    },
-    "type": {
-      "type": "string",
-      "title": "Error Type"
-    },
-    "input": {
-      "title": "Input"
-    },
-    "ctx": {
-      "type": "object",
-      "title": "Context"
-    }
-  },
-  "type": "object",
-  "required": [
-    "loc",
-    "msg",
-    "type"
-  ],
-  "title": "ValidationError"
-}
-```
-
-## VocabularyCreate
-
-```json
-{
-  "properties": {
-    "word": {
-      "type": "string",
-      "maxLength": 120,
-      "minLength": 1,
-      "title": "Word"
-    },
-    "translation": {
-      "type": "string",
-      "maxLength": 300,
-      "minLength": 1,
-      "title": "Translation"
-    },
-    "example": {
-      "type": "string",
-      "maxLength": 1000,
-      "title": "Example",
-      "default": ""
-    },
-    "lessonId": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uuid"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Lessonid"
-    }
-  },
-  "type": "object",
-  "required": [
-    "word",
-    "translation"
-  ],
-  "title": "VocabularyCreate"
-}
-```
-
-## VocabularyResponse
-
-```json
-{
-  "properties": {
-    "word": {
-      "type": "string",
-      "maxLength": 120,
-      "minLength": 1,
-      "title": "Word"
-    },
-    "translation": {
-      "type": "string",
-      "maxLength": 300,
-      "minLength": 1,
-      "title": "Translation"
-    },
-    "example": {
-      "type": "string",
-      "maxLength": 1000,
-      "title": "Example",
-      "default": ""
-    },
-    "lessonId": {
-      "anyOf": [
-        {
-          "type": "string",
-          "format": "uuid"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "title": "Lessonid"
-    },
-    "id": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Id"
-    },
-    "learned": {
-      "type": "boolean",
-      "title": "Learned"
-    },
-    "dueAt": {
-      "type": "string",
-      "format": "date-time",
-      "title": "Dueat"
-    },
-    "createdAt": {
-      "type": "string",
-      "format": "date-time",
-      "title": "Createdat"
-    }
-  },
-  "type": "object",
-  "required": [
-    "word",
-    "translation",
-    "id",
-    "learned",
-    "dueAt",
-    "createdAt"
-  ],
-  "title": "VocabularyResponse"
-}
-```
-
-## VocabularyStatsResponse
-
-```json
-{
-  "properties": {
-    "wordsLearned": {
-      "type": "integer",
-      "title": "Wordslearned"
-    }
-  },
-  "type": "object",
-  "required": [
-    "wordsLearned"
-  ],
-  "title": "VocabularyStatsResponse"
-}
-```
-
-## VocabularyUpdate
-
-```json
-{
-  "properties": {
-    "learned": {
-      "type": "boolean",
-      "title": "Learned"
-    }
-  },
-  "type": "object",
-  "required": [
-    "learned"
-  ],
-  "title": "VocabularyUpdate"
-}
-```
-
-[Backend index](README.md)
 
 ## PlacementAnswer
 
@@ -2687,6 +2053,800 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
+## ProfileUpdate
+
+```json
+{
+  "properties": {
+    "email": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "email"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Email"
+    },
+    "displayName": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 80,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Displayname"
+    },
+    "englishLevel": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "A0",
+            "A1",
+            "A2",
+            "B1",
+            "B2",
+            "C1",
+            "C2"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Englishlevel"
+    },
+    "preferredLanguage": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Preferredlanguage"
+    }
+  },
+  "type": "object",
+  "title": "ProfileUpdate"
+}
+```
+
+## ProgressResponse
+
+```json
+{
+  "properties": {
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Userid"
+    },
+    "lessonsStarted": {
+      "type": "integer",
+      "title": "Lessonsstarted"
+    },
+    "lessonsCompleted": {
+      "type": "integer",
+      "title": "Lessonscompleted"
+    },
+    "exercisesCompleted": {
+      "type": "integer",
+      "title": "Exercisescompleted"
+    },
+    "studyMinutes": {
+      "type": "integer",
+      "title": "Studyminutes"
+    },
+    "xp": {
+      "type": "integer",
+      "title": "Xp"
+    },
+    "lastActivityAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lastactivityat"
+    },
+    "updatedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Updatedat"
+    },
+    "courses": {
+      "items": {
+        "$ref": "#/components/schemas/CourseProgressResponse"
+      },
+      "type": "array",
+      "title": "Courses"
+    },
+    "activeCourses": {
+      "type": "integer",
+      "title": "Activecourses"
+    },
+    "streak": {
+      "$ref": "#/components/schemas/StreakResponse"
+    },
+    "xpHistory": {
+      "$ref": "#/components/schemas/XPHistoryResponse"
+    }
+  },
+  "type": "object",
+  "required": [
+    "userId",
+    "lessonsStarted",
+    "lessonsCompleted",
+    "exercisesCompleted",
+    "studyMinutes",
+    "xp",
+    "lastActivityAt",
+    "updatedAt",
+    "courses",
+    "activeCourses",
+    "streak",
+    "xpHistory"
+  ],
+  "title": "ProgressResponse",
+  "description": "Aggregate progress plus a per-course breakdown.\n\nNew fields are additive: existing clients that read only `lessonsStarted`,\n`lessonsCompleted`, `studyMinutes`, `lastActivityAt`, `updatedAt` and\n`userId` keep working."
+}
+```
+
+## RegisterRequest
+
+```json
+{
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email"
+    },
+    "password": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 8,
+      "title": "Password"
+    },
+    "displayName": {
+      "type": "string",
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Displayname"
+    }
+  },
+  "type": "object",
+  "required": [
+    "email",
+    "password",
+    "displayName"
+  ],
+  "title": "RegisterRequest"
+}
+```
+
+## ResetConfirm
+
+```json
+{
+  "properties": {
+    "token": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 32,
+      "title": "Token"
+    },
+    "password": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 8,
+      "title": "Password"
+    }
+  },
+  "type": "object",
+  "required": [
+    "token",
+    "password"
+  ],
+  "title": "ResetConfirm"
+}
+```
+
+## ResetRequest
+
+```json
+{
+  "properties": {
+    "email": {
+      "type": "string",
+      "maxLength": 254,
+      "format": "email",
+      "title": "Email"
+    }
+  },
+  "type": "object",
+  "required": [
+    "email"
+  ],
+  "title": "ResetRequest"
+}
+```
+
+## ResetResponse
+
+```json
+{
+  "properties": {
+    "message": {
+      "type": "string",
+      "title": "Message",
+      "default": "If the account exists, password reset instructions will be sent."
+    }
+  },
+  "type": "object",
+  "title": "ResetResponse"
+}
+```
+
+## ReviewRequest
+
+```json
+{
+  "properties": {
+    "remembered": {
+      "type": "boolean",
+      "title": "Remembered"
+    }
+  },
+  "type": "object",
+  "required": [
+    "remembered"
+  ],
+  "title": "ReviewRequest"
+}
+```
+
+## ReviewResponse
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "remembered": {
+      "type": "boolean",
+      "title": "Remembered"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Createdat"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "remembered",
+    "createdAt"
+  ],
+  "title": "ReviewResponse"
+}
+```
+
+## StreakResponse
+
+```json
+{
+  "properties": {
+    "current": {
+      "type": "integer",
+      "title": "Current"
+    },
+    "longest": {
+      "type": "integer",
+      "title": "Longest"
+    },
+    "lastActivityDate": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lastactivitydate"
+    },
+    "timezone": {
+      "type": "string",
+      "title": "Timezone"
+    }
+  },
+  "type": "object",
+  "required": [
+    "current",
+    "longest",
+    "lastActivityDate",
+    "timezone"
+  ],
+  "title": "StreakResponse"
+}
+```
+
+## SubmissionRequest
+
+```json
+{
+  "properties": {
+    "exerciseId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Exerciseid"
+    },
+    "answer": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Answer"
+    },
+    "selfAssessment": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "correct",
+            "incorrect"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Selfassessment"
+    }
+  },
+  "type": "object",
+  "required": [
+    "exerciseId",
+    "answer"
+  ],
+  "title": "SubmissionRequest"
+}
+```
+
+## SubmissionResultResponse
+
+```json
+{
+  "properties": {
+    "exerciseId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Exerciseid"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type"
+    },
+    "isCorrect": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Iscorrect"
+    },
+    "completed": {
+      "type": "boolean",
+      "title": "Completed"
+    },
+    "points": {
+      "type": "integer",
+      "title": "Points"
+    },
+    "xpAwarded": {
+      "type": "integer",
+      "title": "Xpawarded"
+    },
+    "feedback": {
+      "type": "string",
+      "title": "Feedback"
+    },
+    "correctOptionId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Correctoptionid"
+    },
+    "acceptedAnswers": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Acceptedanswers"
+    },
+    "modelAnswer": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Modelanswer"
+    },
+    "explanation": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Explanation"
+    },
+    "explanationLocalized": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/LocalizedText"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "wrongAnswerNote": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/LocalizedText"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "lesson": {
+      "$ref": "#/components/schemas/LessonProgressResponse"
+    }
+  },
+  "type": "object",
+  "required": [
+    "exerciseId",
+    "type",
+    "isCorrect",
+    "completed",
+    "points",
+    "xpAwarded",
+    "feedback",
+    "lesson"
+  ],
+  "title": "SubmissionResultResponse",
+  "description": "The result of one graded submission.\n\nThe correct answer / model answer / explanation are revealed here (and only\nhere) so the learner can review the attempt."
+}
+```
+
+## TokenResponse
+
+```json
+{
+  "properties": {
+    "accessToken": {
+      "type": "string",
+      "title": "Accesstoken"
+    },
+    "tokenType": {
+      "type": "string",
+      "title": "Tokentype",
+      "default": "bearer"
+    },
+    "expiresIn": {
+      "type": "integer",
+      "title": "Expiresin"
+    },
+    "user": {
+      "$ref": "#/components/schemas/UserResponse"
+    }
+  },
+  "type": "object",
+  "required": [
+    "accessToken",
+    "expiresIn",
+    "user"
+  ],
+  "title": "TokenResponse"
+}
+```
+
+## UserResponse
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "email": {
+      "type": "string",
+      "title": "Email"
+    },
+    "displayName": {
+      "type": "string",
+      "title": "Displayname"
+    },
+    "level": {
+      "type": "integer",
+      "title": "Level"
+    },
+    "xp": {
+      "type": "integer",
+      "title": "Xp"
+    },
+    "englishLevel": {
+      "type": "string",
+      "title": "Englishlevel",
+      "default": "A1"
+    },
+    "preferredLanguage": {
+      "type": "string",
+      "title": "Preferredlanguage",
+      "default": "English"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Createdat"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "email",
+    "displayName",
+    "level",
+    "xp",
+    "createdAt"
+  ],
+  "title": "UserResponse"
+}
+```
+
+## ValidationError
+
+```json
+{
+  "properties": {
+    "loc": {
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      "type": "array",
+      "title": "Location"
+    },
+    "msg": {
+      "type": "string",
+      "title": "Message"
+    },
+    "type": {
+      "type": "string",
+      "title": "Error Type"
+    },
+    "input": {
+      "title": "Input"
+    },
+    "ctx": {
+      "type": "object",
+      "title": "Context"
+    }
+  },
+  "type": "object",
+  "required": [
+    "loc",
+    "msg",
+    "type"
+  ],
+  "title": "ValidationError"
+}
+```
+
+## VocabularyCreate
+
+```json
+{
+  "properties": {
+    "word": {
+      "type": "string",
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Word"
+    },
+    "translation": {
+      "type": "string",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Translation"
+    },
+    "example": {
+      "type": "string",
+      "maxLength": 1000,
+      "title": "Example",
+      "default": ""
+    },
+    "lessonId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lessonid"
+    }
+  },
+  "type": "object",
+  "required": [
+    "word",
+    "translation"
+  ],
+  "title": "VocabularyCreate"
+}
+```
+
+## VocabularyResponse
+
+```json
+{
+  "properties": {
+    "word": {
+      "type": "string",
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Word"
+    },
+    "translation": {
+      "type": "string",
+      "maxLength": 300,
+      "minLength": 1,
+      "title": "Translation"
+    },
+    "example": {
+      "type": "string",
+      "maxLength": 1000,
+      "title": "Example",
+      "default": ""
+    },
+    "lessonId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lessonid"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "learned": {
+      "type": "boolean",
+      "title": "Learned"
+    },
+    "dueAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Dueat"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Createdat"
+    }
+  },
+  "type": "object",
+  "required": [
+    "word",
+    "translation",
+    "id",
+    "learned",
+    "dueAt",
+    "createdAt"
+  ],
+  "title": "VocabularyResponse"
+}
+```
+
+## VocabularyStatsResponse
+
+```json
+{
+  "properties": {
+    "wordsLearned": {
+      "type": "integer",
+      "title": "Wordslearned"
+    }
+  },
+  "type": "object",
+  "required": [
+    "wordsLearned"
+  ],
+  "title": "VocabularyStatsResponse"
+}
+```
+
+## VocabularyUpdate
+
+```json
+{
+  "properties": {
+    "learned": {
+      "type": "boolean",
+      "title": "Learned"
+    }
+  },
+  "type": "object",
+  "required": [
+    "learned"
+  ],
+  "title": "VocabularyUpdate"
+}
+```
 
 ## XPHistoryResponse
 
@@ -2717,53 +2877,5 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
   "type": "object",
   "title": "XPHistoryResponse",
   "description": "The current schema has no immutable XP award amounts/timestamps."
-}
-```
-
-
-## EmailChangeConfirm
-
-```json
-{
-  "properties": {
-    "token": {
-      "type": "string",
-      "maxLength": 128,
-      "minLength": 32,
-      "title": "Token"
-    }
-  },
-  "type": "object",
-  "required": [
-    "token"
-  ],
-  "title": "EmailChangeConfirm"
-}
-```
-
-
-## EmailChangeRequest
-
-```json
-{
-  "properties": {
-    "email": {
-      "type": "string",
-      "format": "email",
-      "title": "Email"
-    },
-    "currentPassword": {
-      "type": "string",
-      "maxLength": 128,
-      "minLength": 1,
-      "title": "Currentpassword"
-    }
-  },
-  "type": "object",
-  "required": [
-    "email",
-    "currentPassword"
-  ],
-  "title": "EmailChangeRequest"
 }
 ```

@@ -1,4 +1,6 @@
 import { getMyProgress, listCourses } from './api.js';
+import { t, tn } from './i18n.js';
+import { getPlacement, listPlacements } from './placement-api.js';
 import { catalogMessage, courseProgress } from './catalog-ui.js';
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
@@ -11,38 +13,59 @@ const clear = document.getElementById('course-search-clear');
 const filters = document.getElementById('course-filters');
 const count = document.getElementById('course-results-count');
 let courses = [];
+let recommended = null; // { slugs: Set, label } from the learner's latest completed placement test
 let progress;
 let level = 'All';
 let sessionReady = false;
 let loading = false;
 let loaded = false;
 
+/** Course suggestions come only from the learner's own completed placement attempt. */
+async function loadRecommendation() {
+  recommended = null;
+  try {
+    const attempts = await listPlacements();
+    const done = attempts.find((attempt) => attempt.status === 'completed');
+    if (!done) return;
+    const detail = await getPlacement(done.id);
+    const slugs = new Set((detail.recommendedCourses || []).map((course) => course.slug));
+    if (slugs.size) recommended = { slugs, label: detail.result?.label || '' };
+  } catch { /* Recommendations are optional; the catalog works without them. */ }
+}
+
+function recommendationNote() {
+  const note = el('p', 'catalog-recommendation');
+  note.append(el('strong', undefined, t('catalog.recommendedTitle')), ' ', t('catalog.recommendedText'), ' ');
+  const link = el('a', undefined, t('catalog.viewResult'));
+  link.href = '/placement-test.html';
+  note.append(link);
+  return note;
+}
+
 function courseCard(course) {
   const current = progress.courses.find((item) => item.courseId === course.id);
   // Missing progress must not masquerade as an unstarted course.
-  if (!current) throw new Error('Course progress is unavailable. Please try again.');
+  if (!current) throw new Error(t('catalog.progressMissing'));
   const completed = current.lessonsTotal > 0 && current.lessonsCompleted >= current.lessonsTotal;
   const card = el('article', `catalog-panel catalog-card${completed ? ' is-complete' : ''}`);
   const meta = el('div', 'catalog-card-meta');
   meta.append(el('span', 'catalog-badge', course.level));
-  if (completed) meta.append(el('span', 'catalog-status is-complete', '✓ Completed'));
+  meta.append(el('span', 'catalog-level-name', t(`catalog.level.${course.level}`)));
+  if (completed) meta.append(el('span', 'catalog-status is-complete', `✓ ${t('catalog.completed')}`));
+  else if (recommended?.slugs.has(course.slug)) meta.append(el('span', 'catalog-status is-recommended', t('catalog.recommended')));
   card.append(
     meta,
     el('h2', undefined, course.title),
     el('p', 'catalog-description', course.description),
   );
   card.append(
-    el(
-      'p',
-      'catalog-lesson-count',
-      `${course.lessonCount} ${course.lessonCount === 1 ? 'lesson' : 'lessons'}`,
-    ),
+    el('p', 'catalog-lesson-count', tn('catalog.lessonCount', course.lessonCount)),
   );
   if (current.lessonsStarted > 0) card.append(courseProgress(current));
   const link = el(
     'a',
     'catalog-button',
-    completed ? 'Review Course' : current.lessonsStarted > 0 ? 'Continue Course' : 'Start Course',
+    completed ? t('catalog.reviewCourse') : current.lessonsStarted > 0 ? t('catalog.continueCourse') : t('catalog.startCourse'),
   );
   link.href = `/course.html?slug=${encodeURIComponent(course.slug)}`;
   link.setAttribute('aria-label', `${link.textContent}: ${course.title}`);
@@ -59,25 +82,25 @@ function render() {
       (level === 'All' || course.level === level) &&
       `${course.title} ${course.description}`.toLocaleLowerCase().includes(query),
   );
-  count.textContent = `${matches.length} ${matches.length === 1 ? 'course' : 'courses'}`;
+  count.textContent = tn('catalog.courseCount', matches.length);
   if (!courses.length) {
-    catalogMessage(container, 'No courses yet', 'Published courses will appear here.');
+    catalogMessage(container, t('catalog.noCourses'), t('catalog.noCoursesText'));
   } else if (!matches.length) {
     catalogMessage(
       container,
-      'No courses found',
-      'Try another search or CEFR level.',
+      t('catalog.noMatches'),
+      t('catalog.noMatchesText'),
       () => {
         search.value = '';
         selectLevel('All');
         search.focus();
       },
-      'Reset filters',
+      t('catalog.resetFilters'),
     );
   } else {
     const grid = el('div', 'catalog-grid');
     grid.append(...matches.map(courseCard));
-    container.replaceChildren(grid);
+    container.replaceChildren(...(recommended ? [recommendationNote()] : []), grid);
   }
 }
 
@@ -95,7 +118,7 @@ async function load() {
   loaded = false;
   count.textContent = '';
   container.setAttribute('aria-busy', 'true');
-  catalogMessage(container, 'Loading courses…', 'Getting your latest learning progress.');
+  catalogMessage(container, t('catalog.loadingCourses'), t('catalog.loadingProgress'));
   try {
     if (!sessionReady) {
       const user = await requireSession({ throwOnUnavailable: true });
@@ -106,8 +129,9 @@ async function load() {
     [courses, progress] = await Promise.all([listCourses(), getMyProgress()]);
     // Validate before enabling filters, including courses outside the current filter.
     if (courses.some((course) => !progress.courses.some((item) => item.courseId === course.id))) {
-      throw new Error('The catalog has changed. Please try again to load its progress.');
+      throw new Error(t('catalog.changed'));
     }
+    await loadRecommendation();
     loaded = true;
     render();
   } catch (error) {
@@ -116,7 +140,7 @@ async function load() {
       window.location.replace('/login.html');
       return;
     }
-    catalogMessage(container, 'Could not load courses', describeApiError(error), load);
+    catalogMessage(container, t('catalog.loadCoursesFailed'), describeApiError(error), load);
   } finally {
     loading = false;
     container.setAttribute('aria-busy', 'false');

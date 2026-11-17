@@ -3,19 +3,11 @@
 > Status: M2/M3 implemented. Details: `docs/architecture.md §5`, `docs/api.md`,
 > `docs/database.md`.
 
-## Flow 1 — Frontend loads backend status (implemented)
+## Flow 1 — Public entry
 
-```
-Browser loads index.html → js/home.js
-  → mountBackendStatus() → getHealth() → apiFetch('/health')
-  → GET /api/v1/health  (same origin as the page)
-  → FastAPI router → get_health(db) → `SELECT 1` in try/except
-  → 200 { status, service, timestamp, database: up|down }
-  → badge shows "Backend ● Online · db up|down" or "● Offline" on error
-```
-
-Refetches every 15s. When the backend is unreachable, the client throws
-`ApiError(status 0, NETWORK_ERROR)` and the UI shows Offline — it never crashes.
+`index.html` explains lessons, words and progress. Registration is the primary
+action; login is secondary. `home.js` mounts the shared header. Health endpoints
+remain available to operational tooling; public pages do not poll or display them.
 
 ## Flow 2 — Authentication & session (implemented)
 
@@ -357,3 +349,11 @@ canonical words reaching vocabulary/service.py fit the persisted/public contract
 
 Profile PATCH acquires lock_learner, reloads email/profile, applies only requested
 fields and returns the current persisted profile within the same transaction.
+
+## Optional placement guidance
+
+Dashboard loads owned recent attempts through placement-api.js. A completed
+attempt is resolved through the existing detail API for live published-course
+recommendations. In-progress attempts resume; no attempts prompts an optional
+introduction. Only dismissal is stored per user in localStorage; scores remain
+server-owned. No auth, grading, XP or database change.

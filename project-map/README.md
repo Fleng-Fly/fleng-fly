@@ -44,7 +44,7 @@ Implemented and verified:
   `/index.html`, `/login.html`, `/register.html`, `/dashboard.html`,
   `/courses.html`, `/course.html`, `/lesson.html`, `/settings.html`. In-memory
   access token, automatic refresh, `requireSession` redirect guard, and a live
-  backend-status indicator.
+  shared public navigation.
 
 Not built: vocabulary/SRS, gamification (streaks, achievements), AI,
 notifications, analytics, deployments.

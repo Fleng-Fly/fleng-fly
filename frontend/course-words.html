@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Course Words — Fleng</title>
+  <title data-i18n="cw.pageTitle">Course Words — Fleng</title>
+  <script src="/js/i18n-boot.js"></script>
   <link rel="stylesheet" href="/css/app.css" />
   <link rel="stylesheet" href="/css/dashboard.css" />
   <link rel="stylesheet" href="/css/lesson.css" />
@@ -16,17 +17,17 @@
 <body class="dashboard-page vocabulary-page">
   <main class="dashboard-main">
     <div class="dashboard-page-heading">
-      <div><p class="dashboard-eyebrow">LEARN IN CONTEXT</p><h1>Course Words</h1><p class="dashboard-subtitle">Explore your courses. Save useful words and practise them in My Words.</p></div>
-      <a class="lesson-button lesson-button-secondary" href="/vocabulary.html?mode=flashcards">Practise my words ↗</a>
+      <div><p class="dashboard-eyebrow" data-i18n="cw.eyebrow">LEARN IN CONTEXT</p><h1 data-i18n="ws.courseWords">Course Words</h1><p class="dashboard-subtitle" data-i18n="cw.subtitle">Words from the courses. Save useful ones and practise them in My Words.</p></div>
+      <a class="lesson-button lesson-button-secondary" href="/vocabulary.html?mode=flashcards" data-i18n="cw.practiseMine">Practise my words ↗</a>
     </div>
     <div class="word-toolbar course-words-toolbar">
-      <label class="field" for="word-course">Course<select id="word-course"><option value="">All courses</option></select></label>
-      <label class="word-search"><span class="sr-only">Search course words</span><input id="course-word-search" type="search" placeholder="Find a word or translation…" /></label>
+      <label class="field" for="word-course"><span data-i18n="cw.courseLabel">Course</span><select id="word-course"><option value="" data-i18n="cw.allCourses">All courses</option></select></label>
+      <label class="word-search"><span class="sr-only" data-i18n="cw.searchLabel">Search course words</span><input id="course-word-search" type="search" placeholder="Find a word or translation…" data-i18n-attr="placeholder:cw.searchPlaceholder" /></label>
     </div>
-    <p id="course-words-loading" class="dashboard-muted" role="status">Loading course words…</p>
-    <div id="course-words-error" class="dashboard-alert" role="alert" hidden><span id="course-words-error-text"></span> <button id="course-words-retry" class="dashboard-text-button" type="button">Try again</button></div>
-    <section aria-label="Course vocabulary">
-      <div class="section-heading"><h2>Vocabulary</h2><span id="course-word-count" class="dashboard-muted" role="status"></span></div>
+    <p id="course-words-loading" class="dashboard-muted" role="status" data-i18n="cw.loading">Loading course words…</p>
+    <div id="course-words-error" class="dashboard-alert" role="alert" hidden><span id="course-words-error-text"></span> <button id="course-words-retry" class="dashboard-text-button" type="button" data-i18n="common.tryAgain">Try again</button></div>
+    <section aria-label="Course vocabulary" data-i18n-attr="aria-label:cw.course">
+      <div class="section-heading"><h2 data-i18n="lesson.tabVocabulary">Vocabulary</h2><span id="course-word-count" class="dashboard-muted" role="status"></span></div>
       <div id="course-word-list" class="word-list"></div>
     </section>
     <p id="course-word-feedback" class="word-feedback" role="status"></p>

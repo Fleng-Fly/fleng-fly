@@ -102,7 +102,7 @@ cards, responsive layouts. Tokens live in `frontend/css/app.css` and align with
 
 ## Website release — 2026-11-16
 
-Implemented latest purple interface, Our Team role areas, personal vocabulary and
+Implemented latest purple interface, personal vocabulary and
 four animated practice modes/results; removed install UI/standalone metadata.
 Main's A0 filter and three lesson tabs preserved. Assets revalidate; footer/sidebar
 show Web 2026.11.16. External publishing and live authenticated QA remain pending.
@@ -138,3 +138,31 @@ activation, physical mobile keyboards and missing screenshot comparison remain
 unverified. Self-review covered DOM-only rendering/URL policy, request races,
 existing practice/stream lifecycle and scoped styles. Details:
 `docs/words-ai-interface.md`. No commit/push.
+
+## UX development sprint
+
+- [x] Remove Our Team assets/navigation and obsolete journey coverage.
+- [x] Clarify public landing, registration CTA and remove operational status UI.
+- [x] Existing Placement onboarding and Dashboard recommendations.
+- [ ] Exercise guidance, feedback and navigation.
+- [ ] EN/UK shared localization and mobile/accessibility polish.
+
+## UX overhaul (feat/ux-overhaul) 🚧
+
+- [x] Removed the Our Team page, navigation links, styles and tests.
+- [x] Landing page: clear start flow, registration as the primary action, no public
+      backend/SQLite status.
+- [x] EN/UK i18n (single HTML set, dictionaries, saved choice, `preferred_language` sync).
+- [x] Dashboard: Continue learning, real placement next step, compact progress.
+- [x] Lesson player: per-type instructions, clearer results, completion screen with next
+      lesson/course; removed developer-only template panels.
+- [x] Catalog: CEFR level, progress, Start/Continue/Review, placement-based
+      "Recommended" badge, next-course banner on completed courses.
+- [x] Translated: header, workspace, auth, dashboard, catalog, lesson, settings,
+      leaderboard, progress, vocabulary, course words, placement test UI.
+- [ ] Translate the AI assistant widget.
+- [x] Hints, EN/UK explanations, wrong-answer notes and lesson Explanation block for A0–A1
+      (draft content, served outside production until reviewed; `docs/exercise-guidance.md`).
+- [ ] Guidance content for A2–B2 and teacher/translator review of A0–A1.
+- [ ] Translatable placement text.
+- [ ] Real-browser checks at 1440/768/390/360 px (no browser was available).

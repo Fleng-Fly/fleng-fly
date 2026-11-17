@@ -731,3 +731,128 @@ p {
     margin-bottom: 0.5rem;
   }
 }
+
+/* ── Language switch, i18n boot, public home & auth helpers ───────────── */
+
+html.i18n-pending body {
+  visibility: hidden;
+}
+
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.lang-switch button {
+  min-width: 2.4rem;
+  min-height: 2rem;
+  padding: 0 0.55rem;
+  border: 0;
+  background: transparent;
+  color: var(--slate-300);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lang-switch button[aria-pressed='true'] {
+  background: rgba(139, 92, 246, 0.25);
+  color: var(--slate-100);
+}
+
+.lang-switch button:focus-visible,
+.nav a:focus-visible,
+.btn:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--violet-400);
+  outline-offset: 2px;
+}
+
+.hero-actions {
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-note {
+  margin-top: 1rem;
+}
+
+.how {
+  margin-top: 2.5rem;
+}
+
+.how .section-title {
+  text-align: center;
+}
+
+.steps {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.steps h3 {
+  margin: 0.5rem 0 0.35rem;
+  font-size: 1rem;
+}
+
+.steps p {
+  margin: 0;
+}
+
+.step-number {
+  display: inline-grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.2);
+  color: var(--violet-400);
+  font-weight: 700;
+}
+
+.feature-grid {
+  margin-top: 2rem;
+}
+
+.auth-heading {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.auth-switch {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.field-hint {
+  margin: -0.5rem 0 1rem;
+  color: var(--slate-400);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .header-inner {
+    flex-wrap: wrap;
+    padding-block: 0.5rem;
+  }
+
+  .auth-area {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .hero {
+    padding-top: 2rem;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+}

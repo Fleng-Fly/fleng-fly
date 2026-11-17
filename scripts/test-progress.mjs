@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { i18nStub } from './i18n-stub.mjs';
 
 class Node {
   constructor(tag = 'div', text = '') { this.tagName = tag; this.text = text; this.children = []; this.attributes = {}; this.events = {}; }
@@ -41,14 +42,17 @@ async function page(options = {}) {
     './session.js': { requireSession: async () => { sessions++; return options.noSession ? null : { displayName: 'Learner' }; } },
     './workspace.js': { mountWorkspace() {}, setWorkspaceUser() {} },
     './errors.js': { describeApiError: error => error.message },
+    './i18n.js': i18nStub,
   };
   const module = new vm.SourceTextModule(await readFile(new URL('../frontend/js/progress.js', import.meta.url), 'utf8'), { context });
   await module.link(async name => {
     if (name === './layout.js') {
       const layout = new vm.SourceTextModule(await readFile(new URL('../frontend/js/layout.js', import.meta.url), 'utf8'), { context });
-      await layout.link(() => new vm.SyntheticModule(['getCurrentUser', 'getHealth', 'logout', 'setAccessToken'], function () {
-        for (const name of ['getCurrentUser', 'getHealth', 'logout', 'setAccessToken']) this.setExport(name, () => {});
-      }, { context }));
+      await layout.link((specifier) => specifier === './i18n.js'
+        ? new vm.SyntheticModule(Object.keys(i18nStub), function () { for (const [key, value] of Object.entries(i18nStub)) this.setExport(key, value); }, { context })
+        : new vm.SyntheticModule(['getCurrentUser', 'getHealth', 'logout', 'setAccessToken'], function () {
+          for (const name of ['getCurrentUser', 'getHealth', 'logout', 'setAccessToken']) this.setExport(name, () => {});
+        }, { context }));
       return layout;
     }
     const values = exports[name];
@@ -72,7 +76,7 @@ test('renders backend metrics, course percentages and unavailable history withou
   assert.equal(app.target.all('svg').length, 0);
   assert.equal(app.calls(), 1);
   assert.equal(app.target.attributes['aria-busy'], 'false');
-  assert.equal(app.nav.all('a')[0].attributes['aria-current'], 'page');
+  // Sidebar highlighting is owned by the shared workspace (mountWorkspace('progress')).
 });
 
 test('new user keeps real zero metrics and gets a lesson action', async () => {

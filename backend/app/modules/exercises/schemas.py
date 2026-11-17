@@ -7,6 +7,7 @@ from uuid import UUID
 from pydantic import Field
 
 from app.core.schemas import CamelModel
+from app.modules.exercises.guidance import LocalizedText
 
 # Bounds the stored answer size; keeps payloads and rows small.
 MAX_ANSWER_LENGTH = 2000
@@ -26,8 +27,8 @@ class ExercisePublicResponse(CamelModel):
     """Public exercise content.
 
     Deliberately excludes every grading secret (`correct_option_id`,
-    `accepted_answers`, `model_answer`, `explanation`). Options are only present
-    for `single_choice` exercises.
+    `accepted_answers`, `model_answer`, `explanation`, `explanation_localized`).
+    Options are only present for `single_choice` exercises.
     """
 
     id: UUID
@@ -38,6 +39,8 @@ class ExercisePublicResponse(CamelModel):
     points: int
     options: list[ExerciseOptionResponse] | None = None
     letter_tiles: LetterTilesResponse | None = None
+    # Authored hint (EN/UK). Guides the learner without revealing the answer.
+    hint: LocalizedText | None = None
 
 
 class SubmissionRequest(CamelModel):
@@ -90,4 +93,7 @@ class SubmissionResultResponse(CamelModel):
     accepted_answers: list[str] | None = None
     model_answer: str | None = None
     explanation: str | None = None
+    # Authored explanation (EN/UK) and, for a wrong choice, why that option does not fit.
+    explanation_localized: LocalizedText | None = None
+    wrong_answer_note: LocalizedText | None = None
     lesson: LessonProgressResponse

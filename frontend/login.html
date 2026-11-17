@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Log in — Fleng</title>
+    <title data-i18n="login.title">Log in — Fleng</title>
+    <script src="/js/i18n-boot.js"></script>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
     <meta name="theme-color" content="#0b0917" />
@@ -16,16 +17,16 @@
 
     <main class="container page">
       <div class="auth-wrap">
-        <header style="text-align: center; margin-bottom: 1.5rem">
-          <h1>Welcome back</h1>
-          <p class="muted text-sm">Log in to continue your learning.</p>
+        <header class="auth-heading">
+          <h1 data-i18n="login.heading">Welcome back</h1>
+          <p class="muted text-sm" data-i18n="login.sub">Log in to continue your learning.</p>
         </header>
 
         <div class="card">
           <p id="form-error" class="alert alert-error hidden" role="alert"></p>
           <form id="login-form">
             <label class="field" for="email">
-              Email
+              <span data-i18n="field.email">Email</span>
               <input
                 id="email"
                 name="email"
@@ -37,7 +38,7 @@
             </label>
 
             <label class="field" for="password">
-              Password
+              <span data-i18n="field.password">Password</span>
               <input
                 id="password"
                 name="password"
@@ -48,30 +49,30 @@
               />
             </label>
 
-            <button id="submit-button" class="btn btn-primary btn-block" type="submit">
+            <button id="submit-button" class="btn btn-primary btn-block" type="submit" data-i18n="auth.login">
               Log in
             </button>
           </form>
           <details>
-            <summary>Forgot your password?</summary>
+            <summary data-i18n="login.forgot">Forgot your password?</summary>
             <form id="reset-request-form">
-              <label class="field" for="reset-email">Account email
+              <label class="field" for="reset-email"><span data-i18n="login.resetEmail">Account email</span>
                 <input id="reset-email" name="email" type="email" autocomplete="email" required />
               </label>
-              <button id="reset-request-button" class="btn btn-secondary btn-block" type="submit">Send reset link</button>
+              <button id="reset-request-button" class="btn btn-secondary btn-block" type="submit" data-i18n="login.sendReset">Send reset link</button>
               <p id="reset-request-status" role="status" aria-live="polite"></p>
             </form>
           </details>
         </div>
 
-        <p class="text-sm muted" style="text-align: center; margin-top: 1rem">
-          No account yet? <a href="/register.html">Create one</a>.
+        <p class="text-sm muted auth-switch">
+          <span data-i18n="login.noAccount">No account yet?</span> <a href="/register.html" data-i18n="login.createOne">Create one</a>
         </p>
       </div>
     </main>
 
     <footer class="site-footer">
-      <div class="container">Fleng — learn English, every day.</div>
+      <div class="container" data-i18n="footer.tagline">Fleng — learn English, every day.</div>
     </footer>
 
     <script type="module" src="/js/login.js"></script>
