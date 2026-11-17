@@ -89,7 +89,8 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 | Settings                                                 | `/settings.html`     | 🟢     | protected; profile/email editing, language preference, password change, logout                                    |
 | Lesson player (quiz)                                     | —                    | 🟢     | exercises, submission and grading via the exercises API                                                           |
 | Words | `/vocabulary.html`, `/course-words.html` | 🟢 | personal words/practice and published course vocabulary |
-| Challenges / Progress / AI Tutor | — | 🔴 |                                                                                                                   |
+| Progress | `/progress.html` | 🟢 | real progress analytics and streaks |
+| Challenges / AI Tutor | — | 🔴 |                                                                                                                   |
 
 ## AI layer
 
@@ -367,3 +368,10 @@ lives in the existing API client; no token is stored in shared browser storage.
   status/retry, 500-character composer, typing and scroll-follow recovery.
 - `scripts/test-markdown-words.mjs`: Markdown/XSS, Words selection, course-word
   pagination/filter/save/practice; existing widget tests cover limits/manual scroll.
+
+## Fleng 1.0 local integration
+
+Security precedes Placement; Progress Analytics precedes Progress UI; Content Audit
+precedes Published Content and the separate Draft candidate. Runtime module/API
+changes are documented above. Gate results, exclusions and conflict decisions:
+[local integration report](../docs/qa/fleng-1.0-integration.md).

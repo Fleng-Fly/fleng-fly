@@ -1,333 +1,286 @@
-# Roadmap
+# Project Map — Modules
 
-> Status: **active**. Update after every stage. Current status board:
-> `plans/milestones.md`.
+Demo preparation: `backend/app/db/demo.py` runs only when explicitly selected in
+development/demo with local SQLite. It reuses auth registration and graded lesson
+submission services, stores credentials in ignored `backend/data/`, and is invoked
+by `npm run demo:prepare`. The normal startup remains `npm run dev`.
+`scripts/demo.mjs` is the presentation wrapper: it calls preparation, starts
+the existing dev server when needed, then checks HTTP health and demo accounts.
+The executable root `start.sh` is the single-command entry point for this flow.
 
-Current frontend phase (2026-10-22): Dashboard and Lessons have been implemented
-on the existing static frontend and SQLite local workflow. Lessons now has a
-shared workspace, Theory/Practice/Test/Vocabulary tabs, real grading and
-resume, and responsive layouts. Exact Figma comparison awaits the target
-screen reference; Login/Sign Up is the next requested UI phase. The historical
-stage descriptions below record earlier architecture decisions.
+> Status: M2/M3 implemented. Durable design: `docs/backend.md`, `docs/frontend.md`.
+> Update when a module is created, renamed or gains a dependency.
+> Legend: 🟢 implemented · 🟡 partial · 🔴 documented only.
 
-## Learning interactions — 2026-11-11
+## Backend (FastAPI / Python)
 
-- **Completed:** automatic next question, delayed retries, letter tiles and fixed
-  short answers with server-side grading and once-only XP. Self-check incorrect
-  assessments remain incomplete.
-- **Completed:** tzdata dependency and Windows start instructions/launcher.
-- **Completed 2026-11-14:** integrated into `fleng-fly`, preserving newer curriculum
-  and flashcard work. The copied development database was migrated and seeded.
-  See `docs/projectenglich-integration.md`.
+Feature modules live under `app/modules/<name>/`. A module exposes a service;
+other modules import that service, not its internals.
 
-## Netlify publication boundary — 2026-11-04
+| Module            | Status | Owns                                                                                                      | Depends on                    |
+| ----------------- | ------ | --------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `health`          | 🟢     | `/health` status + database check                                                                         | db                            |
+| `auth`            | 🟢     | register/login/refresh/logout, credentials, sessions, tokens                                              | db, users                     |
+| `users`           | 🟢     | `GET /users/me` profile read                                                                              | db, auth                      |
+| `progress`        | 🟢     | `GET /progress/me` aggregate progress                                                                     | db, auth                      |
+| `catalog`         | 🟢     | read-only courses & lessons (`GET /courses`, `/courses/{slug}`, `/lessons/{slug}` incl. public exercises) | db, exercises (public schema) |
+| `content`         | 🔴     | grammar/reading/listening materials                                                                       | catalog                       |
+| `exercises`       | 🟢     | exercises, submissions, grading; lesson start/submit/progress                                             | db, progress                  |
+| `vocabulary`      | 🟢     | personal words, due queue, review history, learned-word count                                             | db, auth, gamification        |
+| `gamification`    | 🟢     | daily activity, derived streaks, deterministic achievements                                               | db, config                    |
+| `challenges`      | 🔴     | challenge definitions, participation                                                                      | progress, gamification        |
+| `recommendations` | 🟢     | deterministic analytics in ai/context.py                                                                  | db, progress, vocabulary      |
+| `ai`              | 🟢     | provider, tutor/history, explanation, practice, recommendations, SSE, billing.py cost/budget math                                    | db, auth, core limits         |
+| `notifications`   | 🔴     | in-app notification feed                                                                                  | users                         |
+| `subscriptions`   | 🔴     | plans, billing state                                                                                      | users                         |
+| `analytics`       | 🔴     | event recording                                                                                           | —                             |
 
-- **Completed locally:** root `netlify.toml` uses `base = "frontend"` and
-  `publish = "."` to publish only `frontend/` and avoid root pnpm installation,
-  with no build step or SPA fallback; future `/api/*` HTTPS proxy is commented out.
-  Netlify local artifacts are ignored. Only the confirmed trailing empty YAML
-  document was removed from the existing pnpm lockfile; no dependency update.
-- **Pending:** user push and corrected Netlify deployment, deploy-file inspection
-  and public HTTP checks from `docs/deployment.md`. The previous deployment's
-  repository exposure is not resolved publicly by a local commit.
-- **Blocked on external configuration:** FastAPI is not hosted; authentication,
-  catalog/user APIs, progress and AI cannot work on static hosting alone.
-- **Next:** provision Python hosting and persistent PostgreSQL, supply backend
-  secrets (OpenRouter key stays backend-only), run migrations, activate the real
-  proxy and verify HTTPS sessions, readiness, persistence and optional SSE.
-- **Separate follow-up:** reconcile the lockfile's missing root `prettier`
-  devDependency before depending on frozen pnpm installation; no package
-  installation or version change is part of this deployment fix.
+### Infrastructure
 
-## MVP definition
+| Component             | Status | Purpose                                                           |
+| --------------------- | ------ | ----------------------------------------------------------------- |
+| `app/core/config.py`  | 🟢     | pydantic-settings configuration (+ auth settings)                 |
+| `app/core/errors.py`  | 🟢     | `ApiError` + exception handlers → standard envelope               |
+| `app/core/schemas.py` | 🟢     | `CamelModel` base                                                 |
+| `app/db/models.py`    | 🟢     | SQLAlchemy models (`User`, `Profile`, `RefreshToken`, `Progress`) |
+| `app/db/session.py`   | 🟢     | async engine + `get_db` dependency                                |
+| `app/api/deps.py`     | 🟢     | `get_current_user` (Bearer access JWT)                            |
+| `app/api/router.py`   | 🟢     | aggregate `/api/v1` router                                        |
+| `app/main.py`         | 🟢     | app factory + `StaticFiles` mount serving `frontend/`             |
+| `frontend/`           | 🟢     | static HTML/CSS/JS UI (no build step)                             |
 
-A signed-in learner can:
+### Current dependency direction (allowed)
 
-1. Register, log in, log out, and keep a session.
-2. Browse a published course and its lessons.
-3. Complete lessons with graded exercises and resume progress.
-4. Build and review a personal vocabulary list (basic SRS).
-5. See progress, XP, level and a daily streak.
-6. Ask an AI tutor a question and get an answer.
+```
+health   ──► db
+auth     ──► db, users.service
+users    ──► db, auth.security
+progress ──► db, auth (dependency)
+catalog  ──► db, exercises.schemas
+exercises ──► db, progress.service
+db       ──► core/config
+api      ──► core/config, auth.security
+```
 
-Everything else (speaking feedback, challenges, billing, notifications,
-analytics) is post-MVP but the architecture leaves room for it.
+### Planned direction (do not create cycles)
 
-## Stages
+```
+catalog/content ──► db
+exercises ──► catalog
+progress  ──► gamification
+recommendations ──► ai ──► AI layer
+challenges ──► progress/gamification
+```
 
-### Stage 0 — Foundation ✅ completed
+## Frontend (static HTML / CSS / vanilla JavaScript)
 
-Engineering groundwork only: repository structure, AGENTS rules, architecture
-docs, project map, plans, design language, README, gitignore.
+Served by FastAPI from `frontend/`; no framework and no build step. HTTP goes
+through `frontend/js/api.js`; protected pages use `requireSession()`.
 
-**Exit criteria:** docs consistent with each other; project map present; no
-application code; clean commit.
+| Area                                                     | Page                 | Status | Notes                                                                                                             |
+| -------------------------------------------------------- | -------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- |
+| Landing                                                  | `/index.html`        | 🟢     | hero + live backend status                                                                                        |
+| Login                                                    | `/login.html`        | 🟢     | real session                                                                                                      |
+| Register                                                 | `/register.html`     | 🟢     | account creation                                                                                                  |
+| Dashboard                                                | `/dashboard.html`    | 🟢     | protected; sidebar, catalog search, current course, profile, progress, streak and learned-word count from the API |
+| Courses                                                  | `/courses.html`      | 🟢     | protected; catalog list (`GET /courses`)                                                                          |
+| Course                                                   | `/course.html?slug=` | 🟢     | protected; course detail + lesson list                                                                            |
+| Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Test/Vocabulary, grading, progress and saved words                                     |
+| Settings                                                 | `/settings.html`     | 🟢     | protected; profile/email editing, language preference, password change, logout                                    |
+| Lesson player (quiz)                                     | —                    | 🟢     | exercises, submission and grading via the exercises API                                                           |
+| Words | `/vocabulary.html`, `/course-words.html` | 🟢 | personal words/practice and published course vocabulary |
+| Progress | `/progress.html` | 🟢 | real progress analytics and streaks |
+| Challenges / AI Tutor | — | 🔴 |                                                                                                                   |
 
-### Stage 1 — Minimal Frontend + Backend ✅ completed
+## AI layer
 
-pnpm workspace + Python/FastAPI backend; SQLAlchemy async `User` + `Profile`
-with an Alembic migration; health + users (dev auth stub) endpoints; Next.js
-landing/learn/login with a live backend-status indicator.
+Implemented inside `app/modules/ai/`: provider protocol, async OpenRouter adapter,
+prompts/context, validation, quotas and persistence. Tests inject mocks; production
+never silently substitutes a mock. See `plans/ai-plan.md`.
 
-**Exit criteria met:** `pnpm lint`, `typecheck`, `test`, `build` pass; the
-frontend calls the real API; the database workflow is documented.
+`frontend/css/star4life.css` adapts the `CSS.star4life/CSS/` visual reference for the static pages; FastAPI serves it at `/css/star4life.css` alongside `/api/v1`.
 
-### Stage 1b — Backend core: authentication & progress ✅ completed
+## Backend extension status — 2026-10-18 (supersedes planned rows above)
 
-Email/password authentication (`POST /auth/register`, `/login`, `/refresh`,
-`/logout`) with argon2id hashing, short-lived access JWTs and rotating refresh
-tokens stored hashed (reuse detection). `GET /users/me` is read-only and
-authenticated; `GET /progress/me` returns aggregate progress. Refresh tokens and
-progress are persisted with an Alembic migration. The dev auth stub is removed.
+| Module          | Status                       | Owns / dependencies                                                                                   |
+| --------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| vocabulary      | implemented                  | words, due queue, review history; db/auth/gamification                                                |
+| gamification    | implemented                  | activity days, streak analytics, deterministic achievements; db/config                                |
+| users           | extended                     | own profile PATCH, CEFR level/language; db/auth                                                       |
+| password_reset  | implemented                  | reset request/confirm, SMTP; db/auth security/core limits                                             |
+| ai              | implemented                  | OpenRouter transport, tutor/history, explanation, practice, recommendations, SSE; db/auth/core limits |
+| recommendations | implemented in ai/context.py | deterministic learning analytics, no provider required                                                |
 
-**Exit criteria met:** auth and progress are exercised by an automated test suite
-(register/login/refresh/rotation/reuse/logout/protected/cross-user isolation).
+`core/body_limit.py` bounds API bodies; `core/limits.py` stores persistent windows
+and serializes global AI reservations. `httpx` is now a runtime dependency.
+`exercises/service.py` calls gamification within the learning transaction. AI
+receives read-only analytics and never invokes learning mutation services.
+`ai/` is a documentation entry point, not a separate Python service/package.
+Runtime PostgreSQL/live AI verification remains blocked in this environment.
 
-**Settings follow-up completed:** own profile and email editing (`PATCH
-/users/me`), language preference and authenticated password changes. Email
-verification and rate limiting remain separate follow-ups (see
-`plans/security-plan.md`).
+## Lessons workspace (2026-10-22)
 
-### Stage 1c — Static frontend served by FastAPI ✅ completed
+`frontend/js/workspace.js` owns the shared Dashboard/Lessons sidebar, mobile
+drawer, catalog search and profile menu. `frontend/js/lesson.js` owns only the
+lesson tabs, questions, submission UI and preview. Practice and Test share
+the same automatic advance and retry order. `frontend/js/letter-tiles.js` renders
+the letter bank and slots for configured text exercises. The lesson page calls the existing
+`catalog`, `exercises` and `vocabulary` APIs through `frontend/js/api.js`.
+`exercises` now returns the caller's latest answer in lesson progress, and
+`vocabulary` can filter owned words by `lessonId`. Migration `20261114_1200` adds
+optional letter-tile configuration to exercises.
 
-The Next.js/React/TypeScript frontend was replaced by plain **HTML/CSS/vanilla
-JavaScript** served from the backend (`frontend/`, no build step). One server
-(FastAPI) serves both `/api/v1` and the UI on the same origin; the CSRF origin
-check accepts same-origin requests. Landing, register, login, logout, a
-protected dashboard (profile + progress) and a profile/settings view are wired
-to the existing auth/progress API.
+## Windows local launcher (2026-11-11)
 
-**Exit criteria met:** the app runs from one `uvicorn` process; the auth journey
-works; static-serving, same-origin and existing auth/progress tests pass.
+`START-WINDOWS.cmd` runs the existing setup and dev scripts from its own folder.
+The backend dependency `tzdata` supplies IANA time zones on Windows. The setup
+instructions are in `ЗАПУСК-У-WINDOWS.md`; developer integration notes are in
+`docs/learning-handoff.md`.
 
-### Stage 2 — Learning MVP ✅ completed
+## SQLite database preparation
 
-Courses, lessons, exercises, submissions, grading; lesson start/complete;
-progress recording.
-
-- ✅ `Course`/`Lesson` models + migration `20261011_1200_catalog`; idempotent seed.
-- ✅ Read-only catalog API (`GET /courses`, `/courses/{slug}`, `/lessons/{slug}`),
-  published-only, with tests.
-- ✅ Frontend catalog, course detail and lesson-theory pages.
-- ✅ `Exercise`/`ExerciseSubmission`/`LessonProgress` + migration
-  `20261011_1400_exercises`; `single_choice`, `text` and `self_check` types.
-- ✅ Lesson start/submit/progress endpoints with server-side grading; answer keys
-  never exposed before submission.
-- ✅ Once-only XP and server-derived lesson/course progress on `/progress/me`.
-- ✅ Lesson page and dashboard render real persisted data.
-
-**Exit criteria met:** the lesson flow works from the API with tests; progress is
-queryable per course.
-
-### Stage 3 — Vocabulary & gamification
-
-Vocabulary words, user vocabulary, flashcards/SRS reviews; XP ledger, levels,
-streaks, achievements.
-
-**Exit criteria:** review flow updates scheduling; completing lessons updates
-XP/streak/achievements idempotently.
-
-### Stage 4 — Frontend MVP
-
-Dashboard visual/integration code is in the working tree: responsive
-sidebar, catalog search, real course/progress/streak/learned-word metrics.
-Standalone Lessons redesign, auth redesign and AI assistant UI remain later
-phases. Dashboard Firefox checks at 360/768/desktop passed on local SQLite
-(2026-10-22); exact Figma comparison and live PostgreSQL checks remain pending.
-
-Static pages for dashboard, learn/lessons, quizzes, vocabulary, progress and the
-AI tutor; shared layout and design tokens; critical Playwright flows.
-
-**Exit criteria:** the MVP definition above is usable in a browser on desktop
-and mobile.
-
-### Stage 5 — AI tutor
-
-Python AI layer with a `mock` + one real provider; tutor conversations; writing
-correction; recommendations; guardrails and rate limits.
-
-**Exit criteria:** AI features tested with the mock provider; provider is
-swappable by configuration; prompt-injection mitigations documented and tested.
-
-### Stage 6 — Polish & launch
-
-Speaking/listening/reading/writing practice depth, challenges, notifications,
-analytics, accessibility pass, performance pass, deployment, monitoring.
-
-**Exit criteria:** production deployment with backups and monitoring; launch
-checklist from `docs/deployment.md` and `docs/security.md` satisfied.
-
-## Sequencing rules
-
-- Database schema lands with the module that owns it, not all upfront.
-- Backend endpoints land with tests and the security checklist.
-- Frontend consumes only documented API contracts.
-- Do not start a stage until the previous stage's exit criteria are met, unless
-  the work is explicitly independent (e.g. design docs).
-
-## Out of scope (explicitly deferred)
-
-Microservices, message broker, GraphQL, native mobile apps, MFA, OAuth, real-time
-features, custom model training, multi-region. Each requires a written
-justification before adoption (see `AGENTS.md` rules 2/9).
-
-## Backend completion update — 2026-10-18
-
-Vocabulary/reviews, streaks/achievements, profile updates, password reset and
-OpenRouter tutoring APIs are implemented and tested with mocked AI and ORM
-fixtures. Adaptive recommendations and SSE are included. Live PostgreSQL and paid
-OpenRouter validation remain blocked; do not label deployment integration as
-complete. See [ai-plan.md](ai-plan.md) for completed/blocked/next details. New API
-frontend wiring is outside this backend task. No commits were made, per request.
-
-## Local development update — 2026-10-22
-
-SQLite is the local default. `npm run dev` prepares the persistent file with
-Alembic and an initial catalog, then runs the existing FastAPI/static frontend.
-PostgreSQL remains an explicit deployment option. Lessons UI and AI scope are
-unchanged. Dashboard Firefox scenarios passed; Figma comparison and live PostgreSQL
-checks remain separate.
+`app/db/prepare.py` checks SQLite write access, upgrades through Alembic, validates
+tables/columns and seeds an empty catalog before `scripts/dev.mjs` or the
+production launcher `backend/run.py` starts the server. `core/config.py` resolves env
+files and SQLite paths independently of cwd; `db/session.py` creates the data
+directory and configures every SQLite connection. Preparation runs once in the
+launcher, outside ASGI workers; errors stop startup. PostgreSQL requires explicit
+migration commands; there is no fallback. Free Render storage is ephemeral.
 
 ## Backend stabilization — 2026-10-28
 
-Completed: atomic refresh rotation, login/register throttling, bounded password
-workers, password/reset refresh-session revocation and SQLite concurrent-write
-regressions. Existing learning/UI contracts are preserved; Settings signs out
-after changing the password. No new product features or schema changes.
-Next: live PostgreSQL migration/concurrency verification and SMTP/OpenRouter
-integration. Current runtime evidence: `docs/backend-stabilization-report.md`.
+- `auth/security.password_work`: shared AnyIO four-worker budget for async Argon2 paths.
+- `auth/router`: persistent peer-IP/email throttling via `core/limits` before hashing.
+- `auth/service`: conditional refresh claims, rollback, locked issuance and shared
+  `invalidate_password_sessions` used by `users` and `password_reset`.
+- `gamification.lock_learner`: PostgreSQL row lock / SQLite no-op write lock;
+  auth/password/learning transactions use the same identity lock order.
+- `tests/test_stabilization.py`: isolated file-SQLite concurrency suite, optional
+  isolated PostgreSQL schemas; no application database used.
+- `scripts/backend-stabilization-smoke.py`: temporary SQLite dev-server/API/restart checks.
+
+No new modules/tables or migration. Settings only clears auth state and redirects
+after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
 
 
-## Floating assistant integration — 2026-11-01
+## Fleng AI widget — 2026-11-01
 
-- **Completed:** Dashboard/Lessons reusable widget, owned history selection/new chat,
-  incremental UTF-8 SSE, safe text rendering, minimize/close lifecycle.
-- **Completed:** authenticated readiness API, published lesson/exercise context,
-  request-ID deduplication on existing AIUsage (migration `20261101_1200`).
-- **Completed:** mocked backend/parser regression checks, dev-server SQLite smoke,
-  independent self-review; docs and project map updated.
-- **Next / unverified:** actual browser QA at 360/768/desktop, virtual keyboards,
-  paid OpenRouter with a configured model/key, live PostgreSQL integration.
-- **Commits:** not created, per explicit user instruction.
+- `frontend/js/ai-assistant.js`: shared authenticated Dashboard/Lessons floating
+  chat, history selection/reload, composer, visibility and request states.
+- `frontend/js/ai-stream.js`: bounded UTF-8 SSE reader; no build/dependency.
+- `frontend/css/ai-assistant.css`: dark compact responsive window/focus styling.
+- Existing `modules/ai`: authenticated configuration status, validated lesson/
+  exercise context and request-ID deduplication using existing AIUsage.
+- `20261101_1200_ai_request_id.py`: nullable request UUID + per-user unique index.
+- `scripts/test-ai-stream.mjs`: standalone Node tests of stream framing/failures.
 
-Evidence: `docs/ai-assistant-integration.md`. Standalone AI Tutor page remains deferred.
-
-
-## Leaderboard + hosting preparation — 2026-11-04
-
-- **Completed:** authenticated all-time XP ranking, top-3 cards, learner table,
-  own rank, short/empty/loading/error/retry states and responsive styles.
-- **Completed:** production launcher/Procfile, environment template, secure-cookie
-  and secret guards, exact HTTPS CORS origins, DB readiness and deployment notes.
-- **Next:** choose hosting/managed PostgreSQL and supply production secrets;
-  apply migrations and verify public HTTPS auth, proxy trust and optional AI.
-- **Not verified:** exact Figma comparison (source not supplied), browser layout
-  at 360/768/desktop (browser unavailable), live hosting/PostgreSQL/OpenRouter/SMTP.
+- `scripts/test-ai-api.mjs`: auth-refresh/raw-stream and no-retry client regressions.
 
 
-## Render SQLite startup fix — 2026-11-04
+## Leaderboard and hosting preparation — 2026-11-04
 
-- **Completed:** production launcher performs SQLite write probe, existing Alembic
-  upgrades, mapped-schema validation and empty-catalog seed before single-worker
-  Uvicorn. No user-data reset; PostgreSQL release migrations remain explicit.
-- **Completed:** regression coverage for fresh production disk, registration,
-  login, refresh, Dashboard APIs, XP/session/account persistence on process restart,
-  unwritable files/directories, invalid path, memory DB and incorrectly stamped DB.
-- **Completed:** existing checks, separate self-review, docs/project-map update.
-- **Next / externally blocked:** live Render settings/log and public HTTPS checks
-  need the service URL/configuration; live PostgreSQL needs TEST_DATABASE_URL.
-- **Limitation:** free Render storage is ephemeral; process-only restart evidence
-  with the same SQLite file does not establish persistent hosting storage.
+- Existing `gamification` router/service/schemas now own the authenticated
+  all-time ranking. Window functions rank Profile XP with a stable UUID tie-break;
+  Progress supplies completed lessons and batched LearningActivity supplies streaks.
+  No new table, migration, package or service.
+- `frontend/leaderboard.html`, `js/leaderboard.js`, `css/leaderboard.css` use the
+  existing workspace sidebar/header and API/session helpers. Dashboard and sidebar
+  link to the screen. Top 100 and own global position come from `/leaderboard`.
+- `backend/run.py` + root `Procfile`: production uvicorn process without reload,
+  Settings-based port and explicit proxy trust. `health/ready`: DB readiness.
+- `.env.production.example` and `docs/deployment.md`: single-service HTTPS release
+  with explicit migrations, optional initial catalog and managed PostgreSQL.
 
-Verification: `docs/render-sqlite-startup.md`. Prepared for deployment; no push.
+## Course surfaces — 2026-11-04
 
-## Render registration follow-up — 2026-11-04
+- `frontend/courses.html` + `js/courses.js`: published course catalog with local
+  title/description search + CEFR filter; real course progress from `/progress/me`.
+- `frontend/course.html` + `js/course.js`: slug-based course hero and ordered
+  published lesson list; individual statuses from `/lessons/{slug}/progress`.
+- Both reuse `js/workspace.js`, `css/dashboard.css`, shared `js/catalog-ui.js`
+  state/progress rendering and scoped `css/courses.css`. No new backend module.
+- `scripts/test-courses.mjs`: DOM regression coverage; real HTTP coverage in
+  `scripts/backend-stabilization-smoke.py`. Browser/Stitch QA remains pending.
 
-- **Completed:** safe SQLite failure categories, logger survival through Alembic,
-  shared-engine identity/schema snapshots after migrations and at FastAPI startup,
-  existing-file diagnostic CLI, foreign-key/now()/RETURNING startup checks.
-- **Completed:** fresh production registration/restart and isolated missing-table
-  regressions for request_limits/users/profiles/refresh_tokens; redaction checks,
-  independent self-review, pytest/Ruff/mypy and local production smoke validation.
-- **Next / needs external evidence:** collect the live deploy SHA, actual Start
-  Command, both startup snapshots and matching classified registration error.
-  Exact current Render causation is not established by generic OperationalError;
-  the existing launcher succeeds locally. Do not reset/stamp/delete the live DB.
+## Global assistant and security — 2026-11-04
 
-Evidence and safe procedure: `docs/render-sqlite-registration-diagnostics.md`.
+`workspace.setWorkspaceUser()` owns initialization on all six protected pages.
+`ai-assistant.js` owns singleton UI, selected-conversation restoration and destruction;
+`api.js` signals session termination/cross-tab logout and accepts stream abort signals.
+Lessons registers only lesson/exercise context IDs. Backend AI request schemas reject
+extra fields; existing reservations now also enforce assembled input-token bounds.
+Evidence: `docs/ai-security-audit.md`, `backend/tests/test_ai_security.py`,
+`scripts/test-ai-widget.mjs`, `scripts/audit-ai-secrets.py`.
 
-## Render registration Origin 403 — 2026-11-04
+## SQLite runtime diagnostics — 2026-11-04
 
-- **Completed:** public registration/preflight matrix proves Render HTTPS Origin
-  missing from effective allowlist, Netlify Origin allowed; auth guard is the
-  exact 403 source before limiter/service/database writes.
-- **Completed:** both origins in production template, bounded rejection header
-  diagnostics, nine production-origin regressions and expanded HTTP smoke;
-  independent self-review and documentation/project-map update.
-- **Next / external configuration:** apply the documented CORS_ORIGIN in Render
-  and restart; no dashboard access or push/deployment in this task. Recheck public
-  registration after configuration. Netlify API proxy still returns 404.
-- Evidence and verification: `docs/render-registration-origin-403.md`.
-
-## Render HTTPS Origin follow-up — 2026-11-05
-
-- **Completed:** ASGI HTTP vs browser HTTPS mismatch reproduced; validated
-  Render-provided RENDER_EXTERNAL_URL now joins the shared CORS/auth allowlist.
-  Netlify remains an explicitly configured CORS_ORIGIN. No proxy-trust expansion.
-- **Completed:** regressions for both origins, register/login/refresh, rejected
-  origins, real Uvicorn proxy middleware, malformed forwarding headers and
-  launcher overriding Render's FORWARDED_ALLOW_IPS=* default; self-review.
-- **Next / external:** deploy the local commit, verify Render Start Command and
-  environment, then test the actual HTTPS UI. No push/deploy performed here.
-- Verification: `docs/render-https-origin-403.md`. SQLite config is unchanged.
+`backend/app/db/diagnostics.py` provides allowlisted SQLite exception categories,
+post-migration and production FastAPI connection snapshots, and an existing-file
+inspection CLI (`python -m app.db.diagnostics`). It reports schema/configuration
+metadata only; no SQL parameters, connection URL, private rows or raw exceptions.
+Alembic preserves existing application loggers. Preparation additionally checks
+foreign keys, now() and SQLite RETURNING support; schema/write checks remain.
+See `docs/render-sqlite-registration-diagnostics.md` for the live Render procedure
+and the distinction between local success and unconfirmed live causation.
 
 
 ## Vocabulary flashcards — 2026-11-10
 
-Vocabulary backend completed: categories, saved sets up to 10, owner completion and test handoff. Frontend integration and Roma testing/XP remain next; shared A0 course support deferred. See docs/vocabulary-flashcards-api.md.
+Vocabulary now includes flashcards.py: curated CourseVocabularyItem reads, owned FlashcardSession snapshots and completed-set handoff helper. No grading/XP changes.
 
 
 ## A0–B2 curriculum — 2026-11-10
 
-Completed: A0 backend + existing-filter button; 50-lesson A0–B2 draft and read-only validation/explicit import. Earlier A0 deferral is resolved. Next: editorial review, audio/production-skill coverage and separately approved release. Draft is not a CEFR certification syllabus; no production seed or publication performed.
+`core/levels.py` centralizes Fleng A0 + CEFR A1–C2. `db/curriculum.py` validates packaged `db/content/curriculum-a0-b2.json` and preflights explicit draft/reviewed imports into existing models. No provider calls or test engine. Migration 20261110_1400 extends Course CHECK.
 
-## Curriculum verification pipeline — 2026-11-11
+## Curriculum verification — 2026-11-11
 
-- **Completed:** offline validator, real grader probes, per-word review statuses,
-  provenance-aware local Wiktextract/Tatoeba adapters, JSON/Markdown reports,
-  separate SHA-guarded normalization copies, opt-in bounded AI review, offline tests.
-- **Completed:** audit of five drafts (50 lessons / 500 words / 400 exercises).
-  Structural success does not mean linguistic verification or publication approval.
-- **Needs external evidence:** reviewed source exports and record licensing;
-  current run attests/verifies zero words externally. No paid AI or DB writes.
-- **Next:** teacher/translator review of all lessons/words and flagged conditional
-  items, source-cache enrichment, sense/POS/morphology and productive-skill coverage,
-  then separately approved exact-SHA release. No commit/push per user instruction.
+`services/curriculum_validation/` audits the existing draft JSON through importer
+schemas and the real objective grader; it never opens a DB or imports/publishes.
+Local licensed evidence adapters, provenance/issue reports, SHA-guarded separate
+draft normalization and opt-in bounded existing OpenRouter transport are owned
+here. Entry points: `scripts/validate_curriculum.py` and
+`scripts/prepare_curriculum_sources.py`. No new endpoint/table/frontend dependency.
+See `docs/curriculum-validator.md`, source licenses and generated quality report.
 
-## Curriculum visual review — 2026-11-11
+## Local curriculum visual preview — 2026-11-11
 
-- **Completed:** isolated private SQLite preparation through existing draft import;
-  reviewer-only loopback preview using existing Courses/Course/Lessons pages;
-  ordinary API continues to hide drafts and published flags remain false.
-- **Completed:** all five courses / 50 lessons / 500 words / 400 exercises checked
-  over HTTP; Firefox desktop/mobile pass, 122 checks and 16 screenshots; full
-  pytest 375 passed/15 skipped, final targeted preview 13 passed, DOM 7 passed.
-- **Completed:** launch/cleanup instructions and security self-review. No frontend
-  redesign, grader/XP change, production write, commit or push.
-- **Next:** teacher/translator editorial review and separate release approval.
-  Existing UX: Vocabulary tab is personal words, initial tab is Test, floating
-  AI launcher can overlap mobile text. See docs/curriculum-visual-review.md.
-## Windows command fix — 2026-11-11
+`app/preview.py` is a separate development-only app factory over private prepared
+SQLite + marker, with loopback/Host guards and normal JWT authentication restricted
+to one reviewer UUID. `scripts/preview_curriculum.py` exclusively prepares/starts
+that database through existing migrations/seed/draft import. Catalog, lesson
+resolution, progress reads and course-word selection accept an internal
+`include_drafts=False` keyword; only preview wrappers opt in. Standard routes and
+publication flags remain unchanged; grading/XP services are reused.
+`review_curriculum_browser.py` provides optional real Firefox BiDi screenshots.
+See `docs/curriculum-visual-review.md` and `reports/curriculum-preview/`.
+## Cross-platform backend commands
 
-- **Completed:** replaced POSIX-only virtualenv paths in npm backend/database
-  commands with `scripts/backend.mjs`. Windows selects `Scripts/python.exe`.
-- **Completed 2026-11-14:** Windows npm preparation and seed on the copied database.
+`scripts/backend.mjs` runs Python modules from `backend/` using the existing
+virtualenv. npm database, demo and quality commands use it on all platforms.
+It forwards arguments and exit codes and supports paths containing spaces.
 
+## Desktop application and integration — 2026-11-14 (retired 2026-11-16)
+
+Desktop launch and PWA installation were removed. Fleng runs in a browser;
+legacy worker/cache cleanup is kept for existing visitors. See `docs/website-release.md`.
 
 ## PWA — 2026-11-13 (retired 2026-11-16)
 
 Desktop launch and PWA installation were removed. Fleng runs in a browser;
 legacy worker/cache cleanup is kept for existing visitors. See `docs/website-release.md`.
+
+## Persistence and CI verification — 2026-11-14
+
+- `app.db.backup`: explicit read-only-source SQLite online backup, integrity checks,
+  private new file and overwrite refusal; no startup hook.
+- `tests/test_database_pipeline.py`: Alembic-based SQLite/isolated PostgreSQL checks,
+  idempotent seeds/imports, learner/card preservation and FK integrity.
+- `.github/workflows/database.yml`: mandatory SQLite/application and disposable
+  PostgreSQL jobs with an always-running success aggregator; no production access.
+- Root npm commands expose the existing isolated draft preview without publication.
+- Production target: managed PostgreSQL after an approved/rehearsed data transfer;
+  actual hosting settings and data migration remain external manual operations.
 
 ## Git integration ? 2026-11-14
 
@@ -336,37 +289,99 @@ npm commands and ignore rules. Database commands use the cross-platform backend
 runner; persistence test counts include the new present-perfect lesson. Backup
 permission-bit checks apply on POSIX; Windows backup protection uses inherited ACLs.
 
-## Final infrastructure integration checkpoint — 2026-11-14
+## Infrastructure transfer and recovery (2026-11-14)
 
-Completed locally: typed transfer and regression checks, PostgreSQL transfer/recovery drill definitions, docs/contracts and workflow gate, ruleset JSON and owner runbooks. Public main is unprotected; latest original hosted CI failed full tests; Render DB readiness is up; Netlify API remains 404. Next/external: green revised hosted CI and staging transfer/provider restore, branch/hosting configuration, browser auth/API routing. No commit/push, production cutover or content publication authorized by this task. Details: docs/09-deployment/final-infrastructure-integration.md.
+- `backend/app/db/transfer.py`: explicit snapshot backup → typed schema/FK checks → locked empty PostgreSQL target → transactional import → complete row reconciliation → dry-run rollback or explicit apply. No startup/API hook.
+- `backend/tests/test_database_transfer.py`: disposable SQLite refusal/rollback tests and opt-in real asyncpg learner transfer.
+- `backend/tests/test_postgres_recovery.py`: pg_dump/pg_restore on two newly created disposable databases, typed comparison and auth/card resume.
+- `scripts/check-test-report.py`: mandatory PostgreSQL JUnit gate, rejects missing/skipped/failed evidence.
+- `.github/workflows/database.yml`: existing workflow, now includes docs/contracts, actionlint, pinned Ubuntu and PostgreSQL transfer/recovery tests. `.github/main-ruleset.json`: owner-importable main policy, not applied.
+- Live observations/runbooks: `docs/09-deployment/final-infrastructure-integration.md`, `docs/05-database/transfer-and-recovery.md`. Hosted settings and new PostgreSQL drills remain pending.
 
-## Default local course visibility — 2026-11-14
+## Default local development curriculum — 2026-11-14
 
-`npm run dev` now prepares the existing persistent SQLite database with five unpublished A0–B2 drafts and shows all seven courses to local signed-in learners. Preparation backs up existing data; reruns preserve IDs/progress. Production visibility is unchanged. Editorial approval and hosted publication remain separate.
+`app/development.py` owns the npm dev-only preparation/factory: back up existing SQLite → existing Alembic preparation → idempotent unpublished curriculum import → loopback-only authenticated draft routes. It reuses `preview_router` with ordinary learner authentication; the separate private reviewer still passes its explicit UUID. `scripts/dev.mjs` starts this factory on 127.0.0.1; production/normal factories remain published-only. Existing users, sessions, XP and lesson data stay in the configured local file.
+
+## SQLite release catalog bootstrap — 2026-11-14
+
+`app/db/prepare.py` now imports the packaged A0–B2 curriculum as unpublished rows
+after migrations and legacy-catalog initialization. `run.py` reuses this path,
+so a fresh configured SQLite database is populated without uploading private DB
+files. Import preflight preserves IDs, rejects conflicting draft content and avoids
+duplicates; existing user data and publication flags are not overwritten. Normal
+public routes remain published-only. PostgreSQL startup remains explicit.
+
+## Owner-authorized A0–B2 publication — 2026-11-14
+
+SQLite preparation now publishes only the exact `OWNER_AUTHORIZED_CURRICULUM_SHA` release through `import_curriculum(owner_authorized_sha=...)`. It preserves ordinary draft imports and rejects mismatched/ambiguous publication approvals. All seven catalog courses/50 A0–B2 lessons/500 words become available through standard published-only APIs. Linguistic review is explicitly incomplete.
+
+## Render Free account durability — 2026-11-14
+
+`app/db/storage.py` rejects Render SQLite unless the configured file is beneath an actual /var/data mount. `db/session.py` checks before engine creation; `run.py` reports a safe actionable error. `db/prepare.py` initializes only an empty PostgreSQL schema under an advisory lock/transaction, then reuses the approved catalog loader; existing schemas must be at head and are never auto-upgraded/reset. Settings maps sslmode to asyncpg ssl and hides credentials in validation errors. New storage/PostgreSQL startup tests cover process replacement, schema preservation and rollback.
 
 ## Website-only release — 2026-11-16
 
-Completed locally: latest interface/vocabulary/Team/motion, PWA and desktop
-retirement, main A0–B2/navigation preservation, explicit version, cache revalidation
-and Netlify API proxy. Prepared guarded Windows git updater with a backup branch.
-Blocked externally: GitHub write access; Render service is user-suspended.
-Next: push main, resume Render, deploy both hosts and verify release/login/reviews.
+`frontend/vocabulary.html` + vocabulary.js own personal word collection and four
+existing-API review modes. `team.html` + team.js/team.css present role areas;
+`css/motion.css` provides optional motion with reduced-motion support.
+`app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
+`version.json` and sidebar/footer expose the release. Desktop shell removed;
+START-FLENG compatibility commands start the browser website. See docs/website-release.md.
 
 
-## Fleng 1.0 security/stability — 2026-11-16
+## AI budget concurrency verification — 2026-11-16
 
-- Completed: password-authorized SMTP email confirmation, 30-minute one-use
-  tokens, refresh revocation, migration and regression coverage.
-- Completed: Web Locks required only at refresh time; no automatic fallback;
-  strict server reuse detection preserved.
-- Completed: retired-PWA backend contracts aligned; worker/cache cleanup retained.
-- Next/external: public HTTPS EMAIL_CHANGE_URL/SMTP delivery and live PostgreSQL
-  verification. No paid provider calls, commit or push in this stage.
-- Verification details: docs/security-stability-1.0.md.
+`backend/tests/test_ai_limits.py` holds the fake provider until all budget
+competitors finish admission, checks settled charges plus open holds, and covers
+chat/streaming with simultaneous/staggered arrivals and post-settlement retry.
+Existing `test_ai_sqlite_audit.py` covers independent OS processes. Runtime
+reservation/settlement code and dependencies are unchanged. Investigation and
+verification: [AI budget concurrency](../docs/ai-budget-concurrency.md).
 
-## Placement Test MVP
+## Security/stability follow-up — 2026-11-16
 
-Isolated implementation on feat/placement-test: owned diagnostic attempts,
-original private bank, autosave/history/retakes and approximate A1–B2 course
-starting-point guidance. No full CEFR certification or C1/C2 determination.
-Status, tests and editorial/calibration limits: [placement plan](placement-test.md).
+- `frontend/login.html` / `js/login.js`: password-reset request through the existing
+  rate-limited API; `reset-password.html` / `js/reset-password.js`: in-memory token,
+  confirmation, success/retry/expired states using the existing auth styles.
+- `frontend/js/layout.js`: public-header Logout reports failure and retains the
+  current session until the server confirms revocation.
+- `modules/ai/service.py`: persistent reservation precedes local provider capacity
+  for every transport; portable CASE settlement, no limit/timeout increase.
+- `scripts/test-auth-ui.mjs`: dependency-free DOM behavior regressions, included in
+  `npm run frontend:test`. Backend admission and settlement regressions live in
+  `tests/test_ai_limits.py`.
+
+Verification and pending contract boundaries are recorded in
+`docs/security-stability-fixes-2026-11-16.md`. Same-origin Web Locks coordination
+lives in the existing API client; no token is stored in shared browser storage.
+
+## Words navigation and compact AI — 2026-11-16
+
+- `workspace.js`: native Words disclosure, My Words/Course Words child links,
+  current section state; mobile focus trap ignores collapsed links.
+- `course-words.html` / `js/course-words.js`: existing `/vocabulary/course-words`
+  pagination, catalog course filtering, local search and existing personal-word
+  save/practice flow. No API/schema/model change.
+- `js/markdown.js`: fixed DOM tag allowlist, bounded inline parsing, safe URL
+  policy; used only for AI messages. User text remains literal.
+- `ai-assistant.js` / `css/ai-assistant.css`: compact panel, hidden refresh menu,
+  status/retry, 500-character composer, typing and scroll-follow recovery.
+- `scripts/test-markdown-words.mjs`: Markdown/XSS, Words selection, course-word
+  pagination/filter/save/practice; existing widget tests cover limits/manual scroll.
+
+## Fleng 1.0 local integration
+
+Security precedes Placement; Progress Analytics precedes Progress UI; Content Audit
+precedes Published Content and the separate Draft candidate. Runtime module/API
+changes are documented above. Gate results, exclusions and conflict decisions:
+[local integration report](../docs/qa/fleng-1.0-integration.md).
+
+## Fleng 1.0 local integration — 2026-11-17
+
+Completed: ready feature branches combined in isolated release worktree, backend/
+frontend/static quality and disposable SQLite gates; separate integration fixes.
+Completed: E2E 9/9; approved local promotion uses guarded fast-forward after
+confirming unchanged main. Original work is preserved in a retained stash.
+Next: human draft review and separately authorized publication; optional live
+PostgreSQL/SMTP/OpenRouter verification. No deployment or push authorized.
+Evidence: [integration report](../docs/qa/fleng-1.0-integration.md).

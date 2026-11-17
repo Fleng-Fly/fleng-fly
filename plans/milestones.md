@@ -240,3 +240,12 @@ frontend suites, Ruff/mypy and whitespace checks pass. The documentation checker
 retains five baseline Security failures. Editorial/psychometric acceptance remains
 pending and is not implied by code completion. See [placement plan](placement-test.md). Finalization authorizes one Placement-only
 commit; no merge, rebase or push.
+
+## Fleng 1.0 local release integration — 2026-11-17
+
+Completed: ready Security/Placement, Analytics/Progress UI, Content Audit/Published
+Content/Draft candidate, AI budgets, build reliability, Words/AI/auth UI and E2E
+merged in dependency order. Backend 2373 passed / 24 skipped, frontend 10/10,
+Chromium E2E 9/9, Ruff/mypy/docs and temporary SQLite migrations passed.
+Next: optional external integrations and human review of unpublished candidate.
+[Release evidence and source commits](../docs/qa/fleng-1.0-integration.md).
