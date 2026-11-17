@@ -327,10 +327,12 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
 
 
+## Draft quality candidate — 2026-11-16
 
-## Progress analytics UI — 2026-11-16
-
-`frontend/progress.html` + `js/progress.js` + page-scoped `css/progress.css` render
-GET /progress/me analytics through existing api/session/workspace helpers. No
-shared CSS or backend changes. Null daily XP history has an explanation, no chart.
-Frontend DOM regressions: scripts/test-progress.mjs; details: docs/frontend.md.
+`backend/app/db/content/curriculum-a0-b2.draft.json` is an explicitly selected
+editorial candidate; normal runtime still uses the unchanged pinned
+`curriculum-a0-b2.json`. No new module, API or grading rule. Validate the candidate
+with `scripts/validate_curriculum.py --input <candidate>`.
+`test_content_structure.py` and `test_draft_quality_fixes.py` cover the four repaired
+draft defects and separation from the published release. Editorial/publication
+limits: `docs/qa/draft-curriculum-fixes.md`.
