@@ -201,12 +201,19 @@ export function mountWorkspace(active) {
   template.innerHTML = templateHtml;
   const content = template.content;
   const main = document.querySelector('main');
+  main.id = main.id || 'main-content';
+  const skip = document.createElement('a');
+  skip.className = 'skip-link';
+  skip.href = `#${main.id}`;
+  skip.textContent = t('common.skipToContent');
+  skip.dataset.i18n = 'common.skipToContent';
   main.prepend(content.querySelector('#search-results'));
   content.querySelector('#dashboard-main-wrap').append(main);
   markWorkspaceNavigation(content, active);
   content.querySelector('#language-slot').replaceWith(createLanguageSwitch(() => signedIn));
   applyDom(content);
   document.body.prepend(content);
+  document.body.prepend(skip);
   bindNavigation();
   bindSearch();
   // A cached document must revalidate its session before restoring private UI.

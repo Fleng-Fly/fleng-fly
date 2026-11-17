@@ -904,3 +904,52 @@ a.quick-card:focus-visible {
 .placement-guidance { padding: 1.25rem; margin-bottom: 1.5rem; }
 .placement-guidance h2 { margin-top: 0; }
 .placement-guidance .btn { margin: .4rem .6rem .2rem 0; white-space: normal; }
+
+/* Keyboard and small-screen polish */
+.skip-link {
+  position: absolute;
+  top: -4rem;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  background: #4928c2;
+  color: #fff;
+}
+.skip-link:focus {
+  top: 0.75rem;
+}
+.dashboard-page a:focus-visible,
+.dashboard-page button:focus-visible,
+.dashboard-page summary:focus-visible,
+.dashboard-page input:focus-visible,
+.dashboard-page select:focus-visible,
+.dashboard-page textarea:focus-visible {
+  outline: 2px solid #bf70fa;
+  outline-offset: 2px;
+}
+.dashboard-main h1,
+.dashboard-main h2,
+.dashboard-main h3,
+.catalog-card h2,
+.current-course-card h3 {
+  overflow-wrap: anywhere;
+}
+.dashboard-level {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .dashboard-top-actions .lang-switch button {
+    min-width: 2rem;
+    padding: 0 0.4rem;
+  }
+  .placement-guidance .btn {
+    width: 100%;
+    margin-right: 0;
+  }
+  .section-heading {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}
