@@ -13,7 +13,7 @@ export default defineConfig({
   retries: 0,
   forbidOnly: Boolean(process.env.CI),
   reporter: [['list']],
-  use: { baseURL, trace: 'retain-on-failure', screenshot: 'only-on-failure' },
+  use: { baseURL, locale: 'en-US', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'node e2e/server.mjs',

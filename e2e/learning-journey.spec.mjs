@@ -73,7 +73,7 @@ async function openQuestion(page, number) {
 }
 
 async function answerChoice(page, optionText) {
-  await page.getByLabel(optionText, { exact: true }).check();
+  await page.locator('.lesson-option').filter({ has: page.getByText(optionText, { exact: true }) }).getByRole('radio').check();
   await page.getByRole('button', { name: 'Check answer' }).click();
 }
 
