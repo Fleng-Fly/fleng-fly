@@ -1,5 +1,12 @@
 # Troubleshooting
 
+Windows `Missing script: "setup"`: the current `START-WINDOWS.cmd` uses
+absolute paths to `scripts/setup.mjs` and `scripts/dev.mjs` through Node.js,
+without resolving npm scripts. Extract the complete archive into one folder;
+do not mix manifests and scripts from different releases. Missing companion
+files or Node.js below 20 stop the launcher before dependency installation.
+Git staging/committing/pushing does not require local setup.
+
 Missing virtualenv/Uvicorn: run `npm run setup` and inspect pip/venv output. Existing installed dependencies are not automatically refreshed after manifest changes. For port conflicts export a different PORT.
 
 401 on private APIs requires a valid Bearer JWT; the refresh cookie alone does not authenticate those endpoints. 403 on auth POSTs can indicate an exact Origin mismatch. 503 requires database connectivity, permission and migration checks. Readiness only probes SELECT 1.

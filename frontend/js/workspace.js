@@ -25,7 +25,8 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
         <rect x="14" y="14" width="7" height="7" rx="1.5" />
       </symbol>
       <symbol id="icon-book" viewBox="0 0 24 24">
-        <path d="M12 5C8 2 3 3 2 4v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-1-1-6-2-10 1Zm0 0v15" />
+        <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21V4.5Z" />
+        <path d="M4 21a2.5 2.5 0 0 1 2.5-2.5H20M8 7h8M8 11h6" />
       </symbol>
       <symbol id="icon-layers" viewBox="0 0 24 24">
         <path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5" />
@@ -44,7 +45,7 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
         />
         <circle cx="12" cy="11" r="2.5" />
       </symbol>
-      <symbol id="icon-team" viewBox="0 0 24 24"><circle cx="12" cy="6" r="4" /><path d="M4 22v-4c0-7 16-7 16 0v4" /></symbol>
+      <symbol id="icon-team" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3" /><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6m3 11v-3a6 6 0 0 0-3-5" /></symbol>
       <symbol id="icon-search" viewBox="0 0 24 24">
         <circle cx="10.8" cy="10.8" r="6.8" />
         <path d="m16 16 5 5" />
@@ -93,7 +94,7 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
         <div class="sidebar-foot">
           <span class="sidebar-foot-mark">✦</span>
           <p>Keep learning.<br /><strong>Your journey is yours.</strong></p>
-          <small class="website-version">Web · 2026.11.16 · 3</small>
+          <small class="website-version">Web · 2026.11.17 · 3.1</small>
         </div>
       </aside>
       <div id="dashboard-main-wrap" class="dashboard-main-wrap">

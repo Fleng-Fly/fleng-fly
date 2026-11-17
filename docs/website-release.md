@@ -1,4 +1,4 @@
-> Current prepared release: 2026.11.16-web.3; see [exported Figma alignment](figma-export-web3.md).
+> Current prepared release: 2026.11.17-web.3.1; see [exported Figma alignment](figma-export-web3.md).
 
 > Latest browser release: [reference-board completion](reference-web2.md),
 > version 2026.11.16-web.2. The notes below record the previous release.

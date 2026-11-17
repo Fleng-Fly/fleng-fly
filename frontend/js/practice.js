@@ -38,8 +38,7 @@ function progress(target, label, index, total) {
 }
 function soundTools(word) {
   const tools = el('div', 'study-session-tools');
-  const listen = button('Listen', () => speak(word));
-  listen.classList.add('study-listen'); tools.append(listen);
+  tools.append(button('◖)) Listen', () => speak(word)));
   const label = el('label', undefined, 'Voice speed '); const select = el('select'); select.setAttribute('aria-label', 'Word playback speed');
   for (const [value, text] of [['0.7', 'Slow'], ['0.85', 'Steady'], ['1', 'Natural']]) { const option = el('option', undefined, text); option.value = value; select.append(option); }
   select.value = String(state.speed); select.addEventListener('change', () => { state.speed = Number(select.value); }); label.append(select); tools.append(label); return tools;
@@ -109,8 +108,7 @@ function renderCard() {
     if (event.key === 'ArrowRight' && !next.disabled) { event.preventDefault(); next.click(); }
     if (event.key === 'ArrowLeft' && !previous.disabled) { event.preventDefault(); previous.click(); }
   });
-  const flipControl = button('Flip', () => turn(!revealed));
-  flipControl.classList.add('study-flip');
+  const flipControl = button('▱ Flip', () => turn(!revealed));
   const autoplay = button(state.autoPlay ? 'Ⅱ Pause' : '▷ Auto Play', () => {
     if (state.autoPlay) { stopAutoplay(); autoplay.textContent = '▷ Auto Play'; autoplay.setAttribute('aria-pressed', 'false'); }
     else { state.autoPlay = true; autoplay.textContent = 'Ⅱ Pause'; autoplay.setAttribute('aria-pressed', 'true'); scheduleAutoplay(); }
@@ -129,8 +127,7 @@ function renderCard() {
   const note = el('p', 'study-card-footer', `Study set · ${state.session.source === 'course_words' ? 'Course Words' : 'My Words'}`); target.append(note); flip.focus(); if (state.autoPlay) scheduleAutoplay();
 }
 function renderQuestion() {
-  stopSpeech(); document.body.dataset.phase = 'quiz'; document.body.dataset.mode = state.mode;
-  const target = stage(); target.replaceChildren(); const card = state.quiz[state.index];
+  stopSpeech(); document.body.dataset.phase = 'quiz'; const target = stage(); target.replaceChildren(); const card = state.quiz[state.index];
   if (!card) { renderSummary(); return; }
   const titles = { choice: 'Vocabulary Test — Multiple Choice', write: 'Vocabulary Test — Write the Word', letters: 'Complete the Word — Missing Letters' };
   const intro = el('header', 'study-question-heading');
@@ -170,7 +167,6 @@ function renderQuestion() {
   }
   const skip = button('Skip', () => grade(false)); actions.append(skip);
   if (state.mode === 'choice') {
-    panel.append(el('p', 'study-answer-label', 'Choose the correct Ukrainian translation:'));
     const list = el('div', 'word-choice-list'); let selected = null;
     const check = button('Check Answer ✓', () => { if (selected) grade(normalizeAnswer(selected.textContent) === normalizeAnswer(card.translation), selected); }, true);
     check.disabled = true;

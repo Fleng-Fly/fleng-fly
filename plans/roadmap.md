@@ -10,6 +10,13 @@ resume, and responsive layouts. Exact Figma comparison awaits the target
 screen reference; Login/Sign Up is the next requested UI phase. The historical
 stage descriptions below record earlier architecture decisions.
 
+## Windows startup repair — 2026-11-17
+
+- **Completed in source:** call setup/dev by absolute Node.js paths, check Node.js
+  20+ and companion files, report failures and preserve server exit status.
+- **Pending:** execution of the CMD launcher on a physical Windows machine and
+  publication of the prepared source. No commit, push or deployment performed.
+
 ## Learning interactions — 2026-11-11
 
 - **Completed:** automatic next question, delayed retries, letter tiles and fixed

@@ -64,6 +64,21 @@ npm run dev
 
 ## Якщо виникла помилка
 
+**Missing script: "setup".** У цій версії `START-WINDOWS.cmd` запускає
+`scripts/setup.mjs` і `scripts/dev.mjs` напряму через Node.js. Він не залежить
+від npm-команди `setup` у локальному `package.json`.
+Розпакуй архів повністю в окрему папку та відкрий її `START-WINDOWS.cmd`.
+Не змішуй `package.json`, `scripts` і `backend` із різних версій.
+Для запуску вручну з кореня цього проєкту:
+
+```cmd
+node scripts\setup.mjs
+node scripts\dev.mjs
+```
+
+Завантаження коду на GitHub не потребує локального запуску `setup`.
+
+
 **'.venv' is not recognized.** Онови `package.json` та скопіюй
 `scripts/backend.mjs` з цього архіву в проєкт. Це виправляє npm-команди
 міграцій і seed для Windows. Для негайного запуску виконай з папки проєкту

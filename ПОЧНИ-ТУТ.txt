@@ -1,4 +1,4 @@
-FLENG — вебверсія 2026.11.16-web.3
+FLENG — вебверсія 2026.11.17-web.3.1
 
 Це вихідний код сайту з дизайном за твоїм архівом Figma та пакетним прогресом курсу.
 Додаток, EXE і встановлення PWA не потрібні.
@@ -11,7 +11,7 @@ FLENG — вебверсія 2026.11.16-web.3
 1. Розпакуй весь архів в окрему папку.
 2. У CMD:
    cd /d "ШЛЯХ-ДО-ПАПКИ\Fleng-Website"
-   npm run dev
+   START-WINDOWS.cmd
 3. Відкрий http://localhost:3001
 Python 3.11+ і Node.js 20+ потрібні для локального запуску.
 Збережи свою .env і базу перед перенесенням старого локального проєкту.
@@ -22,5 +22,33 @@ Python 3.11+ і Node.js 20+ потрібні для локального зап�
 застосовує website.patch, робить commit і push у main без force.
 Не запускай його для простого перегляду: він публікує код у GitHub.
 Після погодженого push потрібне розгортання існуючих Render / Netlify сервісів.
-Після розгортання /version.json має показувати 2026.11.16-web.3.
+Після розгортання /version.json має показувати 2026.11.17-web.3.1.
 Деталі, доступи, існуюча база та секрети залишаються в твоєму середовищі.
+
+ВИПРАВЛЕННЯ Missing script: "setup"
+Запускач START-WINDOWS.cmd тепер викликає Node.js-файли без npm.
+Для виправлення запуску чинної копії можна скопіювати цей START-WINDOWS.cmd
+у C:\Users\Roman\Desktop\projectenglich з заміною, якщо там уже є
+scripts\setup.mjs, scripts\dev.mjs, backend та frontend.
+Якщо потрібного файла немає — розпакуй повний архів в окрему папку.
+Не видаляй .git, .env та свою базу даних.
+
+ЗАВАНТАЖЕННЯ ЧИННОЇ GIT-КОПІЇ В ОКРЕМУ ГІЛКУ
+Запуск setup для Git не потрібний. У CMD:
+cd /d "C:\Users\Roman\Desktop\projectenglich"
+git status
+git remote -v
+Якщо це не Git-копія або origin не Fleng-Fly/fleng-fly — зупинись.
+Не створюй нову історію та не використовуй force push.
+Якщо Git блокує папку через власника, спершу:
+git config --global --add safe.directory C:/Users/Roman/Desktop/projectenglich
+Далі перевір зміни й створюй окрему гілку:
+git switch -c fix/fleng-windows-setup
+git add .
+git diff --cached --stat
+Перевір, що до змін не потрапили паролі, .env або база даних.
+Після перевірки:
+git commit -m "fix: repair Fleng website startup"
+git push -u origin HEAD
+Це завантажує поточну гілку, а не оновлює main чи хостинг автоматично.
+Якщо будь-яка команда завершується помилкою — зупинись на ній.

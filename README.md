@@ -2,7 +2,7 @@
 
 Developer documentation: [complete guide](docs/README.md), including API contracts, database, learning/curriculum, security and deployment.
 
-Вебверсія **2026.11.16-web.3**: Fleng відкривається у звичайному браузері.
+Вебверсія **2026.11.17-web.3.1**: Fleng відкривається у звичайному браузері.
 Windows EXE, desktop shell і встановлення PWA вилучені.
 
 Fleng is an English-learning web platform with structured courses, graded

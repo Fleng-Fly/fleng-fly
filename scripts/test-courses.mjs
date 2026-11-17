@@ -311,7 +311,7 @@ test('A0 uses the existing level filter and unchanged course links', async () =>
   assert.equal(a0Filter.attributes['aria-pressed'], 'true');
 });
 
-// Exercise the real lesson module with API fixtures and the real page's tab IDs.
+// Exercise the real lesson module with API fixtures; removed elements deliberately do not exist.
 async function lessonPage(search = '?slug=first') {
   class LessonNode extends Node {
     get firstElementChild() { return this.children[0]; }
@@ -384,8 +384,8 @@ async function lessonPage(search = '?slug=first') {
   return { get: (id) => nodes.get(id), window, settle, vocabularyReads: () => vocabularyReads };
 }
 
-test('lesson defaults and invalid tabs open Theory without losing the lesson URL', async () => {
-  for (const tab of ['', '&tab=Test', '&tab=unknown']) {
+test('lesson defaults and obsolete Test links open Theory without losing the lesson URL', async () => {
+  for (const tab of ['', '&tab=test', '&tab=Test', '&tab=unknown']) {
     const p = await lessonPage('?slug=first&keep=yes' + tab + '#content');
     assert.equal(p.get('lesson-content').hidden, false);
     assert.equal(p.get('panel-theory').hidden, false);
@@ -394,19 +394,16 @@ test('lesson defaults and invalid tabs open Theory without losing the lesson URL
     assert.equal(p.window.location.searchParams.get('slug'), 'first');
     assert.equal(p.window.location.searchParams.get('keep'), 'yes');
     assert.equal(p.window.location.hash, '#content');
-    assert.equal(p.get('panel-test').hidden, true);
+    assert.equal(p.get('tab-test'), undefined);
+    assert.equal(p.get('panel-test'), undefined);
   }
 });
 
-test('lesson four reference tabs preserve navigation, shared questions and template routing', async () => {
+test('lesson valid links, click/keyboard navigation and template actions use the three remaining tabs', async () => {
   const p = await lessonPage('?slug=first&tab=practice');
   assert.equal(p.get('panel-practice').hidden, false);
   assert.match(p.get('panel-practice').textContent, /Choose a word/);
   p.get('tab-practice').events.keydown({ key: 'ArrowRight', preventDefault() {} });
-  assert.equal(p.get('panel-test').hidden, false);
-  assert.match(p.get('panel-test').textContent, /Choose a word/);
-  assert.equal(p.get('panel-practice').textContent, '');
-  p.get('tab-test').events.keydown({ key: 'ArrowRight', preventDefault() {} });
   await p.settle();
   assert.equal(p.get('panel-vocabulary').hidden, false);
   assert.match(p.get('panel-vocabulary').textContent, /hello/);
@@ -419,17 +416,13 @@ test('lesson four reference tabs preserve navigation, shared questions and templ
   p.get('tab-vocabulary').events.keydown({ key: 'Home', preventDefault() {} });
   assert.equal(p.get('panel-theory').hidden, false);
   p.get('use-template').events.click();
-  assert.equal(p.get('panel-test').hidden, false);
+  assert.equal(p.get('panel-practice').hidden, false);
   p.get('tab-vocabulary').events.click();
   await p.settle();
   assert.equal(p.vocabularyReads(), 1);
   const linked = await lessonPage('?slug=first&tab=vocabulary');
   assert.equal(linked.get('panel-vocabulary').hidden, false);
   assert.match(linked.get('panel-vocabulary').textContent, /hello/);
-  const testLink = await lessonPage('?slug=first&tab=test');
-  assert.equal(testLink.get('panel-test').hidden, false);
-  assert.match(testLink.get('panel-test').textContent, /Choose a word/);
-  assert.equal(testLink.window.location.searchParams.get('tab'), 'test');
 });
 
 test('Dashboard Quick access matches the four supplied Figma shortcuts', async () => {

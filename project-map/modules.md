@@ -130,7 +130,10 @@ optional letter-tile configuration to exercises.
 
 ## Windows local launcher (2026-11-11)
 
-`START-WINDOWS.cmd` runs the existing setup and dev scripts from its own folder.
+`START-WINDOWS.cmd` checks Node.js 20+ and required project files, then runs
+`scripts/setup.mjs` and `scripts/dev.mjs` by absolute path through Node.js.
+It uses its own folder even when started from another working directory and
+propagates setup/server failures; no npm-script lookup is required.
 The backend dependency `tzdata` supplies IANA time zones on Windows. The setup
 instructions are in `ЗАПУСК-У-WINDOWS.md`; developer integration notes are in
 `docs/learning-handoff.md`.

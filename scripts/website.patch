@@ -1,9 +1,26 @@
 diff --git a/FLENG-REVIEW.md b/FLENG-REVIEW.md
 new file mode 100644
-index 0000000..58c94b0
+index 0000000..ba5a5fe
 --- /dev/null
 +++ b/FLENG-REVIEW.md
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,140 @@
++# Виправлення запуску — 2026-11-17
++
++Поточний архів: вебверсія 2026.11.17-web.3.1, на основі web.3 нижче.
++`START-WINDOWS.cmd` запускає існуючі setup/dev напряму через Node.js із
++абсолютними шляхами. Перевіряє Node.js 20+, наявність scripts/backend/frontend,
++зупиняється при помилці setup та повертає код завершення сервера.
++Це усуває залежність запуску від відсутнього npm-скрипту у змішаній локальній
++копії. У збереженому package.json `setup` уже був присутній; локальний файл
++користувача тут недоступний, тому причина його відмінності не підтверджена.
++Поточна перевірка: 49/49 frontend-тестів; node --check для setup/dev;
++перевірено наявність цільових файлів, порядок preflight/зупинки після setup
++та git diff --check. Windows CMD тут не виконувався.
++Дизайн, API, авторизацію та дані не змінено.
++Нових commit, push та розгортання не виконано.
++
++Нижче — попередній звіт web.3; наведені там перевірки історичні.
++
 +# Fleng — результат для перевірки
 +
 +Підготовлено вебверсію 2026.11.16-web.3: дизайн за PNG-експортами Figma та
@@ -128,7 +145,7 @@ index 0000000..58c94b0
 +- scripts/test-study.mjs
 +- scripts/update-website.ps1
 diff --git a/README.md b/README.md
-index a1af9bf..aa236e7 100644
+index a1af9bf..a72fd78 100644
 --- a/README.md
 +++ b/README.md
 @@ -2,7 +2,7 @@
@@ -136,7 +153,7 @@ index a1af9bf..aa236e7 100644
  Developer documentation: [complete guide](docs/README.md), including API contracts, database, learning/curriculum, security and deployment.
  
 -Вебверсія **2026.11.16-web**: Fleng відкривається у звичайному браузері.
-+Вебверсія **2026.11.16-web.3**: Fleng відкривається у звичайному браузері.
++Вебверсія **2026.11.17-web.3.1**: Fleng відкривається у звичайному браузері.
  Windows EXE, desktop shell і встановлення PWA вилучені.
  
  Fleng is an English-learning web platform with structured courses, graded
@@ -150,6 +167,73 @@ index a1af9bf..aa236e7 100644
 +`/practice.html`. Select 1–50 words, study the cards and test by choice, typing
 +or missing letters. Personal reviews are saved; course-run scores are shown for
 +that run. See [reference-board completion](docs/reference-web2.md).
+diff --git a/START-WINDOWS.cmd b/START-WINDOWS.cmd
+index bcfc77f..f86eaca 100644
+--- a/START-WINDOWS.cmd
++++ b/START-WINDOWS.cmd
+@@ -1,17 +1,45 @@
+-@echo off
+-setlocal
+-cd /d "%~dp0"
+-
+-call npm run setup
+-if errorlevel 1 (
+-    echo.
+-    echo Setup failed. Keep this window open to read the error.
+-    pause
+-    exit /b 1
+-)
+-
+-echo.
+-echo When the server is ready, open http://localhost:3001 in your browser.
+-echo Keep this window open while using Fleng. Press Ctrl+C to stop.
+-call npm run dev
+-pause
++@echo off
++setlocal
++pushd "%~dp0" >nul
++if errorlevel 1 exit /b 1
++
++where node >nul 2>nul
++if errorlevel 1 goto missing_node
++node -e "if (Number(process.versions.node.split('.')[0]) < 20) process.exit(1)"
++if errorlevel 1 goto missing_node
++if not exist "%~dp0scripts\setup.mjs" goto incomplete
++if not exist "%~dp0scripts\dev.mjs" goto incomplete
++if not exist "%~dp0backend\pyproject.toml" goto incomplete
++if not exist "%~dp0frontend\index.html" goto incomplete
++
++node "%~dp0scripts\setup.mjs"
++if errorlevel 1 goto setup_failed
++
++echo.
++if not defined PORT set "PORT=3001"
++echo When the server is ready, open http://localhost:%PORT% in your browser.
++echo Keep this window open while using Fleng. Press Ctrl+C to stop.
++node "%~dp0scripts\dev.mjs"
++set "FLENG_EXIT=%ERRORLEVEL%"
++if not "%FLENG_EXIT%"=="0" echo Fleng stopped with an error. Read the output above.
++pause
++popd
++exit /b %FLENG_EXIT%
++
++:missing_node
++echo Node.js 20 or newer is required. Install it and open this launcher again.
++goto failed
++
++:incomplete
++echo This project folder is incomplete: "%~dp0"
++echo Extract the entire Fleng-Website folder from the latest ZIP.
++echo Keep START-WINDOWS.cmd beside the backend, frontend and scripts folders.
++goto failed
++
++:setup_failed
++echo Setup failed. Keep this window open to read the error above.
++
++:failed
++pause
++popd
++exit /b 1
 diff --git a/backend/app/modules/catalog/router.py b/backend/app/modules/catalog/router.py
 index e7e58d3..4fef66c 100644
 --- a/backend/app/modules/catalog/router.py
@@ -646,6 +730,23 @@ index 0000000..e5a0c7b
 +    assert (
 +        await client.post(BASE, headers=auth, json={"source": "my_words", **extra})
 +    ).status_code == 422
+diff --git a/docs/01-getting-started/troubleshooting.md b/docs/01-getting-started/troubleshooting.md
+index fbdd506..161aeac 100644
+--- a/docs/01-getting-started/troubleshooting.md
++++ b/docs/01-getting-started/troubleshooting.md
+@@ -1,5 +1,12 @@
+ # Troubleshooting
+ 
++Windows `Missing script: "setup"`: the current `START-WINDOWS.cmd` uses
++absolute paths to `scripts/setup.mjs` and `scripts/dev.mjs` through Node.js,
++without resolving npm scripts. Extract the complete archive into one folder;
++do not mix manifests and scripts from different releases. Missing companion
++files or Node.js below 20 stop the launcher before dependency installation.
++Git staging/committing/pushing does not require local setup.
++
+ Missing virtualenv/Uvicorn: run `npm run setup` and inspect pip/venv output. Existing installed dependencies are not automatically refreshed after manifest changes. For port conflicts export a different PORT.
+ 
+ 401 on private APIs requires a valid Bearer JWT; the refresh cookie alone does not authenticate those endpoints. 403 on auth POSTs can indicate an exact Origin mismatch. 503 requires database connectivity, permission and migration checks. Readiness only probes SELECT 1.
 diff --git a/docs/03-backend/api-schemas.md b/docs/03-backend/api-schemas.md
 index 41bbd7e..0d4765f 100644
 --- a/docs/03-backend/api-schemas.md
@@ -1032,11 +1133,11 @@ index 23a75f6..48cc569 100644
 +awarded. Personal answers update existing saved-word review history; course
 +scores are shown for the current run only. No new schema migration is needed.
 diff --git a/docs/website-release.md b/docs/website-release.md
-index 25a4337..f9af706 100644
+index 25a4337..633cb8a 100644
 --- a/docs/website-release.md
 +++ b/docs/website-release.md
 @@ -1,3 +1,8 @@
-+> Current prepared release: 2026.11.16-web.3; see [exported Figma alignment](figma-export-web3.md).
++> Current prepared release: 2026.11.17-web.3.1; see [exported Figma alignment](figma-export-web3.md).
 +
 +> Latest browser release: [reference-board completion](reference-web2.md),
 +> version 2026.11.16-web.2. The notes below record the previous release.
@@ -2128,7 +2229,7 @@ index 62af864..aa9d767 100644
 +
 +if (new URLSearchParams(location.search).get('add') === '1') openAddDialog();
 diff --git a/frontend/js/workspace.js b/frontend/js/workspace.js
-index e9bd9ac..5889699 100644
+index e9bd9ac..4459a63 100644
 --- a/frontend/js/workspace.js
 +++ b/frontend/js/workspace.js
 @@ -16,6 +16,8 @@ export function setWorkspaceAIContext(callback) {
@@ -2190,7 +2291,7 @@ index e9bd9ac..5889699 100644
            <span class="sidebar-foot-mark">✦</span>
            <p>Keep learning.<br /><strong>Your journey is yours.</strong></p>
 -          <small class="website-version">Web · 2026.11.16</small>
-+          <small class="website-version">Web · 2026.11.16 · 3</small>
++          <small class="website-version">Web · 2026.11.17 · 3.1</small>
          </div>
        </aside>
        <div id="dashboard-main-wrap" class="dashboard-main-wrap">
@@ -2469,13 +2570,13 @@ index abc354b..c8f57ae 100644
    </main>
    <script type="module" src="/js/team.js"></script>
 diff --git a/frontend/version.json b/frontend/version.json
-index 54e9add..08f555c 100644
+index 54e9add..bb06ea8 100644
 --- a/frontend/version.json
 +++ b/frontend/version.json
 @@ -1,5 +1,5 @@
  {
 -  "version": "2026.11.16-web",
-+  "version": "2026.11.16-web.3",
++  "version": "2026.11.17-web.3.1",
    "product": "Fleng English",
    "type": "website"
  }
@@ -2560,10 +2661,24 @@ index ab69f50..846b091 100644
 +AI budget safeguards retained. Pending: user-side GitHub/hosting publication;
 +real-phone, Windows and hardware audio QA remain outside this run.
 diff --git a/plans/roadmap.md b/plans/roadmap.md
-index d120116..6175ae4 100644
+index d120116..1a2d381 100644
 --- a/plans/roadmap.md
 +++ b/plans/roadmap.md
-@@ -351,3 +351,17 @@ retirement, main A0–B2/navigation preservation, explicit version, cache revali
+@@ -10,6 +10,13 @@ resume, and responsive layouts. Exact Figma comparison awaits the target
+ screen reference; Login/Sign Up is the next requested UI phase. The historical
+ stage descriptions below record earlier architecture decisions.
+ 
++## Windows startup repair — 2026-11-17
++
++- **Completed in source:** call setup/dev by absolute Node.js paths, check Node.js
++  20+ and companion files, report failures and preserve server exit status.
++- **Pending:** execution of the CMD launcher on a physical Windows machine and
++  publication of the prepared source. No commit, push or deployment performed.
++
+ ## Learning interactions — 2026-11-11
+ 
+ - **Completed:** automatic next question, delayed retries, letter tiles and fixed
+@@ -351,3 +358,17 @@ retirement, main A0–B2/navigation preservation, explicit version, cache revali
  and Netlify API proxy. Prepared guarded Windows git updater with a backup branch.
  Blocked externally: GitHub write access; Render service is user-suspended.
  Next: push main, resume Render, deploy both hosts and verify release/login/reviews.
@@ -2616,10 +2731,22 @@ index b067422..44afdf9 100644
 +course recall results stay in the current run. No client XP, schema change or
 +private vocabulary sharing. Focus mode changes browser page layout only.
 diff --git a/project-map/modules.md b/project-map/modules.md
-index 871577f..7ad6d27 100644
+index 871577f..8ec2da7 100644
 --- a/project-map/modules.md
 +++ b/project-map/modules.md
-@@ -325,3 +325,25 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
+@@ -130,7 +130,10 @@ optional letter-tile configuration to exercises.
+ 
+ ## Windows local launcher (2026-11-11)
+ 
+-`START-WINDOWS.cmd` runs the existing setup and dev scripts from its own folder.
++`START-WINDOWS.cmd` checks Node.js 20+ and required project files, then runs
++`scripts/setup.mjs` and `scripts/dev.mjs` by absolute path through Node.js.
++It uses its own folder even when started from another working directory and
++propagates setup/server failures; no npm-script lookup is required.
+ The backend dependency `tzdata` supplies IANA time zones on Windows. The setup
+ instructions are in `ЗАПУСК-У-WINDOWS.md`; developer integration notes are in
+ `docs/learning-handoff.md`.
+@@ -325,3 +328,25 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
  `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
  `version.json` and sidebar/footer expose the release. Desktop shell removed;
  START-FLENG compatibility commands start the browser website. See docs/website-release.md.
@@ -2893,7 +3020,7 @@ index 0000000..ba5daa6
 +  assert.ok(app.find('Next word'));
 +});
 diff --git a/scripts/update-website.ps1 b/scripts/update-website.ps1
-index 26b86d3..c00d54a 100644
+index 26b86d3..a64b580 100644
 --- a/scripts/update-website.ps1
 +++ b/scripts/update-website.ps1
 @@ -3,7 +3,7 @@ param(
@@ -2901,7 +3028,7 @@ index 26b86d3..c00d54a 100644
  )
  $ErrorActionPreference = 'Stop'
 -$Release = '2026.11.16-web'
-+$Release = '2026.11.16-web.3'
++$Release = '2026.11.17-web.3.1'
  $CommitMessage = "fix: publish Fleng website $Release"
  
  function Invoke-Git {
@@ -2910,3 +3037,29 @@ index 26b86d3..c00d54a 100644
      exit 1
  }
 +exit 0
+diff --git "a/\320\227\320\220\320\237\320\243\320\241\320\232-\320\243-WINDOWS.md" "b/\320\227\320\220\320\237\320\243\320\241\320\232-\320\243-WINDOWS.md"
+index 5fc4d02..464ccbe 100644
+--- "a/\320\227\320\220\320\237\320\243\320\241\320\232-\320\243-WINDOWS.md"
++++ "b/\320\227\320\220\320\237\320\243\320\241\320\232-\320\243-WINDOWS.md"
+@@ -64,6 +64,21 @@ npm run dev
+ 
+ ## Якщо виникла помилка
+ 
++**Missing script: "setup".** У цій версії `START-WINDOWS.cmd` запускає
++`scripts/setup.mjs` і `scripts/dev.mjs` напряму через Node.js. Він не залежить
++від npm-команди `setup` у локальному `package.json`.
++Розпакуй архів повністю в окрему папку та відкрий її `START-WINDOWS.cmd`.
++Не змішуй `package.json`, `scripts` і `backend` із різних версій.
++Для запуску вручну з кореня цього проєкту:
++
++```cmd
++node scripts\setup.mjs
++node scripts\dev.mjs
++```
++
++Завантаження коду на GitHub не потребує локального запуску `setup`.
++
++
+ **'.venv' is not recognized.** Онови `package.json` та скопіюй
+ `scripts/backend.mjs` з цього архіву в проєкт. Це виправляє npm-команди
+ міграцій і seed для Windows. Для негайного запуску виконай з папки проєкту

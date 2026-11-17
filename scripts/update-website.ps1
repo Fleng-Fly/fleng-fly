@@ -3,7 +3,7 @@ param(
     [string]$PatchPath = (Join-Path $PSScriptRoot 'website.patch')
 )
 $ErrorActionPreference = 'Stop'
-$Release = '2026.11.16-web.3'
+$Release = '2026.11.17-web.3.1'
 $CommitMessage = "fix: publish Fleng website $Release"
 
 function Invoke-Git {
