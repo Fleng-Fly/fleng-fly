@@ -120,6 +120,9 @@ Runtime PostgreSQL/live AI verification remains blocked in this environment.
 
 ## Lessons workspace (2026-10-22)
 
+`frontend/js/i18n.js` + `frontend/js/i18n/{en,uk}.js` provide EN/UK interface i18n
+(`docs/frontend-i18n.md`); `frontend/js/placement-guidance.js` renders the dashboard
+placement next-step card from the Placement API.
 `frontend/js/workspace.js` owns the shared Dashboard/Lessons sidebar, mobile
 drawer, catalog search and profile menu. `frontend/js/lesson.js` owns only the
 lesson tabs, questions, submission UI and preview. Practice and Test share

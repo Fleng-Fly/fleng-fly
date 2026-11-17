@@ -146,3 +146,20 @@ existing practice/stream lifecycle and scoped styles. Details:
 - [x] Existing Placement onboarding and Dashboard recommendations.
 - [ ] Exercise guidance, feedback and navigation.
 - [ ] EN/UK shared localization and mobile/accessibility polish.
+
+## UX overhaul (feat/ux-overhaul) 🚧
+
+- [x] Removed the Our Team page, navigation links, styles and tests.
+- [x] Landing page: clear start flow, registration as the primary action, no public
+      backend/SQLite status.
+- [x] EN/UK i18n (single HTML set, dictionaries, saved choice, `preferred_language` sync).
+- [x] Dashboard: Continue learning, real placement next step, compact progress.
+- [x] Lesson player: per-type instructions, clearer results, completion screen with next
+      lesson/course; removed developer-only template panels.
+- [x] Catalog: CEFR level, progress, Start/Continue/Review, placement-based
+      "Recommended" badge, next-course banner on completed courses.
+- [x] Translated: header, workspace, auth, dashboard, catalog, lesson, settings,
+      leaderboard, progress, vocabulary, course words, placement test UI.
+- [ ] Translate the AI assistant widget.
+- [ ] Backend: exercise hints / Ukrainian explanations; translatable placement text.
+- [ ] Real-browser checks at 1440/768/390/360 px (no browser was available).
