@@ -148,7 +148,14 @@ export function createLanguageSwitch(isSignedIn = () => false) {
     button.textContent = label;
     button.lang = code;
     button.dataset.lang = code;
-    button.addEventListener('click', () => setLang(code, { persistToAccount: isSignedIn() }));
+    button.addEventListener('click', async () => {
+      if (code === current) return;
+      await setLang(code, { persistToAccount: isSignedIn() });
+      // Pages that build content with JavaScript re-render in the new language on reload.
+      if (document.getElementById('dashboard-sidebar') || document.body.dataset.reloadOnLanguage !== undefined) {
+        window.location.reload();
+      }
+    });
     group.append(button);
   }
   const sync = () => {

@@ -88,6 +88,7 @@ function bindPage() {
       renderUser(await updateCurrentUser({ preferredLanguage: select.value }), false);
       await setLang(languageFromAccount(select.value) || 'en');
       feedback('language-feedback', t('settings.langSaved'));
+      window.location.reload();
     } catch (error) {
       select.value = user.preferredLanguage;
       feedback('language-feedback', describeApiError(error), true);
