@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Progress — Fleng</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/fleng-theme.css" />
+    <link rel="stylesheet" href="/css/motion.css" />
+    <link rel="stylesheet" href="/css/progress.css" />
+    <meta name="theme-color" content="#0b0917" />
+    <script defer src="/js/pwa.js"></script>
+  </head>
+  <body class="dashboard-page progress-page">
+    <main class="dashboard-main">
+      <div class="dashboard-page-heading">
+        <div>
+          <p class="dashboard-eyebrow">YOUR LEARNING</p>
+          <h1>Progress</h1>
+          <p class="dashboard-subtitle">See what you have learned, one lesson at a time.</p>
+        </div>
+        <span class="dashboard-level">All-time progress</span>
+      </div>
+      <div id="progress-body" aria-live="polite" aria-busy="true">
+        <div class="dashboard-card progress-message" role="status">Loading your progress…</div>
+      </div>
+      <noscript><p>Enable JavaScript to view your saved learning progress.</p></noscript>
+    </main>
+    <script type="module" src="/js/progress.js"></script>
+  </body>
+</html>

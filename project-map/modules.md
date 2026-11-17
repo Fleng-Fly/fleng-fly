@@ -327,20 +327,10 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
 
 
-## Fleng 1.0 security/stability — 2026-11-16
 
-`users/email_change.py` owns SMTP password-authorized email-change requests and
-one-use confirmation; `EmailChange` persists authorization until expiry.
-`frontend/js/settings.js` handles the confirmation fragment; `api.js` coordinates
-refresh through Web Locks. Details: ../docs/authentication.md.
+## Progress analytics UI — 2026-11-16
 
-## Placement Test MVP
-
-`modules/placement/{bank,scoring,service,schemas,router}.py` owns a separate diagnostic
-flow. `PlacementAttempt` in models.py stores private snapshots and immutable results;
-revision 20261117_1200 adds its table/index after Security 20261116_1400. It reads
-published catalog courses and uses JWT identity/get_db and existing request limits.
-It does not write learning/profile/XP state or invoke AI. `frontend/placement-test.html`,
-`js/placement-api.js`, `js/placement-test.js` and scoped `css/placement-test.css` provide
-the standalone UI. API/storage tests: test_placement*.py; DOM: test-placement.mjs.
-Methodology/limitations: docs/placement-test.md. No global navigation changes.
+`frontend/progress.html` + `js/progress.js` + page-scoped `css/progress.css` render
+GET /progress/me analytics through existing api/session/workspace helpers. No
+shared CSS or backend changes. Null daily XP history has an explanation, no chart.
+Frontend DOM regressions: scripts/test-progress.mjs; details: docs/frontend.md.

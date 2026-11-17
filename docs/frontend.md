@@ -247,3 +247,25 @@ clears private UI, aborts generation and removes the selection for that user;
 ordinary navigation preserves the selection and restores owned backend history.
 Cached-document restoration verifies the session first. Public pages stay unchanged.
 See [AI security audit](ai-security-audit.md) for checks and deployment limits.
+
+
+## Progress analytics UI — 2026-11-16
+
+`progress.html`, `js/progress.js` and page-scoped `css/progress.css` consume the
+existing authenticated GET /api/v1/progress/me. Completed lessons, active courses,
+XP, current/best streak and per-course completion come directly from the response.
+Unavailable daily XP history is explained without drawing a chart. The source
+commit had no Progress HTML page; the new page reuses existing workspace/theme
+assets without changing shared styles or other pages. Its Progress navigation
+entry exists on this page only; adding entry points elsewhere is outside scope.
+
+Loading, new-user/catalog-empty, invalid data, network/service error and retry
+states are supported. Values use textContent; course links encode slugs. Session
+end clears pending/private data and redirects to login; BFCache restore reloads
+the authenticated state. No mock production analytics or new API is introduced.
+
+Verification: npm run frontend:test — 46 passed; test:pwa passed. Headless Firefox
+checked 1440/768/390/360 px without horizontal overflow, with a disposable account
+and lesson graded through the real API on an isolated SQLite DB (AI/SMTP off).
+Empty/loading/error/retry and unavailable-history states passed. Screenshots:
+/tmp/fleng-progress-ui-review. No backend changes, commit, push or merge.
