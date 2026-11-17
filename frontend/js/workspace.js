@@ -3,6 +3,7 @@ import { mountAIAssistant, unmountAIAssistant } from './ai-assistant.js';
 import { requireSession } from './session.js';
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
+import { applyDom, applyUserLanguage, createLanguageSwitch, t } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
 let lastNavFocus;
@@ -59,48 +60,46 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
     </svg>
     <div id="nav-backdrop" class="dashboard-backdrop" hidden></div>
     <div class="dashboard-shell">
-      <aside id="dashboard-sidebar" class="dashboard-sidebar" aria-label="Main navigation">
+      <aside id="dashboard-sidebar" class="dashboard-sidebar" aria-label="Main navigation" data-i18n-attr="aria-label:ws.mainNav">
         <div class="sidebar-top">
-          <a class="dashboard-brand" href="/index.html" aria-label="Fleng home"
+          <a class="dashboard-brand" href="/index.html" aria-label="Fleng home" data-i18n-attr="aria-label:ws.home"
             ><span class="dashboard-brand-mark" aria-hidden="true">✦</span><span class="brand-detail">FLENG<small>ENGLISH</small></span></a
           >
           <button
             id="nav-close"
             class="dashboard-icon-button nav-close"
             type="button"
-            aria-label="Close navigation"
+            aria-label="Close navigation" data-i18n-attr="aria-label:ws.closeNav"
           >
             <svg><use href="#icon-close" /></svg>
           </button>
         </div>
-        <p class="sidebar-caption">WORKSPACE</p>
-        <nav class="sidebar-nav" aria-label="Dashboard sections">
+        <p class="sidebar-caption" data-i18n="ws.workspace">WORKSPACE</p>
+        <nav class="sidebar-nav" data-i18n-attr="aria-label:ws.sections" aria-label="Sections">
           <a class="sidebar-link active" href="/dashboard.html" aria-current="page"
-            ><svg><use href="#icon-grid" /></svg><span>Dashboard</span></a
+            ><svg><use href="#icon-grid" /></svg><span data-i18n="nav.dashboard">Dashboard</span></a
           >
-          <a class="sidebar-link" href="/leaderboard.html"
-            ><svg><use href="#icon-trophy" /></svg><span>Leaderboard</span></a>
           <a class="sidebar-link" href="/courses.html"
-            ><svg><use href="#icon-book" /></svg><span>Lessons</span></a
-          >
-          <a id="sidebar-course-link" class="sidebar-link" href="/courses.html"
-            ><svg><use href="#icon-layers" /></svg><span>Course</span></a
-          >
-          <a class="sidebar-link" href="/settings.html"
-            ><svg><use href="#icon-settings" /></svg><span>Settings</span></a
+            ><svg><use href="#icon-book" /></svg><span data-i18n="nav.courses">Courses</span></a
           >
           <details id="words-navigation" class="sidebar-words">
-            <summary class="sidebar-link"><svg><use href="#icon-book" /></svg><span>Words</span><span class="words-chevron" aria-hidden="true">⌄</span></summary>
-            <nav class="words-submenu" aria-label="Words sections">
-              <a class="sidebar-link sidebar-sub-link" data-section="words" href="/vocabulary.html">My Words</a>
-              <a class="sidebar-link sidebar-sub-link" data-section="course-words" href="/course-words.html">Course Words</a>
+            <summary class="sidebar-link"><svg><use href="#icon-layers" /></svg><span data-i18n="ws.words">Words</span><span class="words-chevron" aria-hidden="true">⌄</span></summary>
+            <nav class="words-submenu" data-i18n-attr="aria-label:ws.wordsSections" aria-label="Words sections">
+              <a class="sidebar-link sidebar-sub-link" data-section="words" href="/vocabulary.html" data-i18n="ws.myWords">My Words</a>
+              <a class="sidebar-link sidebar-sub-link" data-section="course-words" href="/course-words.html" data-i18n="ws.courseWords">Course Words</a>
             </nav>
           </details>
+          <a class="sidebar-link" href="/progress.html"><svg><use href="#icon-chart" /></svg><span data-i18n="ws.progress">Progress</span></a>
+          <a class="sidebar-link" href="/leaderboard.html"
+            ><svg><use href="#icon-trophy" /></svg><span data-i18n="ws.leaderboard">Leaderboard</span></a>
+          <a class="sidebar-link" href="/placement-test.html"><svg><use href="#icon-search" /></svg><span data-i18n="ws.placement">Level test</span></a>
+          <a class="sidebar-link" href="/settings.html"
+            ><svg><use href="#icon-settings" /></svg><span data-i18n="ws.settings">Settings</span></a
+          >
         </nav>
         <div class="sidebar-foot">
           <span class="sidebar-foot-mark">✦</span>
-          <p>Keep learning.<br /><strong>Your journey is yours.</strong></p>
-          <small class="website-version">Web · 2026.11.16</small>
+          <p data-i18n="ws.footer">A little practice. Every day.</p>
         </div>
       </aside>
       <div id="dashboard-main-wrap" class="dashboard-main-wrap">
@@ -109,34 +108,26 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
             id="nav-open"
             class="dashboard-icon-button nav-open"
             type="button"
-            aria-label="Open navigation"
+            aria-label="Open navigation" data-i18n-attr="aria-label:ws.openNav"
             aria-controls="dashboard-sidebar"
             aria-expanded="false"
           >
             <svg><use href="#icon-menu" /></svg>
           </button>
           <form id="dashboard-search" class="dashboard-search" role="search">
-            <label class="sr-only" for="search-query">Search courses and lessons</label>
+            <label class="sr-only" for="search-query" data-i18n="ws.searchLabel">Search courses and lessons</label>
             <svg><use href="#icon-search" /></svg>
             <input
               id="search-query"
               type="search"
-              placeholder="Search courses and lessons"
+              placeholder="Search courses and lessons" data-i18n-attr="placeholder:ws.searchLabel"
               autocomplete="off"
               minlength="2"
             />
-            <button type="submit" aria-label="Search">Search</button>
+            <button type="submit" aria-label="Search" data-i18n="ws.search" data-i18n-attr="aria-label:ws.search">Search</button>
           </form>
           <div class="dashboard-top-actions">
-            <button
-              class="dashboard-icon-button notification-button"
-              type="button"
-              disabled
-              title="Notifications are not available yet"
-              aria-label="Notifications are not available yet"
-            >
-              <svg><use href="#icon-bell" /></svg>
-            </button>
+            <div id="language-slot"></div>
             <div class="profile-control">
               <button
                 id="profile-toggle"
@@ -151,10 +142,10 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
               </button>
               <div id="profile-menu" class="profile-menu" aria-hidden="true" inert>
                 <a href="/settings.html"
-                  ><svg><use href="#icon-settings" /></svg>Account settings</a
+                  ><svg><use href="#icon-settings" /></svg><span data-i18n="ws.accountSettings">Account settings</span></a
                 >
                 <button id="profile-logout" type="button">
-                  <svg><use href="#icon-exit" /></svg>Log out
+                  <svg><use href="#icon-exit" /></svg><span data-i18n="auth.logout">Log out</span>
                 </button>
                 <p id="logout-error" class="dashboard-menu-error" role="alert" hidden></p>
               </div>
@@ -167,18 +158,21 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
             id="search-results"
             class="search-results dashboard-card"
             aria-label="Search results"
+            data-i18n-attr="aria-label:ws.results"
             hidden
           >
             <div class="section-heading">
-              <h2>Search results</h2>
-              <button id="search-close" class="dashboard-text-button" type="button">Close</button>
+              <h2 data-i18n="ws.results">Search results</h2>
+              <button id="search-close" class="dashboard-text-button" type="button" data-i18n="common.close">Close</button>
             </div>
             <div id="search-results-body" role="status" aria-live="polite"></div>
           </section>`;
 
 export function setWorkspaceUser(user) {
-  const name = (user.displayName || 'Learner').trim();
+  const name = (user.displayName || t('ws.learner')).trim();
   $('profile-short-name').textContent = name;
+  signedIn = true;
+  applyUserLanguage(user);
   $('profile-avatar').textContent = name.charAt(0).toLocaleUpperCase() || 'F';
   mountAIAssistant(user, () => aiContext());
 }
@@ -187,12 +181,10 @@ export function markWorkspaceNavigation(content, active) {
   for (const link of content.querySelectorAll('.sidebar-link[href]')) {
     const destination = {
       dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
-      settings: '/settings.html', lessons: '/courses.html',
+      settings: '/settings.html', lessons: '/courses.html', courses: '/courses.html', progress: '/progress.html', placement: '/placement-test.html',
       words: '/vocabulary.html', practice: '/vocabulary.html', 'course-words': '/course-words.html',
     }[active];
-    const selected = active === 'courses'
-      ? link.id === 'sidebar-course-link'
-      : link.id !== 'sidebar-course-link' && link.getAttribute('href') === destination;
+    const selected = link.getAttribute('href') === destination;
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
@@ -200,10 +192,9 @@ export function markWorkspaceNavigation(content, active) {
   const wordsNavigation = content.querySelector('#words-navigation');
   wordsNavigation.open = ['words', 'practice', 'course-words'].includes(active);
   wordsNavigation.classList.toggle('is-current', wordsNavigation.open);
-  if (active === 'courses') {
-    content.querySelector('#sidebar-course-link span').textContent = 'Courses';
-  }
 }
+
+let signedIn = false;
 
 export function mountWorkspace(active) {
   const template = document.createElement('template');
@@ -213,6 +204,8 @@ export function mountWorkspace(active) {
   main.prepend(content.querySelector('#search-results'));
   content.querySelector('#dashboard-main-wrap').append(main);
   markWorkspaceNavigation(content, active);
+  content.querySelector('#language-slot').replaceWith(createLanguageSwitch(() => signedIn));
+  applyDom(content);
   document.body.prepend(content);
   bindNavigation();
   bindSearch();
@@ -240,7 +233,7 @@ function message(target, title, detail, retry) {
   const heading = el('strong', undefined, title);
   target.append(heading);
   if (detail) target.append(el('p', 'dashboard-muted', detail));
-  if (retry) target.append(button('Try again', retry));
+  if (retry) target.append(button(t('common.tryAgain'), retry));
 }
 
 function setNavOpen(open) {
@@ -342,10 +335,10 @@ async function runSearch(event) {
   const body = $('search-results-body');
   panel.hidden = false;
   if (query.length < 2) {
-    message(body, 'Enter at least two characters.', 'Search covers published courses and lessons.');
+    message(body, t('ws.searchShort'), t('ws.searchScope'));
     return;
   }
-  message(body, 'Searching…', 'Search covers published courses and lessons.');
+  message(body, t('ws.searching'), t('ws.searchScope'));
   try {
     const courses = await catalog();
     if (panel.hidden || query !== $('search-query').value.trim().toLocaleLowerCase()) return;
@@ -356,7 +349,7 @@ async function runSearch(event) {
       ) {
         matches.push({
           title: course.title,
-          label: `Course · ${course.level}`,
+          label: t('ws.courseLabel', { level: course.level }),
           href: `/course.html?slug=${encodeURIComponent(course.slug)}`,
         });
       }
@@ -364,7 +357,7 @@ async function runSearch(event) {
         if (`${lesson.title} ${lesson.summary}`.toLocaleLowerCase().includes(query)) {
           matches.push({
             title: lesson.title,
-            label: `Lesson · ${course.title}`,
+            label: t('ws.lessonLabel', { title: course.title }),
             href: `/lesson.html?slug=${encodeURIComponent(lesson.slug)}`,
           });
         }
@@ -374,8 +367,8 @@ async function runSearch(event) {
     if (matches.length === 0) {
       message(
         body,
-        'No matching courses or lessons.',
-        'Try another term. Word and topic search is not available yet.',
+        t('ws.noMatches'),
+        t('ws.noMatchesHint'),
       );
       return;
     }
@@ -387,12 +380,9 @@ async function runSearch(event) {
       item.append(link, el('small', undefined, match.label));
       list.append(item);
     }
-    body.append(
-      list,
-      el('p', 'dashboard-muted search-note', 'Word and topic search is not available yet.'),
-    );
+    body.append(list);
   } catch (error) {
-    message(body, 'Search is unavailable.', describeApiError(error), () => {
+    message(body, t('ws.searchFailed'), describeApiError(error), () => {
       $('dashboard-search').requestSubmit();
     });
   }

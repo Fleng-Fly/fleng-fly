@@ -1,3 +1,4 @@
+import { mountPlacementGuidance } from './placement-guidance.js';
 import {
   getMyProgress,
   getMyStreak,
@@ -5,6 +6,7 @@ import {
 } from './api.js';
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
+import { t, tn } from './i18n.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 
@@ -23,15 +25,16 @@ function message(target, title, detail, retry) {
   const heading = el('strong', undefined, title);
   target.append(heading);
   if (detail) target.append(el('p', 'dashboard-muted', detail));
-  if (retry) target.append(button('Try again', retry));
+  if (retry) target.append(button(t('common.tryAgain'), retry));
 }
 
 function setProfile(user) {
-  const name = (user.displayName || 'Learner').trim();
+  const name = (user.displayName || '').trim();
   setWorkspaceUser(user);
-  $('dashboard-level').textContent = `Level ${user.level} · ${user.xp} XP`;
-  $('welcome-message').textContent =
-    `Good to see you, ${name}. Make a little progress today and keep your momentum going.`;
+  $('welcome-title').textContent = name ? t('dashboard.greeting', { name }) : t('dashboard.heading');
+  const level = $('dashboard-level');
+  level.textContent = t('dashboard.xp', { xp: user.xp });
+  level.hidden = false;
 }
 
 function animateFill(node, property, value) {
@@ -67,7 +70,7 @@ function renderProgress(progressResult, streakResult, wordsResult) {
   const ring = el('div', 'progress-ring');
   if (percent !== null) {
     ring.setAttribute('role', 'progressbar');
-    ring.setAttribute('aria-label', 'Published lessons completed');
+    ring.setAttribute('aria-label', t('dashboard.ringLabel'));
     ring.setAttribute('aria-valuemin', '0');
     ring.setAttribute('aria-valuemax', '100');
     ring.setAttribute('aria-valuenow', String(percent));
@@ -75,7 +78,7 @@ function renderProgress(progressResult, streakResult, wordsResult) {
     ring.setAttribute('role', 'img');
     ring.setAttribute(
       'aria-label',
-      progress ? 'No published lessons to measure' : 'Progress unavailable',
+      progress ? t('dashboard.noPublished') : t('dashboard.unavailable'),
     );
   }
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -92,7 +95,7 @@ function renderProgress(progressResult, streakResult, wordsResult) {
   const center = el('div', 'ring-center');
   center.append(
     el('strong', undefined, percent === null ? '—' : `${percent}%`),
-    el('span', undefined, 'completed'),
+    el('span', undefined, t('dashboard.completedWord')),
   );
   ring.append(svg, center);
   target.append(
@@ -101,10 +104,10 @@ function renderProgress(progressResult, streakResult, wordsResult) {
       'p',
       'ring-description',
       total
-        ? `${completed} of ${total} published lessons completed`
+        ? t('dashboard.lessonsOfTotal', { done: completed, total })
         : progress
-          ? 'No published lessons yet'
-          : 'Progress unavailable',
+          ? t('dashboard.noPublishedYet')
+          : t('dashboard.unavailable'),
     ),
   );
   if (percent !== null)
@@ -116,29 +119,24 @@ function renderProgress(progressResult, streakResult, wordsResult) {
 
   const stats = el('div', 'metrics');
   stats.append(
-    metric('Completed lessons', progress ? progress.lessonsCompleted : '—'),
+    metric(t('dashboard.mLessons'), progress ? progress.lessonsCompleted : '—'),
     metric(
-      'Words learned',
+      t('dashboard.mWords'),
       wordsResult.status === 'fulfilled' ? wordsResult.value.wordsLearned : '—',
-      wordsResult.status === 'rejected' ? 'Unavailable' : '',
+      wordsResult.status === 'rejected' ? t('dashboard.unavailable') : '',
     ),
     metric(
-      'Current streak',
-      streakResult.status === 'fulfilled' ? `${streakResult.value.current} days` : '—',
-      streakResult.status === 'rejected' ? 'Unavailable' : '',
+      t('dashboard.mStreak'),
+      streakResult.status === 'fulfilled' ? tn('dashboard.days', streakResult.value.current) : '—',
+      streakResult.status === 'rejected' ? t('dashboard.unavailable') : '',
     ),
-    metric(
-      'Total study time',
-      progress ? `${progress.studyMinutes} min` : '—',
-      'Estimated lesson time',
-    ),
-    metric('XP earned', progress ? progress.xp : '—'),
+    metric(t('dashboard.mXp'), progress ? progress.xp : '—'),
   );
   target.append(stats);
-  if (!progress) target.append(button('Retry progress', loadDashboardData));
+  if (!progress) target.append(button(t('dashboard.retryProgress'), loadDashboardData));
   if (streakResult.status === 'rejected' || wordsResult.status === 'rejected') {
-    target.append(el('p', 'dashboard-muted metric-error', 'Some metrics could not be loaded.'));
-    target.append(button('Retry metrics', loadDashboardData));
+    target.append(el('p', 'dashboard-muted metric-error', t('dashboard.someFailed')));
+    target.append(button(t('dashboard.retryMetrics'), loadDashboardData));
   }
 }
 
@@ -161,7 +159,7 @@ function renderCurrentCourse(progressResult) {
   if (progressResult.status === 'rejected') {
     message(
       target,
-      'Could not load your course.',
+      t('dashboard.courseLoadFailed'),
       describeApiError(progressResult.reason),
       loadDashboardData,
     );
@@ -169,8 +167,8 @@ function renderCurrentCourse(progressResult) {
   }
   const current = chooseCurrentCourse(progressResult.value.courses || []);
   if (!current) {
-    message(target, 'No course started yet.', 'Choose a course and open a lesson to begin.');
-    const link = el('a', 'dashboard-cta dashboard-cta-small', 'Browse courses');
+    message(target, t('dashboard.noCourse'), t('dashboard.noCourseHint'));
+    const link = el('a', 'dashboard-cta dashboard-cta-small', t('dashboard.browse'));
     link.href = '/courses.html';
     target.append(link);
     return;
@@ -184,7 +182,7 @@ function renderCurrentCourse(progressResult) {
   head.append(details, el('strong', 'course-percent', `${percent}%`));
   const track = el('div', 'dashboard-progress-track');
   track.setAttribute('role', 'progressbar');
-  track.setAttribute('aria-label', `${current.title} completed lessons`);
+  track.setAttribute('aria-label', t('dashboard.courseProgressLabel', { title: current.title }));
   track.setAttribute('aria-valuemin', '0');
   track.setAttribute('aria-valuemax', '100');
   track.setAttribute('aria-valuenow', String(percent));
@@ -195,25 +193,24 @@ function renderCurrentCourse(progressResult) {
     el(
       'span',
       'dashboard-muted',
-      `${current.lessonsCompleted} of ${current.lessonsTotal} lessons completed`,
+      t('dashboard.lessonsOfTotal', { done: current.lessonsCompleted, total: current.lessonsTotal }),
     ),
   );
   const action = el(
     'a',
     'dashboard-cta dashboard-cta-small',
-    percent === 100 ? 'Review course' : 'Continue course',
+    percent === 100 ? t('catalog.reviewCourse') : t('catalog.continueCourse'),
   );
   action.href = `/course.html?slug=${encodeURIComponent(current.slug)}`;
   foot.append(action);
   target.append(head, track, foot);
   animateFill(fill, 'width', `${percent}%`);
-  $('sidebar-course-link').href = action.href;
 }
 
 async function loadDashboardData() {
   const target = $('progress-body');
-  message(target, 'Loading progress…');
-  message($('current-course-body'), 'Loading course…');
+  message(target, t('common.loading'));
+  message($('current-course-body'), t('common.loading'));
   const [progress, streak, words] = await Promise.allSettled([
     getMyProgress(),
     getMyStreak(),
@@ -238,7 +235,7 @@ async function main() {
     $('session-error').hidden = true;
     setProfile(user);
     $('dashboard-content').hidden = false;
-    await loadDashboardData();
+    await Promise.all([loadDashboardData(), mountPlacementGuidance($('placement-guidance'), user)]);
   } catch (error) {
     $('session-error-text').textContent = describeApiError(error);
     $('session-error').hidden = false;

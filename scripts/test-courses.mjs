@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { i18nStub } from './i18n-stub.mjs';
 
 class Node {
   constructor(tag = 'div', text) {
@@ -159,6 +160,8 @@ async function page(name, options = {}) {
       setWorkspaceUser() {},
     },
     'errors.js': { describeApiError: (error) => error.message ?? 'Service unavailable' },
+    'i18n.js': i18nStub,
+    'placement-api.js': { listPlacements: async () => [], getPlacement: async () => { throw new Error('unused'); } },
   };
   async function module(file) {
     if (modules.has(file)) return modules.get(file);
@@ -351,6 +354,7 @@ async function lessonPage(search = '?slug=first') {
       getLessonVocabulary: async () => { vocabularyReads++; return [{ word: 'hello', translation: 'привіт' }]; },
     },
     'errors.js': { describeApiError: (error) => error.message },
+    'i18n.js': i18nStub,
     'session.js': { requireSession: async () => ({ displayName: 'Learner' }) },
     'workspace.js': { mountWorkspace() {}, setWorkspaceUser() {}, setWorkspaceAIContext() {} },
     'letter-tiles.js': { letterTiles() { throw new Error('Not used by this fixture'); } },
@@ -420,11 +424,10 @@ test('lesson valid links, click/keyboard navigation and template actions use the
   assert.match(linked.get('panel-vocabulary').textContent, /hello/);
 });
 
-test('Dashboard Quick access keeps existing links and adds vocabulary practice without a Course duplicate', async () => {
+test('Dashboard shows continue-learning, next-step and progress sections without duplicate navigation cards', async () => {
   const html = await readFile(new URL('../frontend/dashboard.html', import.meta.url), 'utf8');
-  const quick = html.split('<div class="quick-grid">')[1].split('</section>')[0];
-  assert.deepEqual([...quick.matchAll(/<strong>([^<]+)<\/strong\s*>/g)].map((match) => match[1]), ['Lessons', 'Progress', 'Leaderboard', 'My Words', 'Practice']);
-  assert.deepEqual([...quick.matchAll(/href="([^"]+)"/g)].map((match) => match[1]).filter((href) => !href.startsWith('#icon')), ['/courses.html', '#your-progress', '/leaderboard.html', '/vocabulary.html', '/vocabulary.html?mode=flashcards']);
-  assert.match(html, /id="your-progress"/);
-  assert.doesNotMatch(html, /quick-course-link/);
+  for (const id of ['current-course-body', 'placement-guidance', 'progress-body', 'your-progress']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.doesNotMatch(html, /quick-grid|quick-card|welcome-card|quick-course-link/);
 });

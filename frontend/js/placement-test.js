@@ -1,4 +1,5 @@
-import { el } from './layout.js';
+import { el, mountHeader } from './layout.js';
+import { getLang, t } from './i18n.js';
 import { requireSession } from './session.js';
 import { describeApiError } from './errors.js';
 import { completePlacement, getPlacement, listPlacements, savePlacementAnswer, startPlacement } from './placement-api.js';
@@ -6,6 +7,7 @@ import { completePlacement, getPlacement, listPlacements, savePlacementAnswer, s
 const $ = (id) => document.getElementById(id);
 let attempt = null, index = 0, busy = false, ready = false, historyBusy = false, historyOffset = 0;
 let retryAction = main;
+mountHeader('');
 
 function status(text) { $('placement-status').textContent = text; }
 function showError(error, retry) {
@@ -34,8 +36,8 @@ function adopt(value) {
 }
 function renderQuestion(focus = false) {
   const question = attempt.questions[index];
-  $('placement-count').textContent = `Question ${index + 1} of ${attempt.total}`;
-  $('placement-saved').textContent = `${attempt.answered} of ${attempt.total} answers saved`;
+  $('placement-count').textContent = t('pt.questionOf', { n: index + 1, total: attempt.total });
+  $('placement-saved').textContent = t('pt.savedCount', { done: attempt.answered, total: attempt.total });
   $('placement-progress').max = attempt.total;
   $('placement-progress').value = attempt.answered;
   const field = el('fieldset');
@@ -47,14 +49,14 @@ function renderQuestion(focus = false) {
     radio.value = option.id; radio.checked = attempt.answers[question.id] === option.id;
     radio.addEventListener('change', async () => {
       if (busy) return;
-      busy = true; controls(); status('Saving your answer…');
+      busy = true; controls(); status(t('pt.saving'));
       try {
         const saved = await savePlacementAnswer(attempt.id, question.id, option.id);
-        adopt(saved); status('Answer saved. You can change it before finishing.');
+        adopt(saved); status(t('pt.saved'));
       } catch (error) {
         renderQuestion();
         showError(error, () => openAttempt(attempt.id));
-        status('Could not confirm the save. Reload this attempt before continuing.');
+        status(t('pt.saveFailed'));
       } finally { busy = false; controls(); $('placement-question').querySelector('input:checked')?.focus(); }
     });
     label.append(radio, el('span', undefined, option.text)); field.append(label);
@@ -64,36 +66,36 @@ function renderQuestion(focus = false) {
 }
 function renderResult() {
   const target = $('placement-result'), result = attempt.result;
-  target.replaceChildren(el('h2', undefined, result.label), el('p', undefined, `${result.correct} / ${result.total} correct · assessment range ${result.assessmentRange} · limited reliability`));
+  target.replaceChildren(el('h2', undefined, result.label), el('p', undefined, t('pt.score', { correct: result.correct, total: result.total, range: result.assessmentRange })));
   const limitations = el('ul');
   for (const text of result.limitations) limitations.append(el('li', undefined, text));
   target.append(limitations);
   const bands = el('ul', 'placement-band-list');
-  for (const band of result.bands) bands.append(el('li', undefined, `${band.level}: ${band.correct}/${band.total}${['C1', 'C2'].includes(band.level) ? ' · exploratory' : ''}`));
-  target.append(bands, el('h3', undefined, 'Suggested courses'), el('p', 'muted', attempt.recommendationNote));
+  for (const band of result.bands) bands.append(el('li', undefined, `${band.level}: ${band.correct}/${band.total}${['C1', 'C2'].includes(band.level) ? t('pt.exploratory') : ''}`));
+  target.append(bands, el('h3', undefined, t('pt.suggested')), el('p', 'muted', attempt.recommendationNote));
   const courses = el('ul');
   for (const course of attempt.recommendedCourses) {
-    const link = el('a', 'btn btn-primary', `Start ${course.title} · ${course.level}`);
+    const link = el('a', 'btn btn-primary', t('pt.startCourse', { title: course.title, level: course.level }));
     link.href = `/course.html?slug=${encodeURIComponent(course.slug)}`;
     const item = el('li'); item.append(link); courses.append(item);
   }
-  const dashboard = el('a', 'btn btn-secondary', 'Back to Dashboard');
+  const dashboard = el('a', 'btn btn-secondary', t('pt.toDashboard'));
   dashboard.href = '/dashboard.html';
-  target.append(courses, dashboard, el('h3', undefined, 'Answer review'));
+  target.append(courses, dashboard, el('h3', undefined, t('pt.review')));
   for (const review of result.review) {
     const question = attempt.questions.find((item) => item.id === review.questionId);
     const details = el('details', 'placement-review');
-    details.append(el('summary', undefined, `${review.isCorrect ? 'Correct' : 'Review'} · ${question.prompt}`));
+    details.append(el('summary', undefined, `${review.isCorrect ? t('pt.correct') : t('pt.toReview')} · ${question.prompt}`));
     const selected = question.options.find((option) => option.id === review.selectedOptionId);
     const correct = question.options.find((option) => option.id === review.correctOptionId);
-    details.append(el('p', undefined, `Your answer: ${selected.text}`), el('p', undefined, `Correct answer: ${correct.text}`), el('p', 'muted', review.explanation));
+    details.append(el('p', undefined, t('pt.yourAnswer', { text: selected.text })), el('p', undefined, t('pt.correctAnswer', { text: correct.text })), el('p', 'muted', review.explanation));
     target.append(details);
   }
 }
 async function openAttempt(id) {
   if (busy) return;
-  busy = true; controls(); status('Loading your attempt…');
-  try { index = 0; adopt(await getPlacement(id)); status('Attempt loaded.'); }
+  busy = true; controls(); status(t('pt.loadingAttempt'));
+  try { index = 0; adopt(await getPlacement(id)); status(t('pt.loaded')); }
   catch (error) { showError(error, () => openAttempt(id)); status(''); }
   finally { busy = false; controls(); }
 }
@@ -102,35 +104,35 @@ async function loadHistory(reset = true) {
   historyBusy = true; $('placement-history-refresh').disabled = true;
   $('placement-history-more').disabled = true;
   if (reset) { historyOffset = 0; $('placement-history-list').replaceChildren(); }
-  $('placement-history-status').textContent = 'Loading attempts…';
+  $('placement-history-status').textContent = t('pt.loadingAttempts');
   try {
     const rows = await listPlacements(historyOffset);
     for (const row of rows) {
       const item = el('li');
-      const label = row.status === 'completed' ? `View result · ${row.resultLabel || row.estimatedLevel || 'See result'}` : `Resume · ${row.answered}/${row.total} saved`;
-      const button = el('button', 'btn btn-secondary', `${new Date(row.startedAt).toLocaleString()} · ${label}`);
+      const label = row.status === 'completed' ? t('pt.viewResult', { label: row.resultLabel || row.estimatedLevel || '' }) : t('pt.resume', { done: row.answered, total: row.total });
+      const button = el('button', 'btn btn-secondary', `${new Date(row.startedAt).toLocaleString(getLang())} · ${label}`);
       button.type = 'button'; button.addEventListener('click', () => openAttempt(row.id)); item.append(button);
       $('placement-history-list').append(item);
     }
     historyOffset += rows.length;
     $('placement-history-more').hidden = rows.length < 20;
-    $('placement-history-status').textContent = historyOffset ? '' : 'No attempts yet. Start whenever you are ready.';
+    $('placement-history-status').textContent = historyOffset ? '' : t('pt.noAttempts');
   } catch (error) { $('placement-history-status').textContent = describeApiError(error); }
   finally { historyBusy = false; $('placement-history-refresh').disabled = false; $('placement-history-more').disabled = false; }
 }
 $('placement-start').addEventListener('click', async () => {
   if (busy || !ready) return;
-  busy = true; controls(); status('Starting a new attempt…');
-  try { index = 0; adopt(await startPlacement()); status('Choose one answer. Your choices are saved without revealing correctness.'); await loadHistory(); }
-  catch (error) { showError(error, () => loadHistory()); status('If the response was lost, refresh history to find the new attempt.'); }
+  busy = true; controls(); status(t('pt.starting'));
+  try { index = 0; adopt(await startPlacement()); status(t('pt.chooseOne')); await loadHistory(); }
+  catch (error) { showError(error, () => loadHistory()); status(t('pt.startLost')); }
   finally { busy = false; controls(); }
 });
 $('placement-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   if (busy || !attempt || attempt.answered !== attempt.total) return;
-  busy = true; controls(); status('Checking your answers…');
-  try { adopt(await completePlacement(attempt.id)); status('Result saved. Your learning progress and profile were not changed.'); await loadHistory(); }
-  catch (error) { showError(error, () => openAttempt(attempt.id)); status('Could not confirm completion. Reload this attempt before retrying.'); }
+  busy = true; controls(); status(t('pt.checkingAnswers'));
+  try { adopt(await completePlacement(attempt.id)); status(t('pt.resultSaved')); await loadHistory(); }
+  catch (error) { showError(error, () => openAttempt(attempt.id)); status(t('pt.finishFailed')); }
   finally { busy = false; controls(); }
 });
 $('placement-previous').addEventListener('click', () => { if (!busy && index > 0) { index--; renderQuestion(true); } });
@@ -147,7 +149,7 @@ async function main() {
   try {
     const user = await requireSession({ throwOnUnavailable: true });
     if (!user) return;
-    ready = true; $('placement-error').hidden = true; controls(); status('Ready when you are.');
+    ready = true; $('placement-error').hidden = true; controls(); status(t('pt.ready'));
     await loadHistory();
     const id = new URLSearchParams(location.search).get('attempt');
     if (id) await openAttempt(id);
