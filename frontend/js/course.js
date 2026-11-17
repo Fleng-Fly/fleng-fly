@@ -1,4 +1,5 @@
-import { getCourse, getLessonProgress, getMyProgress } from './api.js';
+import { getCourse, getLessonProgress, getMyProgress, listCourses } from './api.js';
+import { t } from './i18n.js';
 import { catalogMessage, courseProgress } from './catalog-ui.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
@@ -14,23 +15,23 @@ function lessonItem(lesson, progress, index) {
   const started = Boolean(progress.startedAt);
   const item = el('li', `catalog-panel catalog-lesson${complete ? ' is-complete' : ''}`);
   const number = el('span', 'catalog-lesson-number', String(index + 1).padStart(2, '0'));
-  number.setAttribute('aria-label', `Lesson ${index + 1}`);
+  number.setAttribute('aria-label', t('catalog.lessonN', { n: index + 1 }));
   const copy = el('div', 'catalog-lesson-copy');
   copy.append(el('h3', undefined, lesson.title), el('p', 'catalog-description', lesson.summary));
   const meta = el('div', 'catalog-lesson-meta');
   meta.append(
-    el('span', undefined, `${lesson.estimatedMinutes} min`),
+    el('span', undefined, t('catalog.minutes', { n: lesson.estimatedMinutes })),
     el(
       'span',
       `catalog-status${complete ? ' is-complete' : started ? ' is-started' : ''}`,
-      complete ? 'Completed' : started ? 'In Progress' : 'Not Started',
+      complete ? t('catalog.completed') : started ? t('catalog.inProgress') : t('catalog.notStarted'),
     ),
   );
   copy.append(meta);
   const link = el(
     'a',
     `catalog-button${started && !complete ? '' : ' is-secondary'}`,
-    complete ? 'Review Lesson' : started ? 'Continue Lesson' : 'Start Lesson',
+    complete ? t('catalog.reviewLesson') : started ? t('catalog.continueLesson') : t('catalog.startLesson'),
   );
   link.href = `/lesson.html?slug=${encodeURIComponent(lesson.slug)}`;
   link.setAttribute('aria-label', `${link.textContent}: ${lesson.title}`);
@@ -38,10 +39,25 @@ function lessonItem(lesson, progress, index) {
   return item;
 }
 
-function renderCourse(course, current, lessonsProgress) {
+function nextCourseBanner(next) {
+  const box = el('aside', 'catalog-panel catalog-next');
+  box.setAttribute('aria-label', t('catalog.nextCourse'));
+  box.append(el('h2', undefined, t('catalog.courseDone')));
+  if (next) {
+    box.append(el('p', 'catalog-description', t('catalog.nextCourseText', { title: next.title, level: next.level })));
+    const link = el('a', 'catalog-button', t('catalog.startNext'));
+    link.href = `/course.html?slug=${encodeURIComponent(next.slug)}`;
+    box.append(link);
+  } else {
+    box.append(el('p', 'catalog-description', t('catalog.allDone')));
+  }
+  return box;
+}
+
+function renderCourse(course, current, lessonsProgress, next, finished) {
   const breadcrumb = el('nav', 'breadcrumb catalog-breadcrumb');
-  breadcrumb.setAttribute('aria-label', 'Breadcrumb');
-  const back = el('a', undefined, 'Courses');
+  breadcrumb.setAttribute('aria-label', t('catalog.breadcrumb'));
+  const back = el('a', undefined, t('nav.courses'));
   back.href = '/courses.html';
   const title = el('span', undefined, course.title);
   title.setAttribute('aria-current', 'page');
@@ -56,10 +72,10 @@ function renderCourse(course, current, lessonsProgress) {
     courseProgress(current),
   );
   const section = el('section', 'catalog-lessons');
-  section.append(el('h2', undefined, 'Lessons'));
+  section.append(el('h2', undefined, t('catalog.lessons')));
   if (!course.lessons.length) {
     const empty = el('div');
-    catalogMessage(empty, 'No lessons yet', 'No lessons have been published for this course yet.');
+    catalogMessage(empty, t('catalog.noLessons'), t('catalog.noLessonsText'));
     section.append(empty);
   } else {
     const list = el('ol', 'catalog-lesson-list');
@@ -68,7 +84,7 @@ function renderCourse(course, current, lessonsProgress) {
     );
     section.append(list);
   }
-  container.replaceChildren(breadcrumb, hero, section);
+  container.replaceChildren(breadcrumb, hero, ...(finished ? [nextCourseBanner(next)] : []), section);
   document.title = `${course.title} — Fleng`;
 }
 
@@ -76,7 +92,7 @@ async function load() {
   if (loading) return;
   loading = true;
   container.setAttribute('aria-busy', 'true');
-  catalogMessage(container, 'Loading course…', 'Getting your latest learning progress.');
+  catalogMessage(container, t('catalog.loadingCourse'), t('catalog.loadingProgress'));
   try {
     if (!sessionReady) {
       const user = await requireSession({ throwOnUnavailable: true });
@@ -86,16 +102,25 @@ async function load() {
     }
     const slug = queryParam('slug');
     if (!slug) {
-      catalogMessage(container, 'Course not specified', 'Pick a course from the catalog.');
+      catalogMessage(container, t('catalog.noSlug'), t('catalog.noSlugText'));
       return;
     }
     const [course, progress] = await Promise.all([getCourse(slug), getMyProgress()]);
     const current = progress.courses.find((item) => item.courseId === course.id);
-    if (!current) throw new Error('Course progress is unavailable. Please try again.');
+    if (!current) throw new Error(t('catalog.progressMissing'));
     const lessonsProgress = await Promise.all(
       course.lessons.map((lesson) => getLessonProgress(lesson.slug)),
     );
-    renderCourse(course, current, lessonsProgress);
+    const finished = current.lessonsTotal > 0 && current.lessonsCompleted >= current.lessonsTotal;
+    let next = null;
+    if (finished) {
+      try {
+        const all = await listCourses();
+        const position = all.findIndex((item) => item.slug === course.slug);
+        next = position >= 0 ? all[position + 1] || null : null;
+      } catch { /* The banner still congratulates; it just offers no next course. */ }
+    }
+    renderCourse(course, current, lessonsProgress, next, finished);
   } catch (error) {
     if (error.status === 401) {
       window.location.replace('/login.html');
@@ -104,12 +129,12 @@ async function load() {
     if (error.status === 404) {
       catalogMessage(
         container,
-        'Course not found',
-        'This course or one of its lessons is no longer available.',
+        t('catalog.notFound'),
+        t('catalog.notFoundText'),
         load,
       );
     } else {
-      catalogMessage(container, 'Could not load this course', describeApiError(error), load);
+      catalogMessage(container, t('catalog.loadFailed'), describeApiError(error), load);
     }
   } finally {
     loading = false;

@@ -339,3 +339,36 @@
     transform: none;
   }
 }
+.courses-page .catalog-level-name {
+  margin-right: auto;
+  color: var(--dash-muted);
+  font-size: 0.78rem;
+}
+.courses-page .catalog-status.is-recommended {
+  border: 1px solid rgba(191, 64, 250, 0.45);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  background: rgba(191, 64, 250, 0.16);
+  color: var(--dash-lilac);
+  font-weight: 600;
+}
+.courses-page .catalog-recommendation,
+.courses-page .catalog-next {
+  margin: 0 0 1.25rem;
+  border: 1px solid rgba(191, 64, 250, 0.35);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(191, 64, 250, 0.08);
+}
+.courses-page .catalog-next h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.15rem;
+}
+.courses-page .catalog-next .catalog-button {
+  margin-top: 0.75rem;
+}
+.courses-page .catalog-button:focus-visible,
+.courses-page .catalog-filters button:focus-visible {
+  outline: 2px solid var(--dash-lilac);
+  outline-offset: 2px;
+}
