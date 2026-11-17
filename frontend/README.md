@@ -27,7 +27,7 @@ frontend/
     ├── api.js          # fetch wrapper, in-memory access token, refresh-on-401
     ├── errors.js       # user-facing error messages
     ├── session.js      # loadSession / requireSession guard
-    ├── layout.js       # shared header, backend-status badge, DOM helpers
+    ├── layout.js       # shared header and DOM helpers
     ├── home.js
     ├── login.js
     ├── register.js

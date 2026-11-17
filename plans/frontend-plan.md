@@ -138,3 +138,11 @@ activation, physical mobile keyboards and missing screenshot comparison remain
 unverified. Self-review covered DOM-only rendering/URL policy, request races,
 existing practice/stream lifecycle and scoped styles. Details:
 `docs/words-ai-interface.md`. No commit/push.
+
+## UX development sprint
+
+- [x] Remove Our Team assets/navigation and obsolete journey coverage.
+- [x] Clarify public landing, registration CTA and remove operational status UI.
+- [ ] Existing Placement onboarding and Dashboard recommendations.
+- [ ] Exercise guidance, feedback and navigation.
+- [ ] EN/UK shared localization and mobile/accessibility polish.

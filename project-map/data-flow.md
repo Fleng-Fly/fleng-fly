@@ -3,19 +3,11 @@
 > Status: M2/M3 implemented. Details: `docs/architecture.md §5`, `docs/api.md`,
 > `docs/database.md`.
 
-## Flow 1 — Frontend loads backend status (implemented)
+## Flow 1 — Public entry
 
-```
-Browser loads index.html → js/home.js
-  → mountBackendStatus() → getHealth() → apiFetch('/health')
-  → GET /api/v1/health  (same origin as the page)
-  → FastAPI router → get_health(db) → `SELECT 1` in try/except
-  → 200 { status, service, timestamp, database: up|down }
-  → badge shows "Backend ● Online · db up|down" or "● Offline" on error
-```
-
-Refetches every 15s. When the backend is unreachable, the client throws
-`ApiError(status 0, NETWORK_ERROR)` and the UI shows Offline — it never crashes.
+`index.html` explains lessons, words and progress. Registration is the primary
+action; login is secondary. `home.js` mounts the shared header. Health endpoints
+remain available to operational tooling; public pages do not poll or display them.
 
 ## Flow 2 — Authentication & session (implemented)
 

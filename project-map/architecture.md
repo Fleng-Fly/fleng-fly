@@ -54,7 +54,7 @@ frontend/ (no build step)
       js/api.js       — fetch wrapper, in-memory access token, 401 refresh
       js/errors.js    — user-facing error messages
       js/session.js   — loadSession / requireSession
-      js/layout.js    — shared header, backend-status badge, DOM helper
+      js/layout.js    — shared header and DOM helper
       js/{home,login,register,dashboard,settings}.js
 ```
 

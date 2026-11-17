@@ -1,4 +1,4 @@
-import { getCurrentUser, getHealth, logout as logoutRequest, setAccessToken } from './api.js';
+import { getCurrentUser, logout as logoutRequest, setAccessToken } from './api.js';
 
 /** Small DOM helper: create an element with text content (never innerHTML). */
 export function el(tag, className, text) {
@@ -104,23 +104,3 @@ export async function mountHeader(active = '', user) {
   return current;
 }
 
-/** Render the live backend status badge from GET /api/v1/health. */
-export function mountBackendStatus(containerId = 'backend-status') {
-  const target = document.getElementById(containerId);
-  if (!target) return;
-
-  const check = async () => {
-    target.textContent = '';
-    target.append(el('span', 'muted text-sm', 'Backend'));
-    try {
-      const health = await getHealth();
-      const badge = el('span', 'badge badge-success', `● Online · db ${health.database}`);
-      target.append(badge);
-    } catch {
-      target.append(el('span', 'badge badge-danger', '● Offline'));
-    }
-  };
-
-  check();
-  window.setInterval(check, 15000);
-}
