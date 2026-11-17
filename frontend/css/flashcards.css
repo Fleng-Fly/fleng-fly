@@ -254,6 +254,78 @@
   border: 1px dashed #f0d9ff14;
 }
 
+/* My Words scene --------------------------------------------------------
+   The My Words tab gets its own backdrop: a violet horizon with a receding
+   grid floor. The base scene stays as the default for other deck tabs. */
+.flashcards-stage.is-my-words {
+  background:
+    radial-gradient(72% 58% at 50% 112%, #4a1d78 0%, #1e1038 44%, transparent 74%),
+    radial-gradient(52% 44% at 6% 2%, #251249 0%, transparent 64%),
+    radial-gradient(48% 38% at 98% 8%, #331745 0%, transparent 62%),
+    linear-gradient(180deg, #0b0615 0%, #08040f 100%);
+}
+.flashcards-stage.is-my-words::before {
+  inset: auto -55% -3rem;
+  height: 78%;
+  background-image:
+    linear-gradient(#c084fc30 1px, transparent 1px),
+    linear-gradient(90deg, #c084fc30 1px, transparent 1px);
+  background-size: 3.2rem 2.4rem;
+  transform: perspective(30rem) rotateX(64deg);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 88%);
+  mask-image: linear-gradient(to top, #000 10%, transparent 88%);
+}
+.flashcards-stage.is-my-words::after {
+  left: 10%;
+  right: 10%;
+  bottom: 26%;
+  width: auto;
+  height: 1px;
+  transform: none;
+  background: linear-gradient(90deg, transparent, #d8b4fe7a, transparent);
+  box-shadow: 0 0 3.2rem 1rem #a855f733;
+  filter: none;
+}
+.flashcards-stage.is-my-words .flashcards-aurora {
+  inset: -18% -8%;
+  opacity: 0.6;
+  filter: blur(56px);
+}
+.flashcards-stage.is-my-words .flashcards-aurora::before,
+.flashcards-stage.is-my-words .flashcards-aurora::after {
+  width: 30rem;
+  height: 24rem;
+  border-radius: 46%;
+}
+.flashcards-stage.is-my-words .flashcards-aurora::before {
+  top: 8%;
+  left: -4%;
+  background: radial-gradient(closest-side, #7c3aed 0%, transparent 72%);
+}
+.flashcards-stage.is-my-words .flashcards-aurora::after {
+  top: 34%;
+  right: -6%;
+  bottom: auto;
+  background: radial-gradient(closest-side, #2563eb 0%, transparent 72%);
+}
+.flashcards-stage.is-my-words .flashcards-stars {
+  background-image:
+    radial-gradient(1.4px 1.4px at 6% 12%, #e9d5ffd9, transparent),
+    radial-gradient(1px 1px at 18% 52%, #c4b5fd99, transparent),
+    radial-gradient(2px 2px at 34% 6%, #ffffffb8, transparent),
+    radial-gradient(1px 1px at 49% 32%, #ddd6feaa, transparent),
+    radial-gradient(1.4px 1.4px at 63% 12%, #ffffffa6, transparent),
+    radial-gradient(1px 1px at 72% 61%, #c4b5fd8f, transparent),
+    radial-gradient(1px 1px at 86% 22%, #e9d5ff80, transparent),
+    radial-gradient(1.6px 1.6px at 92% 74%, #ffffff99, transparent),
+    radial-gradient(1px 1px at 41% 82%, #c4b5fd80, transparent);
+  animation-duration: 7.5s;
+}
+.flashcards-stage.is-my-words .flashcards-orbit {
+  display: none;
+}
+
 /* Card ----------------------------------------------------------------- */
 .flashcards-card-wrap {
   position: relative;
@@ -520,6 +592,18 @@
     min-height: 28rem;
     padding: 2rem 1rem;
     border-radius: 1.5rem;
+  }
+  .flashcards-stage.is-my-words::before {
+    height: 70%;
+    background-size: 2.4rem 1.8rem;
+  }
+  .flashcards-stage.is-my-words::after {
+    bottom: 22%;
+  }
+  .flashcards-stage.is-my-words .flashcards-aurora::before,
+  .flashcards-stage.is-my-words .flashcards-aurora::after {
+    width: 20rem;
+    height: 16rem;
   }
   .flashcards-aurora::before,
   .flashcards-aurora::after {

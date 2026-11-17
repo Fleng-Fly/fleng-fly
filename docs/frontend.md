@@ -220,8 +220,10 @@ and Correct schedules 7 days. The intervals are not shown on the buttons.
 Finishing calls `POST /flashcards/sessions/{id}/complete` and shows a local tally
 summary. Empty decks, load errors and failed ratings use the shared error helper.
 Keyboard: Space flips, 1-2 answer once revealed; focus returns to the card on
-advance. The stage scene (aurora, stars, orbit, floor glow) lives in
-`css/flashcards.css` and is scoped to this page. There is no sidebar entry yet,
+advance. The stage scene (violet horizon, receding grid floor, aurora orbs
+and starfield) lives in `css/flashcards.css` and is scoped to the My Words tab
+by `.flashcards-stage.is-my-words`; other deck tabs fall back to the base scene.
+There is no sidebar entry yet,
 so the screen is reached by URL until a Vocabulary navigation item ships. A test
 grader for `test-words` is still out of scope.
 

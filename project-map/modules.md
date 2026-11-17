@@ -207,8 +207,9 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
 - `js/api.js` gains `createFlashcardSession`, `completeFlashcardSession` and
   `reviewVocabularyItem`; `workspace.mountWorkspace('flashcards')` leaves the
   sidebar without a false Dashboard highlight. No navigation change.
-- The stage scene (aurora, stars, orbit, floor glow) is page-scoped CSS; the
-  surrounding app background is untouched.
+- The My Words stage uses its own scene (violet horizon, perspective grid
+  floor, aurora orbs, starfield) via `.flashcards-stage.is-my-words`; the base
+  stage scene remains the fallback for future deck tabs.
 
 ## Course surfaces — 2026-11-04
 
