@@ -41,3 +41,75 @@ test('every key referenced from HTML and JS exists in the dictionaries', async (
   }
   assert.deepEqual(missing, []);
 });
+
+// Run the real i18n.js against a minimal browser stand-in.
+async function loadI18n({ stored = null, languages = ['en-US'], updateCurrentUser = async () => ({}) } = {}) {
+  const { default: vm } = await import('node:vm');
+  const storage = new Map(stored ? [['fleng.lang', stored]] : []);
+  const classes = new Set(['i18n-pending']);
+  const events = [];
+  const documentElement = { lang: '', classList: { remove: (c) => classes.delete(c), add: (c) => classes.add(c) } };
+  const context = vm.createContext({
+    window: {
+      localStorage: { getItem: (k) => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, v), removeItem: (k) => storage.delete(k) },
+      addEventListener() {}, dispatchEvent: (e) => events.push(e),
+    },
+    document: { documentElement, querySelectorAll: () => [] },
+    navigator: { languages }, CustomEvent: class { constructor(type, init) { this.type = type; this.detail = init?.detail; } },
+    Intl,
+  });
+  const source = await readFile('frontend/js/i18n.js', 'utf8');
+  const module = new vm.SourceTextModule(source, { context });
+  await module.link(async (specifier) => {
+    const values = specifier.endsWith('en.js') ? { default: en } : specifier.endsWith('uk.js') ? { default: uk } : { updateCurrentUser };
+    return new vm.SyntheticModule(Object.keys(values), function () { for (const [k, v] of Object.entries(values)) this.setExport(k, v); }, { context });
+  });
+  await module.evaluate();
+  return { api: module.namespace, storage, documentElement, classes, events };
+}
+
+test('language detection: stored choice > browser language > English', async () => {
+  assert.equal((await loadI18n({ languages: ['uk-UA'] })).api.getLang(), 'uk');
+  assert.equal((await loadI18n({ languages: ['de-DE'] })).api.getLang(), 'en');
+  assert.equal((await loadI18n({ stored: 'en', languages: ['uk'] })).api.getLang(), 'en');
+});
+
+test('t() falls back to English then to the key; params are interpolated as plain text', async () => {
+  const { api } = await loadI18n({ languages: ['uk'] });
+  assert.equal(api.t('auth.login'), uk['auth.login']);
+  assert.equal(api.t('no.such.key'), 'no.such.key');
+  assert.equal(api.t('dashboard.greeting', { name: '<b>Ann</b>' }), uk['dashboard.greeting'].replace('{name}', '<b>Ann</b>'));
+});
+
+test('Ukrainian plural forms follow CLDR (1 / 2-4 / 5+)', async () => {
+  const { api } = await loadI18n({ languages: ['uk'] });
+  assert.equal(api.tn('catalog.lessonCount', 1), '1 урок');
+  assert.equal(api.tn('catalog.lessonCount', 3), '3 уроки');
+  assert.equal(api.tn('catalog.lessonCount', 5), '5 уроків');
+  assert.equal(api.tn('catalog.lessonCount', 21), '21 урок');
+});
+
+test('setLang stores the choice, sets <html lang> and saves to the account only when asked', async () => {
+  const calls = [];
+  const { api, storage, documentElement } = await loadI18n({ languages: ['en'], updateCurrentUser: async (body) => { calls.push(body); } });
+  await api.setLang('uk');
+  assert.equal(storage.get('fleng.lang'), 'uk');
+  assert.equal(documentElement.lang, 'uk');
+  assert.equal(calls.length, 0);
+  assert.equal(storage.get('fleng.lang.pending'), '1');
+  await api.setLang('en', { persistToAccount: true });
+  assert.equal(JSON.stringify(calls), '[{"preferredLanguage":"English"}]');
+  assert.equal(storage.get('fleng.lang.pending') ?? null, null);
+});
+
+test('account preference wins unless a signed-out choice is pending', async () => {
+  const a = await loadI18n({ languages: ['en'] });
+  await a.api.applyUserLanguage({ preferredLanguage: 'Ukrainian' });
+  assert.equal(a.api.getLang(), 'uk');
+  const saved = [];
+  const b = await loadI18n({ languages: ['en'], updateCurrentUser: async (body) => { saved.push(body); } });
+  await b.api.setLang('uk');
+  await b.api.applyUserLanguage({ preferredLanguage: 'English' });
+  assert.equal(b.api.getLang(), 'uk');
+  assert.equal(JSON.stringify(saved), '[{"preferredLanguage":"Ukrainian"}]');
+});
