@@ -102,4 +102,6 @@ blocked. See ai-plan.md for completed/blocked/next work. No automatic commits.
 - Completed: delayed-cookie logout revokes linked successor sessions.
 - Completed: reject oversized canonical vocabulary before persistence; Unicode
   expansion and duplicate regression verified.
-- In progress: fresh profile responses under overlapping settings requests.
+- Completed: fresh profile responses under overlapping settings requests, verified
+  against independent database sessions.
+- Next: final full backend/frontend regression gates and self-review.

@@ -633,3 +633,25 @@ async def test_email_confirmation_is_once_only_across_connections(connections, m
             await db.scalars(select(RefreshToken).where(RefreshToken.user_id == user_id))
         ).all()
         assert all(row.revoked_at is not None for row in sessions)
+
+
+async def test_profile_update_refreshes_snapshot_after_waiting_for_identity_lock(connections):
+    from app.modules.users.router import update_me
+    from app.modules.users.schemas import ProfileUpdate
+
+    user_id, _, _ = await account(connections)
+    async with connections() as waiting:
+        stale = await get_user_with_profile(waiting, user_id)
+        assert stale.profile.display_name == "Learner"
+        # Authentication loaded this identity before another request saved a name.
+        async with connections() as first:
+            current = await get_user_with_profile(first, user_id)
+            changed = await update_me(ProfileUpdate(display_name="Updated name"), current, first)
+            assert changed.display_name == "Updated name"
+        changed = await update_me(ProfileUpdate(preferred_language="Ukrainian"), stale, waiting)
+        assert changed.display_name == "Updated name"
+        assert changed.preferred_language == "Ukrainian"
+    async with connections() as verification:
+        persisted = await get_user_with_profile(verification, user_id)
+        assert persisted.profile.display_name == changed.display_name
+        assert persisted.profile.preferred_language == changed.preferred_language

@@ -354,3 +354,6 @@ endpoint or migration and retains separate-device sessions.
 
 Saved-word input normalizes through VocabularyCreate before length validation;
 canonical words reaching vocabulary/service.py fit the persisted/public contract.
+
+Profile PATCH acquires lock_learner, reloads email/profile, applies only requested
+fields and returns the current persisted profile within the same transaction.

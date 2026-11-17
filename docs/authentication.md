@@ -215,3 +215,8 @@ revokes the presented token's linked successors. A delayed logout carrying the
 previous cookie cannot leave its rotated session usable. Other devices' token
 chains are preserved; access JWT expiry policy and strict refresh reuse detection
 are unchanged. Regression: `test_logout_revokes_rotated_descendants_without_other_devices`.
+
+Profile PATCH refreshes the persisted email/profile after acquiring the existing
+identity lock. An authenticated request that waited behind another save returns
+the latest untouched fields instead of its pre-lock ORM snapshot. Independent
+session regression: test_profile_update_refreshes_snapshot_after_waiting_for_identity_lock.

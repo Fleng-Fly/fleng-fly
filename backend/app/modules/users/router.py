@@ -28,6 +28,8 @@ async def update_me(
     db: AsyncSession = Depends(get_db),
 ) -> UserResponse:
     await lock_learner(db, current_user.id)
+    # Authentication may have loaded this identity before another settings save.
+    await db.refresh(current_user, attribute_names=["email", "profile"])
     if current_user.profile is None:
         raise ApiError(409, "PROFILE_MISSING", "Profile unavailable")
     changes = payload.model_dump(exclude_unset=True)
