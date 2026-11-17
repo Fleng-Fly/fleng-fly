@@ -18,6 +18,7 @@ from app.modules.catalog.schemas import (
     LessonDetailResponse,
     LessonSummaryResponse,
 )
+from app.modules.exercises import guidance
 from app.modules.exercises.schemas import ExercisePublicResponse
 
 
@@ -149,5 +150,6 @@ def to_lesson_detail(
         course_slug=course.slug,
         course_title=course.title,
         level=course.level,
+        guide=guidance.lesson_guide_for(lesson.slug),
         exercises=exercises,
     )

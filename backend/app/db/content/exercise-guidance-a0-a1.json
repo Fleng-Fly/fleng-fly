@@ -1,0 +1,3456 @@
+{
+ "version": 1,
+ "review_status": "draft",
+ "levels": [
+  "A0",
+  "A1"
+ ],
+ "lessons": {
+  "fleng-a0-classroom": {
+   "explanation": {
+    "en": "An instruction starts with the action word: Read. Write your name. Add “please” to be polite. To say “no”, put “don't” before the action: Don't write.",
+    "uk": "Команда починається з дієслова-дії: Read. Write your name. Додай “please”, щоб бути ввічливим. Щоб сказати «ні», став “don't” перед дією: Don't write."
+   },
+   "examples": [
+    {
+     "en": "Open your book, please.",
+     "uk": "Відкрий свою книгу, будь ласка."
+    },
+    {
+     "en": "Listen and repeat.",
+     "uk": "Послухай і повтори."
+    },
+    {
+     "en": "Don't write now.",
+     "uk": "Зараз не пиши."
+    }
+   ],
+   "option_notes": {
+    "read": {
+     "en": "“Read” means to look at words and understand them.",
+     "uk": "“Read” — дивитися на слова й розуміти їх (читати)."
+    },
+    "close": {
+     "en": "“Close” means to shut something: a book, a door.",
+     "uk": "“Close” — закрити щось: книгу, двері."
+    },
+    "listen": {
+     "en": "“Listen” is for sounds. You use your ears.",
+     "uk": "“Listen” — для звуків. Ти використовуєш вуха."
+    },
+    "write": {
+     "en": "“Write” means to put words on paper with a pen.",
+     "uk": "“Write” — писати слова на папері ручкою."
+    },
+    "open": {
+     "en": "“Open” is the opposite of “close”.",
+     "uk": "“Open” — протилежне до “close”."
+    },
+    "i'm": {
+     "en": "“I'm” is the short form of “I am”.",
+     "uk": "“I'm” — скорочення від “I am”."
+    },
+    "it's": {
+     "en": "“It's” is the short form of “it is”.",
+     "uk": "“It's” — скорочення від “it is”."
+    },
+    "name": {
+     "en": "“Name” is a noun (a thing). It is not an action or a polite word.",
+     "uk": "“Name” — іменник (назва речі). Це не дія й не ввічливе слово."
+    },
+    "repeat": {
+     "en": "“Repeat” is an action: say or do something again.",
+     "uk": "“Repeat” — дія: сказати чи зробити ще раз."
+    }
+   },
+   "exercises": {
+    "fleng-a0-classroom-practice-1": {
+     "hint": {
+      "en": "Think about written words and your eyes, not your ears.",
+      "uk": "Подумай про написані слова й очі, а не про вуха."
+     },
+     "explanation": {
+      "en": "We look at the text, so we read it.",
+      "uk": "Ми дивимося на текст, тому читаємо його."
+     }
+    },
+    "fleng-a0-classroom-practice-2": {
+     "hint": {
+      "en": "A pen leaves words on paper. What do you do with a pen?",
+      "uk": "Ручка залишає слова на папері. Що ти робиш ручкою?"
+     },
+     "explanation": {
+      "en": "With a pen we put words on paper: Write your name.",
+      "uk": "Ручкою ми пишемо слова на папері: Write your name."
+     }
+    },
+    "fleng-a0-classroom-practice-3": {
+     "hint": {
+      "en": "Ears are for sounds. Which action uses them?",
+      "uk": "Вуха — для звуків. Яка дія потребує вух?"
+     },
+     "explanation": {
+      "en": "We use our ears to hear sounds, so we listen.",
+      "uk": "Ми чуємо звуки вухами, тому ми listen."
+     }
+    },
+    "fleng-a0-classroom-practice-4": {
+     "hint": {
+      "en": "The short form drops one letter and adds an apostrophe. In an instruction it means “not”.",
+      "uk": "Коротка форма губить літеру й має апостроф. У команді вона означає «не»."
+     },
+     "explanation": {
+      "en": "“Do not” becomes a short form. We put it before the action: Don't write.",
+      "uk": "“Do not” має коротку форму. Її ставимо перед дією: Don't write."
+     }
+    },
+    "fleng-a0-classroom-practice-5": {
+     "hint": {
+      "en": "Which small word makes a request polite?",
+      "uk": "Яке маленьке слово робить прохання ввічливим?"
+     },
+     "explanation": {
+      "en": "We add “please” to make an instruction polite: Open your book, please.",
+      "uk": "Ми додаємо “please”, щоб команда була ввічливою: Open your book, please."
+     }
+    },
+    "fleng-a0-classroom-check-1": {
+     "hint": {
+      "en": "Find “write” in this lesson: “Write your name.” What does it do in the sentence?",
+      "uk": "Знайди слово “write” в уроці: “Write your name.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “write” means “писати”.",
+      "uk": "У цьому уроці “write” означає «писати»."
+     },
+     "wrong": {
+      "говорити": {
+       "en": "“говорити” is the meaning of “speak”, not of “write”.",
+       "uk": "«говорити» — це значення слова “speak”, а не “write”."
+      },
+      "відкривати": {
+       "en": "“відкривати” is the meaning of “open”, not of “write”.",
+       "uk": "«відкривати» — це значення слова “open”, а не “write”."
+      }
+     }
+    },
+    "fleng-a0-classroom-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “close”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “close”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “close” means “закривати”.",
+      "uk": "У цьому уроці “close” означає «закривати»."
+     },
+     "wrong": {
+      "ім’я": {
+       "en": "“ім’я” is the meaning of “name”, not of “close”.",
+       "uk": "«ім’я» — це значення слова “name”, а не “close”."
+      },
+      "книга": {
+       "en": "“книга” is the meaning of “book”, not of “close”.",
+       "uk": "«книга» — це значення слова “book”, а не “close”."
+      }
+     }
+    },
+    "fleng-a0-classroom-check-3": {
+     "hint": {
+      "en": "Find “please” in this lesson: “Teacher: Open your book, please.” What does it do in the sentence?",
+      "uk": "Знайди слово “please” в уроці: “Teacher: Open your book, please.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “please” means “будь ласка”.",
+      "uk": "У цьому уроці “please” означає «будь ласка»."
+     },
+     "wrong": {
+      "повторювати": {
+       "en": "“повторювати” is the meaning of “repeat”, not of “please”.",
+       "uk": "«повторювати» — це значення слова “repeat”, а не “please”."
+      },
+      "читати": {
+       "en": "“читати” is the meaning of “read”, not of “please”.",
+       "uk": "«читати» — це значення слова “read”, а не “please”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-letters": {
+   "explanation": {
+    "en": "English words are made of letters. The vowel letters are a, e, i, o, u. All the other letters are consonants. A name starts with a capital letter. To spell a word, say its letters one by one.",
+    "uk": "Англійські слова складаються з літер. Голосні: a, e, i, o, u. Усі інші літери — приголосні. Ім'я починається з великої літери. Щоб назвати слово по літерах (spell), кажи літери по одній."
+   },
+   "examples": [
+    {
+     "en": "My name is Mia: M-I-A.",
+     "uk": "Мене звати Мія: M-I-A."
+    },
+    {
+     "en": "A, E, I, O and U are vowels.",
+     "uk": "A, E, I, O, U — голосні."
+    },
+    {
+     "en": "How do you spell it?",
+     "uk": "Як це пишеться по літерах?"
+    }
+   ],
+   "option_notes": {
+    "a": {
+     "en": "“a” is a vowel letter.",
+     "uk": "“a” — голосна літера."
+    },
+    "e": {
+     "en": "“e” is a vowel letter.",
+     "uk": "“e” — голосна літера."
+    },
+    "o": {
+     "en": "“o” is a vowel letter.",
+     "uk": "“o” — голосна літера."
+    },
+    "b": {
+     "en": "“b” is a consonant letter.",
+     "uk": "“b” — приголосна літера."
+    },
+    "t": {
+     "en": "“t” is a consonant letter.",
+     "uk": "“t” — приголосна літера."
+    },
+    "m": {
+     "en": "“m” is a consonant letter.",
+     "uk": "“m” — приголосна літера."
+    },
+    "small": {
+     "en": "A name does not start with a small letter.",
+     "uk": "Ім'я не починається з малої літери."
+    },
+    "missing": {
+     "en": "A name always has a first letter. It is not “missing”.",
+     "uk": "В імені завжди є перша літера. Вона не «відсутня»."
+    },
+    "close": {
+     "en": "“Close” means to shut something. It is not about letters.",
+     "uk": "“Close” — закрити. Це не про літери."
+    },
+    "listen": {
+     "en": "“Listen” is for hearing sounds, not for asking about letters.",
+     "uk": "“Listen” — слухати звуки, а не питати про літери."
+    }
+   },
+   "exercises": {
+    "fleng-a0-letters-practice-1": {
+     "hint": {
+      "en": "Say each letter's name aloud. A vowel is an open sound: your mouth stays open.",
+      "uk": "Вимов назву кожної літери. Голосний звук відкритий: рот лишається відкритим."
+     },
+     "explanation": {
+      "en": "There are only five vowel letters: a, e, i, o, u.",
+      "uk": "Є лише п'ять голосних літер: a, e, i, o, u."
+     }
+    },
+    "fleng-a0-letters-practice-2": {
+     "hint": {
+      "en": "There are only five vowels (a, e, i, o, u). Which option is not one of them?",
+      "uk": "Голосних лише п'ять (a, e, i, o, u). Яка літера серед варіантів не голосна?"
+     },
+     "explanation": {
+      "en": "All letters except a, e, i, o, u are consonants.",
+      "uk": "Усі літери, крім a, e, i, o, u, — приголосні."
+     }
+    },
+    "fleng-a0-letters-practice-3": {
+     "hint": {
+      "en": "Say the name slowly. Write the first sound first, then the next sounds in order.",
+      "uk": "Вимов ім'я повільно. Спершу перший звук, потім наступні по порядку."
+     },
+     "explanation": {
+      "en": "Spell the name in order, from the first sound to the last.",
+      "uk": "Називай літери в тому ж порядку, що й звуки імені."
+     },
+     "wrong": {
+      "i-m-a": {
+       "en": "I-M-A starts with I, but the name starts with M.",
+       "uk": "I-M-A починається з I, а ім'я — з M."
+      },
+      "m-a-i": {
+       "en": "M-A-I ends with I. Listen to the last sound of the name.",
+       "uk": "M-A-I закінчується на I. Прислухайся до останнього звуку імені."
+      }
+     }
+    },
+    "fleng-a0-letters-practice-4": {
+     "hint": {
+      "en": "Look at how Mia, Eva and Ben begin on the page.",
+      "uk": "Подивись, як на письмі починаються Mia, Eva, Ben."
+     },
+     "explanation": {
+      "en": "Names begin with a capital (big) letter: Mia, Eva, Ben.",
+      "uk": "Імена починаються з великої літери: Mia, Eva, Ben."
+     }
+    },
+    "fleng-a0-letters-practice-5": {
+     "hint": {
+      "en": "You ask someone to say a word letter by letter. Which verb means that?",
+      "uk": "Ти просиш назвати слово по літерах. Яке дієслово це означає?"
+     },
+     "explanation": {
+      "en": "To ask for the letters of a word we say: How do you spell it?",
+      "uk": "Щоб попросити назвати літери слова, ми кажемо: How do you spell it?"
+     }
+    },
+    "fleng-a0-letters-check-1": {
+     "hint": {
+      "en": "Find “spell” in this lesson: “B: How do you spell it?” What does it do in the sentence?",
+      "uk": "Знайди слово “spell” в уроці: “B: How do you spell it?” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “spell” means “називати по літерах”.",
+      "uk": "У цьому уроці “spell” означає «називати по літерах»."
+     },
+     "wrong": {
+      "велика літера": {
+       "en": "“велика літера” is the meaning of “capital”, not of “spell”.",
+       "uk": "«велика літера» — це значення слова “capital”, а не “spell”."
+      },
+      "маленький": {
+       "en": "“маленький” is the meaning of “small”, not of “spell”.",
+       "uk": "«маленький» — це значення слова “small”, а не “spell”."
+      }
+     }
+    },
+    "fleng-a0-letters-check-2": {
+     "hint": {
+      "en": "Find “vowel” in this lesson: “Which letter is a vowel? a” What does it do in the sentence?",
+      "uk": "Знайди слово “vowel” в уроці: “Which letter is a vowel? a” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “vowel” means “голосна літера”.",
+      "uk": "У цьому уроці “vowel” означає «голосна літера»."
+     },
+     "wrong": {
+      "слово": {
+       "en": "“слово” is the meaning of “word”, not of “vowel”.",
+       "uk": "«слово» — це значення слова “word”, а не “vowel”."
+      },
+      "приголосна літера": {
+       "en": "“приголосна літера” is the meaning of “consonant”, not of “vowel”.",
+       "uk": "«приголосна літера» — це значення слова “consonant”, а не “vowel”."
+      }
+     }
+    },
+    "fleng-a0-letters-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “pen”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “pen”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “pen” means “ручка”.",
+      "uk": "У цьому уроці “pen” означає «ручка»."
+     },
+     "wrong": {
+      "сторінка": {
+       "en": "“сторінка” is the meaning of “page”, not of “pen”.",
+       "uk": "«сторінка» — це значення слова “page”, а не “pen”."
+      },
+      "літера": {
+       "en": "“літера” is the meaning of “letter”, not of “pen”.",
+       "uk": "«літера» — це значення слова “letter”, а не “pen”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-hello": {
+   "explanation": {
+    "en": "Use “I am” to say who you are: I am Eva. “My name is” also works: My name is Ben. The short form of “I am” is “I'm”, and of “you are” is “you're”. After “Nice to meet you” the answer is “Nice to meet you, too.”",
+    "uk": "“I am” — так ми кажемо, хто ми: I am Eva. Також можна: My name is Ben. Скорочення від “I am” — “I'm”, від “you are” — “you're”. На “Nice to meet you” відповідаємо “Nice to meet you, too.”"
+   },
+   "examples": [
+    {
+     "en": "I am Eva.",
+     "uk": "Я Єва."
+    },
+    {
+     "en": "My name is Ben. Nice to meet you.",
+     "uk": "Мене звати Бен. Приємно познайомитись."
+    },
+    {
+     "en": "You're welcome.",
+     "uk": "Будь ласка (на подяку)."
+    }
+   ],
+   "option_notes": {
+    "am": {
+     "en": "“am” goes only with “I”: I am.",
+     "uk": "“am” стоїть лише з “I”: I am."
+    },
+    "is": {
+     "en": "“is” goes with one thing or person: my name is, he is, it is.",
+     "uk": "“is” — з однією річчю чи особою: my name is, he is, it is."
+    },
+    "are": {
+     "en": "“are” goes with “you”, “we” and “they”: you are.",
+     "uk": "“are” — з “you”, “we”, “they”: you are."
+    },
+    "he's": {
+     "en": "“He's” is “he is”. It is about another person, not about “I”.",
+     "uk": "“He's” — “he is”. Це про іншу людину, а не про “I”."
+    },
+    "you're": {
+     "en": "“You're” is “you are”. It is about the person you speak to.",
+     "uk": "“You're” — “you are”. Це про співрозмовника."
+    },
+    "i'm": {
+     "en": "“I'm” is “I am”. It is about yourself.",
+     "uk": "“I'm” — “I am”. Це про себе."
+    },
+    "it's": {
+     "en": "“It's” is “it is”. It is about a thing, not about a person you speak to.",
+     "uk": "“It's” — “it is”. Це про річ, а не про співрозмовника."
+    },
+    "goodbye": {
+     "en": "“Goodbye” is for leaving. It is not a reply to “Nice to meet you”.",
+     "uk": "“Goodbye” — прощання. Це не відповідь на “Nice to meet you”."
+    },
+    "morning": {
+     "en": "“Morning” is a part of the day. It does not finish this sentence.",
+     "uk": "“Morning” — частина дня. Не завершує це речення."
+    }
+   },
+   "exercises": {
+    "fleng-a0-hello-practice-1": {
+     "hint": {
+      "en": "Which form of the verb goes with the pronoun for yourself?",
+      "uk": "Яка форма дієслова стоїть із займенником «я»?"
+     },
+     "explanation": {
+      "en": "With “I” we use “am”: I am Eva.",
+      "uk": "З “I” ми вживаємо “am”: I am Eva."
+     }
+    },
+    "fleng-a0-hello-practice-2": {
+     "hint": {
+      "en": "“My name” = one thing. Which form of “be” goes with one thing?",
+      "uk": "“My name” — одна річ. Яка форма «be» стоїть з однією річчю?"
+     },
+     "explanation": {
+      "en": "“Name” is one thing, so we use “is”: My name is Ben.",
+      "uk": "“Name” — одна річ, тому “is”: My name is Ben."
+     }
+    },
+    "fleng-a0-hello-practice-3": {
+     "hint": {
+      "en": "The short form joins the pronoun and the verb with an apostrophe. Whose name is it: yours or someone else's?",
+      "uk": "Коротка форма з'єднує займенник і дієслово апострофом. Це про тебе чи про когось іншого?"
+     },
+     "explanation": {
+      "en": "“I am” becomes a short form: I'm.",
+      "uk": "“I am” має коротку форму: I'm."
+     }
+    },
+    "fleng-a0-hello-practice-4": {
+     "hint": {
+      "en": "When someone says it to you, you answer with the same words and one little extra word.",
+      "uk": "Коли тобі так кажуть, відповідай тими самими словами плюс одне слівце."
+     },
+     "explanation": {
+      "en": "We answer: Nice to meet you, too. “Too” means “also”.",
+      "uk": "Відповідаємо: Nice to meet you, too. “Too” означає «також»."
+     }
+    },
+    "fleng-a0-hello-practice-5": {
+     "hint": {
+      "en": "The short form for the person you speak to joins two words with an apostrophe.",
+      "uk": "Скорочення для співрозмовника з'єднує два слова апострофом."
+     },
+     "explanation": {
+      "en": "“You are” becomes a short form: you're.",
+      "uk": "“You are” має коротку форму: you're."
+     }
+    },
+    "fleng-a0-hello-check-1": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “morning”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “morning”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “morning” means “ранок”.",
+      "uk": "У цьому уроці “morning” означає «ранок»."
+     },
+     "wrong": {
+      "вечір": {
+       "en": "“вечір” is the meaning of “evening”, not of “morning”.",
+       "uk": "«вечір» — це значення слова “evening”, а не “morning”."
+      },
+      "друг": {
+       "en": "“друг” is the meaning of “friend”, not of “morning”.",
+       "uk": "«друг» — це значення слова “friend”, а не “morning”."
+      }
+     }
+    },
+    "fleng-a0-hello-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “teacher”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “teacher”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “teacher” means “учитель”.",
+      "uk": "У цьому уроці “teacher” означає «учитель»."
+     },
+     "wrong": {
+      "зустрічати": {
+       "en": "“зустрічати” is the meaning of “meet”, not of “teacher”.",
+       "uk": "«зустрічати» — це значення слова “meet”, а не “teacher”."
+      },
+      "учень": {
+       "en": "“учень” is the meaning of “student”, not of “teacher”.",
+       "uk": "«учень» — це значення слова “student”, а не “teacher”."
+      }
+     }
+    },
+    "fleng-a0-hello-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “welcome”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “welcome”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “welcome” means “ласкаво просимо”.",
+      "uk": "У цьому уроці “welcome” означає «ласкаво просимо»."
+     },
+     "wrong": {
+      "дякую": {
+       "en": "“дякую” is the meaning of “thanks”, not of “welcome”.",
+       "uk": "«дякую» — це значення слова “thanks”, а не “welcome”."
+      },
+      "привіт": {
+       "en": "“привіт” is the meaning of “hello”, not of “welcome”.",
+       "uk": "«привіт» — це значення слова “hello”, а не “welcome”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-numbers": {
+   "explanation": {
+    "en": "Numbers have words: one, two, three … twelve … nineteen, twenty. Zero is “zero”. To say your age, use “I am”: I am twenty. English does not use “have” for age.",
+    "uk": "Числа мають слова: one, two, three … twelve … nineteen, twenty. Нуль — “zero”. Вік кажемо з “I am”: I am twenty. Для віку англійською не вживаємо “have”."
+   },
+   "examples": [
+    {
+     "en": "I am twelve.",
+     "uk": "Мені дванадцять."
+    },
+    {
+     "en": "Three cups and five books.",
+     "uk": "Три чашки й п'ять книг."
+    },
+    {
+     "en": "Zero is not one.",
+     "uk": "Нуль — це не один."
+    }
+   ],
+   "option_notes": {
+    "twelve": {
+     "en": "“Twelve” is 12, one number before thirteen.",
+     "uk": "“Twelve” — це 12."
+    },
+    "twenty": {
+     "en": "“Twenty” is 20.",
+     "uk": "“Twenty” — це 20."
+    },
+    "two": {
+     "en": "“Two” is 2.",
+     "uk": "“Two” — це 2."
+    },
+    "four": {
+     "en": "“Four” is 4.",
+     "uk": "“Four” — це 4."
+    },
+    "three": {
+     "en": "“Three” is 3.",
+     "uk": "“Three” — це 3."
+    },
+    "one": {
+     "en": "“One” is 1.",
+     "uk": "“One” — це 1."
+    },
+    "ten": {
+     "en": "“Ten” is 10.",
+     "uk": "“Ten” — це 10."
+    },
+    "zero": {
+     "en": "“Zero” is 0.",
+     "uk": "“Zero” — це 0."
+    },
+    "have": {
+     "en": "In English we say age with “be”, not with “have”.",
+     "uk": "Вік англійською кажемо з “be”, а не з “have”."
+    },
+    "has": {
+     "en": "“Has” is for “have” with he/she/it. Age uses “be” here.",
+     "uk": "“Has” — форма “have” для he/she/it. Для віку тут потрібне “be”."
+    }
+   },
+   "exercises": {
+    "fleng-a0-numbers-practice-1": {
+     "hint": {
+      "en": "The number is between eleven and thirteen. Spell it letter by letter.",
+      "uk": "Число між одинадцятьма й тринадцятьма. Напиши його літерами."
+     },
+     "explanation": {
+      "en": "12 is written “twelve”.",
+      "uk": "12 пишемо “twelve”."
+     }
+    },
+    "fleng-a0-numbers-practice-2": {
+     "hint": {
+      "en": "It is two tens. It ends with “-ty”.",
+      "uk": "Це два десятки. Закінчується на “-ty”."
+     },
+     "explanation": {
+      "en": "20 is written “twenty”.",
+      "uk": "20 пишемо “twenty”."
+     }
+    },
+    "fleng-a0-numbers-practice-3": {
+     "hint": {
+      "en": "Count: one, two, … It is the number after two.",
+      "uk": "Порахуй: one, two, … Це число після двох."
+     },
+     "explanation": {
+      "en": "3 is written “three”.",
+      "uk": "3 пишемо “three”."
+     }
+    },
+    "fleng-a0-numbers-practice-4": {
+     "hint": {
+      "en": "For age English uses the same verb as in “I ___ Eva”.",
+      "uk": "Для віку англійська вживає те саме дієслово, що й у “I ___ Eva”."
+     },
+     "explanation": {
+      "en": "We say age with “be”: I am twenty.",
+      "uk": "Вік кажемо з дієсловом “be”: I am twenty."
+     }
+    },
+    "fleng-a0-numbers-practice-5": {
+     "hint": {
+      "en": "It means “nothing”: there is no quantity at all.",
+      "uk": "Це «нічого»: кількості немає взагалі."
+     },
+     "explanation": {
+      "en": "0 is written “zero”.",
+      "uk": "0 пишемо “zero”."
+     }
+    },
+    "fleng-a0-numbers-check-1": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “two”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “two”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “two” means “два”.",
+      "uk": "У цьому уроці “two” означає «два»."
+     },
+     "wrong": {
+      "три": {
+       "en": "“три” is the meaning of “three”, not of “two”.",
+       "uk": "«три» — це значення слова “three”, а не “two”."
+      },
+      "чотири": {
+       "en": "“чотири” is the meaning of “four”, not of “two”.",
+       "uk": "«чотири» — це значення слова “four”, а не “two”."
+      }
+     }
+    },
+    "fleng-a0-numbers-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “five”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “five”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “five” means “п’ять”.",
+      "uk": "У цьому уроці “five” означає «п’ять»."
+     },
+     "wrong": {
+      "дванадцять": {
+       "en": "“дванадцять” is the meaning of “twelve”, not of “five”.",
+       "uk": "«дванадцять» — це значення слова “twelve”, а не “five”."
+      },
+      "десять": {
+       "en": "“десять” is the meaning of “ten”, not of “five”.",
+       "uk": "«десять» — це значення слова “ten”, а не “five”."
+      }
+     }
+    },
+    "fleng-a0-numbers-check-3": {
+     "hint": {
+      "en": "Find “nineteen” in this lesson: “B: I am nineteen.” What does it do in the sentence?",
+      "uk": "Знайди слово “nineteen” в уроці: “B: I am nineteen.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “nineteen” means “дев’ятнадцять”.",
+      "uk": "У цьому уроці “nineteen” означає «дев’ятнадцять»."
+     },
+     "wrong": {
+      "двадцять": {
+       "en": "“двадцять” is the meaning of “twenty”, not of “nineteen”.",
+       "uk": "«двадцять» — це значення слова “twenty”, а не “nineteen”."
+      },
+      "нуль": {
+       "en": "“нуль” is the meaning of “zero”, not of “nineteen”.",
+       "uk": "«нуль» — це значення слова “zero”, а не “nineteen”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-objects": {
+   "explanation": {
+    "en": "Use “a” before a consonant sound (a bag) and “an” before a vowel sound (an apple). For more than one thing, add -s: one pen, two pens. After a number we use the plural, not “a”.",
+    "uk": "Перед приголосним звуком — “a” (a bag), перед голосним — “an” (an apple). Для кількох речей додаємо -s: one pen, two pens. Після числа (більше одного) вживаємо множину, а не “a”."
+   },
+   "examples": [
+    {
+     "en": "an apple and a bag",
+     "uk": "яблуко та сумка"
+    },
+    {
+     "en": "Two pens and three cups.",
+     "uk": "Дві ручки й три чашки."
+    },
+    {
+     "en": "I have an orange.",
+     "uk": "У мене є апельсин."
+    }
+   ],
+   "option_notes": {
+    "an": {
+     "en": "Use “an” before a vowel sound (a, e, i, o, u).",
+     "uk": "“an” — перед голосним звуком (a, e, i, o, u)."
+    },
+    "a": {
+     "en": "Use “a” before a consonant sound (b, c, d …).",
+     "uk": "“a” — перед приголосним звуком (b, c, d …)."
+    },
+    "two": {
+     "en": "“Two” is a number. It is not an article (a/an).",
+     "uk": "“Two” — число, а не артикль (a/an)."
+    },
+    "three": {
+     "en": "“Three” is a number. It is not an article (a/an).",
+     "uk": "“Three” — число, а не артикль (a/an)."
+    },
+    "a pen": {
+     "en": "After “two” the noun is plural: pens. “A” is for one thing.",
+     "uk": "Після “two” іменник у множині: pens. “A” — для однієї речі."
+    },
+    "pen": {
+     "en": "After “two” we need a plural noun: add -s.",
+     "uk": "Після “two” потрібна множина: додай -s."
+    },
+    "a cup": {
+     "en": "After “three” the noun is plural: cups. “A” is for one thing.",
+     "uk": "Після “three” іменник у множині: cups. “A” — для однієї речі."
+    },
+    "cup": {
+     "en": "After “three” we need a plural noun: add -s.",
+     "uk": "Після “three” потрібна множина: додай -s."
+    },
+    "pens": {
+     "en": "“Pens” is plural: use it after a number above one.",
+     "uk": "“Pens” — множина: вживай після числа більше одного."
+    },
+    "cups": {
+     "en": "“Cups” is plural: use it after a number above one.",
+     "uk": "“Cups” — множина: вживай після числа більше одного."
+    }
+   },
+   "exercises": {
+    "fleng-a0-objects-practice-1": {
+     "hint": {
+      "en": "Listen to the first sound of “apple”: is it a vowel sound or a consonant sound?",
+      "uk": "Прислухайся до першого звуку в “apple”: голосний чи приголосний?"
+     },
+     "explanation": {
+      "en": "“Apple” starts with a vowel sound, so we use “an”.",
+      "uk": "“Apple” починається з голосного звуку, тому “an”."
+     }
+    },
+    "fleng-a0-objects-practice-2": {
+     "hint": {
+      "en": "Listen to the first sound of “bag”: vowel or consonant?",
+      "uk": "Прислухайся до першого звуку в “bag”: голосний чи приголосний?"
+     },
+     "explanation": {
+      "en": "“Bag” starts with a consonant sound, so we use “a”.",
+      "uk": "“Bag” починається з приголосного звуку, тому “a”."
+     }
+    },
+    "fleng-a0-objects-practice-3": {
+     "hint": {
+      "en": "Two means more than one. What happens to the noun?",
+      "uk": "“Two” — більше одного. Що стається з іменником?"
+     },
+     "explanation": {
+      "en": "After “two” the noun is plural: add -s. Two pens.",
+      "uk": "Після “two” іменник у множині: додай -s. Two pens."
+     }
+    },
+    "fleng-a0-objects-practice-4": {
+     "hint": {
+      "en": "More than one thing: add -s to the noun.",
+      "uk": "Більше однієї речі: додай -s до іменника."
+     },
+     "explanation": {
+      "en": "After “three” the noun is plural: three cups.",
+      "uk": "Після “three” іменник у множині: three cups."
+     }
+    },
+    "fleng-a0-objects-practice-5": {
+     "hint": {
+      "en": "Listen to the first sound of “orange”: vowel or consonant?",
+      "uk": "Прислухайся до першого звуку в “orange”: голосний чи приголосний?"
+     },
+     "explanation": {
+      "en": "“Orange” starts with a vowel sound, so we use “an”.",
+      "uk": "“Orange” починається з голосного звуку, тому “an”."
+     }
+    },
+    "fleng-a0-objects-check-1": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “desk”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “desk”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “desk” means “письмовий стіл”.",
+      "uk": "У цьому уроці “desk” означає «письмовий стіл»."
+     },
+     "wrong": {
+      "стілець": {
+       "en": "“стілець” is the meaning of “chair”, not of “desk”.",
+       "uk": "«стілець» — це значення слова “chair”, а не “desk”."
+      },
+      "двері": {
+       "en": "“двері” is the meaning of “door”, not of “desk”.",
+       "uk": "«двері» — це значення слова “door”, а не “desk”."
+      }
+     }
+    },
+    "fleng-a0-objects-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “window”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “window”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “window” means “вікно”.",
+      "uk": "У цьому уроці “window” означає «вікно»."
+     },
+     "wrong": {
+      "олівець": {
+       "en": "“олівець” is the meaning of “pencil”, not of “window”.",
+       "uk": "«олівець» — це значення слова “pencil”, а не “window”."
+      },
+      "чашка": {
+       "en": "“чашка” is the meaning of “cup”, not of “window”.",
+       "uk": "«чашка» — це значення слова “cup”, а не “window”."
+      }
+     }
+    },
+    "fleng-a0-objects-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “orange”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “orange”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “orange” means “апельсин”.",
+      "uk": "У цьому уроці “orange” означає «апельсин»."
+     },
+     "wrong": {
+      "ключ": {
+       "en": "“ключ” is the meaning of “key”, not of “orange”.",
+       "uk": "«ключ» — це значення слова “key”, а не “orange”."
+      },
+      "сумка": {
+       "en": "“сумка” is the meaning of “bag”, not of “orange”.",
+       "uk": "«сумка» — це значення слова “bag”, а не “orange”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-people": {
+   "explanation": {
+    "en": "Choose the form of “be” by the person: I am, he/she/it is, we/you/they are. “It” is for a thing or an animal: It is a photo.",
+    "uk": "Форму “be” обираємо за особою: I am, he/she/it is, we/you/they are. “It” — для речі чи тварини: It is a photo."
+   },
+   "examples": [
+    {
+     "en": "She is my sister.",
+     "uk": "Вона моя сестра."
+    },
+    {
+     "en": "We are students.",
+     "uk": "Ми студенти."
+    },
+    {
+     "en": "They are teachers.",
+     "uk": "Вони вчителі."
+    }
+   ],
+   "option_notes": {
+    "am": {
+     "en": "“am” goes only with “I”.",
+     "uk": "“am” стоїть лише з “I”."
+    },
+    "is": {
+     "en": "“is” goes with he, she, it and one thing.",
+     "uk": "“is” — з he, she, it та однією річчю."
+    },
+    "are": {
+     "en": "“are” goes with you, we, they and with more than one thing.",
+     "uk": "“are” — з you, we, they і з кількома речами."
+    },
+    "we": {
+     "en": "“We” means “I and other people”. A photo is one thing, so we need “it”.",
+     "uk": "“We” — «я та інші». Фото — одна річ, тому потрібне “it”."
+    },
+    "they": {
+     "en": "“They” is for more than one person or thing. A photo is one thing.",
+     "uk": "“They” — для кількох людей чи речей. Фото — одна річ."
+    }
+   },
+   "exercises": {
+    "fleng-a0-people-practice-1": {
+     "hint": {
+      "en": "“She” = one person. Which form of “be” goes with she, he and it?",
+      "uk": "“She” — одна людина. Яка форма “be” з she, he, it?"
+     },
+     "explanation": {
+      "en": "With he, she and it we use “is”: She is my sister.",
+      "uk": "З he, she, it вживаємо “is”: She is my sister."
+     }
+    },
+    "fleng-a0-people-practice-2": {
+     "hint": {
+      "en": "“We” means more than one person. Which form goes with we, you and they?",
+      "uk": "“We” — кілька людей. Яка форма з we, you, they?"
+     },
+     "explanation": {
+      "en": "With we, you and they we use “are”: We are students.",
+      "uk": "З we, you, they вживаємо “are”: We are students."
+     }
+    },
+    "fleng-a0-people-practice-3": {
+     "hint": {
+      "en": "“Brother” = one person, a boy. Which form goes with he?",
+      "uk": "“Brother” — один хлопець. Яка форма з he?"
+     },
+     "explanation": {
+      "en": "With he we use “is”: He is my brother.",
+      "uk": "З he вживаємо “is”: He is my brother."
+     }
+    },
+    "fleng-a0-people-practice-4": {
+     "hint": {
+      "en": "“Teachers” is more than one person. Which form goes with they?",
+      "uk": "“Teachers” — кілька людей. Яка форма з they?"
+     },
+     "explanation": {
+      "en": "With they we use “are”: They are teachers.",
+      "uk": "З they вживаємо “are”: They are teachers."
+     }
+    },
+    "fleng-a0-people-practice-5": {
+     "hint": {
+      "en": "The word replaces “The photo”. Is a photo a person or a thing? One or many?",
+      "uk": "Слово замінює “The photo”. Фото — людина чи річ? Одна чи кілька?"
+     },
+     "explanation": {
+      "en": "A photo is one thing, so we say “it”: It is here.",
+      "uk": "Фото — одна річ, тому “it”: It is here."
+     }
+    },
+    "fleng-a0-people-check-1": {
+     "hint": {
+      "en": "Find “brother” in this lesson: “He is my brother.” What does it do in the sentence?",
+      "uk": "Знайди слово “brother” в уроці: “He is my brother.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “brother” means “брат”.",
+      "uk": "У цьому уроці “brother” означає «брат»."
+     },
+     "wrong": {
+      "мати": {
+       "en": "“мати” is the meaning of “mother”, not of “brother”.",
+       "uk": "«мати» — це значення слова “mother”, а не “brother”."
+      },
+      "батько": {
+       "en": "“батько” is the meaning of “father”, not of “brother”.",
+       "uk": "«батько» — це значення слова “father”, а не “brother”."
+      }
+     }
+    },
+    "fleng-a0-people-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “person”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “person”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “person” means “людина”.",
+      "uk": "У цьому уроці “person” означає «людина»."
+     },
+     "wrong": {
+      "дитина": {
+       "en": "“дитина” is the meaning of “child”, not of “person”.",
+       "uk": "«дитина» — це значення слова “child”, а не “person”."
+      },
+      "люди": {
+       "en": "“люди” is the meaning of “people”, not of “person”.",
+       "uk": "«люди» — це значення слова “people”, а не “person”."
+      }
+     }
+    },
+    "fleng-a0-people-check-3": {
+     "hint": {
+      "en": "Find “photo” in this lesson: “It is a photo.” What does it do in the sentence?",
+      "uk": "Знайди слово “photo” в уроці: “It is a photo.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “photo” means “фотографія”.",
+      "uk": "У цьому уроці “photo” означає «фотографія»."
+     },
+     "wrong": {
+      "хтось із батьків": {
+       "en": "“хтось із батьків” is the meaning of “parent”, not of “photo”.",
+       "uk": "«хтось із батьків» — це значення слова “parent”, а не “photo”."
+      },
+      "сім’я": {
+       "en": "“сім’я” is the meaning of “family”, not of “photo”.",
+       "uk": "«сім’я» — це значення слова “family”, а не “photo”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-describing": {
+   "explanation": {
+    "en": "An adjective (a describing word) goes before the noun: a green book. It does not change for plural: two blue cups. After “be” it can also stand alone: The bag is big.",
+    "uk": "Прикметник (слово-опис) стоїть перед іменником: a green book. У множині він не змінюється: two blue cups. Після “be” він може стояти окремо: The bag is big."
+   },
+   "examples": [
+    {
+     "en": "a red bag",
+     "uk": "червона сумка"
+    },
+    {
+     "en": "Two blue cups.",
+     "uk": "Дві сині чашки."
+    },
+    {
+     "en": "The books are new.",
+     "uk": "Книги нові."
+    }
+   ],
+   "option_notes": {
+    "am": {
+     "en": "“am” goes only with “I”.",
+     "uk": "“am” стоїть лише з “I”."
+    },
+    "is": {
+     "en": "“is” goes with he, she, it and one thing.",
+     "uk": "“is” — з he, she, it та однією річчю."
+    },
+    "are": {
+     "en": "“are” goes with you, we, they and with more than one thing.",
+     "uk": "“are” — з you, we, they і з кількома речами."
+    },
+    "reds": {
+     "en": "Adjectives do not take -s in English: red, not reds.",
+     "uk": "Прикметники в англійській не мають -s: red, а не reds."
+    },
+    "blues": {
+     "en": "Adjectives do not take -s in English: blue, not blues.",
+     "uk": "Прикметники в англійській не мають -s: blue, а не blues."
+    },
+    "red is": {
+     "en": "“Red is” puts a verb inside the noun phrase. Use only the adjective before the noun.",
+     "uk": "“Red is” — зайве дієслово всередині групи іменника. Перед іменником потрібен лише прикметник."
+    },
+    "blue is": {
+     "en": "“Blue is” puts a verb inside the noun phrase. Use only the adjective before the noun.",
+     "uk": "“Blue is” — зайве дієслово всередині групи іменника. Перед іменником потрібен лише прикметник."
+    },
+    "a book green": {
+     "en": "The adjective goes before the noun, not after it.",
+     "uk": "Прикметник стоїть перед іменником, а не після нього."
+    },
+    "green a book": {
+     "en": "The article “a” comes first, then the adjective, then the noun.",
+     "uk": "Спершу артикль “a”, потім прикметник, потім іменник."
+    }
+   },
+   "exercises": {
+    "fleng-a0-describing-practice-1": {
+     "hint": {
+      "en": "A describing word for colour goes between “a” and “bag”. Does it change?",
+      "uk": "Слово-колір стоїть між “a” та “bag”. Чи воно змінюється?"
+     },
+     "explanation": {
+      "en": "The colour word goes before the noun and stays simple: a red bag.",
+      "uk": "Слово-колір стоїть перед іменником і не змінюється: a red bag."
+     }
+    },
+    "fleng-a0-describing-practice-2": {
+     "hint": {
+      "en": "“The bag” = one thing. Which form of “be” goes with one thing?",
+      "uk": "“The bag” — одна річ. Яка форма “be” з однією річчю?"
+     },
+     "explanation": {
+      "en": "One thing → “is”: The bag is big.",
+      "uk": "Одна річ → “is”: The bag is big."
+     }
+    },
+    "fleng-a0-describing-practice-3": {
+     "hint": {
+      "en": "Two cups: the noun is plural, but what happens to the colour word?",
+      "uk": "Дві чашки: іменник у множині, а що з прикметником-кольором?"
+     },
+     "explanation": {
+      "en": "Adjectives stay the same: two blue cups (not “blues”).",
+      "uk": "Прикметники не змінюються: two blue cups (не “blues”)."
+     }
+    },
+    "fleng-a0-describing-practice-4": {
+     "hint": {
+      "en": "“The books” is plural. Which form of “be” goes with more than one thing?",
+      "uk": "“The books” — множина. Яка форма “be” з кількома речами?"
+     },
+     "explanation": {
+      "en": "Plural → “are”: The books are new.",
+      "uk": "Множина → “are”: The books are new."
+     }
+    },
+    "fleng-a0-describing-practice-5": {
+     "hint": {
+      "en": "The order is: article, then the describing word, then the noun.",
+      "uk": "Порядок: артикль, потім слово-опис, потім іменник."
+     },
+     "explanation": {
+      "en": "The order is a + adjective + noun: a green book.",
+      "uk": "Порядок: a + прикметник + іменник: a green book."
+     }
+    },
+    "fleng-a0-describing-check-1": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “green”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “green”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “green” means “зелений”.",
+      "uk": "У цьому уроці “green” означає «зелений»."
+     },
+     "wrong": {
+      "чорний": {
+       "en": "“чорний” is the meaning of “black”, not of “green”.",
+       "uk": "«чорний» — це значення слова “black”, а не “green”."
+      },
+      "білий": {
+       "en": "“білий” is the meaning of “white”, not of “green”.",
+       "uk": "«білий» — це значення слова “white”, а не “green”."
+      }
+     }
+    },
+    "fleng-a0-describing-check-2": {
+     "hint": {
+      "en": "Find “big” in this lesson: “The bag is big.” What does it do in the sentence?",
+      "uk": "Знайди слово “big” в уроці: “The bag is big.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “big” means “великий”.",
+      "uk": "У цьому уроці “big” означає «великий»."
+     },
+     "wrong": {
+      "новий": {
+       "en": "“новий” is the meaning of “new”, not of “big”.",
+       "uk": "«новий» — це значення слова “new”, а не “big”."
+      },
+      "старий": {
+       "en": "“старий” is the meaning of “old”, not of “big”.",
+       "uk": "«старий» — це значення слова “old”, а не “big”."
+      }
+     }
+    },
+    "fleng-a0-describing-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “yellow”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “yellow”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “yellow” means “жовтий”.",
+      "uk": "У цьому уроці “yellow” означає «жовтий»."
+     },
+     "wrong": {
+      "колір": {
+       "en": "“колір” is the meaning of “colour”, not of “yellow”.",
+       "uk": "«колір» — це значення слова “colour”, а не “yellow”."
+      },
+      "червоний": {
+       "en": "“червоний” is the meaning of “red”, not of “yellow”.",
+       "uk": "«червоний» — це значення слова “red”, а не “yellow”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-where": {
+   "explanation": {
+    "en": "Prepositions show where something is: in = inside, on = on the top, under = below. For questions use “Where is …?” for one thing and “Where are …?” for more than one.",
+    "uk": "Прийменники показують, де щось є: in = всередині, on = зверху, під — under. У питаннях: “Where is …?” — про одну річ, “Where are …?” — про кілька."
+   },
+   "examples": [
+    {
+     "en": "The key is in the bag.",
+     "uk": "Ключ у сумці."
+    },
+    {
+     "en": "The cup is on the desk.",
+     "uk": "Чашка на столі."
+    },
+    {
+     "en": "Where are the books?",
+     "uk": "Де книги?"
+    }
+   ],
+   "option_notes": {
+    "am": {
+     "en": "“am” goes only with “I”.",
+     "uk": "“am” стоїть лише з “I”."
+    },
+    "is": {
+     "en": "“is” goes with he, she, it and one thing.",
+     "uk": "“is” — з he, she, it та однією річчю."
+    },
+    "are": {
+     "en": "“are” goes with you, we, they and with more than one thing.",
+     "uk": "“are” — з you, we, they і з кількома речами."
+    },
+    "in": {
+     "en": "“In” means inside something.",
+     "uk": "“In” — всередині чогось."
+    },
+    "on": {
+     "en": "“On” means on the top surface of something.",
+     "uk": "“On” — на верхній поверхні чогось."
+    },
+    "under": {
+     "en": "“Under” means below something.",
+     "uk": "“Under” — під чимось."
+    }
+   },
+   "exercises": {
+    "fleng-a0-where-practice-1": {
+     "hint": {
+      "en": "The key is inside a closed space. Which small word means “inside”?",
+      "uk": "Ключ усередині закритого простору. Яке слівце означає «всередині»?"
+     },
+     "explanation": {
+      "en": "The key is inside the bag, so we say “in the bag”.",
+      "uk": "Ключ усередині сумки, тому “in the bag”."
+     }
+    },
+    "fleng-a0-where-practice-2": {
+     "hint": {
+      "en": "The cup touches the top surface of the desk. Which word fits a top surface?",
+      "uk": "Чашка торкається верхньої поверхні столу. Яке слово підходить для поверхні?"
+     },
+     "explanation": {
+      "en": "On the top of a desk is “on the desk”.",
+      "uk": "Зверху на столі — “on the desk”."
+     }
+    },
+    "fleng-a0-where-practice-3": {
+     "hint": {
+      "en": "The ball is lower than the chair. Which word means “below”?",
+      "uk": "М'яч нижче за стілець. Яке слово означає «нижче»?"
+     },
+     "explanation": {
+      "en": "Below the chair is “under the chair”.",
+      "uk": "Нижче стільця — “under the chair”."
+     }
+    },
+    "fleng-a0-where-practice-4": {
+     "hint": {
+      "en": "“The key” = one thing. Which form of “be” goes with one thing?",
+      "uk": "“The key” — одна річ. Яка форма “be” з однією річчю?"
+     },
+     "explanation": {
+      "en": "One key → “is”: Where is the key?",
+      "uk": "Один ключ → “is”: Where is the key?"
+     }
+    },
+    "fleng-a0-where-practice-5": {
+     "hint": {
+      "en": "“The books” is more than one. Which form of “be” goes with plural?",
+      "uk": "“The books” — кілька. Яка форма “be” з множиною?"
+     },
+     "explanation": {
+      "en": "More than one book → “are”: Where are the books?",
+      "uk": "Кілька книг → “are”: Where are the books?"
+     }
+    },
+    "fleng-a0-where-check-1": {
+     "hint": {
+      "en": "Find “under” in this lesson: “The cup is under the desk.” What does it do in the sentence?",
+      "uk": "Знайди слово “under” в уроці: “The cup is under the desk.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “under” means “під”.",
+      "uk": "У цьому уроці “under” означає «під»."
+     },
+     "wrong": {
+      "тут": {
+       "en": "“тут” is the meaning of “here”, not of “under”.",
+       "uk": "«тут» — це значення слова “here”, а не “under”."
+      },
+      "там": {
+       "en": "“там” is the meaning of “there”, not of “under”.",
+       "uk": "«там» — це значення слова “there”, а не “under”."
+      }
+     }
+    },
+    "fleng-a0-where-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “room”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “room”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “room” means “кімната”.",
+      "uk": "У цьому уроці “room” означає «кімната»."
+     },
+     "wrong": {
+      "стіл": {
+       "en": "“стіл” is the meaning of “table”, not of “room”.",
+       "uk": "«стіл» — це значення слова “table”, а не “room”."
+      },
+      "коробка": {
+       "en": "“коробка” is the meaning of “box”, not of “room”.",
+       "uk": "«коробка» — це значення слова “box”, а не “room”."
+      }
+     }
+    },
+    "fleng-a0-where-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “floor”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “floor”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “floor” means “підлога”.",
+      "uk": "У цьому уроці “floor” означає «підлога»."
+     },
+     "wrong": {
+      "стіна": {
+       "en": "“стіна” is the meaning of “wall”, not of “floor”.",
+       "uk": "«стіна» — це значення слова “wall”, а не “floor”."
+      },
+      "у": {
+       "en": "“у” is the meaning of “in”, not of “floor”.",
+       "uk": "«у» — це значення слова “in”, а не “floor”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-questions": {
+   "explanation": {
+    "en": "For a yes/no question with “be”, put “be” first: Are you ready? Is the room warm? Short answers: Yes, I am. / No, she isn't. For “not” use am not, isn't (is not), aren't (are not).",
+    "uk": "У питанні «так/ні» з “be” ставимо “be” на перше місце: Are you ready? Is the room warm? Коротка відповідь: Yes, I am. / No, she isn't. Для заперечення: am not, isn't (is not), aren't (are not)."
+   },
+   "examples": [
+    {
+     "en": "Are you ready? Yes, I am.",
+     "uk": "Ти готовий? Так."
+    },
+    {
+     "en": "Is she tired? No, she isn't.",
+     "uk": "Вона втомилась? Ні."
+    },
+    {
+     "en": "They aren't late.",
+     "uk": "Вони не запізнилися."
+    }
+   ],
+   "option_notes": {
+    "am": {
+     "en": "“am” goes only with “I”.",
+     "uk": "“am” стоїть лише з “I”."
+    },
+    "is": {
+     "en": "“is” goes with he, she, it and one thing.",
+     "uk": "“is” — з he, she, it та однією річчю."
+    },
+    "are": {
+     "en": "“are” goes with you, we, they and with more than one thing.",
+     "uk": "“are” — з you, we, they і з кількома речами."
+    },
+    "aren't": {
+     "en": "“Aren't” is “are not”. It goes with you, we, they.",
+     "uk": "“Aren't” — “are not”. Вживаємо з you, we, they."
+    },
+    "isn't": {
+     "en": "“Isn't” is “is not”. It goes with he, she, it.",
+     "uk": "“Isn't” — “is not”. Вживаємо з he, she, it."
+    },
+    "am not": {
+     "en": "“Am not” goes only with “I”.",
+     "uk": "“Am not” — лише з “I”."
+    }
+   },
+   "exercises": {
+    "fleng-a0-questions-practice-1": {
+     "hint": {
+      "en": "“You” asks about the other person. Which form of “be” goes with you, and where does it stand in the question?",
+      "uk": "“You” — про співрозмовника. Яка форма “be” з you і де вона в питанні?"
+     },
+     "explanation": {
+      "en": "With “you” we use “are”, and it goes first: Are you ready?",
+      "uk": "З “you” вживаємо “are” і ставимо першим: Are you ready?"
+     }
+    },
+    "fleng-a0-questions-practice-2": {
+     "hint": {
+      "en": "The short answer repeats the verb that goes with “she”.",
+      "uk": "Коротка відповідь повторює дієслово, яке стоїть із “she”."
+     },
+     "explanation": {
+      "en": "With she we use “is”: Yes, she is.",
+      "uk": "З she вживаємо “is”: Yes, she is."
+     }
+    },
+    "fleng-a0-questions-practice-3": {
+     "hint": {
+      "en": "Only one pronoun goes with this form: it is the one for yourself.",
+      "uk": "З цією формою йде лише один займенник — той, що про себе."
+     },
+     "explanation": {
+      "en": "With “I” we use “am”: I am not late.",
+      "uk": "З “I” вживаємо “am”: I am not late."
+     }
+    },
+    "fleng-a0-questions-practice-4": {
+     "hint": {
+      "en": "“They are not” becomes one short word. Which verb form goes with they?",
+      "uk": "“They are not” стає одним коротким словом. Яка форма з they?"
+     },
+     "explanation": {
+      "en": "“They are not” = They aren't.",
+      "uk": "“They are not” (вони не) має коротку форму: They aren't."
+     }
+    },
+    "fleng-a0-questions-practice-5": {
+     "hint": {
+      "en": "“The room” = one thing. Which form of “be” goes first in a question about one thing?",
+      "uk": "“The room” — одна річ. Яка форма “be” першою у питанні про одну річ?"
+     },
+     "explanation": {
+      "en": "One thing → “Is”: Is the room warm?",
+      "uk": "Одна річ → “Is”: Is the room warm?"
+     }
+    },
+    "fleng-a0-questions-check-1": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “happy”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “happy”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “happy” means “щасливий”.",
+      "uk": "У цьому уроці “happy” означає «щасливий»."
+     },
+     "wrong": {
+      "втомлений": {
+       "en": "“втомлений” is the meaning of “tired”, not of “happy”.",
+       "uk": "«втомлений» — це значення слова “tired”, а не “happy”."
+      },
+      "холодний": {
+       "en": "“холодний” is the meaning of “cold”, not of “happy”.",
+       "uk": "«холодний» — це значення слова “cold”, а не “happy”."
+      }
+     }
+    },
+    "fleng-a0-questions-check-2": {
+     "hint": {
+      "en": "Find “warm” in this lesson: “It is warm.” What does it do in the sentence?",
+      "uk": "Знайди слово “warm” в уроці: “It is warm.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “warm” means “теплий”.",
+      "uk": "У цьому уроці “warm” означає «теплий»."
+     },
+     "wrong": {
+      "ні": {
+       "en": "“ні” is the meaning of “no”, not of “warm”.",
+       "uk": "«ні» — це значення слова “no”, а не “warm”."
+      },
+      "так": {
+       "en": "“так” is the meaning of “yes”, not of “warm”.",
+       "uk": "«так» — це значення слова “yes”, а не “warm”."
+      }
+     }
+    },
+    "fleng-a0-questions-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “question”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “question”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “question” means “запитання”.",
+      "uk": "У цьому уроці “question” означає «запитання»."
+     },
+     "wrong": {
+      "відповідь": {
+       "en": "“відповідь” is the meaning of “answer”, not of “question”.",
+       "uk": "«відповідь» — це значення слова “answer”, а не “question”."
+      },
+      "готовий": {
+       "en": "“готовий” is the meaning of “ready”, not of “question”.",
+       "uk": "«готовий» — це значення слова “ready”, а не “question”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a0-first-day": {
+   "explanation": {
+    "en": "This lesson mixes what you know: I am (am/is/are), a/an, where + be, in/on/under. Look at the subject first, then choose the small word.",
+    "uk": "Цей урок поєднує вивчене: I am (am/is/are), a/an, where + be, in/on/under. Спершу знайди підмет, потім обери маленьке слово."
+   },
+   "examples": [
+    {
+     "en": "I am Ada. This is a classroom.",
+     "uk": "Я Ада. Це клас."
+    },
+    {
+     "en": "Where is my notebook? It is on the desk.",
+     "uk": "Де мій зошит? Він на столі."
+    },
+    {
+     "en": "Are you ready? Yes, I am.",
+     "uk": "Ти готовий? Так."
+    }
+   ],
+   "option_notes": {
+    "am": {
+     "en": "“am” goes only with “I”.",
+     "uk": "“am” стоїть лише з “I”."
+    },
+    "is": {
+     "en": "“is” goes with he, she, it and one thing.",
+     "uk": "“is” — з he, she, it та однією річчю."
+    },
+    "are": {
+     "en": "“are” goes with you, we, they and with more than one thing.",
+     "uk": "“are” — з you, we, they і з кількома речами."
+    },
+    "an": {
+     "en": "“An” is only before a vowel sound; “classroom” starts with a consonant sound.",
+     "uk": "“An” — лише перед голосним звуком; “classroom” починається з приголосного."
+    },
+    "a": {
+     "en": "“A” is before a consonant sound.",
+     "uk": "“A” — перед приголосним звуком."
+    },
+    "two": {
+     "en": "“Two” is a number, not an article.",
+     "uk": "“Two” — число, а не артикль."
+    },
+    "on": {
+     "en": "“On” means on the top surface.",
+     "uk": "“On” — на верхній поверхні."
+    },
+    "in": {
+     "en": "“In” means inside something.",
+     "uk": "“In” — всередині чогось."
+    },
+    "under": {
+     "en": "“Under” means below something.",
+     "uk": "“Under” — під чимось."
+    }
+   },
+   "exercises": {
+    "fleng-a0-first-day-practice-1": {
+     "hint": {
+      "en": "Which form of “be” goes with the pronoun for yourself?",
+      "uk": "Яка форма “be” з займенником «я»?"
+     },
+     "explanation": {
+      "en": "With “I” we use “am”: I am Ada.",
+      "uk": "З “I” вживаємо “am”: I am Ada."
+     }
+    },
+    "fleng-a0-first-day-practice-2": {
+     "hint": {
+      "en": "“Classroom” starts with a consonant sound. Which article fits one thing?",
+      "uk": "“Classroom” починається з приголосного. Який артикль для однієї речі?"
+     },
+     "explanation": {
+      "en": "Before a consonant sound we use “a”: a classroom.",
+      "uk": "Перед приголосним звуком — “a”: a classroom."
+     }
+    },
+    "fleng-a0-first-day-practice-3": {
+     "hint": {
+      "en": "“My notebook” = one thing. Which form of “be” goes with one thing?",
+      "uk": "“My notebook” — одна річ. Яка форма “be” з однією річчю?"
+     },
+     "explanation": {
+      "en": "One thing → “is”: Where is my notebook?",
+      "uk": "Одна річ → “is”: Where is my notebook?"
+     }
+    },
+    "fleng-a0-first-day-practice-4": {
+     "hint": {
+      "en": "The brackets say the notebook touches the top of the desk. Which small word means a top surface?",
+      "uk": "У дужках: «зверху». Яке слівце означає верхню поверхню?"
+     },
+     "explanation": {
+      "en": "On its top is “on the desk”.",
+      "uk": "Зверху — “on the desk”."
+     }
+    },
+    "fleng-a0-first-day-practice-5": {
+     "hint": {
+      "en": "A short answer repeats the verb from the question for “you”. What goes with “I”?",
+      "uk": "Коротка відповідь повторює дієслово з питання. Що йде з “I”?"
+     },
+     "explanation": {
+      "en": "The answer to “Are you…?” is “Yes, I am.”",
+      "uk": "Відповідь на “Are you…?” — “Yes, I am.”"
+     }
+    },
+    "fleng-a0-first-day-check-1": {
+     "hint": {
+      "en": "Find “notebook” in this lesson: “Where is my notebook?” What does it do in the sentence?",
+      "uk": "Знайди слово “notebook” в уроці: “Where is my notebook?” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “notebook” means “зошит”.",
+      "uk": "У цьому уроці “notebook” означає «зошит»."
+     },
+     "wrong": {
+      "школа": {
+       "en": "“школа” is the meaning of “school”, not of “notebook”.",
+       "uk": "«школа» — це значення слова “school”, а не “notebook”."
+      },
+      "урок": {
+       "en": "“урок” is the meaning of “lesson”, not of “notebook”.",
+       "uk": "«урок» — це значення слова “lesson”, а не “notebook”."
+      }
+     }
+    },
+    "fleng-a0-first-day-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “today”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “today”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “today” means “сьогодні”.",
+      "uk": "У цьому уроці “today” означає «сьогодні»."
+     },
+     "wrong": {
+      "партнер": {
+       "en": "“партнер” is the meaning of “partner”, not of “today”.",
+       "uk": "«партнер» — це значення слова “partner”, а не “today”."
+      },
+      "зараз": {
+       "en": "“зараз” is the meaning of “now”, not of “today”.",
+       "uk": "«зараз» — це значення слова “now”, а не “today”."
+      }
+     }
+    },
+    "fleng-a0-first-day-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “again”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “again”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “again” means “знову”.",
+      "uk": "У цьому уроці “again” означає «знову»."
+     },
+     "wrong": {
+      "гаразд": {
+       "en": "“гаразд” is the meaning of “OK”, not of “again”.",
+       "uk": "«гаразд» — це значення слова “OK”, а не “again”."
+      },
+      "класна кімната": {
+       "en": "“класна кімната” is the meaning of “classroom”, not of “again”.",
+       "uk": "«класна кімната» — це значення слова “classroom”, а не “again”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-possessions": {
+   "explanation": {
+    "en": "Use “have” with I, you, we, they and “has” with he, she, it. Possessive words show who owns something: my, your, his, her, our, their. They go before a noun: my phone, her garden.",
+    "uk": "“Have” вживаємо з I, you, we, they, а “has” — з he, she, it. Присвійні слова показують, чиє це: my, your, his, her, our, their. Вони стоять перед іменником: my phone, her garden."
+   },
+   "examples": [
+    {
+     "en": "She has a bicycle.",
+     "uk": "У неї є велосипед."
+    },
+    {
+     "en": "They have a flat.",
+     "uk": "У них є квартира."
+    },
+    {
+     "en": "Anna has a garden. Her garden is small.",
+     "uk": "В Анни є сад. Її сад маленький."
+    }
+   ],
+   "option_notes": {
+    "has": {
+     "en": "“Has” goes with he, she, it (one person).",
+     "uk": "“Has” — з he, she, it (одна особа)."
+    },
+    "have": {
+     "en": "“Have” goes with I, you, we, they.",
+     "uk": "“Have” — з I, you, we, they."
+    },
+    "are": {
+     "en": "“Are” is from “be”, not from “have”. We say who has something with “have/has”.",
+     "uk": "“Are” — форма “be”, а не “have”. Що в кого є, кажемо через “have/has”."
+    },
+    "is": {
+     "en": "“Is” is from “be”, not from “have”. We say who has something with “have/has”.",
+     "uk": "“Is” — форма “be”, а не “have”. Що в кого є, кажемо через “have/has”."
+    },
+    "my": {
+     "en": "“My” means the owner is I (me).",
+     "uk": "“My” — власник «я»."
+    },
+    "his": {
+     "en": "“His” is for a man or a boy.",
+     "uk": "“His” — для чоловіка чи хлопця."
+    },
+    "her": {
+     "en": "“Her” is for a woman or a girl.",
+     "uk": "“Her” — для жінки чи дівчини."
+    },
+    "our": {
+     "en": "“Our” means we own it (I and others).",
+     "uk": "“Our” — належить нам (мені й іншим)."
+    },
+    "their": {
+     "en": "“Their” means they own it (other people).",
+     "uk": "“Their” — належить їм (іншим людям)."
+    }
+   },
+   "exercises": {
+    "fleng-a1-possessions-practice-1": {
+     "hint": {
+      "en": "“She” is one person. Which form of the verb that means “own” goes with she?",
+      "uk": "“She” — одна особа. Яка форма дієслова «мати» з she?"
+     },
+     "explanation": {
+      "en": "With she we use “has”: She has a bicycle.",
+      "uk": "З she вживаємо “has”: She has a bicycle."
+     }
+    },
+    "fleng-a1-possessions-practice-2": {
+     "hint": {
+      "en": "“They” is more than one person. Which form goes with they?",
+      "uk": "“They” — кілька осіб. Яка форма з they?"
+     },
+     "explanation": {
+      "en": "With they we use “have”: They have a flat.",
+      "uk": "З they вживаємо “have”: They have a flat."
+     }
+    },
+    "fleng-a1-possessions-practice-3": {
+     "hint": {
+      "en": "The phone belongs to the person who is speaking. Which possessive word is for “I”?",
+      "uk": "Телефон належить тому, хто говорить. Яке присвійне слово для «я»?"
+     },
+     "explanation": {
+      "en": "The owner is “I”, so we say “my phone”.",
+      "uk": "Власник — “I”, тому “my phone”."
+     }
+    },
+    "fleng-a1-possessions-practice-4": {
+     "hint": {
+      "en": "Anna is a woman. Which possessive word is for a woman?",
+      "uk": "Анна — жінка. Яке присвійне слово для жінки?"
+     },
+     "explanation": {
+      "en": "Anna is a woman, so we say “her garden”.",
+      "uk": "Анна — жінка, тому “her garden”."
+     }
+    },
+    "fleng-a1-possessions-practice-5": {
+     "hint": {
+      "en": "“We have a kitchen” — the owners are we. Which possessive word is for “we”?",
+      "uk": "“We have a kitchen” — власники ми. Яке присвійне слово для “we”?"
+     },
+     "explanation": {
+      "en": "The owners are “we”, so we say “our kitchen”.",
+      "uk": "Власники — “we”, тому “our kitchen”."
+     }
+    },
+    "fleng-a1-possessions-check-1": {
+     "hint": {
+      "en": "Find “kitchen” in this lesson: “My flat has a kitchen and a balcony.” What does it do in the sentence?",
+      "uk": "Знайди слово “kitchen” в уроці: “My flat has a kitchen and a balcony.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “kitchen” means “кухня”.",
+      "uk": "У цьому уроці “kitchen” означає «кухня»."
+     },
+     "wrong": {
+      "спальня": {
+       "en": "“спальня” is the meaning of “bedroom”, not of “kitchen”.",
+       "uk": "«спальня» — це значення слова “bedroom”, а не “kitchen”."
+      },
+      "ванна кімната": {
+       "en": "“ванна кімната” is the meaning of “bathroom”, not of “kitchen”.",
+       "uk": "«ванна кімната» — це значення слова “bathroom”, а не “kitchen”."
+      }
+     }
+    },
+    "fleng-a1-possessions-check-2": {
+     "hint": {
+      "en": "Find “garden” in this lesson: “Her bicycle is in our garden.” What does it do in the sentence?",
+      "uk": "Знайди слово “garden” в уроці: “Her bicycle is in our garden.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “garden” means “сад”.",
+      "uk": "У цьому уроці “garden” означає «сад»."
+     },
+     "wrong": {
+      "велосипед": {
+       "en": "“велосипед” is the meaning of “bicycle”, not of “garden”.",
+       "uk": "«велосипед» — це значення слова “bicycle”, а не “garden”."
+      },
+      "телефон": {
+       "en": "“телефон” is the meaning of “phone”, not of “garden”.",
+       "uk": "«телефон» — це значення слова “phone”, а не “garden”."
+      }
+     }
+    },
+    "fleng-a1-possessions-check-3": {
+     "hint": {
+      "en": "Find “balcony” in this lesson: “My flat has a kitchen and a balcony.” What does it do in the sentence?",
+      "uk": "Знайди слово “balcony” в уроці: “My flat has a kitchen and a balcony.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “balcony” means “балкон”.",
+      "uk": "У цьому уроці “balcony” означає «балкон»."
+     },
+     "wrong": {
+      "диван": {
+       "en": "“диван” is the meaning of “sofa”, not of “balcony”.",
+       "uk": "«диван» — це значення слова “sofa”, а не “balcony”."
+      },
+      "дім": {
+       "en": "“дім” is the meaning of “home”, not of “balcony”.",
+       "uk": "«дім» — це значення слова “home”, а не “balcony”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-routines": {
+   "explanation": {
+    "en": "Present simple tells us about habits. With I, you, we, they use the base verb: I eat. With he, she, it add -s: she works. After -sh, -ch, -s, -x, -o add -es: she washes. After a consonant + y change y to -ies: study → studies.",
+    "uk": "Present simple розповідає про звички. З I, you, we, they — початкова форма: I eat. З he, she, it додаємо -s: she works. Після -sh, -ch, -s, -x, -o додаємо -es: she washes. Після приголосної + y: y → -ies: study → studies."
+   },
+   "examples": [
+    {
+     "en": "She works at home.",
+     "uk": "Вона працює вдома."
+    },
+    {
+     "en": "I eat breakfast at seven.",
+     "uk": "Я снідаю о сьомій."
+    },
+    {
+     "en": "He studies English.",
+     "uk": "Він вчить англійську."
+    }
+   ],
+   "option_notes": {
+    "works": {
+     "en": "“Works” has -s for she, but this sentence needs another form.",
+     "uk": "“Works” має -s для she, але в цьому реченні потрібна інша форма."
+    },
+    "work": {
+     "en": "“Work” is the base form: use it with I, you, we, they.",
+     "uk": "“Work” — початкова форма: з I, you, we, they."
+    },
+    "working": {
+     "en": "“Working” is an -ing form. Present simple does not use -ing.",
+     "uk": "“Working” — форма на -ing. У Present simple її немає."
+    },
+    "eats": {
+     "en": "“Eats” has -s. Use -s only with he, she, it.",
+     "uk": "“Eats” має -s. Додаємо -s лише з he, she, it."
+    },
+    "eating": {
+     "en": "“Eating” is an -ing form. Present simple does not use -ing.",
+     "uk": "“Eating” — форма на -ing. У Present simple її немає."
+    },
+    "eat": {
+     "en": "“Eat” is the base form: use it with I, you, we, they.",
+     "uk": "“Eat” — початкова форма: з I, you, we, they."
+    },
+    "studys": {
+     "en": "After a consonant + y we do not add -s. We change y to -ies.",
+     "uk": "Після приголосної + y не додаємо -s. Змінюємо y на -ies."
+    },
+    "study": {
+     "en": "“Study” is the base form. With he/she/it it needs -ies.",
+     "uk": "“Study” — початкова форма. З he/she/it потрібне -ies."
+    },
+    "cooks": {
+     "en": "“Cooks” has -s. Use -s only with he, she, it.",
+     "uk": "“Cooks” має -s. Додаємо -s лише з he, she, it."
+    },
+    "cooking": {
+     "en": "“Cooking” is an -ing form. Present simple does not use -ing.",
+     "uk": "“Cooking” — форма на -ing. У Present simple її немає."
+    },
+    "washs": {
+     "en": "After -sh we add -es, not -s.",
+     "uk": "Після -sh додаємо -es, а не -s."
+    },
+    "wash": {
+     "en": "“Wash” is the base form. With he/she/it it needs -es.",
+     "uk": "“Wash” — початкова форма. З he/she/it потрібне -es."
+    }
+   },
+   "exercises": {
+    "fleng-a1-routines-practice-1": {
+     "hint": {
+      "en": "“She” is one person. What do we add to the verb with he, she, it?",
+      "uk": "“She” — одна особа. Що додаємо до дієслова з he, she, it?"
+     },
+     "explanation": {
+      "en": "With she the verb takes -s: she works.",
+      "uk": "З she до дієслова додаємо -s: she works."
+     }
+    },
+    "fleng-a1-routines-practice-2": {
+     "hint": {
+      "en": "“I” is not he, she or it. Does the verb need an extra ending here?",
+      "uk": "“I” — не he, she чи it. Чи потрібне тут додаткове закінчення дієслова?"
+     },
+     "explanation": {
+      "en": "With “I” we use the base verb: I eat.",
+      "uk": "З “I” вживаємо початкову форму: I eat."
+     }
+    },
+    "fleng-a1-routines-practice-3": {
+     "hint": {
+      "en": "“Study” ends in a consonant + y. Do not just add -s: change the ending.",
+      "uk": "“Study” закінчується на приголосну + y. Не просто додавай -s: зміни закінчення."
+     },
+     "explanation": {
+      "en": "Consonant + y → -ies with he/she/it: studies.",
+      "uk": "Приголосна + y → -ies з he/she/it: studies."
+     }
+    },
+    "fleng-a1-routines-practice-4": {
+     "hint": {
+      "en": "“They” is more than one person. Does the verb take an ending like -s or -ing here?",
+      "uk": "“They” — кілька осіб. Чи має дієслово тут закінчення -s або -ing?"
+     },
+     "explanation": {
+      "en": "With “they” we use the base verb: they cook.",
+      "uk": "З “they” вживаємо початкову форму: they cook."
+     }
+    },
+    "fleng-a1-routines-practice-5": {
+     "hint": {
+      "en": "“Wash” ends in -sh. Which ending do we add with she?",
+      "uk": "“Wash” закінчується на -sh. Яке закінчення з she?"
+     },
+     "explanation": {
+      "en": "After -sh we add -es: she washes.",
+      "uk": "Після -sh додаємо -es: she washes."
+     }
+    },
+    "fleng-a1-routines-check-1": {
+     "hint": {
+      "en": "Find “work” in this lesson: “She works at home. (work)” What does it do in the sentence?",
+      "uk": "Знайди слово “work” в уроці: “She works at home. (work)” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “work” means “працювати”.",
+      "uk": "У цьому уроці “work” означає «працювати»."
+     },
+     "wrong": {
+      "навчатися": {
+       "en": "“навчатися” is the meaning of “study”, not of “work”.",
+       "uk": "«навчатися» — це значення слова “study”, а не “work”."
+      },
+      "ходити пішки": {
+       "en": "“ходити пішки” is the meaning of “walk”, not of “work”.",
+       "uk": "«ходити пішки» — це значення слова “walk”, а не “work”."
+      }
+     }
+    },
+    "fleng-a1-routines-check-2": {
+     "hint": {
+      "en": "Find “cook” in this lesson: “We cook dinner after work.” What does it do in the sentence?",
+      "uk": "Знайди слово “cook” в уроці: “We cook dinner after work.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “cook” means “готувати їжу”.",
+      "uk": "У цьому уроці “cook” означає «готувати їжу»."
+     },
+     "wrong": {
+      "спати": {
+       "en": "“спати” is the meaning of “sleep”, not of “cook”.",
+       "uk": "«спати» — це значення слова “sleep”, а не “cook”."
+      },
+      "вечеря": {
+       "en": "“вечеря” is the meaning of “dinner”, not of “cook”.",
+       "uk": "«вечеря» — це значення слова “dinner”, а не “cook”."
+      }
+     }
+    },
+    "fleng-a1-routines-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “wash”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “wash”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “wash” means “мити”.",
+      "uk": "У цьому уроці “wash” означає «мити»."
+     },
+     "wrong": {
+      "будній день": {
+       "en": "“будній день” is the meaning of “weekday”, not of “wash”.",
+       "uk": "«будній день» — це значення слова “weekday”, а не “wash”."
+      },
+      "прокидатися": {
+       "en": "“прокидатися” is the meaning of “wake up”, not of “wash”.",
+       "uk": "«прокидатися» — це значення слова “wake up”, а не “wash”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-routine-questions": {
+   "explanation": {
+    "en": "For questions use “do” (I, you, we, they) or “does” (he, she, it) before the subject. After do/does the verb stays in the base form: Does she work? For “not” use don't or doesn't + base verb. Frequency words: always, usually, sometimes, never.",
+    "uk": "У питаннях ставимо “do” (I, you, we, they) або “does” (he, she, it) перед підметом. Після do/does дієслово у початковій формі: Does she work? Для заперечення: don't або doesn't + початкова форма. Слова частоти: always, usually, sometimes, never."
+   },
+   "examples": [
+    {
+     "en": "Do you take the bus?",
+     "uk": "Ти їздиш автобусом?"
+    },
+    {
+     "en": "She doesn't take the train.",
+     "uk": "Вона не їздить потягом."
+    },
+    {
+     "en": "They always walk to work.",
+     "uk": "Вони завжди ходять на роботу пішки."
+    }
+   ],
+   "option_notes": {
+    "do": {
+     "en": "“Do” goes with I, you, we, they in questions.",
+     "uk": "“Do” — з I, you, we, they у питаннях."
+    },
+    "does": {
+     "en": "“Does” goes with he, she, it in questions.",
+     "uk": "“Does” — з he, she, it у питаннях."
+    },
+    "is": {
+     "en": "“Is” is from “be”. With an action verb (take, work) we use do/does.",
+     "uk": "“Is” — з “be”. З дієсловами дії (take, work) вживаємо do/does."
+    },
+    "works": {
+     "en": "After “does” the verb has no -s: the -s is already in “does”.",
+     "uk": "Після “does” дієслово без -s: -s уже є в “does”."
+    },
+    "working": {
+     "en": "Do not add -ing after do/does. Use the base form.",
+     "uk": "Не додавай -ing після do/does. Потрібна початкова форма."
+    },
+    "isn't": {
+     "en": "“Isn't” is from “be”. With action verbs use don't/doesn't.",
+     "uk": "“Isn't” — з “be”. З дієсловами дії — don't/doesn't."
+    },
+    "don't": {
+     "en": "“Don't” goes with I, you, we, they.",
+     "uk": "“Don't” — з I, you, we, they."
+    },
+    "doesn't": {
+     "en": "“Doesn't” goes with he, she, it.",
+     "uk": "“Doesn't” — з he, she, it."
+    },
+    "am not": {
+     "en": "“Am not” is from “be”. With action verbs use don't.",
+     "uk": "“Am not” — з “be”. З дієсловами дії — don't."
+    },
+    "never": {
+     "en": "“Never” means 0 times. It does not match “every time”.",
+     "uk": "“Never” — жодного разу. Не збігається з «щоразу»."
+    },
+    "sometimes": {
+     "en": "“Sometimes” means not every time.",
+     "uk": "“Sometimes” — не щоразу."
+    },
+    "always": {
+     "en": "“Always” means every time.",
+     "uk": "“Always” — щоразу."
+    }
+   },
+   "exercises": {
+    "fleng-a1-routine-questions-practice-1": {
+     "hint": {
+      "en": "“You” needs the helper for I, you, we, they. Which helper starts the question?",
+      "uk": "“You” потребує допоміжного для I, you, we, they. Яке слово відкриває питання?"
+     },
+     "explanation": {
+      "en": "With you we ask with “do”: Do you take the bus?",
+      "uk": "З you питаємо через “do”: Do you take the bus?"
+     }
+    },
+    "fleng-a1-routine-questions-practice-2": {
+     "hint": {
+      "en": "“Does” is already here. What form does the main verb take after it?",
+      "uk": "“Does” уже є. Яку форму має головне дієслово після нього?"
+     },
+     "explanation": {
+      "en": "After “does” the main verb is in the base form: Does she work?",
+      "uk": "Після “does” головне дієслово у початковій формі: Does she work?"
+     }
+    },
+    "fleng-a1-routine-questions-practice-3": {
+     "hint": {
+      "en": "“He” needs the helper for he/she/it. For “not” add “not” to that helper.",
+      "uk": "“He” потребує допоміжного для he/she/it. Для заперечення додай “not” до нього."
+     },
+     "explanation": {
+      "en": "With he we use doesn't + base verb: He doesn't take the train.",
+      "uk": "З he — doesn't + початкова форма: He doesn't take the train."
+     }
+    },
+    "fleng-a1-routine-questions-practice-4": {
+     "hint": {
+      "en": "“I” needs the helper for I/you/we/they. For “not” add “not” to that helper.",
+      "uk": "“I” потребує допоміжного для I/you/we/they. Для заперечення додай “not” до нього."
+     },
+     "explanation": {
+      "en": "With I we use don't + base verb: I don't work on Sundays.",
+      "uk": "З I — don't + початкова форма: I don't work on Sundays."
+     }
+    },
+    "fleng-a1-routine-questions-practice-5": {
+     "hint": {
+      "en": "The brackets say “every time”. Which frequency word means 100% of the time?",
+      "uk": "У дужках «щоразу». Яке слово означає 100% випадків?"
+     },
+     "explanation": {
+      "en": "“Every time” is “always”.",
+      "uk": "«Щоразу» — це “always”."
+     }
+    },
+    "fleng-a1-routine-questions-check-1": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “sometimes”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “sometimes”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “sometimes” means “іноді”.",
+      "uk": "У цьому уроці “sometimes” означає «іноді»."
+     },
+     "wrong": {
+      "ніколи": {
+       "en": "“ніколи” is the meaning of “never”, not of “sometimes”.",
+       "uk": "«ніколи» — це значення слова “never”, а не “sometimes”."
+      },
+      "завжди": {
+       "en": "“завжди” is the meaning of “always”, not of “sometimes”.",
+       "uk": "«завжди» — це значення слова “always”, а не “sometimes”."
+      }
+     }
+    },
+    "fleng-a1-routine-questions-check-2": {
+     "hint": {
+      "en": "Find “bus” in this lesson: “Do you take the bus?” What does it do in the sentence?",
+      "uk": "Знайди слово “bus” в уроці: “Do you take the bus?” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “bus” means “автобус”.",
+      "uk": "У цьому уроці “bus” означає «автобус»."
+     },
+     "wrong": {
+      "вихідні": {
+       "en": "“вихідні” is the meaning of “weekend”, not of “bus”.",
+       "uk": "«вихідні» — це значення слова “weekend”, а не “bus”."
+      },
+      "поїзд": {
+       "en": "“поїзд” is the meaning of “train”, not of “bus”.",
+       "uk": "«поїзд» — це значення слова “train”, а не “bus”."
+      }
+     }
+    },
+    "fleng-a1-routine-questions-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “habit”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “habit”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “habit” means “звичка”.",
+      "uk": "У цьому уроці “habit” означає «звичка»."
+     },
+     "wrong": {
+      "рано": {
+       "en": "“рано” is the meaning of “early”, not of “habit”.",
+       "uk": "«рано» — це значення слова “early”, а не “habit”."
+      },
+      "зазвичай": {
+       "en": "“зазвичай” is the meaning of “usually”, not of “habit”.",
+       "uk": "«зазвичай» — це значення слова “usually”, а не “habit”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-time": {
+   "explanation": {
+    "en": "Use at for clock times and points in time (at nine o'clock), on for days and dates (on Monday), and in for months, years and parts of the day (in July, in the morning). 9:30 = half past nine, 10:15 = quarter past ten.",
+    "uk": "At — для точного часу (at nine o'clock), on — для днів і дат (on Monday), in — для місяців, років і частин доби (in July, in the morning). 9:30 = half past nine, 10:15 = quarter past ten."
+   },
+   "examples": [
+    {
+     "en": "The lesson starts at nine o'clock.",
+     "uk": "Урок починається о дев'ятій."
+    },
+    {
+     "en": "We meet on Monday.",
+     "uk": "Ми зустрічаємось у понеділок."
+    },
+    {
+     "en": "The course starts in July.",
+     "uk": "Курс починається в липні."
+    }
+   ],
+   "option_notes": {
+    "at": {
+     "en": "“At” is for exact clock times and points in time.",
+     "uk": "“At” — для точного часу."
+    },
+    "on": {
+     "en": "“On” is for days and dates: on Monday, on 5 May.",
+     "uk": "“On” — для днів і дат: on Monday, on 5 May."
+    },
+    "in": {
+     "en": "“In” is for months, years and parts of the day: in July, in the morning.",
+     "uk": "“In” — для місяців, років і частин доби: in July, in the morning."
+    },
+    "9:15": {
+     "en": "9:15 is “quarter past nine”. “Half” is 30 minutes.",
+     "uk": "9:15 — “quarter past nine”. “Half” — 30 хвилин."
+    },
+    "9:45": {
+     "en": "9:45 is “quarter to ten”. “Half” is 30 minutes.",
+     "uk": "9:45 — “quarter to ten”. “Half” — 30 хвилин."
+    },
+    "9:30": {
+     "en": "9:30 is “half past nine”.",
+     "uk": "9:30 — “half past nine”."
+    },
+    "10:30": {
+     "en": "10:30 is “half past ten”. “Quarter” is 15 minutes.",
+     "uk": "10:30 — “half past ten”. “Quarter” — 15 хвилин."
+    },
+    "10:45": {
+     "en": "10:45 is “quarter to eleven”.",
+     "uk": "10:45 — “quarter to eleven”."
+    },
+    "10:15": {
+     "en": "10:15 is “quarter past ten”.",
+     "uk": "10:15 — “quarter past ten”."
+    }
+   },
+   "exercises": {
+    "fleng-a1-time-practice-1": {
+     "hint": {
+      "en": "“Nine o'clock” is an exact time on the clock. Which small word is for exact times?",
+      "uk": "“Nine o'clock” — точний час. Яке слівце для точного часу?"
+     },
+     "explanation": {
+      "en": "Exact clock times use “at”: at nine o'clock.",
+      "uk": "Точний час — “at”: at nine o'clock."
+     }
+    },
+    "fleng-a1-time-practice-2": {
+     "hint": {
+      "en": "“Monday” is a day of the week. Which small word is for days?",
+      "uk": "“Monday” — день тижня. Яке слівце для днів?"
+     },
+     "explanation": {
+      "en": "Days use “on”: on Monday.",
+      "uk": "Дні — “on”: on Monday."
+     }
+    },
+    "fleng-a1-time-practice-3": {
+     "hint": {
+      "en": "“July” is a month. Which small word is for months and parts of the day?",
+      "uk": "“July” — місяць. Яке слівце для місяців і частин доби?"
+     },
+     "explanation": {
+      "en": "Months use “in”: in July.",
+      "uk": "Місяці — “in”: in July."
+     }
+    },
+    "fleng-a1-time-practice-4": {
+     "hint": {
+      "en": "“Half” means 30 minutes past the hour. Which clock time is nine and a half?",
+      "uk": "“Half” — 30 хвилин після години. Який час — дев'ять з половиною?"
+     },
+     "explanation": {
+      "en": "Half past nine = 9:30.",
+      "uk": "Half past nine («пів на десяту») = 9:30."
+     }
+    },
+    "fleng-a1-time-practice-5": {
+     "hint": {
+      "en": "“Quarter” means 15 minutes. Past means after the hour.",
+      "uk": "“Quarter” — 15 хвилин. “Past” — після години."
+     },
+     "explanation": {
+      "en": "Quarter past ten = 10:15.",
+      "uk": "Quarter past ten («п’ятнадцять хвилин на одинадцяту») = 10:15."
+     }
+    },
+    "fleng-a1-time-check-1": {
+     "hint": {
+      "en": "Find “Monday” in this lesson: “We meet on Monday.” What does it do in the sentence?",
+      "uk": "Знайди слово “Monday” в уроці: “We meet on Monday.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “Monday” means “понеділок”.",
+      "uk": "У цьому уроці “Monday” означає «понеділок»."
+     },
+     "wrong": {
+      "п’ятниця": {
+       "en": "“п’ятниця” is the meaning of “Friday”, not of “Monday”.",
+       "uk": "«п’ятниця» — це значення слова “Friday”, а не “Monday”."
+      },
+      "липень": {
+       "en": "“липень” is the meaning of “July”, not of “Monday”.",
+       "uk": "«липень» — це значення слова “July”, а не “Monday”."
+      }
+     }
+    },
+    "fleng-a1-time-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “noon”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “noon”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “noon” means “полудень”.",
+      "uk": "У цьому уроці “noon” означає «полудень»."
+     },
+     "wrong": {
+      "перерва": {
+       "en": "“перерва” is the meaning of “break”, not of “noon”.",
+       "uk": "«перерва» — це значення слова “break”, а не “noon”."
+      },
+      "північ": {
+       "en": "“північ” is the meaning of “midnight”, not of “noon”.",
+       "uk": "«північ» — це значення слова “midnight”, а не “noon”."
+      }
+     }
+    },
+    "fleng-a1-time-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “timetable”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “timetable”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “timetable” means “розклад”.",
+      "uk": "У цьому уроці “timetable” означає «розклад»."
+     },
+     "wrong": {
+      "зустріч за домовленістю": {
+       "en": "“зустріч за домовленістю” is the meaning of “appointment”, not of “timetable”.",
+       "uk": "«зустріч за домовленістю» — це значення слова “appointment”, а не “timetable”."
+      },
+      "година": {
+       "en": "“година” is the meaning of “hour”, not of “timetable”.",
+       "uk": "«година» — це значення слова “hour”, а не “timetable”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-town": {
+   "explanation": {
+    "en": "Use “there is” for one thing and “there are” for more than one: There is a library. There are two banks. Questions: Is there a station? Are there any hotels? Use “some” in positive sentences and “any” in negatives and questions.",
+    "uk": "“There is” — для однієї речі, “there are” — для кількох: There is a library. There are two banks. Питання: Is there a station? Are there any hotels? У ствердженнях вживаємо “some”, у запереченнях і питаннях — “any”."
+   },
+   "examples": [
+    {
+     "en": "There is a library near the park.",
+     "uk": "Біля парку є бібліотека."
+    },
+    {
+     "en": "There are two banks on this street.",
+     "uk": "На цій вулиці є два банки."
+    },
+    {
+     "en": "There aren't any hotels here.",
+     "uk": "Тут немає жодного готелю."
+    }
+   ],
+   "option_notes": {
+    "is": {
+     "en": "“Is” goes with one thing: there is a library.",
+     "uk": "“Is” — з однією річчю: there is a library."
+    },
+    "are": {
+     "en": "“Are” goes with more than one thing: there are two banks.",
+     "uk": "“Are” — з кількома речами: there are two banks."
+    },
+    "am": {
+     "en": "“Am” goes only with “I”. It does not fit “there”.",
+     "uk": "“Am” — лише з “I”. До “there” не підходить."
+    },
+    "do": {
+     "en": "“Do” is for action verbs. For “there is/are” the question starts with Is/Are.",
+     "uk": "“Do” — для дієслів дії. Питання з “there is/are” починається з Is/Are."
+    },
+    "some": {
+     "en": "“Some” is for positive sentences. This sentence is negative.",
+     "uk": "“Some” — для стверджень. Це речення заперечне."
+    },
+    "any": {
+     "en": "“Any” is for negatives and questions.",
+     "uk": "“Any” — для заперечень і питань."
+    },
+    "a": {
+     "en": "“A” is for one thing. This noun is plural.",
+     "uk": "“A” — для однієї речі. Тут іменник у множині."
+    },
+    "an": {
+     "en": "“An” is for one thing. This noun is plural.",
+     "uk": "“An” — для однієї речі. Тут іменник у множині."
+    }
+   },
+   "exercises": {
+    "fleng-a1-town-practice-1": {
+     "hint": {
+      "en": "“A library” = one thing. Which form fits “there” and one thing?",
+      "uk": "“A library” — одна річ. Яка форма підходить до “there” і однієї речі?"
+     },
+     "explanation": {
+      "en": "One thing → “there is”: There is a library.",
+      "uk": "Одна річ → “there is”: There is a library."
+     }
+    },
+    "fleng-a1-town-practice-2": {
+     "hint": {
+      "en": "“Two banks” is more than one. Which form fits more than one?",
+      "uk": "“Two banks” — кілька. Яка форма для кількох?"
+     },
+     "explanation": {
+      "en": "More than one → “there are”: There are two banks.",
+      "uk": "Кілька → “there are”: There are two banks."
+     }
+    },
+    "fleng-a1-town-practice-3": {
+     "hint": {
+      "en": "For a question about “a station” we put the “be” verb first. Which form fits one thing?",
+      "uk": "У питанні про “a station” ставимо дієслово на початок. Яке — для однієї речі?"
+     },
+     "explanation": {
+      "en": "The question for one thing is: Is there a station?",
+      "uk": "Питання про одну річ: Is there a station?"
+     }
+    },
+    "fleng-a1-town-practice-4": {
+     "hint": {
+      "en": "The sentence is negative (aren't). Which word do we use in negatives?",
+      "uk": "Речення заперечне (aren't). Яке слово вживаємо в запереченнях?"
+     },
+     "explanation": {
+      "en": "In negatives we use “any”: There aren't any hotels.",
+      "uk": "У запереченнях вживаємо “any”: There aren't any hotels."
+     }
+    },
+    "fleng-a1-town-practice-5": {
+     "hint": {
+      "en": "The sentence is positive and “shops” is plural. Which word means “a few, not counted”?",
+      "uk": "Речення стверджувальне, “shops” — множина. Яке слово означає «кілька, без точної кількості»?"
+     },
+     "explanation": {
+      "en": "In positive sentences with plurals we use “some”: There are some shops.",
+      "uk": "У ствердженнях з множиною вживаємо “some”: There are some shops."
+     }
+    },
+    "fleng-a1-town-check-1": {
+     "hint": {
+      "en": "Find “bank” in this lesson: “There are two banks.” What does it do in the sentence?",
+      "uk": "Знайди слово “bank” в уроці: “There are two banks.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “bank” means “банк”.",
+      "uk": "У цьому уроці “bank” означає «банк»."
+     },
+     "wrong": {
+      "станція": {
+       "en": "“станція” is the meaning of “station”, not of “bank”.",
+       "uk": "«станція» — це значення слова “station”, а не “bank”."
+      },
+      "готель": {
+       "en": "“готель” is the meaning of “hotel”, not of “bank”.",
+       "uk": "«готель» — це значення слова “hotel”, а не “bank”."
+      }
+     }
+    },
+    "fleng-a1-town-check-2": {
+     "hint": {
+      "en": "Find “street” in this lesson: “There aren't any hotels in this street.” What does it do in the sentence?",
+      "uk": "Знайди слово “street” в уроці: “There aren't any hotels in this street.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “street” means “вулиця”.",
+      "uk": "У цьому уроці “street” означає «вулиця»."
+     },
+     "wrong": {
+      "лікарня": {
+       "en": "“лікарня” is the meaning of “hospital”, not of “street”.",
+       "uk": "«лікарня» — це значення слова “hospital”, а не “street”."
+      },
+      "парк": {
+       "en": "“парк” is the meaning of “park”, not of “street”.",
+       "uk": "«парк» — це значення слова “park”, а не “street”."
+      }
+     }
+    },
+    "fleng-a1-town-check-3": {
+     "hint": {
+      "en": "Find “near” in this lesson: “There is a library near my flat.” What does it do in the sentence?",
+      "uk": "Знайди слово “near” в уроці: “There is a library near my flat.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “near” means “біля”.",
+      "uk": "У цьому уроці “near” означає «біля»."
+     },
+     "wrong": {
+      "поруч із": {
+       "en": "“поруч із” is the meaning of “next to”, not of “near”.",
+       "uk": "«поруч із» — це значення слова “next to”, а не “near”."
+      },
+      "бібліотека": {
+       "en": "“бібліотека” is the meaning of “library”, not of “near”.",
+       "uk": "«бібліотека» — це значення слова “library”, а не “near”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-food": {
+   "explanation": {
+    "en": "Countable nouns can be counted: egg, eggs. Uncountable nouns cannot: water, rice, bread. Use “many” with countable plurals (how many eggs) and “much” with uncountable nouns (how much water). Use “some” for an unknown quantity. For uncountable nouns use a measure word: a bottle of water, a loaf of bread.",
+    "uk": "Злічувані іменники можна рахувати: egg, eggs. Незлічувані — ні: water, rice, bread. “Many” — зі злічуваними у множині (how many eggs), “much” — з незлічуваними (how much water). “Some” — невизначена кількість. Для незлічуваних вживаємо одиницю виміру: a bottle of water, a loaf of bread."
+   },
+   "examples": [
+    {
+     "en": "How many eggs do we need?",
+     "uk": "Скільки яєць нам потрібно?"
+    },
+    {
+     "en": "How much water is there?",
+     "uk": "Скільки там води?"
+    },
+    {
+     "en": "Two bottles of water and a loaf of bread.",
+     "uk": "Дві пляшки води й буханець хліба."
+    }
+   ],
+   "option_notes": {
+    "many": {
+     "en": "“Many” goes with things you can count (eggs, books).",
+     "uk": "“Many” — з тим, що можна порахувати (eggs, books)."
+    },
+    "much": {
+     "en": "“Much” goes with things you cannot count (water, rice).",
+     "uk": "“Much” — з тим, що не можна порахувати (water, rice)."
+    },
+    "a": {
+     "en": "“A” is for one countable thing. It does not make the question “how ___ …?”.",
+     "uk": "“A” — для однієї злічуваної речі. Не підходить до “how ___ …?”."
+    },
+    "an": {
+     "en": "“An” is for one countable thing, with a vowel sound. It does not fit here.",
+     "uk": "“An” — для однієї злічуваної речі з голосним звуком. Тут не підходить."
+    },
+    "some": {
+     "en": "“Some” is for an unknown quantity in a positive sentence.",
+     "uk": "“Some” — невизначена кількість у ствердженні."
+    },
+    "bottle": {
+     "en": "After “two” we need a plural: bottles.",
+     "uk": "Після “two” потрібна множина: bottles."
+    },
+    "waters": {
+     "en": "“Water” is uncountable: it has no plural here. Use “bottles of water”.",
+     "uk": "“Water” — незлічуваний: тут без множини. Кажемо “bottles of water”."
+    },
+    "a bread": {
+     "en": "“Bread” is uncountable. We cannot say “a bread”; we say “a loaf of bread”.",
+     "uk": "“Bread” — незлічуваний. Не кажемо “a bread”, а “a loaf of bread”."
+    },
+    "two breads of loaf": {
+     "en": "The measure word comes first: a loaf of bread.",
+     "uk": "Спершу одиниця виміру: a loaf of bread."
+    }
+   },
+   "exercises": {
+    "fleng-a1-food-practice-1": {
+     "hint": {
+      "en": "Eggs can be counted. Which word is used with countable plurals in a “How ___ …?” question?",
+      "uk": "Яйця можна порахувати. Яке слово вживаємо зі злічуваною множиною в питанні “How ___ …?”"
+     },
+     "explanation": {
+      "en": "“Eggs” are countable, so we say “How many eggs?”.",
+      "uk": "“Eggs” — злічувані, тому “How many eggs?”."
+     }
+    },
+    "fleng-a1-food-practice-2": {
+     "hint": {
+      "en": "Water cannot be counted. Which word is used with uncountable nouns?",
+      "uk": "Воду не можна порахувати. Яке слово вживаємо з незлічуваними?"
+     },
+     "explanation": {
+      "en": "“Water” is uncountable, so we say “How much water?”.",
+      "uk": "“Water” — незлічуваний, тому “How much water?”."
+     }
+    },
+    "fleng-a1-food-practice-3": {
+     "hint": {
+      "en": "We say “I'd like” for an unknown quantity of something uncountable. Which small word means “a little”?",
+      "uk": "“I'd like” — невизначена кількість незлічуваного. Яке слівце означає «трохи»?"
+     },
+     "explanation": {
+      "en": "For an unknown quantity we use “some”: I'd like some rice.",
+      "uk": "Для невизначеної кількості — “some”: I'd like some rice."
+     }
+    },
+    "fleng-a1-food-practice-4": {
+     "hint": {
+      "en": "“Two” means more than one. What happens to the measure word “bottle”?",
+      "uk": "“Two” — більше одного. Що стається зі словом “bottle”?"
+     },
+     "explanation": {
+      "en": "After “two” the measure word is plural: two bottles of water.",
+      "uk": "Після “two” слово-міра у множині: two bottles of water."
+     }
+    },
+    "fleng-a1-food-practice-5": {
+     "hint": {
+      "en": "“Bread” is uncountable. Which phrase uses a measure word first?",
+      "uk": "“Bread” — незлічуваний. Яка фраза починається зі слова-міри?"
+     },
+     "explanation": {
+      "en": "Uncountable nouns need a measure word: a loaf of bread.",
+      "uk": "Незлічуваним потрібна міра: a loaf of bread."
+     }
+    },
+    "fleng-a1-food-check-1": {
+     "hint": {
+      "en": "Find “bread” in this lesson: “B: A little rice and some bread.” What does it do in the sentence?",
+      "uk": "Знайди слово “bread” в уроці: “B: A little rice and some bread.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “bread” means “хліб”.",
+      "uk": "У цьому уроці “bread” означає «хліб»."
+     },
+     "wrong": {
+      "вода": {
+       "en": "“вода” is the meaning of “water”, not of “bread”.",
+       "uk": "«вода» — це значення слова “water”, а не “bread”."
+      },
+      "молоко": {
+       "en": "“молоко” is the meaning of “milk”, not of “bread”.",
+       "uk": "«молоко» — це значення слова “milk”, а не “bread”."
+      }
+     }
+    },
+    "fleng-a1-food-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “cheese”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “cheese”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “cheese” means “сир”.",
+      "uk": "У цьому уроці “cheese” означає «сир»."
+     },
+     "wrong": {
+      "буханець": {
+       "en": "“буханець” is the meaning of “loaf”, not of “cheese”.",
+       "uk": "«буханець» — це значення слова “loaf”, а не “cheese”."
+      },
+      "пляшка": {
+       "en": "“пляшка” is the meaning of “bottle”, not of “cheese”.",
+       "uk": "«пляшка» — це значення слова “bottle”, а не “cheese”."
+      }
+     }
+    },
+    "fleng-a1-food-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “potato”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “potato”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “potato” means “картоплина”.",
+      "uk": "У цьому уроці “potato” означає «картоплина»."
+     },
+     "wrong": {
+      "помідор": {
+       "en": "“помідор” is the meaning of “tomato”, not of “potato”.",
+       "uk": "«помідор» — це значення слова “tomato”, а не “potato”."
+      },
+      "яйце": {
+       "en": "“яйце” is the meaning of “egg”, not of “potato”.",
+       "uk": "«яйце» — це значення слова “egg”, а не “potato”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-abilities": {
+   "explanation": {
+    "en": "Use “can” + base verb for ability: She can swim. The verb after “can” never takes -s or “to”. Question: Can you drive? Negative: can't (cannot). Short answers: Yes, I can. / No, I can't.",
+    "uk": "“Can” + початкова форма дієслова — для вміння: She can swim. Після “can” дієслово без -s і без “to”. Питання: Can you drive? Заперечення: can't (cannot). Коротка відповідь: Yes, I can. / No, I can't."
+   },
+   "examples": [
+    {
+     "en": "She can swim well.",
+     "uk": "Вона добре плаває."
+    },
+    {
+     "en": "Can you drive? No, I can't.",
+     "uk": "Ти вмієш водити? Ні."
+    },
+    {
+     "en": "They can play the guitar.",
+     "uk": "Вони вміють грати на гітарі."
+    }
+   ],
+   "option_notes": {
+    "swim": {
+     "en": "“Swim” is the base verb: it is correct after “can”.",
+     "uk": "“Swim” — початкова форма: вона правильна після “can”."
+    },
+    "swims": {
+     "en": "After “can” the verb has no -s.",
+     "uk": "Після “can” дієслово без -s."
+    },
+    "to swim": {
+     "en": "After “can” we do not use “to”.",
+     "uk": "Після “can” не вживаємо “to”."
+    },
+    "do can": {
+     "en": "“Can” is already the helper. We do not add “do”.",
+     "uk": "“Can” уже допоміжне. “Do” не додаємо."
+    },
+    "are can": {
+     "en": "“Can” is already the helper. We do not add “are”.",
+     "uk": "“Can” уже допоміжне. “Are” не додаємо."
+    },
+    "can": {
+     "en": "“Can” goes first in a question and replaces do/does/are.",
+     "uk": "“Can” іде першим у питанні й замінює do/does/are."
+    },
+    "isn't can": {
+     "en": "We never combine “be” and “can”.",
+     "uk": "“Be” і “can” ніколи не поєднуємо."
+    },
+    "doesn't can": {
+     "en": "We never use do/does with “can”.",
+     "uk": "З “can” ніколи не вживаємо do/does."
+    },
+    "can't": {
+     "en": "“Can't” means “cannot”: not able.",
+     "uk": "“Can't” — “cannot”: не вміє."
+    },
+    "do": {
+     "en": "A short answer repeats the helper from the question: Can you…? → Yes, I can.",
+     "uk": "Коротка відповідь повторює допоміжне зі питання: Can you…? → Yes, I can."
+    },
+    "am": {
+     "en": "A short answer repeats the helper from the question: Can you…? → Yes, I can.",
+     "uk": "Коротка відповідь повторює допоміжне зі питання: Can you…? → Yes, I can."
+    },
+    "plays": {
+     "en": "After “can” the verb has no -s.",
+     "uk": "Після “can” дієслово без -s."
+    },
+    "to play": {
+     "en": "After “can” we do not use “to”.",
+     "uk": "Після “can” не вживаємо “to”."
+    },
+    "play": {
+     "en": "“Play” is the base verb: it is correct after “can”.",
+     "uk": "“Play” — початкова форма: вона правильна після “can”."
+    }
+   },
+   "exercises": {
+    "fleng-a1-abilities-practice-1": {
+     "hint": {
+      "en": "What form of the verb comes after “can”? No ending and no “to”.",
+      "uk": "Яка форма дієслова після “can”? Без закінчення й без “to”."
+     },
+     "explanation": {
+      "en": "After “can” we use the base verb: She can swim.",
+      "uk": "Після “can” — початкова форма: She can swim."
+     }
+    },
+    "fleng-a1-abilities-practice-2": {
+     "hint": {
+      "en": "The helper word needs no extra “do” or “are”. Which option is only that helper, at the start of the question?",
+      "uk": "Допоміжному слову не потрібні додаткові “do” чи “are”. Який варіант — лише це допоміжне слово на початку питання?"
+     },
+     "explanation": {
+      "en": "In a question “can” goes first: Can you drive?",
+      "uk": "У питанні “can” іде першим: Can you drive?"
+     }
+    },
+    "fleng-a1-abilities-practice-3": {
+     "hint": {
+      "en": "The brackets say “not able”. Which short form of “cannot” fits?",
+      "uk": "У дужках «не вміє». Яка коротка форма “cannot” підходить?"
+     },
+     "explanation": {
+      "en": "“Not able” is “can't”: He can't sing.",
+      "uk": "«Не вміє» — “can't”: He can't sing."
+     }
+    },
+    "fleng-a1-abilities-practice-4": {
+     "hint": {
+      "en": "A short answer repeats the helper from the question.",
+      "uk": "Коротка відповідь повторює допоміжне зі запитання."
+     },
+     "explanation": {
+      "en": "The answer repeats “can”: Yes, I can.",
+      "uk": "Відповідь повторює “can”: Yes, I can."
+     }
+    },
+    "fleng-a1-abilities-practice-5": {
+     "hint": {
+      "en": "After “can” the verb has no “to” and no -s.",
+      "uk": "Після “can” у дієслова немає “to” і -s."
+     },
+     "explanation": {
+      "en": "After “can” use the base verb: They can play the guitar.",
+      "uk": "Після “can” — початкова форма: They can play the guitar."
+     }
+    },
+    "fleng-a1-abilities-check-1": {
+     "hint": {
+      "en": "Find “dance” in this lesson: “Can she dance?” What does it do in the sentence?",
+      "uk": "Знайди слово “dance” в уроці: “Can she dance?” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “dance” means “танцювати”.",
+      "uk": "У цьому уроці “dance” означає «танцювати»."
+     },
+     "wrong": {
+      "співати": {
+       "en": "“співати” is the meaning of “sing”, not of “dance”.",
+       "uk": "«співати» — це значення слова “sing”, а не “dance”."
+      },
+      "бігати": {
+       "en": "“бігати” is the meaning of “run”, not of “dance”.",
+       "uk": "«бігати» — це значення слова “run”, а не “dance”."
+      }
+     }
+    },
+    "fleng-a1-abilities-check-2": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “draw”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “draw”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “draw” means “малювати”.",
+      "uk": "У цьому уроці “draw” означає «малювати»."
+     },
+     "wrong": {
+      "гітара": {
+       "en": "“гітара” is the meaning of “guitar”, not of “draw”.",
+       "uk": "«гітара» — це значення слова “guitar”, а не “draw”."
+      },
+      "навичка": {
+       "en": "“навичка” is the meaning of “skill”, not of “draw”.",
+       "uk": "«навичка» — це значення слова “skill”, а не “draw”."
+      }
+     }
+    },
+    "fleng-a1-abilities-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “fast”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “fast”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “fast” means “швидко”.",
+      "uk": "У цьому уроці “fast” означає «швидко»."
+     },
+     "wrong": {
+      "добре": {
+       "en": "“добре” is the meaning of “well”, not of “fast”.",
+       "uk": "«добре» — це значення слова “well”, а не “fast”."
+      },
+      "плавати": {
+       "en": "“плавати” is the meaning of “swim”, not of “fast”.",
+       "uk": "«плавати» — це значення слова “swim”, а не “fast”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-right-now": {
+   "explanation": {
+    "en": "Present continuous is for actions happening now: am/is/are + verb-ing. I am reading. She is making tea. For the negative add not: He isn't running. Spelling: make → making (drop e), run → running (double the last letter after a short vowel).",
+    "uk": "Present continuous — дії, що відбуваються зараз: am/is/are + дієслово з -ing. I am reading. She is making tea. Заперечення — з not: He isn't running. Правопис: make → making (відкидаємо e), run → running (подвоюємо останню літеру)."
+   },
+   "examples": [
+    {
+     "en": "I am reading now.",
+     "uk": "Я зараз читаю."
+    },
+    {
+     "en": "She is making tea.",
+     "uk": "Вона заварює чай."
+    },
+    {
+     "en": "They are talking.",
+     "uk": "Вони розмовляють."
+    }
+   ],
+   "option_notes": {
+    "am": {
+     "en": "“Am” goes only with “I”.",
+     "uk": "“Am” — лише з “I”."
+    },
+    "is": {
+     "en": "“Is” goes with he, she, it.",
+     "uk": "“Is” — з he, she, it."
+    },
+    "are": {
+     "en": "“Are” goes with you, we, they.",
+     "uk": "“Are” — з you, we, they."
+    },
+    "makeing": {
+     "en": "Drop the final -e before -ing: make → making.",
+     "uk": "Відкинь кінцеве -e перед -ing: make → making."
+    },
+    "makes": {
+     "en": "“Makes” is present simple. After “is” we need the -ing form.",
+     "uk": "“Makes” — Present simple. Після “is” потрібна форма на -ing."
+    },
+    "making": {
+     "en": "“Making” is the correct -ing form of “make”.",
+     "uk": "“Making” — правильна форма на -ing від “make”."
+    },
+    "runing": {
+     "en": "After a short vowel + one consonant, double the consonant: run → running.",
+     "uk": "Після короткого голосного + одного приголосного подвоюємо приголосний: run → running."
+    },
+    "runs": {
+     "en": "“Runs” is present simple. After “is” we need the -ing form.",
+     "uk": "“Runs” — Present simple. Після “is” потрібна форма на -ing."
+    },
+    "running": {
+     "en": "“Running” is the correct -ing form of “run”.",
+     "uk": "“Running” — правильна форма на -ing від “run”."
+    },
+    "does": {
+     "en": "For the present continuous question we use am/is/are, not do/does.",
+     "uk": "У питанні Present continuous вживаємо am/is/are, а не do/does."
+    },
+    "do": {
+     "en": "For the present continuous question we use am/is/are, not do/does.",
+     "uk": "У питанні Present continuous вживаємо am/is/are, а не do/does."
+    }
+   },
+   "exercises": {
+    "fleng-a1-right-now-practice-1": {
+     "hint": {
+      "en": "Present continuous needs a form of “be”. Which one goes with “I”?",
+      "uk": "Present continuous потребує форми “be”. Яка з “I”?"
+     },
+     "explanation": {
+      "en": "With “I” we use “am”: I am reading.",
+      "uk": "З “I” — “am”: I am reading."
+     }
+    },
+    "fleng-a1-right-now-practice-2": {
+     "hint": {
+      "en": "After “is” we need the -ing form. “Make” ends in -e: what happens to the -e?",
+      "uk": "Після “is” потрібна форма на -ing. “Make” закінчується на -e: що з ним?"
+     },
+     "explanation": {
+      "en": "Drop the -e and add -ing: making.",
+      "uk": "Відкидаємо -e і додаємо -ing: making."
+     }
+    },
+    "fleng-a1-right-now-practice-3": {
+     "hint": {
+      "en": "“They” is plural. Which form of “be” goes with they?",
+      "uk": "“They” — множина. Яка форма “be” з they?"
+     },
+     "explanation": {
+      "en": "With they we use “are”: They are talking.",
+      "uk": "З they — “are”: They are talking."
+     }
+    },
+    "fleng-a1-right-now-practice-4": {
+     "hint": {
+      "en": "“Run” is short with one vowel and one final consonant. How do we write the -ing form?",
+      "uk": "“Run” — коротке слово з одним голосним і одним кінцевим приголосним. Як пишемо форму на -ing?"
+     },
+     "explanation": {
+      "en": "Double the last letter: running.",
+      "uk": "Подвоюємо останню літеру: running."
+     }
+    },
+    "fleng-a1-right-now-practice-5": {
+     "hint": {
+      "en": "A question about “she” right now starts with the form of “be” for she.",
+      "uk": "Питання про “she” зараз починається з форми “be” для she."
+     },
+     "explanation": {
+      "en": "The question starts with “Is”: Is she working now?",
+      "uk": "Питання починається з “Is”: Is she working now?"
+     }
+    },
+    "fleng-a1-right-now-check-1": {
+     "hint": {
+      "en": "Find “waiter” in this lesson: “The waiter is making tea.” What does it do in the sentence?",
+      "uk": "Знайди слово “waiter” в уроці: “The waiter is making tea.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “waiter” means “офіціант”.",
+      "uk": "У цьому уроці “waiter” означає «офіціант»."
+     },
+     "wrong": {
+      "кафе": {
+       "en": "“кафе” is the meaning of “café”, not of “waiter”.",
+       "uk": "«кафе» — це значення слова “café”, а не “waiter”."
+      },
+      "чай": {
+       "en": "“чай” is the meaning of “tea”, not of “waiter”.",
+       "uk": "«чай» — це значення слова “tea”, а не “waiter”."
+      }
+     }
+    },
+    "fleng-a1-right-now-check-2": {
+     "hint": {
+      "en": "Find “talk” in this lesson: “They are talking.” What does it do in the sentence?",
+      "uk": "Знайди слово “talk” в уроці: “They are talking.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “talk” means “розмовляти”.",
+      "uk": "У цьому уроці “talk” означає «розмовляти»."
+     },
+     "wrong": {
+      "чекати": {
+       "en": "“чекати” is the meaning of “wait”, not of “talk”.",
+       "uk": "«чекати» — це значення слова “wait”, а не “talk”."
+      },
+      "робити": {
+       "en": "“робити” is the meaning of “make”, not of “talk”.",
+       "uk": "«робити» — це значення слова “make”, а не “talk”."
+      }
+     }
+    },
+    "fleng-a1-right-now-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “wear”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “wear”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “wear” means “носити одяг”.",
+      "uk": "У цьому уроці “wear” означає «носити одяг»."
+     },
+     "wrong": {
+      "пальто": {
+       "en": "“пальто” is the meaning of “coat”, not of “wear”.",
+       "uk": "«пальто» — це значення слова “coat”, а не “wear”."
+      },
+      "дощити": {
+       "en": "“дощити” is the meaning of “rain”, not of “wear”.",
+       "uk": "«дощити» — це значення слова “rain”, а не “wear”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-likes": {
+   "explanation": {
+    "en": "After like, love, enjoy we use the -ing form: I enjoy reading. For the negative: she doesn't like shopping. “Because” gives a reason (I like walking because it is relaxing). “But” shows a contrast (I like cycling, but I don't like running).",
+    "uk": "Після like, love, enjoy вживаємо форму на -ing: I enjoy reading. Заперечення: she doesn't like shopping. “Because” — причина (I like walking because it is relaxing). “But” — протиставлення (I like cycling, but I don't like running)."
+   },
+   "examples": [
+    {
+     "en": "I enjoy reading books.",
+     "uk": "Я люблю читати книжки."
+    },
+    {
+     "en": "She doesn't like shopping.",
+     "uk": "Вона не любить ходити по магазинах."
+    },
+    {
+     "en": "I like cycling, but I don't like running.",
+     "uk": "Я люблю їздити на велосипеді, але не люблю бігати."
+    }
+   ],
+   "option_notes": {
+    "reading": {
+     "en": "“Reading” is the -ing form. It is correct after enjoy.",
+     "uk": "“Reading” — форма на -ing. Вона правильна після enjoy."
+    },
+    "read": {
+     "en": "After enjoy/like/love we use the -ing form: reading.",
+     "uk": "Після enjoy/like/love вживаємо форму на -ing: reading."
+    },
+    "to read": {
+     "en": "After enjoy we use -ing, not “to + verb”.",
+     "uk": "Після enjoy вживаємо -ing, а не “to + дієслово”."
+    },
+    "don't": {
+     "en": "“Don't” goes with I, you, we, they. “She” needs another form.",
+     "uk": "“Don't” — з I, you, we, they. “She” потребує іншої форми."
+    },
+    "isn't": {
+     "en": "“Isn't” is from “be”. “Like” is an action verb: use doesn't/don't.",
+     "uk": "“Isn't” — з “be”. “Like” — дієслово дії: doesn't/don't."
+    },
+    "doesn't": {
+     "en": "“Doesn't” goes with he, she, it.",
+     "uk": "“Doesn't” — з he, she, it."
+    },
+    "or": {
+     "en": "“Or” offers a choice. The sentence gives a reason.",
+     "uk": "“Or” — вибір. Тут потрібна причина."
+    },
+    "because": {
+     "en": "“Because” gives a reason.",
+     "uk": "“Because” — причина."
+    },
+    "but": {
+     "en": "“But” shows a contrast between two ideas.",
+     "uk": "“But” — протиставлення двох думок."
+    },
+    "and": {
+     "en": "“And” adds a similar idea. Here the two ideas are opposite.",
+     "uk": "“And” додає схожу думку. Тут думки протилежні."
+    },
+    "listening": {
+     "en": "“Listening” is the -ing form: correct after loves.",
+     "uk": "“Listening” — форма на -ing: правильна після loves."
+    },
+    "listen": {
+     "en": "After love we use the -ing form.",
+     "uk": "Після love вживаємо форму на -ing."
+    },
+    "listens": {
+     "en": "After love we use the -ing form, not -s.",
+     "uk": "Після love вживаємо форму на -ing, а не -s."
+    }
+   },
+   "exercises": {
+    "fleng-a1-likes-practice-1": {
+     "hint": {
+      "en": "After “enjoy” the next verb takes a special ending, not “to”.",
+      "uk": "Після “enjoy” наступне дієслово має особливе закінчення, а не “to”."
+     },
+     "explanation": {
+      "en": "After enjoy/like/love use -ing: I enjoy reading.",
+      "uk": "Після enjoy/like/love — -ing: I enjoy reading."
+     }
+    },
+    "fleng-a1-likes-practice-2": {
+     "hint": {
+      "en": "“She” needs the “not” helper for he/she/it.",
+      "uk": "“She” потребує допоміжного заперечення для he/she/it."
+     },
+     "explanation": {
+      "en": "With she we use doesn't: She doesn't like shopping.",
+      "uk": "З she — doesn't: She doesn't like shopping."
+     }
+    },
+    "fleng-a1-likes-practice-3": {
+     "hint": {
+      "en": "The second part gives the reason for liking it. Which linking word gives a reason?",
+      "uk": "Друга частина дає причину. Яке сполучне слово дає причину?"
+     },
+     "explanation": {
+      "en": "“Because” introduces the reason.",
+      "uk": "“Because” вводить причину."
+     }
+    },
+    "fleng-a1-likes-practice-4": {
+     "hint": {
+      "en": "“Loves” is followed by a verb with a special ending, not “to”.",
+      "uk": "Після “loves” дієслово з особливим закінченням, не “to”."
+     },
+     "explanation": {
+      "en": "After loves we use -ing: He loves listening to music.",
+      "uk": "Після loves — -ing: He loves listening to music."
+     }
+    },
+    "fleng-a1-likes-practice-5": {
+     "hint": {
+      "en": "The two ideas are opposite: like / don't like. Which linking word shows opposition?",
+      "uk": "Дві думки протилежні: like / don't like. Яке слово показує протиставлення?"
+     },
+     "explanation": {
+      "en": "“But” shows a contrast.",
+      "uk": "“But” показує протиставлення."
+     }
+    },
+    "fleng-a1-likes-check-1": {
+     "hint": {
+      "en": "Find “music” in this lesson: “We both love listening to music.” What does it do in the sentence?",
+      "uk": "Знайди слово “music” в уроці: “We both love listening to music.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “music” means “музика”.",
+      "uk": "У цьому уроці “music” означає «музика»."
+     },
+     "wrong": {
+      "покупки": {
+       "en": "“покупки” is the meaning of “shopping”, not of “music”.",
+       "uk": "«покупки» — це значення слова “shopping”, а не “music”."
+      },
+      "розслаблюючий": {
+       "en": "“розслаблюючий” is the meaning of “relaxing”, not of “music”.",
+       "uk": "«розслаблюючий» — це значення слова “relaxing”, а не “music”."
+      }
+     }
+    },
+    "fleng-a1-likes-check-2": {
+     "hint": {
+      "en": "Find “tiring” in this lesson: “I don't like shopping because it is tiring.” What does it do in the sentence?",
+      "uk": "Знайди слово “tiring” в уроці: “I don't like shopping because it is tiring.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “tiring” means “виснажливий”.",
+      "uk": "У цьому уроці “tiring” означає «виснажливий»."
+     },
+     "wrong": {
+      "фільм": {
+       "en": "“фільм” is the meaning of “film”, not of “tiring”.",
+       "uk": "«фільм» — це значення слова “film”, а не “tiring”."
+      },
+      "хобі": {
+       "en": "“хобі” is the meaning of “hobby”, not of “tiring”.",
+       "uk": "«хобі» — це значення слова “hobby”, а не “tiring”."
+      }
+     }
+    },
+    "fleng-a1-likes-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “game”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “game”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “game” means “гра”.",
+      "uk": "У цьому уроці “game” означає «гра»."
+     },
+     "wrong": {
+      "вільний час": {
+       "en": "“вільний час” is the meaning of “free time”, not of “game”.",
+       "uk": "«вільний час» — це значення слова “free time”, а не “game”."
+      },
+      "їзда на велосипеді": {
+       "en": "“їзда на велосипеді” is the meaning of “cycling”, not of “game”.",
+       "uk": "«їзда на велосипеді» — це значення слова “cycling”, а не “game”."
+      }
+     }
+    }
+   }
+  },
+  "fleng-a1-yesterday": {
+   "explanation": {
+    "en": "The past of “be” is was/were. I/he/she/it → was. You/we/they → were. Questions: Was she at home? Negatives: wasn't, weren't. Use time words: yesterday, last night.",
+    "uk": "Минулий час “be” — was/were. I/he/she/it → was. You/we/they → were. Питання: Was she at home? Заперечення: wasn't, weren't. Слова часу: yesterday, last night."
+   },
+   "examples": [
+    {
+     "en": "I was at the museum yesterday.",
+     "uk": "Я вчора був у музеї."
+    },
+    {
+     "en": "They were at the beach last night.",
+     "uk": "Вони були вчора ввечері на пляжі."
+    },
+    {
+     "en": "Was he busy? No, he wasn't.",
+     "uk": "Він був зайнятий? Ні."
+    }
+   ],
+   "option_notes": {
+    "was": {
+     "en": "“Was” goes with I, he, she, it.",
+     "uk": "“Was” — з I, he, she, it."
+    },
+    "were": {
+     "en": "“Were” goes with you, we, they.",
+     "uk": "“Were” — з you, we, they."
+    },
+    "am": {
+     "en": "“Am” is present. “Yesterday” needs a past form.",
+     "uk": "“Am” — теперішній час. “Yesterday” потребує минулого."
+    },
+    "are": {
+     "en": "“Are” is present. “Last night” needs a past form.",
+     "uk": "“Are” — теперішній час. “Last night” потребує минулого."
+    },
+    "did": {
+     "en": "“Did” is for action verbs. With “be” we say Was/Were.",
+     "uk": "“Did” — для дієслів дії. З “be” кажемо Was/Were."
+    },
+    "wasn't": {
+     "en": "“Wasn't” goes with I, he, she, it.",
+     "uk": "“Wasn't” — з I, he, she, it."
+    },
+    "weren't": {
+     "en": "“Weren't” goes with you, we, they.",
+     "uk": "“Weren't” — з you, we, they."
+    },
+    "don't": {
+     "en": "“Don't” is present and for action verbs. With past “be” use wasn't/weren't.",
+     "uk": "“Don't” — теперішній час для дієслів дії. З минулим “be” — wasn't/weren't."
+    },
+    "isn't": {
+     "en": "“Isn't” is present. The question is about the past.",
+     "uk": "“Isn't” — теперішній час. Питання про минуле."
+    }
+   },
+   "exercises": {
+    "fleng-a1-yesterday-practice-1": {
+     "hint": {
+      "en": "“Yesterday” is the past. Which past form of “be” goes with “I”?",
+      "uk": "“Yesterday” — минуле. Яка минула форма “be” з “I”?"
+     },
+     "explanation": {
+      "en": "With I we use “was”: I was at the museum.",
+      "uk": "З I — “was”: I was at the museum."
+     }
+    },
+    "fleng-a1-yesterday-practice-2": {
+     "hint": {
+      "en": "“They” is plural and the time is “last night”. Which past form goes with they?",
+      "uk": "“They” — множина, час «минулої ночі». Яка минула форма з they?"
+     },
+     "explanation": {
+      "en": "With they we use “were”: They were at the beach.",
+      "uk": "З they — “were”: They were at the beach."
+     }
+    },
+    "fleng-a1-yesterday-practice-3": {
+     "hint": {
+      "en": "A past question about “she” starts with the past form of “be” for she.",
+      "uk": "Питання про минуле про “she” починається з минулої форми “be” для she."
+     },
+     "explanation": {
+      "en": "The question starts with “Was”: Was she at home yesterday?",
+      "uk": "Питання починається з “Was”: Was she at home yesterday?"
+     }
+    },
+    "fleng-a1-yesterday-practice-4": {
+     "hint": {
+      "en": "“We” is plural and the sentence is negative and past. Which short negative goes with we?",
+      "uk": "“We” — множина, речення заперечне й минуле. Яка коротка заперечна форма з we?"
+     },
+     "explanation": {
+      "en": "With we the past negative is “weren't”.",
+      "uk": "З we заперечення в минулому — “weren't”."
+     }
+    },
+    "fleng-a1-yesterday-practice-5": {
+     "hint": {
+      "en": "The short answer is negative and repeats the past form for “he”.",
+      "uk": "Коротка відповідь заперечна й повторює минулу форму для “he”."
+     },
+     "explanation": {
+      "en": "With he the past negative is “wasn't”: No, he wasn't.",
+      "uk": "З he заперечення — “wasn't”: No, he wasn't."
+     }
+    },
+    "fleng-a1-yesterday-check-1": {
+     "hint": {
+      "en": "Find “beach” in this lesson: “My friends were at the beach.” What does it do in the sentence?",
+      "uk": "Знайди слово “beach” в уроці: “My friends were at the beach.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “beach” means “пляж”.",
+      "uk": "У цьому уроці “beach” означає «пляж»."
+     },
+     "wrong": {
+      "сонячний": {
+       "en": "“сонячний” is the meaning of “sunny”, not of “beach”.",
+       "uk": "«сонячний» — це значення слова “sunny”, а не “beach”."
+      },
+      "хмарний": {
+       "en": "“хмарний” is the meaning of “cloudy”, not of “beach”.",
+       "uk": "«хмарний» — це значення слова “cloudy”, а не “beach”."
+      }
+     }
+    },
+    "fleng-a1-yesterday-check-2": {
+     "hint": {
+      "en": "Find “last night” in this lesson: “They were at the beach last night.” What does it do in the sentence?",
+      "uk": "Знайди слово “last night” в уроці: “They were at the beach last night.” Що воно означає в цьому реченні?"
+     },
+     "explanation": {
+      "en": "In this lesson “last night” means “минулої ночі”.",
+      "uk": "У цьому уроці “last night” означає «минулої ночі»."
+     },
+     "wrong": {
+      "погода": {
+       "en": "“погода” is the meaning of “weather”, not of “last night”.",
+       "uk": "«погода» — це значення слова “weather”, а не “last night”."
+      },
+      "поїздка": {
+       "en": "“поїздка” is the meaning of “trip”, not of “last night”.",
+       "uk": "«поїздка» — це значення слова “trip”, а не “last night”."
+      }
+     }
+    },
+    "fleng-a1-yesterday-check-3": {
+     "hint": {
+      "en": "Look at this lesson's vocabulary list and recall where you met “busy”. Which meaning fits?",
+      "uk": "Подивись на словник цього уроку й згадай, де ти бачив(ла) “busy”. Яке значення підходить?"
+     },
+     "explanation": {
+      "en": "In this lesson “busy” means “зайнятий”.",
+      "uk": "У цьому уроці “busy” означає «зайнятий»."
+     },
+     "wrong": {
+      "тихий": {
+       "en": "“тихий” is the meaning of “quiet”, not of “busy”.",
+       "uk": "«тихий» — це значення слова “quiet”, а не “busy”."
+      },
+      "вчора": {
+       "en": "“вчора” is the meaning of “yesterday”, not of “busy”.",
+       "uk": "«вчора» — це значення слова “yesterday”, а не “busy”."
+      }
+     }
+    }
+   }
+  }
+ }
+}

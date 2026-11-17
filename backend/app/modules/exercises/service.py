@@ -34,7 +34,8 @@ from app.db.models import (
     LessonProgress,
     User,
 )
-from app.modules.exercises import grading
+from app.modules.exercises import grading, guidance
+from app.modules.exercises.guidance import LocalizedText
 from app.modules.exercises.schemas import (
     ExerciseOptionResponse,
     ExercisePublicResponse,
@@ -126,6 +127,7 @@ def to_public_exercise(exercise: Exercise) -> ExercisePublicResponse:
             if exercise.type == "text" and exercise.letter_tiles
             else None
         ),
+        hint=guidance.hint_for(exercise.slug),
     )
 
 
@@ -268,10 +270,7 @@ def _validate_answer(exercise: Exercise, answer: str, self_assessment: str | Non
             pairs = list(zip(pattern, word, strict=True))
             used = Counter(letter for fixed, letter in pairs if fixed == "_")
             available = Counter(letter.casefold() for letter in exercise.letter_tiles["letters"])
-            if used - available or any(
-                fixed != "_" and fixed != letter
-                for fixed, letter in pairs
-            ):
+            if used - available or any(fixed != "_" and fixed != letter for fixed, letter in pairs):
                 raise _invalid("Use the available letter tiles and keep the given letters")
     elif exercise.type == "self_check":
         if not answer.strip():
@@ -280,6 +279,16 @@ def _validate_answer(exercise: Exercise, answer: str, self_assessment: str | Non
             raise _invalid("Choose whether your answer was correct")
     else:  # pragma: no cover - guarded by the check constraint
         raise ApiError(422, "UNSUPPORTED_EXERCISE_TYPE", "Unsupported exercise type")
+
+
+def _wrong_note(exercise: Exercise, answer: str, is_correct: bool | None) -> LocalizedText | None:
+    """Why the selected option is wrong; only for a graded incorrect single choice."""
+    if is_correct is not False or exercise.type != "single_choice":
+        return None
+    selected = next(
+        (str(o["text"]) for o in (exercise.options or []) if str(o["id"]) == answer), None
+    )
+    return guidance.wrong_note_for(exercise.slug, selected) if selected else None
 
 
 def _feedback(exercise: Exercise, is_correct: bool | None) -> str:
@@ -410,5 +419,7 @@ async def submit_answer(
         ),
         model_answer=exercise.model_answer if exercise.type == "self_check" else None,
         explanation=exercise.explanation,
+        explanation_localized=guidance.explanation_for(exercise.slug),
+        wrong_answer_note=_wrong_note(exercise, answer, is_correct),
         lesson=lesson_progress,
     )
