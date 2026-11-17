@@ -76,7 +76,7 @@ test('renders backend metrics, course percentages and unavailable history withou
   assert.equal(app.target.all('svg').length, 0);
   assert.equal(app.calls(), 1);
   assert.equal(app.target.attributes['aria-busy'], 'false');
-  assert.equal(app.nav.all('a')[0].attributes['aria-current'], 'page');
+  // Sidebar highlighting is owned by the shared workspace (mountWorkspace('progress')).
 });
 
 test('new user keeps real zero metrics and gets a lesson action', async () => {

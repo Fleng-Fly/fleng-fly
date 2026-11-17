@@ -1,11 +1,12 @@
 import { getLeaderboard } from './api.js';
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
+import { getLang, t, tn } from './i18n.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 
 const target = document.getElementById('leaderboard-body');
-const number = new Intl.NumberFormat('en');
+let number = new Intl.NumberFormat(getLang());
 let sessionReady = false;
 
 function avatar(entry) {
@@ -20,7 +21,7 @@ function avatar(entry) {
 
 function learner(entry) {
   const copy = el('span', 'learner-name', entry.displayName);
-  if (entry.isCurrentUser) copy.append(el('small', 'learner-you', 'You'));
+  if (entry.isCurrentUser) copy.append(el('small', 'learner-you', t('lb.you')));
   return copy;
 }
 
@@ -30,7 +31,7 @@ function podium(entry) {
     `podium-card podium-${entry.rank}${entry.isCurrentUser ? ' is-you' : ''}`,
   );
   card.append(
-    el('span', 'podium-place', ['✦ FIRST PLACE', 'SECOND PLACE', 'THIRD PLACE'][entry.rank - 1]),
+    el('span', 'podium-place', `${entry.rank === 1 ? '✦ ' : ''}${t(`lb.place${entry.rank}`)}`),
   );
   card.append(avatar(entry), learner(entry));
   card.append(el('strong', 'podium-xp', `${number.format(entry.xp)} XP`));
@@ -38,7 +39,7 @@ function podium(entry) {
     el(
       'p',
       'dashboard-muted',
-      `${number.format(entry.lessonsCompleted)} lessons · ${entry.streak} day streak`,
+      t('lb.stats', { lessons: tn('lb.lessons', entry.lessonsCompleted, { n: number.format(entry.lessonsCompleted) }), streak: tn('dashboard.days', entry.streak) }),
     ),
   );
   card.append(el('span', 'podium-rank', `#${entry.rank}`));
@@ -56,39 +57,40 @@ function row(entry) {
     name,
     el('td', 'xp-cell', number.format(entry.xp)),
     el('td', undefined, number.format(entry.lessonsCompleted)),
-    el('td', undefined, `${entry.streak} days`),
+    el('td', undefined, tn('dashboard.days', entry.streak)),
   );
   return tr;
 }
 
 function render(data) {
+  number = new Intl.NumberFormat(getLang());
   target.replaceChildren();
   if (!data.entries.length) {
-    message('A new leaderboard starts here.', 'Complete a lesson and start earning XP.');
+    message(t('lb.emptyTitle'), t('lb.emptyText'));
     return;
   }
   const top = el('section', 'leaderboard-podium');
-  top.setAttribute('aria-label', 'Top three learners');
+  top.setAttribute('aria-label', t('lb.topThree'));
   top.append(...data.entries.slice(0, 3).map(podium));
   const panel = el('section', 'dashboard-card leaderboard-panel');
   const heading = el('div', 'section-heading');
   heading.append(
-    el('h2', undefined, 'The leaderboard'),
-    el('span', 'dashboard-muted', `${number.format(data.total)} learners`),
+    el('h2', undefined, t('lb.title')),
+    el('span', 'dashboard-muted', tn('lb.learners', data.total, { n: number.format(data.total) })),
   );
   const scroll = el('div', 'leaderboard-scroll');
   scroll.tabIndex = 0;
   scroll.setAttribute('role', 'region');
-  scroll.setAttribute('aria-label', 'Learner rankings, scroll horizontally for all statistics');
+  scroll.setAttribute('aria-label', t('lb.scrollLabel'));
   const table = el('table', 'leaderboard-table');
   const caption = el(
     'caption',
     'sr-only',
-    'All-time ranking by XP. Equal XP is ordered by a permanent learner ID.',
+    t('lb.caption'),
   );
   const head = el('thead');
   const headers = el('tr');
-  for (const label of ['Rank', 'Learner', 'XP', 'Lessons', 'Streak']) {
+  for (const label of [t('lb.rank'), t('lb.learner'), 'XP', t('lb.colLessons'), t('lb.streak')]) {
     const th = el('th', undefined, label);
     th.scope = 'col';
     headers.append(th);
@@ -104,7 +106,7 @@ function render(data) {
       el(
         'p',
         'own-rank',
-        `Your position: #${data.currentUser.rank} · ${number.format(data.currentUser.xp)} XP · ${data.currentUser.lessonsCompleted} lessons · ${data.currentUser.streak} day streak`,
+        t('lb.yourPosition', { rank: data.currentUser.rank, xp: number.format(data.currentUser.xp), lessons: tn('lb.lessons', data.currentUser.lessonsCompleted, { n: data.currentUser.lessonsCompleted }), streak: tn('dashboard.days', data.currentUser.streak) }),
       ),
     );
   }
@@ -112,8 +114,8 @@ function render(data) {
     el(
       'p',
       'leaderboard-note dashboard-muted',
-      'Ranked by total XP earned in lessons. Keep learning at your own pace.' +
-        (data.total > data.entries.length ? ` Showing the top ${data.entries.length}.` : ''),
+      t('lb.note') +
+        (data.total > data.entries.length ? ` ${t('lb.showingTop', { n: data.entries.length })}` : ''),
     ),
   );
   target.append(top, panel);
@@ -123,7 +125,7 @@ function message(title, detail, retry) {
   const card = el('div', 'dashboard-card leaderboard-message');
   card.append(el('h2', undefined, title), el('p', 'dashboard-muted', detail));
   if (retry) {
-    const button = el('button', 'dashboard-text-button', 'Try again');
+    const button = el('button', 'dashboard-text-button', t('common.tryAgain'));
     button.type = 'button';
     button.addEventListener('click', load);
     card.append(button);
@@ -133,7 +135,7 @@ function message(title, detail, retry) {
 
 async function load() {
   target.setAttribute('aria-busy', 'true');
-  message('Loading learners…', 'Getting the latest progress from the community.');
+  message(t('lb.loading'), t('lb.loadingText'));
   try {
     if (!sessionReady) {
       const user = await requireSession({ throwOnUnavailable: true });
@@ -147,7 +149,7 @@ async function load() {
       window.location.replace('/login.html');
       return;
     }
-    message('Leaderboard is unavailable.', describeApiError(error), true);
+    message(t('lb.unavailable'), describeApiError(error), true);
   } finally {
     target.setAttribute('aria-busy', 'false');
   }

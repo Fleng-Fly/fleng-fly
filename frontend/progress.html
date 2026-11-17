@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Progress — Fleng</title>
+    <title data-i18n="progress.pageTitle">Progress — Fleng</title>
+    <script src="/js/i18n-boot.js"></script>
     <link rel="stylesheet" href="/css/app.css" />
     <link rel="stylesheet" href="/css/star4life.css" />
     <link rel="stylesheet" href="/css/dashboard.css" />
@@ -17,16 +18,16 @@
     <main class="dashboard-main">
       <div class="dashboard-page-heading">
         <div>
-          <p class="dashboard-eyebrow">YOUR LEARNING</p>
-          <h1>Progress</h1>
-          <p class="dashboard-subtitle">See what you have learned, one lesson at a time.</p>
+          <p class="dashboard-eyebrow" data-i18n="dashboard.eyebrow">YOUR LEARNING</p>
+          <h1 data-i18n="ws.progress">Progress</h1>
+          <p class="dashboard-subtitle" data-i18n="progress.subtitle">See what you have learned, one lesson at a time.</p>
         </div>
-        <span class="dashboard-level">All-time progress</span>
+        <span class="dashboard-level" data-i18n="progress.allTime">All-time progress</span>
       </div>
       <div id="progress-body" aria-live="polite" aria-busy="true">
-        <div class="dashboard-card progress-message" role="status">Loading your progress…</div>
+        <div class="dashboard-card progress-message" role="status" data-i18n="progress.loading">Loading your progress…</div>
       </div>
-      <noscript><p>Enable JavaScript to view your saved learning progress.</p></noscript>
+      <noscript><p data-i18n="progress.noscript">Enable JavaScript to view your saved learning progress.</p></noscript>
     </main>
     <script type="module" src="/js/progress.js"></script>
   </body>

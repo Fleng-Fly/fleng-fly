@@ -1,11 +1,13 @@
 import { getMyProgress } from './api.js';
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
+import { getLang, t, tn } from './i18n.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 
 const target = document.getElementById('progress-body');
-const number = new Intl.NumberFormat('en', { maximumFractionDigits: 2 });
+const numberFormat = () => new Intl.NumberFormat(getLang(), { maximumFractionDigits: 2 });
+const number = { format: (value) => numberFormat().format(value) };
 let sessionReady = false;
 let loading = false;
 let generation = 0;
@@ -18,7 +20,7 @@ function validate(data) {
         typeof course.title === 'string' && typeof course.slug === 'string' &&
         count(course.lessonsTotal) && count(course.lessonsCompleted) &&
         Number.isFinite(course.completionPercent) && course.completionPercent >= 0 && course.completionPercent <= 100)) {
-    throw new Error('Progress data is incomplete. Please try again.');
+    throw new Error(t('progress.incomplete'));
   }
 }
 
@@ -38,44 +40,44 @@ function courseRow(course) {
   const bar = el('progress');
   bar.max = 100;
   bar.value = course.completionPercent;
-  bar.setAttribute('aria-label', `${course.title}: ${number.format(course.completionPercent)}% complete`);
+  bar.setAttribute('aria-label', t('progress.courseComplete', { title: course.title, pct: number.format(course.completionPercent) }));
   item.append(heading, bar, el('p', undefined, course.lessonsTotal
-    ? `${number.format(course.lessonsCompleted)} of ${number.format(course.lessonsTotal)} lessons completed`
-    : 'No published lessons yet.'));
+    ? t('dashboard.lessonsOfTotal', { done: number.format(course.lessonsCompleted), total: number.format(course.lessonsTotal) })
+    : t('progress.noLessons')));
   return item;
 }
 
 function render(data) {
   validate(data);
   const metrics = el('section', 'progress-metrics');
-  metrics.setAttribute('aria-label', 'Your learning statistics');
+  metrics.setAttribute('aria-label', t('progress.stats'));
   metrics.append(
-    metric('Completed lessons', data.lessonsCompleted, 'Across your learning history'),
-    metric('Active courses', data.activeCourses, 'Started, with lessons left to finish'),
-    metric('Total XP', data.xp, 'Earned through learning'),
-    metric('Current streak', data.streak.current, `${data.streak.current === 1 ? 'day' : 'days'} · Best streak: ${number.format(data.streak.longest)} ${data.streak.longest === 1 ? 'day' : 'days'}`),
+    metric(t('dashboard.mLessons'), data.lessonsCompleted, t('progress.lessonsNote')),
+    metric(t('progress.active'), data.activeCourses, t('progress.activeNote')),
+    metric(t('progress.totalXp'), data.xp, t('progress.xpNote')),
+    metric(t('dashboard.mStreak'), data.streak.current, t('progress.streakNote', { days: tn('dashboard.days', data.streak.current), best: tn('dashboard.days', data.streak.longest) })),
   );
   const history = el('p', 'progress-note', data.xpHistory.last7Days == null || data.xpHistory.last30Days == null
-    ? 'Daily XP history for the last 7 and 30 days is unavailable. Your total XP is shown above.'
-    : 'Your total XP is shown above. Daily XP charts are not available on this page.');
+    ? t('progress.historyUnavailable')
+    : t('progress.historyNote'));
   target.replaceChildren(metrics, history);
   if (data.lessonsStarted === 0 && data.xp === 0 && data.streak.longest === 0) {
     const empty = el('section', 'dashboard-card progress-message');
-    empty.append(el('h2', undefined, 'Your progress starts here'),
-      el('p', 'dashboard-muted', 'Start a lesson to build your progress. Completed lessons and earned XP will appear here.'));
-    const link = el('a', 'dashboard-text-button', 'Explore lessons');
+    empty.append(el('h2', undefined, t('progress.emptyTitle')),
+      el('p', 'dashboard-muted', t('progress.emptyText')));
+    const link = el('a', 'dashboard-text-button', t('dashboard.browse'));
     link.href = '/courses.html';
     empty.append(link);
     target.append(empty);
   }
   const courses = el('section', 'dashboard-card progress-courses');
-  courses.append(el('h2', undefined, 'Course progress'),
-    el('p', 'progress-note', 'Completion is based on the lessons currently available in each course.'));
+  courses.append(el('h2', undefined, t('progress.courses')),
+    el('p', 'progress-note', t('progress.coursesNote')));
   if (data.courses.length) {
     const list = el('ul', 'progress-course-list');
     list.append(...data.courses.map(courseRow));
     courses.append(list);
-  } else courses.append(el('p', 'dashboard-muted', 'No published courses are available yet. Your learning totals are saved.'));
+  } else courses.append(el('p', 'dashboard-muted', t('progress.noCourses')));
   target.append(courses);
 }
 
@@ -84,7 +86,7 @@ function message(title, detail, retry = false) {
   card.setAttribute('role', retry ? 'alert' : 'status');
   card.append(el('h2', undefined, title), el('p', 'dashboard-muted', detail));
   if (retry) {
-    const button = el('button', 'dashboard-text-button', 'Try again');
+    const button = el('button', 'dashboard-text-button', t('common.tryAgain'));
     button.type = 'button';
     button.addEventListener('click', load);
     card.append(button);
@@ -97,7 +99,7 @@ async function load() {
   loading = true;
   const request = ++generation;
   target.setAttribute('aria-busy', 'true');
-  message('Loading your progress…', 'Getting your saved learning statistics.');
+  message(t('progress.loading'), t('progress.loadingText'));
   try {
     if (!sessionReady) {
       const user = await requireSession({ throwOnUnavailable: true });
@@ -113,7 +115,7 @@ async function load() {
       window.location.replace('/login.html');
       return;
     }
-    message('Progress is unavailable', describeApiError(error), true);
+    message(t('progress.unavailable'), describeApiError(error), true);
   } finally {
     if (request === generation) {
       loading = false;
@@ -123,20 +125,12 @@ async function load() {
 }
 
 mountWorkspace('progress');
-// Add navigation only on this page; shared workspace and other pages are unchanged.
-const nav = document.querySelector('.sidebar-nav');
-if (nav) {
-  const link = el('a', 'sidebar-link active', 'Progress');
-  link.href = '/progress.html';
-  link.setAttribute('aria-current', 'page');
-  nav.append(link);
-}
 function clear() {
   generation++;
   loading = false;
   sessionReady = false;
   target.setAttribute('aria-busy', 'false');
-  message('Your progress is private', 'Sign in to view your learning statistics.');
+  message(t('progress.private'), t('progress.privateText'));
 }
 window.addEventListener('fleng:session-ended', () => {
   clear();
