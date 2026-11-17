@@ -23,8 +23,8 @@ await assert.rejects(absent.api.getCurrentUser(), (error) => error.status === 40
 assert.deepEqual(absent.calls, ['/api/v1/users/me']);
 assert.equal(absent.api.getAccessToken(), null);
 let held = false;
-const coordinated = await setup({ request: async (name, action) => {
-  assert.equal(name, 'fleng-auth-refresh');
+const coordinated = await setup({ request: async (name, options, action) => {
+  assert.equal(name, 'fleng.auth-cookie');
   held = true;
   try { return await action(); } finally { held = false; }
 } });

@@ -56,7 +56,7 @@
 ## Later sections ⬜
 
 - [ ] Vocabulary, practice, challenges, gamification surfaces.
-- [ ] Browser e2e suite (core learning journey done, see `docs/qa/e2e.md`; other flows pending) and full accessibility audit.
+- [ ] Browser e2e suite and full accessibility audit.
 
 ## Visual direction
 
@@ -107,7 +107,6 @@ four animated practice modes/results; removed install UI/standalone metadata.
 Main's A0 filter and three lesson tabs preserved. Assets revalidate; footer/sidebar
 show Web 2026.11.16. External publishing and live authenticated QA remain pending.
 
-<<<<<<< HEAD
 
 ## Progress analytics UI — 2026-11-16
 
@@ -118,8 +117,7 @@ show Web 2026.11.16. External publishing and live authenticated QA remain pendin
 - Next: integrate the branch with the separately maintained workspace navigation
   if a global Progress entry is desired; shared files remain untouched here.
 - No backend changes, commit, push or merge. Evidence: docs/frontend.md.
-||||||| ba6a4ec
-=======
+
 ## Words and compact AI — 2026-11-16
 
 - Implemented: unified Words disclosure and existing personal practice preserved;
@@ -140,4 +138,3 @@ activation, physical mobile keyboards and missing screenshot comparison remain
 unverified. Self-review covered DOM-only rendering/URL policy, request races,
 existing practice/stream lifecycle and scoped styles. Details:
 `docs/words-ai-interface.md`. No commit/push.
->>>>>>> release/save-existing-work

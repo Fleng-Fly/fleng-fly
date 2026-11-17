@@ -156,7 +156,6 @@ with only actual trusted proxy addresses, restrict direct backend access, and
 have the proxy overwrite forwarded headers. Never trust `*` on a public backend.
 Without a trusted proxy configuration, requests share the proxy's IP quota.
 
-<<<<<<< HEAD
 
 ## Fleng 1.0 security/stability — 2026-11-16
 
@@ -179,7 +178,7 @@ confirmation and refresh/reset-token invalidation commit atomically. Delivery
 failure invalidates its token and returns 503. PATCH cannot change email and
 returns 409 EMAIL_CONFIRMATION_REQUIRED for a different address.
 
-Browser refresh requires the origin-wide `fleng-auth-refresh` Web Lock; concurrent
+Browser refresh requires the origin-wide `fleng.auth-cookie` Web Lock; concurrent
 calls within a tab share one promise. If Web Locks is unavailable, a valid access
 token continues working. Only when refresh is necessary does the client require
 sign-in, without sending refresh or logout requests. Server reuse detection stays
@@ -188,8 +187,7 @@ strict. Existing access JWTs remain valid until expiry (default 15 minutes).
 PWA installation remains retired. Backend tests assert an empty compatibility
 manifest and no manifest links; existing JS tests retain selective legacy worker
 and cache cleanup, no fetch interception and failure tolerance.
-||||||| ba6a4ec
-=======
+
 ## Fleng 1.0 stability follow-up — 2026-11-16
 
 The Login page now includes a password-reset request form. The response remains
@@ -210,7 +208,4 @@ matching the existing workspace/settings behavior.
 Same-origin tabs with Web Locks now serialize refresh/login/register/logout under
 one `fleng.auth-cookie` lock. Refresh single-flight within a page is preserved;
 access/refresh tokens are never shared through localStorage. The server's strict
-replay revocation is unchanged. The legacy fallback on browsers without Web Locks
-is unchanged pending explicit approval of a fail-closed compatibility contract;
-those browsers do not yet have the cross-tab guarantee.
->>>>>>> release/save-existing-work
+replay revocation is unchanged. Browsers without Web Locks retain the Security fail-closed refresh contract: refresh requires signing in again.

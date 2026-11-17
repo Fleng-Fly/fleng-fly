@@ -81,7 +81,6 @@ function withSessionLock(action) {
 
 function refreshOnce() {
   if (!refreshInFlight) {
-<<<<<<< HEAD
     refreshInFlight = (async () => {
       if (!globalThis.navigator?.locks?.request) {
         setAccessToken(null);
@@ -89,7 +88,7 @@ function refreshOnce() {
       }
       let entered = false;
       try {
-        return await navigator.locks.request('fleng-auth-refresh', () => {
+        return await withSessionLock(() => {
           entered = true;
           return refreshAccessToken();
         });
@@ -99,11 +98,6 @@ function refreshOnce() {
         return null;
       }
     })().finally(() => {
-||||||| ba6a4ec
-    refreshInFlight = refreshAccessToken().finally(() => {
-=======
-    refreshInFlight = withSessionLock(refreshAccessToken).finally(() => {
->>>>>>> release/save-existing-work
       refreshInFlight = null;
     });
   }
@@ -305,17 +299,15 @@ export function getLeaderboard() {
   return apiFetch('/leaderboard');
 }
 
-<<<<<<< HEAD
 export function requestEmailChange(input) {
   return apiFetch('/users/me/email-change/request', { method: 'POST', body: JSON.stringify(input) });
 }
 export function confirmEmailChange(token) {
   return apiFetch('/users/me/email-change/confirm', { method: 'POST', body: JSON.stringify({ token }) }, { retryOnUnauthorized: false });
-||||||| ba6a4ec
-=======
+}
+
 export function listCourseWords(courseId = '', offset = 0, limit = 100) {
   const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
   if (courseId) query.set('courseId', courseId);
   return apiFetch(`/vocabulary/course-words?${query}`);
->>>>>>> release/save-existing-work
 }

@@ -333,11 +333,60 @@ async def test_parallel_users_cannot_overspend_nearly_exhausted_budget(
     completed = asyncio.Queue()
     last_arrival = asyncio.Event()
 
-<<<<<<< HEAD
     async def contender(index, auth):
         if stagger_last and index == len(users) - 1:
             await last_arrival.wait()
-||||||| ba6a4ec
+        response = await chat(http, auth, path=path)
+        completed.put_nowait(response)
+        return response
+
+    tasks = [asyncio.create_task(contender(index, auth)) for index, auth in enumerate(users)]
+    try:
+        # Keep the winning reservation open until every competitor has been
+        # rejected. A sleep cannot ensure this: settlement frees unused budget,
+        # so late arrivals may legitimately succeed after the winner finishes.
+        async with asyncio.timeout(5):
+            await gate.entered.wait()
+            for index in range(len(users) - 1):
+                response = await completed.get()
+                assert response.status_code == 429
+                assert response.json()["error"]["code"] == "AI_BUDGET_LIMIT"
+                if index == len(users) - 3:
+                    last_arrival.set()
+        assert len(gate.requests) == 1
+        held = await rows(world)
+        assert sorted(r.status for r in held) == ["completed", "reserved"]
+        # Settled spend PLUS the active reservation, across both connections.
+        assert (
+            sum(
+                r.cost_microusd if r.cost_microusd is not None else r.reserved_microusd
+                for r in held
+            )
+            == 950000
+            <= 1_000_000
+        )
+    finally:
+        # Also release a deliberately delayed contender on assertion/timeout,
+        # and drain all tasks before the fixture disposes its database engines.
+        last_arrival.set()
+        gate.release.set()
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
+    assert all(isinstance(response, httpx.Response) for response in responses)
+    assert sorted(r.status_code for r in responses) == [200] + [429] * 4
+    if path == "chat/stream":
+        winner = next(r for r in responses if r.status_code == 200)
+        assert "event: done\n" in winner.text
+        assert "event: error\n" not in winner.text
+    settled = await rows(world)
+    assert all(r.status == "completed" for r in settled)
+    assert sum(r.cost_microusd for r in settled) == 150100 <= 1_000_000
+
+    # The other valid schedule: once $0.80 settles at $0.0001, a late
+    # contender/retry may reserve $0.80 again without exceeding the $1 budget.
+    assert (await chat(http, users[-1], path=path)).status_code == 200
+    assert len(gate.requests) == 2
+    assert sum(r.cost_microusd for r in await rows(world)) == 150200 <= 1_000_000
+
 
 # ── Concurrency per learner ─────────────────────────────────────────────────
 
@@ -506,47 +555,285 @@ async def test_unknown_price_refuses_before_provider(http, world, overrides):
     auth = await headers(http)
     assert (await http.get("/api/v1/ai/status", headers=auth)).json()["available"] is False
     for path in ["chat", "chat/stream"]:
-=======
+        response = await chat(http, auth, path=path)
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "AI_UNAVAILABLE"
+    assert calls == [] and await rows(world) == []
 
-# ── Concurrency per learner ─────────────────────────────────────────────────
+
+# ── SSE disconnect / cancellation ───────────────────────────────────────────
 
 
-@pytest.mark.parametrize("second_path", ["chat", "chat/stream", "explain"])
-async def test_parallel_requests_of_one_user(http, world, second_path):
+class Disconnecting:
+    def __init__(self, after: int):
+        self.calls, self.after = 0, after
+
+    async def is_disconnected(self):
+        self.calls += 1
+        return self.calls > self.after
+
+
+@pytest.mark.parametrize(
+    "usage,source", [(None, "reserved"), ({"cost": 0.002, "prompt_tokens": 9}, "provider")]
+)
+async def test_sse_disconnect_keeps_hold_unless_cost_is_known(http, world, usage, source):
+    settings = configure()
+    await headers(http)
+
+    class Provider(FakeProvider):
+        async def stream(self, messages):
+            yield Completion("partial", "test/model")
+            if usage:
+                yield Completion("", "test/model", usage)
+            yield Completion(" more", "test/model")
+
+    async with world.session() as db:
+        user = await db.scalar(select(User).options(selectinload(User.profile)))
+        response = await stream_chat(
+            payload=ChatRequest(message="Hi"),
+            request=Disconnecting(after=2 if usage else 1),
+            user=user,
+            db=db,
+            settings=settings,
+            provider=Provider(),
+        )
+        chunks = [chunk async for chunk in response.body_iterator]
+    assert "event: done" not in "".join(chunks)
+    (row,) = await rows(world)
+    assert row.status == "failed" and row.cost_source == source
+    if source == "reserved":
+        assert row.cost_microusd == row.reserved_microusd > 0
+    async with world.session() as db:
+        assert await db.scalar(select(func.count()).select_from(AIMessage)) == 0
+
+
+async def test_sse_cancel_mid_stream_keeps_hold(http, world):
+    settings = configure()
+    await headers(http)
+    waiting = asyncio.Event()
+
+    class Connected:
+        async def is_disconnected(self):
+            return False
+
+    class Hanging(FakeProvider):
+        async def stream(self, messages):
+            yield Completion("partial", "test/model")
+            waiting.set()
+            await asyncio.Event().wait()
+
+    async with world.session() as db:
+        user = await db.scalar(select(User).options(selectinload(User.profile)))
+        response = await stream_chat(
+            payload=ChatRequest(message="Hi"),
+            request=Connected(),
+            user=user,
+            db=db,
+            settings=settings,
+            provider=Hanging(),
+        )
+
+        async def consume():
+            async for _ in response.body_iterator:
+                pass
+
+        task = asyncio.create_task(consume())
+        await asyncio.wait_for(waiting.wait(), 5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    (row,) = await rows(world)
+    assert row.status == "failed"
+    assert (row.cost_microusd, row.cost_source) == (row.reserved_microusd, "reserved")
+
+
+# ── Restart / multiple processes ────────────────────────────────────────────
+
+
+async def test_limits_survive_restart(http, world, fake, monkeypatch):
+    configure(ai_daily_user_limit=3)
+    auth = await headers(http)
+    for _ in range(3):
+        assert (await chat(http, auth, path="chat/stream")).status_code == 200
+    await world.restart()
+    # Fresh worker, no shared memory: quota and spend come from the database.
+    assert (await chat(http, auth)).json()["error"]["code"] == "AI_DAILY_LIMIT"
+    other = await headers(http, "fresh@example.com")
+    async with world.session() as db:
+        # A worker crashed mid-request: its hold was never settled.
+        crashed = await db.scalar(select(User).where(User.email == "fresh@example.com"))
+        db.add(
+            AIUsage(
+                user_id=crashed.id,
+                model="test/model",
+                status="reserved",
+                reserved_tokens=1,
+                reserved_microusd=999000,
+                created_at=datetime.now(UTC) - timedelta(hours=1),
+            )
+        )
+        await db.commit()
+    await world.restart()
+    # The stale lease no longer blocks the learner, but its cost still counts.
+    response = await chat(http, other)
+    assert response.json()["error"]["code"] == "AI_BUDGET_LIMIT"
+    configure(ai_daily_user_limit=3, ai_daily_budget_usd="2.00")
+    assert (await chat(http, other)).status_code == 200
+
+
+# ── Audit regressions ───────────────────────────────────────────────────────
+
+
+def raw_write_is_free(path: str) -> bool:
+    """A second connection can take the SQLite write lock right now (0.2 s wait)."""
+    import sqlite3
+
+    connection = sqlite3.connect(path, timeout=0.2, isolation_level=None)
+    try:
+        connection.execute("BEGIN IMMEDIATE")
+        connection.execute("UPDATE request_limits SET count = count WHERE 0")
+        connection.execute("COMMIT")
+        return True
+    except sqlite3.OperationalError:
+        return False
+    finally:
+        connection.close()
+
+
+@pytest.mark.parametrize("path", ["chat", "chat/stream"])
+async def test_no_write_lock_held_while_waiting_for_provider(http, world, path):
     gate = Gate()
     app.dependency_overrides[provider_dependency] = lambda: gate
     auth = await headers(http)
-    first = asyncio.create_task(chat(http, auth))
+    task = asyncio.create_task(chat(http, auth, path=path))
     await asyncio.wait_for(gate.entered.wait(), 5)
-    # Routed to the other worker/engine: only the database can know about `first`.
-    body = {"studentAnswer": "I is"} if second_path == "explain" else {"message": "Hi"}
-    second = await http.post(f"/api/v1/ai/{second_path}", headers=auth, json=body)
-    assert second.status_code == 429
-    assert second.json()["error"]["code"] == "AI_BUSY"
+    db_file = world.url.removeprefix("sqlite+aiosqlite:///")
+    # Provider wait (and, for SSE, the open response) must not pin the database.
+    assert await asyncio.to_thread(raw_write_is_free, db_file)
     gate.release.set()
-    assert (await first).status_code == 200
-    assert len(gate.requests) == 1
-    # The slot is free again once the first request settles.
-    gate.complete = FakeProvider().complete
+    assert (await task).status_code == 200
+
+
+async def test_no_write_lock_held_mid_sse_stream(http, world):
+    settings = configure()
+    await headers(http)
+    waiting = asyncio.Event()
+
+    class Connected:
+        async def is_disconnected(self):
+            return False
+
+    class Hanging(FakeProvider):
+        async def stream(self, messages):
+            yield Completion("partial", "test/model")
+            waiting.set()
+            await asyncio.Event().wait()
+
+    async with world.session() as db:
+        user = await db.scalar(select(User).options(selectinload(User.profile)))
+        response = await stream_chat(
+            payload=ChatRequest(message="Hi"),
+            request=Connected(),
+            user=user,
+            db=db,
+            settings=settings,
+            provider=Hanging(),
+        )
+
+        async def consume():
+            async for _ in response.body_iterator:
+                pass
+
+        task = asyncio.create_task(consume())
+        await asyncio.wait_for(waiting.wait(), 5)
+        assert await asyncio.to_thread(
+            raw_write_is_free, world.url.removeprefix("sqlite+aiosqlite:///")
+        )
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+
+async def test_cancelled_non_stream_request_keeps_hold(http, world):
+    settings = configure()
+    gate = Gate()
+    await headers(http)
+    async with world.session() as db:
+        user = await db.scalar(select(User).options(selectinload(User.profile)))
+        task = asyncio.create_task(
+            service.chat(db, user, ChatRequest(message="Hi"), settings, gate)
+        )
+        await asyncio.wait_for(gate.entered.wait(), 5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    (row,) = await rows(world)
+    assert row.status == "failed"
+    assert (row.cost_microusd, row.cost_source) == (row.reserved_microusd, "reserved")
+
+
+async def test_stale_unsettled_hold_does_not_block_next_utc_day(http, world, fake, monkeypatch):
+    """A crashed worker's hold only ever counts for the day it was made."""
+    configure(ai_daily_user_limit=1, **EXPENSIVE)
+    auth = await headers(http)
+    async with world.session() as db:
+        user = await db.scalar(select(User))
+        db.add(
+            AIUsage(
+                user_id=user.id,
+                model="test/model",
+                status="reserved",
+                reserved_tokens=1,
+                reserved_microusd=1_000_000,
+                created_at=datetime(2026, 11, 16, 12, 0, tzinfo=UTC),
+                day=datetime(2026, 11, 16).date(),
+            )
+        )
+        await db.commit()
+    clock(monkeypatch, datetime(2026, 11, 16, 12, 30, tzinfo=UTC))
+    assert (await chat(http, auth)).status_code == 429  # budget and lease: same day
+    clock(monkeypatch, datetime(2026, 11, 17, 0, 0, 1, tzinfo=UTC))
     assert (await chat(http, auth)).status_code == 200
 
 
-async def test_burst_of_parallel_requests_admits_one(http, world):
-    gate = Gate()
-    app.dependency_overrides[provider_dependency] = lambda: gate
+async def test_failed_settlement_write_cannot_outlive_the_day(http, world, fake, monkeypatch):
+    """Even if settlement never happens, quota and budget recover at 00:00 UTC."""
+    configure(ai_daily_user_limit=30, **EXPENSIVE)
     auth = await headers(http)
-    tasks = [asyncio.create_task(chat(http, auth, path=p)) for p in ["chat", "chat/stream"] * 4]
-    await asyncio.wait_for(gate.entered.wait(), 5)
-    await asyncio.sleep(0.2)
-    gate.release.set()
-    responses = await asyncio.gather(*tasks)
-    # Late arrivals may legitimately run after the first settles; overlap never happens.
-    assert gate.peak == 1
-    busy = [r for r in responses if "AI_BUSY" in r.text]
-    assert busy and len(busy) + len(gate.requests) == 8
-    # Rejected attempts do not burn daily quota: one row per provider call.
-    counted = [r for r in await rows(world) if r.cost_source != "released"]
-    assert len(counted) == len(gate.requests)
+    real, real_save = service.finish_usage, service.save_turn
+
+    async def broken(*args, **kwargs):
+        raise RuntimeError("settlement lost")
+
+    monkeypatch.setattr(service, "finish_usage", broken)
+    monkeypatch.setattr(service, "save_turn", broken)
+    clock(monkeypatch, datetime(2026, 11, 16, 20, 0, tzinfo=UTC))
+    with pytest.raises(RuntimeError):
+        await chat(http, auth)
+    monkeypatch.setattr(service, "finish_usage", real)
+    monkeypatch.setattr(service, "save_turn", real_save)
+    (row,) = await rows(world)
+    assert row.status == "reserved"
+    clock(monkeypatch, datetime(2026, 11, 16, 20, 5, tzinfo=UTC))
+    assert (await chat(http, auth)).status_code == 429
+    clock(monkeypatch, datetime(2026, 11, 17, 0, 0, tzinfo=UTC))
+    assert (await chat(http, auth)).status_code == 200
+
+
+def test_default_token_budget_never_preempts_daily_message_quota():
+    """Regression: 100000 cut the 30-message quota to ~4-24 requests per day."""
+    defaults = Settings()
+    worst = defaults.ai_max_input_tokens + defaults.ai_max_output_tokens
+    assert defaults.ai_daily_token_budget >= defaults.ai_daily_user_limit * worst
+
+
+async def test_long_history_does_not_exhaust_quota_early(http, world, fake):
+    auth = await headers(http)
+    first = await chat(http, auth, "a" * 500)
+    cid = first.json()["conversationId"]
+    for _ in range(9):
+        body = {"message": "b" * 500, "conversationId": cid}
+        assert (await http.post("/api/v1/ai/chat", headers=auth, json=body)).status_code == 200
 
 
 @pytest.mark.parametrize("path", ["chat", "chat/stream", "explain", "generate-exercise"])
@@ -576,6 +863,7 @@ async def test_all_transports_reserve_before_local_capacity(http, world, fake, m
     assert len(fake.requests) == 1
 
 
+
 async def test_refused_settlement_is_portable_and_never_negative(db_session):
     from sqlalchemy import update
     from sqlalchemy.dialects import postgresql
@@ -598,160 +886,3 @@ async def test_refused_settlement_is_portable_and_never_negative(db_session):
         await db_session.refresh(row)
         assert row.cost_microusd == expected
         assert row.cost_source == "refused"
-
-
-# ── Provider failures and settlement ────────────────────────────────────────
-
-
-def openrouter(handler) -> OpenRouterProvider:
-    provider = OpenRouterProvider(
-        app.dependency_overrides[get_settings](), httpx.MockTransport(handler)
-    )
-    app.dependency_overrides[provider_dependency] = lambda: provider
-    return provider
-
-
-def stream_body(usage: dict | None) -> str:
-    frames = [{"choices": [{"delta": {"content": "Hello"}, "finish_reason": "stop"}]}]
-    if usage is not None:
-        frames.append({"choices": [], "usage": usage})
-    return "".join("data: " + json.dumps(f) + "\n\n" for f in frames) + "data: [DONE]\n\n"
-
-
-@pytest.mark.parametrize("path", ["chat", "chat/stream"])
-@pytest.mark.parametrize(
-    "status,code,source",
-    [
-        # 4xx: nothing generated, but OpenRouter documents possible prompt charges.
-        (400, "AI_UNAVAILABLE", "refused"),
-        (401, "AI_UNAVAILABLE", "refused"),
-        (402, "AI_UNAVAILABLE", "refused"),
-        (404, "AI_UNAVAILABLE", "refused"),  # e.g. no endpoint within max_price
-        (429, "AI_RATE_LIMITED", "refused"),
-        (408, "AI_UNAVAILABLE", "reserved"),
-        (500, "AI_UNAVAILABLE", "reserved"),
-        (502, "AI_UNAVAILABLE", "reserved"),
-    ],
-)
-async def test_openrouter_errors_charge_by_certainty(http, world, path, status, code, source):
-    openrouter(lambda request: httpx.Response(status, text="upstream details sk-or-secret"))
-    auth = await headers(http)
-    response = await chat(http, auth, path=path)
-    assert "sk-or-secret" not in response.text
-    if path == "chat":
-        assert response.json()["error"]["code"] == code
-    else:
-        assert f'"code": "{code}"' in response.text
-    (row,) = await rows(world)
-    assert (row.status, row.cost_source) == ("failed", source)
-    if source == "reserved":
-        # The model may have run: keep the worst-case hold as the charge.
-        assert row.cost_microusd == row.reserved_microusd
-    else:
-        # Output cost is freed; the prompt cost stays booked and quota is not used.
-        assert 0 < row.cost_microusd < row.reserved_microusd
-        assert row.reserved_microusd - row.cost_microusd == billing.tariff_microusd(
-            Settings(**ENABLED, **PRICED), 0, 800
-        )
-
-
-@pytest.mark.parametrize(
-    "error,released",
-    [
-        (httpx.ConnectError("refused"), True),
-        (httpx.ConnectTimeout("connect"), True),
-        (httpx.ReadTimeout("read"), False),
-        (httpx.RemoteProtocolError("reset"), False),
-    ],
-)
-async def test_transport_failures(http, world, error, released):
-    def handler(request):
-        raise error
-
-    openrouter(handler)
-    auth = await headers(http)
-    assert (await chat(http, auth)).status_code in (503, 504)
-    (row,) = await rows(world)
-    assert row.cost_source == ("released" if released else "reserved")
-
-
-@pytest.mark.parametrize("path", ["chat", "chat/stream"])
-@pytest.mark.parametrize(
-    "usage,source",
-    [
-        ({"prompt_tokens": 1000, "completion_tokens": 100, "cost": 0.0123}, "provider"),
-        ({"prompt_tokens": 1000, "completion_tokens": 100}, "tariff"),
-        ({"total_tokens": 1100}, "reserved"),
-        (None, "reserved"),
-        ({"cost": "free", "prompt_tokens": "many"}, "reserved"),
-    ],
-)
-async def test_cost_settlement_sources(http, world, path, usage, source):
-    def handler(request):
-        if json.loads(request.content)["stream"]:
-            return httpx.Response(200, text=stream_body(usage))
-        body = {"choices": [{"message": {"content": "Hello"}, "finish_reason": "stop"}]}
-        if usage is not None:
-            body["usage"] = usage
-        return httpx.Response(200, json=body)
-
-    openrouter(handler)
-    auth = await headers(http)
-    response = await chat(http, auth, path=path)
-    assert response.status_code == 200
-    (row,) = await rows(world)
-    assert row.status == "completed" and row.cost_source == source
-    expected = {
-        "provider": 12300,
-        # 1000 * 0.15 + 100 * 0.60 micro-USD at the configured tariff.
-        "tariff": 210,
-        "reserved": row.reserved_microusd,
-    }[source]
-    assert row.cost_microusd == expected
-
-
-@pytest.mark.parametrize(
-    "overrides",
-    [
-        {"ai_input_price_per_mtok_usd": None},
-        {"ai_output_price_per_mtok_usd": None},
-        {"openrouter_model": "openrouter/auto"},
-        {"openrouter_model": "openai/gpt-4o-mini:online"},
-    ],
-)
-async def test_unknown_price_refuses_before_provider(http, world, overrides):
-    configure(**overrides)
-    calls = []
-    openrouter(lambda request: calls.append(request) or httpx.Response(500))
-    auth = await headers(http)
-    assert (await http.get("/api/v1/ai/status", headers=auth)).json()["available"] is False
-    for path in ["chat", "chat/stream"]:
->>>>>>> release/save-existing-work
-        response = await chat(http, auth, path=path)
-        completed.put_nowait(response)
-        return response
-
-    tasks = [asyncio.create_task(contender(index, auth)) for index, auth in enumerate(users)]
-    try:
-        # Keep the winning reservation open until every competitor has been
-        # rejected. A sleep cannot ensure this: settlement frees unused budget,
-        # so late arrivals may legitimately succeed after the winner finishes.
-        async with asyncio.timeout(5):
-            await gate.entered.wait()
-            for index in range(len(users) - 1):
-                response = await completed.get()
-                assert response.status_code == 429
-                assert response.json()["error"]["code"] == "AI_BUDGET_LIMIT"
-                if index == len(users) - 3:
-                    last_arrival.set()
-        assert len(gate.requests) == 1
-        held = await rows(world)
-        assert sorted(r.status for r in held) == ["completed", "reserved"]
-        # Settled spend PLUS the active reservation, across both connections.
-        assert (
-            sum(
-                r.cost_microusd if r.cost_microusd is not None else r.reserved_microusd
-                for r in held
-            )
-            == 950000
-            <= 1_000_000

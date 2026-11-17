@@ -18,16 +18,13 @@ Course/lesson URLs use ?slug=. Public metadata is distinct from authenticated le
 
 [Section index](README.md) · [Documentation home](../README.md)
 
-<<<<<<< HEAD
 Placement Test MVP uses `/placement-test.html`, `js/placement-test.js` and
 `js/placement-api.js`, with its own scoped stylesheet. It is deliberately not wired
 into Dashboard/sidebar in this stage. [Methodology and limitations](../placement-test.md).
-||||||| ba6a4ec
-=======
+
 
 Words is a native sidebar disclosure with My Words and Course Words links. It
 opens on vocabulary/practice pages and marks the current child with aria-current.
 Practice stays inside My Words; Course Words saves through the existing vocabulary
 API and can open the saved word in that same practice engine. No sidebar counters
 or client-invented learning totals are shown.
->>>>>>> release/save-existing-work
