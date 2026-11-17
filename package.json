@@ -37,7 +37,10 @@
     "db:transfer": "node scripts/backend.mjs app.db.transfer",
     "docs:check": "backend/.venv/bin/python scripts/check-docs.py --contracts",
     "test:e2e": "playwright test -c e2e/playwright.config.mjs",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "db:smoke": "node scripts/backend.mjs ../scripts/migration-smoke.py",
+    "check:dependencies": "node scripts/backend.mjs ../scripts/check-dependencies.py",
+    "check:all": "node scripts/check-project.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",

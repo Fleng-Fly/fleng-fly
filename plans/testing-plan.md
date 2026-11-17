@@ -99,3 +99,21 @@ Live PostgreSQL is NOT VERIFIED. Results: `docs/backend-stabilization-report.md`
   curriculum/import/grading tests; details in docs/qa/draft-curriculum-fixes.md.
 - Next: teacher/translator review and a separately authorized version/publication
   strategy. Human review and broader audit findings remain open; no deployment.
+
+## CI/CD and developer experience sprint — 2026-11-17
+
+- Completed: existing workflow split into independent SQLite, quality, frontend,
+  E2E, PostgreSQL and workflow-validation jobs; all feed the stable required gate.
+- Completed: constrained/frozen installs, pip/npm/pnpm caching, E2E-only browser,
+  duplicate database pytest invocations removed; no production operations.
+- Completed: fail-fast isolated check:all, dependency verification and disposable
+  Alembic smoke; explicit Web Locks fixture for Node 22 regression compatibility.
+- Completed: full check:all exit 0; backend 2373 passed / 24 skipped, frontend
+  63 passed, E2E 9 passed; Ruff/mypy/docs/migrations/dependencies/workflow checks passed.
+- In progress / external: hosted execution is unverified until an authorized push.
+- Next: separately authorized hosted push/PR to validate actual runner behavior,
+  caches, PostgreSQL service and branch enforcement; no push in this sprint.
+
+[Commands and diagnostics](../docs/10-testing/ci-automation.md).
+
+[Local sprint evidence](../docs/qa/ci-automation-verification.md).

@@ -1,23 +1,20 @@
 # Database CI and hosting gate
 
-`.github/workflows/database.yml` runs on every push and pull request, without path
-filters or production secrets. SQLite verifies fresh Alembic schema creation,
-upgrade reruns and ORM drift, seed/import idempotency, draft isolation, learner
-preservation, backup round trip and the full backend suite. Ruff, mypy, frontend
-Node tests and structural curriculum validation are mandatory. PostgreSQL 16 runs
-as a disposable service with test-only credentials and runs migrations, the same
-database pipeline and the full backend suite via isolated per-test schemas.
-No database is uploaded as an artifact and no deployment or publication is run.
+The existing `.github/workflows/database.yml` verifies every push/PR/merge group
+without production secrets. Independent jobs cover SQLite/backend, static quality
+and dependency integrity, Node frontend tests, Chromium E2E, disposable PostgreSQL
+16 and workflow validation. The always-running `Required database checks` gate
+requires every job to succeed, including browser and documentation checks.
+No deployment or content publication is triggered.
 
-The `Required database checks` aggregator runs even after job failure and succeeds
-only if SQLite, PostgreSQL and workflow-validation jobs succeed. Configure GitHub branch protection/rulesets for the
-release branch to require this exact check, prevent bypass and require PR review.
-Do not mark database jobs continue-on-error or allow skipped jobs to count here.
-Current edits are local. The original fc57232 hosted run failed both full pytest
-steps; its migration/pipeline checks passed. See the [current integration audit](final-infrastructure-integration.md)
-for live evidence and owner steps. Documentation links/contracts, actionlint and
-PostgreSQL transfer/logical recovery evidence are now mandatory; no skipped
-PostgreSQL cases are accepted by the JUnit gate.
+See [CI automation and local commands](../10-testing/ci-automation.md) for the job
+matrix, caching, `npm run check:all`, temporary migration smoke and diagnostics.
+PostgreSQL transfer/logical recovery evidence remains mandatory: skipped/missing
+required cases fail `scripts/check-test-report.py`. The old duplicate `db:verify`
+before full pytest was removed; database tests still run inside each engine's
+full suite. Historical hosted failures are documented in the
+[earlier integration audit](final-infrastructure-integration.md); local checks of
+the revised workflow do not establish hosted CI success or branch protection.
 
 ## Manual Render configuration
 

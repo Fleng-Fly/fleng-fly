@@ -169,11 +169,15 @@ The existing duplicate-registration `409 EMAIL_TAKEN` response is preserved.
 From the repository root:
 
 ```bash
+npm run check:all           # isolated full local verification, including Chromium E2E
+npm run db:smoke            # migrations on a new temporary SQLite database
 npm run backend:test        # pytest
 npm run backend:lint        # Ruff
 npm run backend:typecheck   # mypy
 python3 scripts/backend-stabilization-smoke.py
 ```
+
+CI/local setup and troubleshooting: [CI automation](docs/10-testing/ci-automation.md).
 
 The smoke runner starts `npm run dev` on a temporary port with a temporary SQLite
 file. It checks authentication, Dashboard/Lessons APIs, once-only XP and account/

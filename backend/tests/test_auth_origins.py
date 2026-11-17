@@ -38,6 +38,8 @@ async def production_client(
         monkeypatch.setenv("RENDER_EXTERNAL_URL", RENDER)
     settings = Settings(
         _env_file=Path(__file__).resolve().parents[2] / ".env.production.example",
+        # The fixture exercises production policy even under a development CI process.
+        app_env="production",
         jwt_access_secret="isolated-origin-test-secret-at-least-32-characters",
         database_url="sqlite+aiosqlite:///:memory:",
     )

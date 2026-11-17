@@ -7,6 +7,15 @@ const api = await import(`data:text/javascript;base64,${Buffer.from(source).toSt
 test('streaming preserves raw response after one auth refresh', async () => {
   const original = globalThis.fetch;
   const calls = [];
+  const navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  const locks = [];
+  // Node 22 has no native Web Locks. Model the supported browser contract explicitly.
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {
+    locks: { request: async (name, options, action) => {
+      locks.push({ name, mode: options.mode });
+      return action();
+    } },
+  } });
   const stream = new Response('event: done\ndata: {}\n\n', {
     headers: { 'Content-Type': 'text/event-stream' },
   });
@@ -21,12 +30,15 @@ test('streaming preserves raw response after one auth refresh', async () => {
     const result = await api.streamAIChat({ message: 'Why does she go?', requestId: 'test-id' });
     assert.equal(result, stream);
     assert.equal(calls.length, 3);
+    assert.deepEqual(locks, [{ name: 'fleng.auth-cookie', mode: 'exclusive' }]);
     assert.equal(calls[1].url, '/api/v1/auth/refresh');
     assert.equal(calls[2].init.headers.Authorization, 'Bearer renewed-test-token');
     assert.equal(calls[0].init.body, calls[2].init.body);
     assert.equal(calls[2].init.credentials, 'include');
   } finally {
     globalThis.fetch = original;
+    if (navigatorDescriptor) Object.defineProperty(globalThis, 'navigator', navigatorDescriptor);
+    else delete globalThis.navigator;
     api.setAccessToken(null);
   }
 });

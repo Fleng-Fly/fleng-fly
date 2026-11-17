@@ -1,6 +1,7 @@
 # Quality gates
 
-From root:
+Full isolated local verification: `npm run check:all`. Setup, browser requirements
+and [CI diagnostics](ci-automation.md) apply. To run individual checks from root:
 
 ```sh
 npm run backend:lint
@@ -15,7 +16,8 @@ backend/.venv/bin/python scripts/check-docs.py --contracts
 git diff --check
 ```
 
-Ruff checks app/tests with configured E/F/I/UP/B rules; mypy checks app. Historical migrations are outside the standard lint command. Explicit backend npm commands avoid root wrappers' pnpm requirement. No CI enforcement/coverage threshold is implied by local commands.
+Ruff checks app/tests with configured E/F/I/UP/B rules; mypy checks app. Historical migrations are outside the standard lint command. Explicit backend npm commands avoid root wrappers' pnpm requirement. The CI aggregate requires the configured jobs; branch enforcement still requires
+owner-managed repository rules. No coverage threshold is added.
 
 The documentation checker uses stdlib for links and optional backend environment for contracts. [Validation report](../12-reference/validation-report.md) states scope/limits. Full startup/auth persistence smoke is `python3 scripts/backend-stabilization-smoke.py`; it uses temporary DB/port, not application data.
 

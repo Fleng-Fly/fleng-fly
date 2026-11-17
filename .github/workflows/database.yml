@@ -6,37 +6,147 @@ on:
   merge_group:
 permissions:
   contents: read
+concurrency:
+  group: fleng-verification-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+env:
+  APP_ENV: development
+  DATABASE_URL: sqlite+aiosqlite:////tmp/fleng-ci-unused.sqlite3
+  AI_ENABLED: 'false'
+  OPENROUTER_API_KEY: ''
+  RESET_DELIVERY: disabled
+  JWT_ACCESS_SECRET: disposable-ci-only-secret-at-least-32-characters
+  TZ: UTC
 jobs:
   sqlite:
     name: SQLite and application
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    env:
-      APP_ENV: development
-      DATABASE_URL: sqlite+aiosqlite:////tmp/fleng-ci.sqlite3
-      AI_ENABLED: 'false'
-      RESET_DELIVERY: disabled
-      JWT_ACCESS_SECRET: disposable-ci-only-secret-at-least-32-characters
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            backend/pyproject.toml
+            backend/constraints.txt
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
           package-manager-cache: false
-      - run: python -m venv backend/.venv
-      - run: backend/.venv/bin/pip install -c backend/constraints.txt -e './backend[dev]'
+      - name: Install constrained backend dependencies
+        run: |
+          python -m venv backend/.venv
+          backend/.venv/bin/python -m pip install -c backend/constraints.txt -e './backend[dev]'
+      - name: Check Python dependency consistency
+        run: backend/.venv/bin/python -m pip check
+      - name: Smoke migrations on a new disposable SQLite database
+        run: npm run db:smoke
+      - name: Full backend suite (includes database pipeline)
+        run: npm run backend:test -- -q -rs
+  quality:
+    name: Static quality and dependency integrity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            backend/pyproject.toml
+            backend/constraints.txt
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install pinned package manager
+        run: npm install --global pnpm@12.9.1 --ignore-scripts --no-audit --no-fund
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Verify and install frozen JS dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install constrained backend dependencies
+        run: |
+          python -m venv backend/.venv
+          backend/.venv/bin/python -m pip install -c backend/constraints.txt -e './backend[dev]'
+      - run: npm run check:dependencies
       - run: npm run backend:lint
       - run: npm run backend:typecheck
-      - run: npm run db:verify
+      - run: npm run docs:check
       - run: npm run curriculum:validate
       - run: backend/.venv/bin/python scripts/validate_curriculum.py --report json > /tmp/curriculum-validation.json
-      - run: npm run backend:test -- -q
-      - run: backend/.venv/bin/python scripts/check-docs.py --contracts
-      - run: npm run frontend:test
       - run: git diff --check
+  frontend:
+    name: Frontend JavaScript
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      # These tests use Node built-ins only; no Python or browser installation.
+      - run: npm run frontend:test
+      - run: npm run test:pwa
+  e2e:
+    name: Playwright Chromium E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            backend/pyproject.toml
+            backend/constraints.txt
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install pinned package manager
+        run: npm install --global pnpm@12.9.1 --ignore-scripts --no-audit --no-fund
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Verify and install frozen JS dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Install constrained backend dependencies
+        run: |
+          python -m venv backend/.venv
+          backend/.venv/bin/python -m pip install -c backend/constraints.txt -e './backend[dev]'
+      - name: Install Chromium headless shell and OS libraries (E2E only)
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Real browser journey with temporary SQLite, no external services
+        run: npm run test:e2e -- --workers=2
+      - name: Retain synthetic test failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-failure-diagnostics
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
   postgres:
     name: PostgreSQL integration
     runs-on: ubuntu-24.04
@@ -62,9 +172,15 @@ jobs:
       JWT_ACCESS_SECRET: disposable-ci-only-secret-at-least-32-characters
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            backend/pyproject.toml
+            backend/constraints.txt
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
@@ -75,7 +191,6 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y postgresql-client-16
       - name: Require real PostgreSQL test configuration
         run: test -n "$TEST_DATABASE_URL"
-      - run: npm run db:verify
       - run: npm run backend:test -- -q -rs --junitxml=/tmp/postgres-tests.xml
       - name: Reject unexecuted PostgreSQL tests
         run: python scripts/check-test-report.py /tmp/postgres-tests.xml
@@ -85,17 +200,24 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
-      - name: Validate workflow syntax and expressions
+        with:
+          persist-credentials: false
+      - name: Validate workflow syntax, expressions and shell with actionlint
         run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7
   required:
     name: Required database checks
     if: always()
-    needs: [sqlite, postgres, workflow]
+    needs: [sqlite, postgres, quality, frontend, e2e, workflow]
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
-      - name: Require successful database jobs
+      - name: Require every verification job to succeed (skips also fail)
         env:
-          WORKFLOW_RESULT: ${{ needs.workflow.result }}
-          SQLITE_RESULT: ${{ needs.sqlite.result }}
-          POSTGRES_RESULT: ${{ needs.postgres.result }}
-        run: test "$SQLITE_RESULT" = success && test "$POSTGRES_RESULT" = success && test "$WORKFLOW_RESULT" = success
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != success ]; then
+              echo "::error::A required verification job failed, was cancelled or skipped. See its job log."
+              exit 1
+            fi
+          done

@@ -22,7 +22,9 @@ if (!existsSync(python)) {
   process.exit(1);
 }
 
-const result = spawnSync(python, ['-m', moduleName, ...args], {
+// Repository verification scripts also use the same cross-platform interpreter.
+const pythonArgs = moduleName.endsWith('.py') ? [moduleName, ...args] : ['-m', moduleName, ...args];
+const result = spawnSync(python, pythonArgs, {
   cwd: backendDir,
   stdio: 'inherit',
   shell: false,

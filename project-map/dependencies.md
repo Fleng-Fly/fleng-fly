@@ -101,3 +101,14 @@ frontend dependency was introduced. SMTP uses Python's standard library off the
 async event loop. SQLite is now the local application default; `aiosqlite` is a
 runtime dependency. PostgreSQL/asyncpg remains available via DATABASE_URL with
 opt-in schema-isolated PostgreSQL tests. Both use the existing db/session.py engine.
+
+## CI verification tooling
+
+The existing database workflow installs constrained Python dev dependencies and
+frozen pnpm dependencies. Chromium is installed only by the E2E job.
+`scripts/check-project.mjs` orchestrates existing local checks with sanitized
+environment; `migration-smoke.py` creates a temporary SQLite;
+`check-dependencies.py` compares constraints and the JS manifest/lock/install.
+`backend.mjs` also runs repository Python scripts with the selected virtualenv.
+No runtime dependency, deployable, framework or business/API change was added.
+See [CI automation](../docs/10-testing/ci-automation.md).
