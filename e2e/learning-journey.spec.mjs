@@ -32,7 +32,7 @@ function newLearner() {
 async function registerThroughUi(page, learner) {
   await page.goto('/register.html');
   await page.getByLabel('Display name').fill(learner.name);
-  await page.getByLabel('Email').fill(learner.email);
+  await page.getByLabel('Email', { exact: true }).fill(learner.email);
   await page.getByLabel('Password').fill(learner.password);
   await page.getByRole('button', { name: 'Create account' }).click();
   await expect(page).toHaveURL(/\/dashboard\.html$/);
@@ -97,7 +97,7 @@ test.describe('account', () => {
     const second = await other.newPage();
     await second.goto('/register.html');
     await second.getByLabel('Display name').fill('Someone else');
-    await second.getByLabel('Email').fill(learner.email);
+    await second.getByLabel('Email', { exact: true }).fill(learner.email);
     await second.getByLabel('Password').fill(learner.password);
     await second.getByRole('button', { name: 'Create account' }).click();
     await expect(second.locator('#form-error')).toBeVisible();
@@ -111,7 +111,7 @@ test.describe('account', () => {
     await logOutFromWorkspace(page);
 
     await page.goto('/login.html');
-    await page.getByLabel('Email').fill(learner.email);
+    await page.getByLabel('Email', { exact: true }).fill(learner.email);
     await page.getByLabel('Password').fill('definitely-the-wrong-password');
     await page.getByRole('button', { name: 'Log in' }).click();
     await expect(page.locator('#form-error')).toBeVisible();
