@@ -164,11 +164,11 @@ export async function apiFetch(path, init = {}, options = {}) {
 /* ── Endpoint helpers ───────────────────────────────────────────────── */
 
 export function register(input) {
-  return withSessionLock(() => apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(input) }));
+  return withSessionLock(() => apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(input) }, { retryOnUnauthorized: false }));
 }
 
 export function login(email, password) {
-  return withSessionLock(() => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }));
+  return withSessionLock(() => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, { retryOnUnauthorized: false }));
 }
 
 export async function logout() {

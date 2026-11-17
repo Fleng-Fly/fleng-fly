@@ -40,3 +40,13 @@ assert.equal(valid.api.getAccessToken(), 'valid');
 const denied = await setup({ request: async () => { throw new Error('Locks unavailable'); } });
 await assert.rejects(denied.api.getCurrentUser(), error => error.status === 401);
 assert.deepEqual(denied.calls, ['/api/v1/users/me']);
+
+// Failed credentials must not recursively request the cookie lock through refresh.
+let acquisitions = 0;
+const rejectedLogin = await setup({ request: async (name, options, action) => {
+  acquisitions += 1;
+  assert.equal(acquisitions, 1);
+  return action();
+} });
+await assert.rejects(rejectedLogin.api.login('me@example.com', 'wrong'), error => error.status === 401);
+assert.deepEqual(rejectedLogin.calls, ['/api/v1/auth/login']);
