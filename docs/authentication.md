@@ -156,6 +156,7 @@ with only actual trusted proxy addresses, restrict direct backend access, and
 have the proxy overwrite forwarded headers. Never trust `*` on a public backend.
 Without a trusted proxy configuration, requests share the proxy's IP quota.
 
+<<<<<<< HEAD
 
 ## Fleng 1.0 security/stability — 2026-11-16
 
@@ -187,3 +188,29 @@ strict. Existing access JWTs remain valid until expiry (default 15 minutes).
 PWA installation remains retired. Backend tests assert an empty compatibility
 manifest and no manifest links; existing JS tests retain selective legacy worker
 and cache cleanup, no fetch interception and failure tolerance.
+||||||| ba6a4ec
+=======
+## Fleng 1.0 stability follow-up — 2026-11-16
+
+The Login page now includes a password-reset request form. The response remains
+account-enumeration safe. `/reset-password.html` accepts existing emailed token
+links, removes the token from the displayed URL before API work, keeps it only in
+memory and submits the new password to the existing confirmation API. Missing,
+expired and already-used links offer a new request through Login. Network/rate
+errors permit retry. Successful confirmation keeps the existing transaction that
+consumes the token and revokes refresh sessions and unused reset tokens. SMTP
+remains opt-in; set `RESET_DELIVERY=smtp`, SMTP credentials and an appropriate
+public `RESET_URL` to enable real email delivery. Existing access JWTs still
+expire on their existing schedule.
+
+The public header redirects after Logout only when the server confirms success.
+On failure it retains the current session, displays an error and offers retry,
+matching the existing workspace/settings behavior.
+
+Same-origin tabs with Web Locks now serialize refresh/login/register/logout under
+one `fleng.auth-cookie` lock. Refresh single-flight within a page is preserved;
+access/refresh tokens are never shared through localStorage. The server's strict
+replay revocation is unchanged. The legacy fallback on browsers without Web Locks
+is unchanged pending explicit approval of a fail-closed compatibility contract;
+those browsers do not yet have the cross-tab guarantee.
+>>>>>>> release/save-existing-work

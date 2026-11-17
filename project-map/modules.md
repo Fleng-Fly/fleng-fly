@@ -88,7 +88,8 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 | Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Test/Vocabulary, grading, progress and saved words                                     |
 | Settings                                                 | `/settings.html`     | 🟢     | protected; profile/email editing, language preference, password change, logout                                    |
 | Lesson player (quiz)                                     | —                    | 🟢     | exercises, submission and grading via the exercises API                                                           |
-| Vocabulary / Practice / Challenges / Progress / AI Tutor | —                    | 🔴     |                                                                                                                   |
+| Words | `/vocabulary.html`, `/course-words.html` | 🟢 | personal words/practice and published course vocabulary |
+| Challenges / Progress / AI Tutor | — | 🔴 |                                                                                                                   |
 
 ## AI layer
 
@@ -326,6 +327,7 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 `version.json` and sidebar/footer expose the release. Desktop shell removed;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
 
+<<<<<<< HEAD
 
 ## AI budget concurrency verification — 2026-11-16
 
@@ -335,3 +337,36 @@ chat/streaming with simultaneous/staggered arrivals and post-settlement retry.
 Existing `test_ai_sqlite_audit.py` covers independent OS processes. Runtime
 reservation/settlement code and dependencies are unchanged. Investigation and
 verification: [AI budget concurrency](../docs/ai-budget-concurrency.md).
+||||||| ba6a4ec
+=======
+## Security/stability follow-up — 2026-11-16
+
+- `frontend/login.html` / `js/login.js`: password-reset request through the existing
+  rate-limited API; `reset-password.html` / `js/reset-password.js`: in-memory token,
+  confirmation, success/retry/expired states using the existing auth styles.
+- `frontend/js/layout.js`: public-header Logout reports failure and retains the
+  current session until the server confirms revocation.
+- `modules/ai/service.py`: persistent reservation precedes local provider capacity
+  for every transport; portable CASE settlement, no limit/timeout increase.
+- `scripts/test-auth-ui.mjs`: dependency-free DOM behavior regressions, included in
+  `npm run frontend:test`. Backend admission and settlement regressions live in
+  `tests/test_ai_limits.py`.
+
+Verification and pending contract boundaries are recorded in
+`docs/security-stability-fixes-2026-11-16.md`. Same-origin Web Locks coordination
+lives in the existing API client; no token is stored in shared browser storage.
+
+## Words navigation and compact AI — 2026-11-16
+
+- `workspace.js`: native Words disclosure, My Words/Course Words child links,
+  current section state; mobile focus trap ignores collapsed links.
+- `course-words.html` / `js/course-words.js`: existing `/vocabulary/course-words`
+  pagination, catalog course filtering, local search and existing personal-word
+  save/practice flow. No API/schema/model change.
+- `js/markdown.js`: fixed DOM tag allowlist, bounded inline parsing, safe URL
+  policy; used only for AI messages. User text remains literal.
+- `ai-assistant.js` / `css/ai-assistant.css`: compact panel, hidden refresh menu,
+  status/retry, 500-character composer, typing and scroll-follow recovery.
+- `scripts/test-markdown-words.mjs`: Markdown/XSS, Words selection, course-word
+  pagination/filter/save/practice; existing widget tests cover limits/manual scroll.
+>>>>>>> release/save-existing-work

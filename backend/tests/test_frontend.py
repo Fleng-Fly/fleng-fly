@@ -30,6 +30,7 @@ async def test_app_pages_are_served(client: AsyncClient) -> None:
         "/lesson.html",
         "/vocabulary.html",
         "/team.html",
+        "/reset-password.html",
     ):
         response = await client.get(path)
         assert response.status_code == 200, path

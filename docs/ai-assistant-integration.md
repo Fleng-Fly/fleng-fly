@@ -46,8 +46,9 @@ Failures emit sanitized `error`; partial responses never become saved history.
 Malformed provider response shapes now also return controlled errors.
 
 The browser uses authenticated fetch and an incremental UTF-8 SSE decoder that
-handles arbitrary byte/chunk boundaries, CRLF and multiline data. Text uses
-`textContent`. `done` replaces provisional text with the saved response, avoiding
+handles arbitrary byte/chunk boundaries, CRLF and multiline data. User messages
+use `textContent`; assistant messages use the restricted DOM Markdown renderer
+in `js/markdown.js` (no raw HTML parsing). `done` replaces provisional text with the saved response, avoiding
 double appends. History is paginated and conversations can be selected or started
 fresh. Local storage holds only a user-scoped selected conversation ID.
 
@@ -56,7 +57,7 @@ current page. Reopening preserves its current state. Sending/history changes are
 blocked during a request. Navigation/reload disconnects the stream; backend
 cancels the provider and cleans up the active lease. A completed pair committed
 just before a lost connection can be recovered from history. Ambiguous errors
-block further sending until Reload/history recovery or an explicit new chat.
+block further sending until explicit history refresh or an explicit new chat.
 
 Optional `requestId` is reserved in existing AIUsage before provider I/O. Migration
 `20261101_1200` adds a nullable UUID and a per-user unique index. Replays across
@@ -66,12 +67,14 @@ for the 30-day usage retention window. Clients that omit the field retain the ol
 contract. No automatic network/provider retry was introduced; the existing single
 401 refresh occurs before authorized generation.
 
-The dark/purple widget includes new chat, conversation selector, Reload, composer,
+The compact dark/purple widget includes new chat, a conversation selector, history
+refresh inside the options menu (and error recovery), a bottom composer,
 loading/generating/error/unavailable indicators, minimize and close. Enter sends,
 Shift+Enter adds a line, Escape closes, focus stays visible. CSS supports compact
 desktop and small screens; visualViewport adjusts for keyboard height and hides
 secondary controls when screen space contracts. Reduced motion is respected.
-Actual browser and mobile layout validation remains pending.
+The 2026-11-16 redesign is checked in Firefox at 1440/768/390/360px; see
+[Words and mini chat](words-ai-interface.md) for scope and device limitations.
 
 ## Changed files
 

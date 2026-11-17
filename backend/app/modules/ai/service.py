@@ -6,7 +6,7 @@ from datetime import UTC, datetime, time, timedelta
 from uuid import UUID
 
 from pydantic import ValidationError
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import case, delete, func, select, update
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -283,7 +283,10 @@ def charge_values(settings: Settings, usage_info: dict | None, state: str | None
         # objects cannot be lazily refreshed in async sessions.
         output = billing.tariff_microusd(settings, 0, settings.ai_max_output_tokens)
         return {
-            "cost_microusd": func.max(AIUsage.reserved_microusd - output, 0),
+            "cost_microusd": case(
+                (AIUsage.reserved_microusd > output, AIUsage.reserved_microusd - output),
+                else_=0,
+            ),
             "cost_source": "refused",
         }
     charge = billing.settled_charge(settings, usage_info)
@@ -370,23 +373,25 @@ async def save_turn(
 async def chat(
     db: AsyncSession, user: User, payload: ChatRequest, settings: Settings, provider: Provider
 ):
-    async with capacity(settings):
-        conversation, messages = await prepare_chat(db, user, payload, settings)
-        usage = await reserve(db, user, settings, messages, payload.request_id)
-        try:
+    conversation, messages = await prepare_chat(db, user, payload, settings)
+    usage = await reserve(db, user, settings, messages, payload.request_id)
+    state: str | None = "released"
+    try:
+        async with capacity(settings):
+            state = None
             async with asyncio.timeout(settings.ai_request_timeout):
                 result = await provider.complete(messages)
-        except BaseException as exc:
-            await db.rollback()
-            await finish_usage(db, usage, settings, None, state=outcome(exc))
-            raise
-        try:
-            return await save_turn(db, user, conversation, payload, result, usage, settings)
-        except BaseException:
-            # The provider answered: charge its reported cost even if saving failed.
-            await db.rollback()
-            await finish_usage(db, usage, settings, None, usage_info=result.usage)
-            raise
+    except BaseException as exc:
+        await db.rollback()
+        await finish_usage(db, usage, settings, None, state=outcome(exc) or state)
+        raise
+    try:
+        return await save_turn(db, user, conversation, payload, result, usage, settings)
+    except BaseException:
+        # The provider answered: charge its reported cost even if saving failed.
+        await db.rollback()
+        await finish_usage(db, usage, settings, None, usage_info=result.usage)
+        raise
 
 
 async def structured(
@@ -396,52 +401,54 @@ async def structured(
     settings: Settings,
     provider: Provider,
 ):
-    async with capacity(settings):
-        lesson_id = payload.lesson_id if isinstance(payload, ExplainRequest) else None
-        extra = {}
-        schema_type: type[Explanation] | type[GeneratedExercise]
-        if isinstance(payload, ExplainRequest):
-            validate_input(payload.student_answer, settings)
-            validate_input(payload.topic, settings)
-            if payload.exercise_id:
-                exercise = await db.get(Exercise, payload.exercise_id)
-                if exercise is None or (lesson_id and lesson_id != exercise.lesson_id):
-                    raise ApiError(404, "NOT_FOUND", "Exercise not found")
-                lesson_id = exercise.lesson_id
-                extra["exercise_prompt"] = exercise.prompt[:2000]
-                # Official answer keys are deliberately excluded.
-            schema_type, task = Explanation, "explain"
-        else:
-            validate_input(payload.topic, settings)
-            schema_type, task = GeneratedExercise, "generate"
-        if lesson_id:
-            await context.lesson_context(db, lesson_id)
-        learner = await context.learner_context(db, user, lesson_id)
-        if isinstance(payload, GenerateRequest) and payload.level:
-            learner["level"] = payload.level
-        learner.update(extra)
-        schema = schema_type.model_json_schema(by_alias=False)
-        request = json.dumps(payload.model_dump(mode="json", exclude_none=True))
-        messages = prompts.messages(learner, request, task=task, schema=schema)
-        usage = await reserve(db, user, settings, messages, schema=schema)
-        result = None
-        try:
+    lesson_id = payload.lesson_id if isinstance(payload, ExplainRequest) else None
+    extra = {}
+    schema_type: type[Explanation] | type[GeneratedExercise]
+    if isinstance(payload, ExplainRequest):
+        validate_input(payload.student_answer, settings)
+        validate_input(payload.topic, settings)
+        if payload.exercise_id:
+            exercise = await db.get(Exercise, payload.exercise_id)
+            if exercise is None or (lesson_id and lesson_id != exercise.lesson_id):
+                raise ApiError(404, "NOT_FOUND", "Exercise not found")
+            lesson_id = exercise.lesson_id
+            extra["exercise_prompt"] = exercise.prompt[:2000]
+            # Official answer keys are deliberately excluded.
+        schema_type, task = Explanation, "explain"
+    else:
+        validate_input(payload.topic, settings)
+        schema_type, task = GeneratedExercise, "generate"
+    if lesson_id:
+        await context.lesson_context(db, lesson_id)
+    learner = await context.learner_context(db, user, lesson_id)
+    if isinstance(payload, GenerateRequest) and payload.level:
+        learner["level"] = payload.level
+    learner.update(extra)
+    schema = schema_type.model_json_schema(by_alias=False)
+    request = json.dumps(payload.model_dump(mode="json", exclude_none=True))
+    messages = prompts.messages(learner, request, task=task, schema=schema)
+    usage = await reserve(db, user, settings, messages, schema=schema)
+    result = None
+    state: str | None = "released"
+    try:
+        async with capacity(settings):
+            state = None
             async with asyncio.timeout(settings.ai_request_timeout):
                 result = await provider.complete(messages, schema)
-            parsed = schema_type.model_validate_json(result.content)
-            if isinstance(payload, GenerateRequest) and (
-                not isinstance(parsed, GeneratedExercise) or parsed.type != payload.exercise_type
-            ):
-                raise ValueError("Exercise type mismatch")
-            await finish_usage(db, usage, settings, result)
-            return parsed
-        except (ValidationError, ValueError) as exc:
-            info = result.usage if result else None
-            await finish_usage(db, usage, settings, None, usage_info=info)
-            raise ApiError(
-                502, "AI_INVALID_RESPONSE", "AI returned invalid practice material"
-            ) from exc
-        except BaseException as exc:
-            await db.rollback()
-            await finish_usage(db, usage, settings, None, state=outcome(exc))
-            raise
+        parsed = schema_type.model_validate_json(result.content)
+        if isinstance(payload, GenerateRequest) and (
+            not isinstance(parsed, GeneratedExercise) or parsed.type != payload.exercise_type
+        ):
+            raise ValueError("Exercise type mismatch")
+        await finish_usage(db, usage, settings, result)
+        return parsed
+    except (ValidationError, ValueError) as exc:
+        info = result.usage if result else None
+        await finish_usage(db, usage, settings, None, usage_info=info)
+        raise ApiError(
+            502, "AI_INVALID_RESPONSE", "AI returned invalid practice material"
+        ) from exc
+    except BaseException as exc:
+        await db.rollback()
+        await finish_usage(db, usage, settings, None, state=outcome(exc) or state)
+        raise

@@ -333,9 +333,400 @@ async def test_parallel_users_cannot_overspend_nearly_exhausted_budget(
     completed = asyncio.Queue()
     last_arrival = asyncio.Event()
 
+<<<<<<< HEAD
     async def contender(index, auth):
         if stagger_last and index == len(users) - 1:
             await last_arrival.wait()
+||||||| ba6a4ec
+
+# ── Concurrency per learner ─────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("second_path", ["chat", "chat/stream", "explain"])
+async def test_parallel_requests_of_one_user(http, world, second_path):
+    gate = Gate()
+    app.dependency_overrides[provider_dependency] = lambda: gate
+    auth = await headers(http)
+    first = asyncio.create_task(chat(http, auth))
+    await asyncio.wait_for(gate.entered.wait(), 5)
+    # Routed to the other worker/engine: only the database can know about `first`.
+    body = {"studentAnswer": "I is"} if second_path == "explain" else {"message": "Hi"}
+    second = await http.post(f"/api/v1/ai/{second_path}", headers=auth, json=body)
+    assert second.status_code == 429
+    assert second.json()["error"]["code"] == "AI_BUSY"
+    gate.release.set()
+    assert (await first).status_code == 200
+    assert len(gate.requests) == 1
+    # The slot is free again once the first request settles.
+    gate.complete = FakeProvider().complete
+    assert (await chat(http, auth)).status_code == 200
+
+
+async def test_burst_of_parallel_requests_admits_one(http, world):
+    gate = Gate()
+    app.dependency_overrides[provider_dependency] = lambda: gate
+    auth = await headers(http)
+    tasks = [asyncio.create_task(chat(http, auth, path=p)) for p in ["chat", "chat/stream"] * 4]
+    await asyncio.wait_for(gate.entered.wait(), 5)
+    await asyncio.sleep(0.2)
+    gate.release.set()
+    responses = await asyncio.gather(*tasks)
+    # Late arrivals may legitimately run after the first settles; overlap never happens.
+    assert gate.peak == 1
+    busy = [r for r in responses if "AI_BUSY" in r.text]
+    assert busy and len(busy) + len(gate.requests) == 8
+    # Rejected attempts do not burn daily quota: one row per provider call.
+    counted = [r for r in await rows(world) if r.cost_source != "released"]
+    assert len(counted) == len(gate.requests)
+
+
+# ── Provider failures and settlement ────────────────────────────────────────
+
+
+def openrouter(handler) -> OpenRouterProvider:
+    provider = OpenRouterProvider(
+        app.dependency_overrides[get_settings](), httpx.MockTransport(handler)
+    )
+    app.dependency_overrides[provider_dependency] = lambda: provider
+    return provider
+
+
+def stream_body(usage: dict | None) -> str:
+    frames = [{"choices": [{"delta": {"content": "Hello"}, "finish_reason": "stop"}]}]
+    if usage is not None:
+        frames.append({"choices": [], "usage": usage})
+    return "".join("data: " + json.dumps(f) + "\n\n" for f in frames) + "data: [DONE]\n\n"
+
+
+@pytest.mark.parametrize("path", ["chat", "chat/stream"])
+@pytest.mark.parametrize(
+    "status,code,source",
+    [
+        # 4xx: nothing generated, but OpenRouter documents possible prompt charges.
+        (400, "AI_UNAVAILABLE", "refused"),
+        (401, "AI_UNAVAILABLE", "refused"),
+        (402, "AI_UNAVAILABLE", "refused"),
+        (404, "AI_UNAVAILABLE", "refused"),  # e.g. no endpoint within max_price
+        (429, "AI_RATE_LIMITED", "refused"),
+        (408, "AI_UNAVAILABLE", "reserved"),
+        (500, "AI_UNAVAILABLE", "reserved"),
+        (502, "AI_UNAVAILABLE", "reserved"),
+    ],
+)
+async def test_openrouter_errors_charge_by_certainty(http, world, path, status, code, source):
+    openrouter(lambda request: httpx.Response(status, text="upstream details sk-or-secret"))
+    auth = await headers(http)
+    response = await chat(http, auth, path=path)
+    assert "sk-or-secret" not in response.text
+    if path == "chat":
+        assert response.json()["error"]["code"] == code
+    else:
+        assert f'"code": "{code}"' in response.text
+    (row,) = await rows(world)
+    assert (row.status, row.cost_source) == ("failed", source)
+    if source == "reserved":
+        # The model may have run: keep the worst-case hold as the charge.
+        assert row.cost_microusd == row.reserved_microusd
+    else:
+        # Output cost is freed; the prompt cost stays booked and quota is not used.
+        assert 0 < row.cost_microusd < row.reserved_microusd
+        assert row.reserved_microusd - row.cost_microusd == billing.tariff_microusd(
+            Settings(**ENABLED, **PRICED), 0, 800
+        )
+
+
+@pytest.mark.parametrize(
+    "error,released",
+    [
+        (httpx.ConnectError("refused"), True),
+        (httpx.ConnectTimeout("connect"), True),
+        (httpx.ReadTimeout("read"), False),
+        (httpx.RemoteProtocolError("reset"), False),
+    ],
+)
+async def test_transport_failures(http, world, error, released):
+    def handler(request):
+        raise error
+
+    openrouter(handler)
+    auth = await headers(http)
+    assert (await chat(http, auth)).status_code in (503, 504)
+    (row,) = await rows(world)
+    assert row.cost_source == ("released" if released else "reserved")
+
+
+@pytest.mark.parametrize("path", ["chat", "chat/stream"])
+@pytest.mark.parametrize(
+    "usage,source",
+    [
+        ({"prompt_tokens": 1000, "completion_tokens": 100, "cost": 0.0123}, "provider"),
+        ({"prompt_tokens": 1000, "completion_tokens": 100}, "tariff"),
+        ({"total_tokens": 1100}, "reserved"),
+        (None, "reserved"),
+        ({"cost": "free", "prompt_tokens": "many"}, "reserved"),
+    ],
+)
+async def test_cost_settlement_sources(http, world, path, usage, source):
+    def handler(request):
+        if json.loads(request.content)["stream"]:
+            return httpx.Response(200, text=stream_body(usage))
+        body = {"choices": [{"message": {"content": "Hello"}, "finish_reason": "stop"}]}
+        if usage is not None:
+            body["usage"] = usage
+        return httpx.Response(200, json=body)
+
+    openrouter(handler)
+    auth = await headers(http)
+    response = await chat(http, auth, path=path)
+    assert response.status_code == 200
+    (row,) = await rows(world)
+    assert row.status == "completed" and row.cost_source == source
+    expected = {
+        "provider": 12300,
+        # 1000 * 0.15 + 100 * 0.60 micro-USD at the configured tariff.
+        "tariff": 210,
+        "reserved": row.reserved_microusd,
+    }[source]
+    assert row.cost_microusd == expected
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"ai_input_price_per_mtok_usd": None},
+        {"ai_output_price_per_mtok_usd": None},
+        {"openrouter_model": "openrouter/auto"},
+        {"openrouter_model": "openai/gpt-4o-mini:online"},
+    ],
+)
+async def test_unknown_price_refuses_before_provider(http, world, overrides):
+    configure(**overrides)
+    calls = []
+    openrouter(lambda request: calls.append(request) or httpx.Response(500))
+    auth = await headers(http)
+    assert (await http.get("/api/v1/ai/status", headers=auth)).json()["available"] is False
+    for path in ["chat", "chat/stream"]:
+=======
+
+# ── Concurrency per learner ─────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("second_path", ["chat", "chat/stream", "explain"])
+async def test_parallel_requests_of_one_user(http, world, second_path):
+    gate = Gate()
+    app.dependency_overrides[provider_dependency] = lambda: gate
+    auth = await headers(http)
+    first = asyncio.create_task(chat(http, auth))
+    await asyncio.wait_for(gate.entered.wait(), 5)
+    # Routed to the other worker/engine: only the database can know about `first`.
+    body = {"studentAnswer": "I is"} if second_path == "explain" else {"message": "Hi"}
+    second = await http.post(f"/api/v1/ai/{second_path}", headers=auth, json=body)
+    assert second.status_code == 429
+    assert second.json()["error"]["code"] == "AI_BUSY"
+    gate.release.set()
+    assert (await first).status_code == 200
+    assert len(gate.requests) == 1
+    # The slot is free again once the first request settles.
+    gate.complete = FakeProvider().complete
+    assert (await chat(http, auth)).status_code == 200
+
+
+async def test_burst_of_parallel_requests_admits_one(http, world):
+    gate = Gate()
+    app.dependency_overrides[provider_dependency] = lambda: gate
+    auth = await headers(http)
+    tasks = [asyncio.create_task(chat(http, auth, path=p)) for p in ["chat", "chat/stream"] * 4]
+    await asyncio.wait_for(gate.entered.wait(), 5)
+    await asyncio.sleep(0.2)
+    gate.release.set()
+    responses = await asyncio.gather(*tasks)
+    # Late arrivals may legitimately run after the first settles; overlap never happens.
+    assert gate.peak == 1
+    busy = [r for r in responses if "AI_BUSY" in r.text]
+    assert busy and len(busy) + len(gate.requests) == 8
+    # Rejected attempts do not burn daily quota: one row per provider call.
+    counted = [r for r in await rows(world) if r.cost_source != "released"]
+    assert len(counted) == len(gate.requests)
+
+
+@pytest.mark.parametrize("path", ["chat", "chat/stream", "explain", "generate-exercise"])
+async def test_all_transports_reserve_before_local_capacity(http, world, fake, monkeypatch, path):
+    original = service.reserve
+    admissions = []
+
+    async def checked_reserve(*args, **kwargs):
+        # Waiting for database locks must never occupy a provider slot.
+        assert service._active == 0
+        admissions.append(path)
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(service, "reserve", checked_reserve)
+    payload = {"message": "Hi"}
+    if path == "explain":
+        payload = {"studentAnswer": "I is"}
+        fake.content = json.dumps({"explanation": "Use am", "correctExample": "I am", "rule": "be"})
+    elif path == "generate-exercise":
+        payload = {"topic": "be", "exerciseType": "fill_blank"}
+        fake.content = json.dumps({
+            "type": "fill_blank", "prompt": "I ___ here", "answer": "am", "explanation": "be"
+        })
+    response = await http.post("/api/v1/ai/" + path, headers=await headers(http), json=payload)
+    assert response.status_code == 200, response.text
+    assert admissions == [path]
+    assert len(fake.requests) == 1
+
+
+async def test_refused_settlement_is_portable_and_never_negative(db_session):
+    from sqlalchemy import update
+    from sqlalchemy.dialects import postgresql
+
+    from app.modules.auth.service import register_user
+
+    user = await register_user(
+        db_session, email="settlement@example.com", password="test-password", display_name="Test"
+    )
+    values = service.charge_values(Settings(**ENABLED, **PRICED), None, "refused")
+    statement = update(AIUsage).values(**values)
+    sql = str(statement.compile(dialect=postgresql.dialect()))
+    assert "CASE WHEN" in sql and "max(" not in sql
+    for reserved, expected in [(1000, 520), (10, 0)]:
+        row = AIUsage(user_id=user.id, model="test/model", reserved_tokens=1,
+                      reserved_microusd=reserved)
+        db_session.add(row)
+        await db_session.flush()
+        await db_session.execute(statement.where(AIUsage.id == row.id))
+        await db_session.refresh(row)
+        assert row.cost_microusd == expected
+        assert row.cost_source == "refused"
+
+
+# ── Provider failures and settlement ────────────────────────────────────────
+
+
+def openrouter(handler) -> OpenRouterProvider:
+    provider = OpenRouterProvider(
+        app.dependency_overrides[get_settings](), httpx.MockTransport(handler)
+    )
+    app.dependency_overrides[provider_dependency] = lambda: provider
+    return provider
+
+
+def stream_body(usage: dict | None) -> str:
+    frames = [{"choices": [{"delta": {"content": "Hello"}, "finish_reason": "stop"}]}]
+    if usage is not None:
+        frames.append({"choices": [], "usage": usage})
+    return "".join("data: " + json.dumps(f) + "\n\n" for f in frames) + "data: [DONE]\n\n"
+
+
+@pytest.mark.parametrize("path", ["chat", "chat/stream"])
+@pytest.mark.parametrize(
+    "status,code,source",
+    [
+        # 4xx: nothing generated, but OpenRouter documents possible prompt charges.
+        (400, "AI_UNAVAILABLE", "refused"),
+        (401, "AI_UNAVAILABLE", "refused"),
+        (402, "AI_UNAVAILABLE", "refused"),
+        (404, "AI_UNAVAILABLE", "refused"),  # e.g. no endpoint within max_price
+        (429, "AI_RATE_LIMITED", "refused"),
+        (408, "AI_UNAVAILABLE", "reserved"),
+        (500, "AI_UNAVAILABLE", "reserved"),
+        (502, "AI_UNAVAILABLE", "reserved"),
+    ],
+)
+async def test_openrouter_errors_charge_by_certainty(http, world, path, status, code, source):
+    openrouter(lambda request: httpx.Response(status, text="upstream details sk-or-secret"))
+    auth = await headers(http)
+    response = await chat(http, auth, path=path)
+    assert "sk-or-secret" not in response.text
+    if path == "chat":
+        assert response.json()["error"]["code"] == code
+    else:
+        assert f'"code": "{code}"' in response.text
+    (row,) = await rows(world)
+    assert (row.status, row.cost_source) == ("failed", source)
+    if source == "reserved":
+        # The model may have run: keep the worst-case hold as the charge.
+        assert row.cost_microusd == row.reserved_microusd
+    else:
+        # Output cost is freed; the prompt cost stays booked and quota is not used.
+        assert 0 < row.cost_microusd < row.reserved_microusd
+        assert row.reserved_microusd - row.cost_microusd == billing.tariff_microusd(
+            Settings(**ENABLED, **PRICED), 0, 800
+        )
+
+
+@pytest.mark.parametrize(
+    "error,released",
+    [
+        (httpx.ConnectError("refused"), True),
+        (httpx.ConnectTimeout("connect"), True),
+        (httpx.ReadTimeout("read"), False),
+        (httpx.RemoteProtocolError("reset"), False),
+    ],
+)
+async def test_transport_failures(http, world, error, released):
+    def handler(request):
+        raise error
+
+    openrouter(handler)
+    auth = await headers(http)
+    assert (await chat(http, auth)).status_code in (503, 504)
+    (row,) = await rows(world)
+    assert row.cost_source == ("released" if released else "reserved")
+
+
+@pytest.mark.parametrize("path", ["chat", "chat/stream"])
+@pytest.mark.parametrize(
+    "usage,source",
+    [
+        ({"prompt_tokens": 1000, "completion_tokens": 100, "cost": 0.0123}, "provider"),
+        ({"prompt_tokens": 1000, "completion_tokens": 100}, "tariff"),
+        ({"total_tokens": 1100}, "reserved"),
+        (None, "reserved"),
+        ({"cost": "free", "prompt_tokens": "many"}, "reserved"),
+    ],
+)
+async def test_cost_settlement_sources(http, world, path, usage, source):
+    def handler(request):
+        if json.loads(request.content)["stream"]:
+            return httpx.Response(200, text=stream_body(usage))
+        body = {"choices": [{"message": {"content": "Hello"}, "finish_reason": "stop"}]}
+        if usage is not None:
+            body["usage"] = usage
+        return httpx.Response(200, json=body)
+
+    openrouter(handler)
+    auth = await headers(http)
+    response = await chat(http, auth, path=path)
+    assert response.status_code == 200
+    (row,) = await rows(world)
+    assert row.status == "completed" and row.cost_source == source
+    expected = {
+        "provider": 12300,
+        # 1000 * 0.15 + 100 * 0.60 micro-USD at the configured tariff.
+        "tariff": 210,
+        "reserved": row.reserved_microusd,
+    }[source]
+    assert row.cost_microusd == expected
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"ai_input_price_per_mtok_usd": None},
+        {"ai_output_price_per_mtok_usd": None},
+        {"openrouter_model": "openrouter/auto"},
+        {"openrouter_model": "openai/gpt-4o-mini:online"},
+    ],
+)
+async def test_unknown_price_refuses_before_provider(http, world, overrides):
+    configure(**overrides)
+    calls = []
+    openrouter(lambda request: calls.append(request) or httpx.Response(500))
+    auth = await headers(http)
+    assert (await http.get("/api/v1/ai/status", headers=auth)).json()["available"] is False
+    for path in ["chat", "chat/stream"]:
+>>>>>>> release/save-existing-work
         response = await chat(http, auth, path=path)
         completed.put_nowait(response)
         return response

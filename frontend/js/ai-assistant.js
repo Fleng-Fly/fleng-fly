@@ -1,6 +1,7 @@
 import { getAIHistory, getAIStatus, listAIConversations, streamAIChat } from './api.js';
 import { readAIEvents } from './ai-stream.js';
 import { el } from './layout.js';
+import { renderMarkdown } from './markdown.js';
 
 let widget;
 
@@ -21,7 +22,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   document.head.append(css);
   const root = el('aside', 'fleng-ai');
   root.setAttribute('aria-label', 'Fleng AI learning assistant');
-  const launcher = button('✦ Fleng AI', () => open());
+  const launcher = button('Fleng AI', () => open());
   launcher.className = 'ai-launcher';
   launcher.setAttribute('aria-controls', 'ai-panel');
   launcher.setAttribute('aria-expanded', 'false');
@@ -32,7 +33,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   panel.setAttribute('aria-label', 'Fleng AI chat');
   const header = el('header', 'ai-header');
   const title = el('div');
-  title.append(el('strong', '', '✦ Fleng AI'));
+  title.append(el('strong', '', 'Fleng AI'));
   const availability = el('small', '', 'Checking availability');
   title.append(availability);
   header.append(
@@ -48,6 +49,8 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     initialized = true;
     needsReload = false;
     input.value = '';
+    input.style.height = 'auto';
+    followBottom = true;
     messages.replaceChildren();
     select.value = '';
     notice.textContent = available ? '' : 'Fleng AI is currently unavailable.';
@@ -55,8 +58,13 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     controls();
     phase(available ? visibility : 'UNAVAILABLE');
   });
-  const reload = button('Reload', () => load());
-  tools.append(select, fresh, reload);
+  const menu = el('details', 'ai-options');
+  const menuToggle = el('summary', '', '⋯');
+  menuToggle.setAttribute('aria-label', 'Chat options');
+  const reload = button('Refresh history', () => { menu.open = false; load(); });
+  reload.className = 'ai-refresh';
+  menu.append(menuToggle, reload);
+  tools.append(select, fresh, menu);
   const contextLabel = el('p', 'ai-context');
   const messages = el('div', 'ai-messages');
   messages.tabIndex = 0;
@@ -65,16 +73,35 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   messages.setAttribute('aria-live', 'polite');
   const notice = el('p', 'ai-notice');
   notice.setAttribute('role', 'status');
+  const retry = button('Refresh history', () => load());
+  retry.className = 'ai-retry';
+  retry.hidden = true;
+  const recovery = el('div', 'ai-recovery');
+  recovery.append(notice, retry);
+  const jump = button('↓ Latest', () => scrollBottom(true));
+  jump.className = 'ai-jump';
+  jump.hidden = true;
+  const typing = el('div', 'ai-typing', 'Thinking');
+  typing.setAttribute('role', 'status');
+  typing.setAttribute('aria-label', 'Fleng AI is generating a response');
+  typing.hidden = true;
+  for (let i = 0; i < 3; i++) typing.append(el('span'));
   const form = el('form', 'ai-composer');
   const input = el('textarea');
-  input.rows = 2;
+  input.rows = 1;
   input.maxLength = 500;
   input.placeholder = 'Ask about English…';
   input.setAttribute('aria-label', 'Message to Fleng AI');
-  const send = el('button', '', 'Send');
+  const send = el('button', 'ai-send', '↑');
+  send.setAttribute('aria-label', 'Send message');
   send.type = 'submit';
-  form.append(input, send);
-  panel.append(header, tools, contextLabel, messages, notice, form);
+  const counter = el('small', 'ai-counter', '0 / 500');
+  counter.id = 'ai-character-count';
+  input.setAttribute('aria-describedby', counter.id);
+  const composerHint = el('div', 'ai-composer-hint');
+  composerHint.append(el('small', '', 'AI can make mistakes'), counter);
+  form.append(input, send, composerHint);
+  panel.append(header, tools, contextLabel, messages, jump, typing, recovery, form);
   root.append(panel, launcher);
   document.body.append(root);
   let conversationId = null;
@@ -83,6 +110,9 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   let available = false;
   let initialized = false;
   let visibility = 'CLOSED';
+  let generating = false;
+  let followBottom = true;
+  let renderFrame;
   // Store only a user-scoped conversation identifier; never messages or auth tokens.
   const key = `fleng.ai.conversation.${user.id}`;
   function remember() {
@@ -98,30 +128,66 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     root.dataset.state = value;
   }
   function controls() {
-    send.disabled = busy || !available || needsReload;
+    send.disabled = busy || !available || needsReload || !input.value.trim() || input.value.length > input.maxLength;
+    counter.textContent = `${input.value.length} / ${input.maxLength}`;
+    counter.classList.toggle('is-near-limit', input.value.length >= input.maxLength - 50);
+    typing.hidden = !generating;
+    retry.hidden = busy || (!needsReload && available);
+    menuToggle.setAttribute('aria-disabled', String(busy));
     input.disabled = !available;
     input.readOnly = busy;
-    select.disabled = fresh.disabled = reload.disabled = busy;
+    select.disabled = fresh.disabled = reload.disabled = retry.disabled = busy;
     form.setAttribute('aria-busy', String(busy));
     messages.setAttribute('aria-busy', String(busy));
+    messages.setAttribute('aria-live', generating ? 'off' : 'polite');
   }
   function welcome() {
     messages.append(
       el(
         'p',
         'ai-welcome',
-        'Your English study assistant. Ask for a grammar explanation or a hint. AI can make mistakes; lesson grades come from Fleng.',
+        'A little help, whenever you need it. Ask about a word, grammar or your lesson.',
       ),
     );
   }
   function bubble(role, text) {
     const article = el('article', `ai-message ai-${role}`);
     article.append(el('small', '', role === 'user' ? 'You' : 'Fleng AI'));
-    const content = el('p', '', text);
+    const content = el('div', 'ai-message-content');
+    if (role === 'assistant') renderMarkdown(content, text);
+    else content.textContent = text;
     article.append(content);
     messages.append(article);
-    messages.scrollTop = messages.scrollHeight;
+    scrollBottom();
     return content;
+  }
+  function scrollBottom(force = false) {
+    if (force) followBottom = true;
+    if (followBottom) messages.scrollTop = messages.scrollHeight;
+    jump.hidden = followBottom;
+  }
+  messages.addEventListener('scroll', () => {
+    followBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 48;
+    jump.hidden = followBottom;
+  });
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = `${Math.min(input.scrollHeight, 104)}px`;
+    controls();
+  });
+  function updateAnswer(answer, text, final = false) {
+    if (renderFrame) window.cancelAnimationFrame?.(renderFrame);
+    const render = () => {
+      renderFrame = null;
+      if (!destroyed) {
+        const scrollTop = messages.scrollTop;
+        renderMarkdown(answer, text);
+        if (!followBottom) messages.scrollTop = scrollTop;
+        scrollBottom();
+      }
+    };
+    if (!final && window.requestAnimationFrame) renderFrame = window.requestAnimationFrame(render);
+    else render();
   }
   function context() {
     const value = getContext() || {};
@@ -150,11 +216,13 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     context();
     if (!initialized) await load();
     else phase(busy ? 'STREAMING' : available ? 'OPEN' : 'UNAVAILABLE');
-    if (!panel.hidden) (input.disabled ? reload : input).focus();
+    if (!panel.hidden) (input.disabled ? retry : input).focus();
+    scrollBottom();
   }
   async function history() {
     if (destroyed) return;
     messages.replaceChildren();
+    followBottom = true;
     if (!conversationId) {
       welcome();
       return;
@@ -178,7 +246,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
       const [status, conversations] = await Promise.all([getAIStatus(), listAIConversations()]);
       if (destroyed) return;
       available = status.available;
-      input.maxLength = status.maxInputChars;
+      input.maxLength = Math.min(500, Number(status.maxInputChars) || 500);
       if (!initialized) {
         let saved;
         try {
@@ -211,7 +279,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
         return;
       }
       needsReload = true;
-      notice.textContent = 'Unable to load the assistant. Check your connection and select Reload.';
+      notice.textContent = 'Unable to load the assistant. Check your connection and refresh history.';
       phase('ERROR');
     } finally {
       busy = false;
@@ -238,7 +306,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
         return;
       }
       needsReload = true;
-      notice.textContent = 'Unable to load history. Select Reload to try again.';
+      notice.textContent = 'Unable to load history. Refresh history to try again.';
       phase('ERROR');
     } finally {
       busy = false;
@@ -249,16 +317,19 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     event.preventDefault();
     const message = input.value.trim();
     if (destroyed || busy || !available || needsReload || !message) return;
+    if (message.length > input.maxLength) return;
     busy = true;
+    generating = true;
+    followBottom = true;
     controls();
     phase('STREAMING');
     input.focus();
     availability.textContent = 'Writing…';
-    notice.textContent =
-      'Generating… You can minimize or close; the answer will keep loading on this page.';
+    notice.textContent = '';
     bubble('user', message);
     const answer = bubble('assistant', '');
     let complete = false;
+    let answerText = '';
     controller = new AbortController();
     try {
       const response = await streamAIChat(
@@ -278,19 +349,20 @@ export function mountAIAssistant(user, getContext = () => ({})) {
         if (destroyed) return;
         if (event.name === 'delta') {
           if (typeof event.data.content !== 'string') throw new Error('Invalid response');
-          answer.textContent += event.data.content;
-          messages.scrollTop = messages.scrollHeight;
+          answerText += event.data.content;
+          updateAnswer(answer, answerText);
         } else if (event.name === 'done') {
           if (!event.data.conversationId || typeof event.data.message?.content !== 'string')
             throw new Error('Invalid response');
           conversationId = event.data.conversationId;
           remember();
-          answer.textContent = event.data.message.content;
+          updateAnswer(answer, event.data.message.content, true);
           complete = true;
           if (![...select.options].some((item) => item.value === conversationId))
             select.append(new Option('Current conversation', conversationId));
           select.value = conversationId;
           input.value = '';
+          input.style.height = 'auto';
           notice.textContent = '';
           phase(visibility);
         } else if (event.name === 'error') {
@@ -308,19 +380,22 @@ export function mountAIAssistant(user, getContext = () => ({})) {
       }
       needsReload = true;
       initialized = false;
+      if (renderFrame) window.cancelAnimationFrame?.(renderFrame);
+      renderFrame = null;
       answer.textContent =
         'Response interrupted. This provisional exchange may not have been saved.';
       const unavailable = error.code === 'AI_UNAVAILABLE';
       if (unavailable) available = false;
       notice.textContent = unavailable
-        ? 'Fleng AI is currently unavailable. Select Reload to check again.'
+        ? 'Fleng AI is currently unavailable. Refresh history to check again.'
         : ['AI_RATE_LIMITED', 'RATE_LIMITED', 'AI_BUSY', 'AI_BUDGET_LIMIT', 'AI_DAILY_LIMIT'].includes(error.code)
           ? 'AI limit reached. Please try later.'
-          : 'The request did not complete. Reload history before sending again; no automatic retry was made.';
+          : 'The request did not complete. Refresh history before sending again; no automatic retry was made.';
       phase(unavailable ? 'UNAVAILABLE' : 'ERROR');
     } finally {
       controller = null;
       busy = false;
+      generating = false;
       availability.textContent = available ? 'Ready to help' : 'Unavailable';
       controls();
       if (!panel.hidden && available && panel.contains(document.activeElement)) input.focus();
@@ -364,6 +439,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     if (destroyed) return;
     destroyed = true;
     controller?.abort();
+    if (renderFrame) window.cancelAnimationFrame?.(renderFrame);
     messages.replaceChildren();
     input.value = '';
     conversationId = null;

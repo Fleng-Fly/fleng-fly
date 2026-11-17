@@ -1,4 +1,4 @@
-import { login, setAccessToken } from './api.js';
+import { login, requestPasswordReset, setAccessToken } from './api.js';
 import { describeApiError } from './errors.js';
 import { mountHeader } from './layout.js';
 
@@ -22,5 +22,22 @@ form.addEventListener('submit', async (event) => {
     errorBox.classList.remove('hidden');
     submit.disabled = false;
     submit.textContent = 'Log in';
+  }
+});
+
+document.getElementById('reset-request-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const button = document.getElementById('reset-request-button');
+  const status = document.getElementById('reset-request-status');
+  if (button.disabled) return;
+  button.disabled = true;
+  status.textContent = 'Sending…';
+  try {
+    await requestPasswordReset(document.getElementById('reset-email').value.trim());
+    status.textContent = 'If the account exists and email delivery is enabled, a reset link will be sent. Check your inbox and spam folder.';
+  } catch (error) {
+    status.textContent = describeApiError(error);
+  } finally {
+    button.disabled = false;
   }
 });

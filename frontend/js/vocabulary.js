@@ -205,7 +205,7 @@ function setMode(mode, firstId) {
   history.replaceState(null, '', url);
   for (const node of document.querySelectorAll('[data-mode]')) node.setAttribute('aria-pressed', String(node.dataset.mode === mode));
   for (const node of document.querySelectorAll('.sidebar-link[data-section]')) {
-    const selected = node.dataset.section === (mode === 'list' ? 'words' : 'practice');
+    const selected = node.dataset.section === 'words';
     node.classList.toggle('active', selected);
     if (selected) node.setAttribute('aria-current', 'page');
     else node.removeAttribute('aria-current');
@@ -386,7 +386,8 @@ async function load() {
     state.words = words;
     $('words-content').hidden = false;
     renderStats();
-    setMode(state.mode);
+    const selectedWord = new URLSearchParams(location.search).get('word');
+    setMode(state.mode, words.find((word) => selectedWord && normalize(word.word) === normalize(selectedWord))?.id);
   } catch (error) {
     if (request !== state.request) return;
     $('words-error-text').textContent = describeApiError(error);

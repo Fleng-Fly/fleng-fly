@@ -11,3 +11,6 @@ Nine real HTML pages and shared ES-module/CSS integration; dedicated Flashcards 
 - [Styling](styling.md)
 
 [Documentation home](../README.md)
+
+[Words navigation and compact AI](../words-ai-interface.md) documents the current
+interface, safe Markdown boundary and browser verification limits.

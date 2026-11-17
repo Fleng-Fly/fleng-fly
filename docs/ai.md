@@ -272,3 +272,13 @@ Checks: `node scripts/test-ai-stream.mjs`, `node scripts/test-ai-api.mjs`,
 backend pytest/Ruff/mypy,
 JS syntax and Alembic checks. See [integration report](ai-assistant-integration.md)
 for evidence and remaining manual validation.
+
+## Admission and settlement correction — 2026-11-16
+
+Chat, streaming, explanation and exercise generation reserve persistent capacity
+and budget before entering the process-local provider capacity guard. Database
+lock waiters no longer occupy local provider slots. A local admission refusal
+releases its reservation without consuming the daily quota or charging a provider
+call. Provider uncertainty, actual costs, per-user/global limits and timeouts keep
+the existing policy. Refusal settlement uses a portable SQL CASE expression to
+subtract the output hold with a zero floor on SQLite and PostgreSQL.

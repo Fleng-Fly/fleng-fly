@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Course Words — Fleng</title>
+  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="stylesheet" href="/css/lesson.css" />
+  <link rel="stylesheet" href="/css/vocabulary.css" />
+  <link rel="stylesheet" href="/css/fleng-theme.css" />
+  <link rel="stylesheet" href="/css/motion.css" />
+  <meta name="theme-color" content="#0b0917" />
+  <script defer src="/js/pwa.js"></script>
+</head>
+<body class="dashboard-page vocabulary-page">
+  <main class="dashboard-main">
+    <div class="dashboard-page-heading">
+      <div><p class="dashboard-eyebrow">LEARN IN CONTEXT</p><h1>Course Words</h1><p class="dashboard-subtitle">Explore your courses. Save useful words and practise them in My Words.</p></div>
+      <a class="lesson-button lesson-button-secondary" href="/vocabulary.html?mode=flashcards">Practise my words ↗</a>
+    </div>
+    <div class="word-toolbar course-words-toolbar">
+      <label class="field" for="word-course">Course<select id="word-course"><option value="">All courses</option></select></label>
+      <label class="word-search"><span class="sr-only">Search course words</span><input id="course-word-search" type="search" placeholder="Find a word or translation…" /></label>
+    </div>
+    <p id="course-words-loading" class="dashboard-muted" role="status">Loading course words…</p>
+    <div id="course-words-error" class="dashboard-alert" role="alert" hidden><span id="course-words-error-text"></span> <button id="course-words-retry" class="dashboard-text-button" type="button">Try again</button></div>
+    <section aria-label="Course vocabulary">
+      <div class="section-heading"><h2>Vocabulary</h2><span id="course-word-count" class="dashboard-muted" role="status"></span></div>
+      <div id="course-word-list" class="word-list"></div>
+    </section>
+    <p id="course-word-feedback" class="word-feedback" role="status"></p>
+  </main>
+  <script type="module" src="/js/course-words.js"></script>
+</body>
+</html>
