@@ -37,6 +37,8 @@ async def test_existing_accounts_can_learn_all_drafts_only_on_loopback(db_sessio
         render_external_url="",
         database_url="sqlite+aiosqlite:///./data/test-drafts.db",
     )
+    # The throwaway database below is intentional (also when run from a linked worktree).
+    monkeypatch.setenv("FLENG_ALLOW_NEW_DB", "1")
     monkeypatch.setattr("app.development.get_settings", lambda: settings)
     monkeypatch.setattr("app.main.get_settings", lambda: settings)
     app = create_development_app()

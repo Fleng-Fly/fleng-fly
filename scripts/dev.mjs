@@ -1,24 +1,39 @@
 // Runs the FastAPI backend, which also serves the static frontend.
 // Ensures the backend virtualenv exists first. Dependency-free by design.
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { busyPortMessage, describeListener, portInUse, resolveVenv } from './dev-helpers.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const backendDir = resolve(root, 'backend');
-const isWindows = process.platform === 'win32';
-const venvPython = resolve(backendDir, '.venv', isWindows ? 'Scripts/python.exe' : 'bin/python');
-const venvUvicorn = resolve(backendDir, '.venv', isWindows ? 'Scripts/uvicorn.exe' : 'bin/uvicorn');
+const port = process.env.PORT ?? '3001';
 
-if (!existsSync(venvUvicorn)) {
+// Never start preparation (backup, migrations, imports) when the port is taken: the old
+// server would keep serving a possibly different checkout.
+if (await portInUse(port)) {
+  console.error(busyPortMessage(port, root, await describeListener(port)));
+  process.exit(1);
+}
+
+let venv = resolveVenv(root);
+if (!venv) {
   console.log('Backend environment missing; running setup…');
   execFileSync(process.execPath, [resolve(root, 'scripts', 'setup.mjs')], { stdio: 'inherit' });
+  venv = resolveVenv(root);
 }
+const venvPython = venv.python;
+const venvUvicorn = venv.uvicorn;
+console.log(`Using the Python environment of the ${venv.source}; application code: ${backendDir}`);
 
 // Back up local data, prepare migrations and import unpublished development drafts.
 // This entry point refuses hosted/production databases before any preparation.
-execFileSync(venvPython, ['-m', 'app.development'], { cwd: backendDir, stdio: 'inherit' });
+try {
+  execFileSync(venvPython, ['-m', 'app.development'], { cwd: backendDir, stdio: 'inherit' });
+} catch (error) {
+  // The launcher already printed why it refused (or what failed); skip the Node stack trace.
+  process.exit(typeof error.status === 'number' ? error.status : 1);
+}
 
 const children = [];
 let shuttingDown = false;
@@ -56,13 +71,11 @@ function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-const port = process.env.PORT ?? '3001';
-
 // One server: FastAPI serves both /api/v1 and the static frontend on the same
 // port, so the HttpOnly refresh cookie stays first-party.
 start(
   'backend',
   venvUvicorn,
-  ['app.development:create_development_app', '--factory', '--reload', '--no-proxy-headers', '--host', '127.0.0.1', '--port', port],
+  ['app.development:create_development_app', '--factory', '--app-dir', backendDir, '--reload', '--reload-dir', backendDir, '--no-proxy-headers', '--host', '127.0.0.1', '--port', port],
   backendDir,
 );

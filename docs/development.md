@@ -176,6 +176,51 @@ pnpm backend:test       # pytest
 - Never commit `.env`, secrets, `node_modules`, `.venv`, generated clients or
   build output.
 
+### Checkouts and git worktrees
+
+`npm run dev` serves **the checkout you run it in**: code from `backend/`, static
+files from `frontend/`, nothing from another checkout. `npm run dev` in `main` shows
+`main`; in a worktree such as `.claude/worktrees/<name>` it shows that branch. Unmerged
+branch work is never visible from `main`.
+
+The launcher prints the facts first (paths only, never `.env` contents):
+
+```
+Checkout:   <absolute path> (linked worktree of <main>)
+Backend:    <checkout>/backend
+Frontend:   <checkout>/frontend
+APP_ENV:    development
+SQLite:     <file> [existing | NEW (will be created)]
+URL:        http://127.0.0.1:3001
+```
+
+Safeguards (`backend/app/development.py`, `scripts/dev-helpers.mjs`):
+
+- **Busy port** — before any backup or migration the launcher refuses a taken port and
+  names the owning checkout (`X-Fleng-Checkout` header) or says another process owns it.
+  Use `PORT=3002 npm run dev`; it never stops other processes.
+- **No hidden empty database** — SQLite defaults to `backend/data/fleng.db` of the
+  *current* checkout, so a fresh worktree has none. A linked worktree whose database is
+  missing is refused with the fix: point `DATABASE_URL` at the main checkout's file
+  (`sqlite+aiosqlite:////abs/path/to/main/backend/data/fleng.db`, the launcher takes its
+  usual backup first) or opt in to a deliberately fresh database with
+  `FLENG_ALLOW_NEW_DB=1`. A normal clone may create its first database.
+- **No mixed code** — startup aborts if `app` is imported from another checkout, or if
+  `FRONTEND_DIR` points outside the checkout.
+- A worktree without its own `backend/.venv` reuses the *interpreter* of the main
+  checkout's venv; the application code always comes from the worktree.
+- `.env` files are read from `backend/.env` and `<checkout>/.env` of the running
+  checkout only (they are untracked, so a worktree does not inherit main's).
+
+Example, trying a branch with your existing accounts on another port:
+
+```sh
+cd .claude/worktrees/ux-overhaul
+DATABASE_URL=sqlite+aiosqlite:////abs/path/to/fleng-fly/backend/data/fleng.db PORT=3002 npm run dev
+```
+
+(Avoid running two servers against the same SQLite file for long; stop the other first.)
+
 ## 9. Troubleshooting
 
 - **Backend import errors** — run `pnpm setup` (or ensure `backend/.venv`
@@ -187,7 +232,10 @@ pnpm backend:test       # pytest
   `/login` first.
 - **pnpm blocks build scripts** — `pnpm-workspace.yaml` lists `allowBuilds`; keep
   it minimal.
-- **Port already in use** — stop the previous Fleng server or set PORT before dev.
+- **Port already in use** — the launcher says which checkout owns it; stop that server
+  yourself or set PORT (see *Checkouts and git worktrees*).
+- **Site looks old / new features missing** — you are running another checkout; compare the
+  `Checkout:` line printed at startup with the branch that has the change.
 
 ## Backend completion: reproducible PostgreSQL setup
 
