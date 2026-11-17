@@ -351,3 +351,15 @@ retirement, main A0–B2/navigation preservation, explicit version, cache revali
 and Netlify API proxy. Prepared guarded Windows git updater with a backup branch.
 Blocked externally: GitHub write access; Render service is user-suspended.
 Next: push main, resume Render, deploy both hosts and verify release/login/reviews.
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+- Completed: password-authorized SMTP email confirmation, 30-minute one-use
+  tokens, refresh revocation, migration and regression coverage.
+- Completed: Web Locks required only at refresh time; no automatic fallback;
+  strict server reuse detection preserved.
+- Completed: retired-PWA backend contracts aligned; worker/cache cleanup retained.
+- Next/external: public HTTPS EMAIL_CHANGE_URL/SMTP delivery and live PostgreSQL
+  verification. No paid provider calls, commit or push in this stage.
+- Verification details: docs/security-stability-1.0.md.

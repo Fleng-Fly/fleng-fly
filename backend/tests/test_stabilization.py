@@ -575,3 +575,61 @@ async def test_email_limit_survives_different_peers(connections):
                 },
             )
             assert response.status_code == expected
+
+
+async def test_login_verified_before_email_change_cannot_issue_session(connections):
+    user_id, _, _ = await account(connections)
+    async with connections() as stale_db:
+        stale = await auth.authenticate(stale_db, email="learner@example.com", password=PASSWORD)
+        assert stale is not None
+        async with connections() as db:
+            await db.execute(
+                update(User).where(User.id == user_id).values(email="changed@example.com")
+            )
+            await db.commit()
+        with pytest.raises(ApiError) as error:
+            await auth.create_session(stale_db, user=stale, settings=get_settings())
+        assert error.value.code == "INVALID_CREDENTIALS"
+
+
+async def test_email_confirmation_is_once_only_across_connections(connections, monkeypatch):
+    from app.modules.users import email_change
+    from app.modules.users.schemas import EmailChangeConfirm, EmailChangeRequest
+
+    sent = []
+
+    async def deliver(email, raw, settings):
+        sent.append(raw)
+
+    monkeypatch.setattr(email_change, "deliver", deliver)
+    user_id, _, _ = await account(connections)
+    settings = Settings(reset_delivery="smtp")
+    async with connections() as db:
+        user = await get_user_with_profile(db, user_id)
+        await email_change.request_change(
+            EmailChangeRequest(email="confirmed@example.com", current_password=PASSWORD),
+            user=user,
+            db=db,
+            settings=settings,
+        )
+
+    async def confirm():
+        async with connections() as db:
+            try:
+                response = await email_change.confirm_change(
+                    EmailChangeConfirm(token=sent[0]), db=db, settings=settings
+                )
+                return response.status_code
+            except ApiError as error:
+                return error.status_code
+
+    statuses = await asyncio.wait_for(asyncio.gather(confirm(), confirm()), 10)
+    assert sorted(statuses) == [204, 400]
+    async with connections() as db:
+        assert (
+            await db.scalar(select(User.email).where(User.id == user_id)) == "confirmed@example.com"
+        )
+        sessions = (
+            await db.scalars(select(RefreshToken).where(RefreshToken.user_id == user_id))
+        ).all()
+        assert all(row.revoked_at is not None for row in sessions)

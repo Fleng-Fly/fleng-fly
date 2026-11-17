@@ -62,17 +62,18 @@ async def test_settings_updates_profile_email_and_language(client: AsyncClient) 
         headers=headers,
         json={
             "displayName": "Second",
-            "email": "NEW@example.com",
+            "email": "settings@example.com",
             "preferredLanguage": "Ukrainian",
         },
     )
     assert changed.status_code == 200
-    assert changed.json()["email"] == "new@example.com"
+    assert changed.json()["email"] == "settings@example.com"
     assert changed.json()["displayName"] == "Second"
     assert changed.json()["preferredLanguage"] == "Ukrainian"
     assert (await client.get(ME, headers=headers)).json()["preferredLanguage"] == "Ukrainian"
     login = await client.post(
-        "/api/v1/auth/login", json={"email": "new@example.com", "password": "correct-horse-battery"}
+        "/api/v1/auth/login",
+        json={"email": "settings@example.com", "password": "correct-horse-battery"},
     )
     assert login.status_code == 200
     assert login.json()["user"]["displayName"] == "Second"
@@ -100,7 +101,7 @@ async def test_settings_rejects_invalid_and_duplicate_email(client: AsyncClient)
     assert invalid.status_code == 422
     duplicate = await client.patch(ME, headers=headers, json={"email": "SECOND@example.com"})
     assert duplicate.status_code == 409
-    assert duplicate.json()["error"]["code"] == "EMAIL_TAKEN"
+    assert duplicate.json()["error"]["code"] == "EMAIL_CONFIRMATION_REQUIRED"
     assert (await client.get(ME, headers=headers)).json()["email"] == "first@example.com"
 
 

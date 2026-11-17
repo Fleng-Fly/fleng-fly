@@ -87,9 +87,10 @@ async def create_session(db: AsyncSession, *, user: User, settings: Settings) ->
     """Create a refresh-token row and return `(access_token, raw_refresh_token)`."""
     # Serialize issuance with password changes; reject credentials checked before a change.
     verified_hash = user.password_hash
+    verified_email = user.email
     await lock_learner(db, user.id)
-    await db.refresh(user, attribute_names=["password_hash"])
-    if user.password_hash != verified_hash:
+    await db.refresh(user, attribute_names=["password_hash", "email"])
+    if user.password_hash != verified_hash or user.email != verified_email:
         raise ApiError(401, "INVALID_CREDENTIALS", "Incorrect email or password")
     raw_token, token_hash = generate_refresh_token()
     expires_at = datetime.now(UTC) + timedelta(days=settings.refresh_token_expire_days)

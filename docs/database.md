@@ -328,3 +328,12 @@ Migration `20261110_1400` extends the course-level CHECK; SQLite batch rebuild
 preserves dependent rows with FK cascades temporarily disabled. No content or
 user data is inserted by the migration. Optional draft curriculum uses existing
 Course/Lesson/Exercise/CourseVocabularyItem tables; see [curriculum](curriculum-a0-b2.md).
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+Migration `20261116_1400` adds `email_changes` with UUID id, indexed cascading
+user_id, unique SHA-256 token_hash, new_email, authorization_hash (server-keyed
+HMAC of account ID/current email/password hash), expires_at and nullable used_at.
+No raw token/password is stored. Downgrade drops only this table.
+See [authentication](authentication.md#fleng-10-securitystability--2026-11-16).

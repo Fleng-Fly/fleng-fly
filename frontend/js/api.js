@@ -73,7 +73,23 @@ let refreshInFlight = null;
 
 function refreshOnce() {
   if (!refreshInFlight) {
-    refreshInFlight = refreshAccessToken().finally(() => {
+    refreshInFlight = (async () => {
+      if (!globalThis.navigator?.locks?.request) {
+        setAccessToken(null);
+        return null;
+      }
+      let entered = false;
+      try {
+        return await navigator.locks.request('fleng-auth-refresh', () => {
+          entered = true;
+          return refreshAccessToken();
+        });
+      } catch (error) {
+        if (entered) throw error;
+        setAccessToken(null);
+        return null;
+      }
+    })().finally(() => {
       refreshInFlight = null;
     });
   }
@@ -261,4 +277,11 @@ export function streamAIChat(payload, { signal } = {}) {
 
 export function getLeaderboard() {
   return apiFetch('/leaderboard');
+}
+
+export function requestEmailChange(input) {
+  return apiFetch('/users/me/email-change/request', { method: 'POST', body: JSON.stringify(input) });
+}
+export function confirmEmailChange(token) {
+  return apiFetch('/users/me/email-change/confirm', { method: 'POST', body: JSON.stringify({ token }) }, { retryOnUnauthorized: false });
 }

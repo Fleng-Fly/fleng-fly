@@ -328,8 +328,14 @@ async def test_parallel_users_cannot_overspend_nearly_exhausted_budget(http, wor
         await db.commit()
     tasks = [asyncio.create_task(chat(http, auth)) for auth in users]
     await asyncio.wait_for(gate.entered.wait(), 5)
-    await asyncio.sleep(0.2)  # let every competitor reach the database
-    gate.release.set()
+    # Keep the reservation outstanding until every competitor has been rejected.
+    # A fixed sleep can release the much cheaper settlement before slow workers
+    # arrive, legitimately freeing budget and making the assertion timing-dependent.
+    try:
+        done, pending = await asyncio.wait(tasks, timeout=5)
+        assert len(done) == 4 and len(pending) == 1
+    finally:
+        gate.release.set()
     responses = await asyncio.gather(*tasks)
     codes = sorted(r.json().get("error", {}).get("code", "OK") for r in responses)
     assert codes == ["AI_BUDGET_LIMIT"] * 4 + ["OK"]

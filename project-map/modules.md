@@ -325,3 +325,11 @@ existing-API review modes. `team.html` + team.js/team.css present role areas;
 `app.main.WebsiteFiles` revalidates static responses; Netlify `_headers` matches it.
 `version.json` and sidebar/footer expose the release. Desktop shell removed;
 START-FLENG compatibility commands start the browser website. See docs/website-release.md.
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+`users/email_change.py` owns SMTP password-authorized email-change requests and
+one-use confirmation; `EmailChange` persists authorization until expiry.
+`frontend/js/settings.js` handles the confirmation fragment; `api.js` coordinates
+refresh through Web Locks. Details: ../docs/authentication.md.

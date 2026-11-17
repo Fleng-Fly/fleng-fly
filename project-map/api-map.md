@@ -210,3 +210,10 @@ Vocabulary: GET /vocabulary/course-words; POST /vocabulary/flashcards/sessions; 
 ## A0–B2 curriculum — 2026-11-10
 
 GET /courses optionally accepts level=A0…C2; A0 is internal introductory level. Catalog/lesson schemas, profile englishLevel, vocabulary filters and AI generate-exercise schema share LearningLevel. Existing published-only rules and flashcard contracts remain. No new curriculum HTTP write endpoint.
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+Added POST /users/me/email-change/request (Bearer; email/currentPassword) and
+POST /users/me/email-change/confirm (one-use token); both return 204. PATCH no
+longer changes email directly. Details: ../docs/api.md.

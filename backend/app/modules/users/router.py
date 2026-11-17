@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Response, status
-from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,12 +35,8 @@ async def update_me(
     if "email" in payload.model_fields_set:
         if email is None:
             raise ApiError(422, "VALIDATION_FAILED", "Email cannot be null")
-        email = email.strip().lower()
-        if email != current_user.email:
-            existing = await db.scalar(select(User.id).where(User.email == email))
-            if existing is not None:
-                raise ApiError(409, "EMAIL_TAKEN", "An account with this email already exists")
-            current_user.email = email
+        if email.strip().lower() != current_user.email:
+            raise ApiError(409, "EMAIL_CONFIRMATION_REQUIRED", "Confirm email through email-change")
     for key, value in changes.items():
         if value is None:
             raise ApiError(422, "VALIDATION_FAILED", "Profile fields cannot be null")

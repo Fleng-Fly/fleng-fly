@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     reset_token_minutes: int = Field(default=30, ge=1, le=1440)
     reset_rate_per_hour: int = Field(default=5, ge=1)
     reset_delivery: Literal["disabled", "smtp"] = "disabled"
+    email_change_url: str = "http://localhost:3001/settings.html"
     reset_url: str = "http://localhost:3001/reset-password.html"
     smtp_host: str = "localhost"
     smtp_port: int = Field(default=587, ge=1, le=65535)

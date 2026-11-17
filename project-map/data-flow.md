@@ -331,3 +331,12 @@ Netlify /api/* → existing Render FastAPI → existing database and learning se
 Vocabulary practice saves through the shared api.js review endpoints; UI summaries
 count only saved responses. Legacy Fleng workers/caches are retired on page load.
 No new data store, desktop process or schema changes.
+
+
+## Fleng 1.0 security/stability — 2026-11-16
+
+Settings → password-authorized request → hashed EmailChange + SMTP link to new
+address → fragment read and removed → POST confirmation → account-state HMAC
+check under identity lock → email update + refresh/reset revocation in one commit.
+Access renewal → origin-wide Web Lock → refresh; unavailable lock support →
+re-authentication only when renewal is needed. Details: ../docs/authentication.md.
