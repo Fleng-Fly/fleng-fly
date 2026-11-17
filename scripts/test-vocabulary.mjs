@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { i18nStub } from './i18n-stub.mjs';
 
 class Element {
   constructor(tag = 'div', text = '') {
@@ -50,6 +51,7 @@ async function page({ words = [makeWord()], mode = '', reviewError = false } = {
   const el = (tag, cls, text) => { const n = new Element(tag, text); n.className = cls; return n; };
   mock('./api.js', helpers); mock('./layout.js', { el });
   mock('./errors.js', { describeApiError: (e) => e.message });
+  mock('./i18n.js', i18nStub);
   mock('./session.js', { requireSession: async () => ({ id: 'user', displayName: 'Learner' }) });
   mock('./workspace.js', { mountWorkspace: () => {}, setWorkspaceUser: () => {} });
   const tiles = new vm.SourceTextModule(await readFile('frontend/js/letter-tiles.js', 'utf8'), { context, identifier: './letter-tiles.js' });

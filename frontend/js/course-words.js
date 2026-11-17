@@ -1,5 +1,6 @@
 import { addVocabulary, listCourses, listCourseWords } from './api.js';
 import { el } from './layout.js';
+import { t, tn } from './i18n.js';
 import { requireSession } from './session.js';
 import { describeApiError } from './errors.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
@@ -11,23 +12,23 @@ const saved = new Set();
 function render() {
   const query = $('course-word-search').value.trim().toLocaleLowerCase();
   const visible = words.filter((word) => `${word.word} ${word.translation} ${word.example}`.toLocaleLowerCase().includes(query));
-  $('course-word-count').textContent = `${visible.length} ${visible.length === 1 ? 'word' : 'words'}`;
+  $('course-word-count').textContent = tn('vocab.count', visible.length);
   const target = $('course-word-list');
   target.replaceChildren();
   if (!visible.length) {
-    target.append(el('p', 'word-empty', query ? 'No matching words. Try another search.' : 'No vocabulary is available for this selection yet.'));
+    target.append(el('p', 'word-empty', query ? t('cw.noMatch') : t('cw.none')));
     return;
   }
   for (const word of visible) {
     const row = el('article', 'word-row course-word-row');
     const copy = el('div', 'word-copy');
     const course = courses.find((item) => item.id === word.courseId);
-    copy.append(el('small', undefined, course ? `${course.level} · ${course.title}` : 'Course vocabulary'), el('h3', undefined, word.word), el('p', undefined, word.translation));
+    copy.append(el('small', undefined, course ? `${course.level} · ${course.title}` : t('cw.course')), el('h3', undefined, word.word), el('p', undefined, word.translation));
     if (word.example) copy.append(el('small', undefined, word.example));
     const actions = el('div', 'word-row-actions');
-    const save = el('button', 'lesson-button lesson-button-secondary', saved.has(word.id) ? 'Saved ✓' : '+ My Words');
+    const save = el('button', 'lesson-button lesson-button-secondary', saved.has(word.id) ? t('cw.saved') : t('cw.save'));
     save.type = 'button'; save.disabled = saved.has(word.id);
-    const practice = el('button', 'lesson-button lesson-button-primary', 'Save & practise ↗');
+    const practice = el('button', 'lesson-button lesson-button-primary', t('cw.savePractise'));
     practice.type = 'button';
     async function persist(startPractice) {
       save.disabled = practice.disabled = true;
@@ -38,8 +39,8 @@ function render() {
           catch (error) { if (error.code !== 'WORD_EXISTS') throw error; }
         }
         saved.add(word.id);
-        save.textContent = 'Saved ✓';
-        $('course-word-feedback').textContent = 'This word is in My Words and ready to practise.';
+        save.textContent = t('cw.saved');
+        $('course-word-feedback').textContent = t('cw.ready');
         if (startPractice) location.assign(`/vocabulary.html?${new URLSearchParams({ mode: 'flashcards', word: word.word })}`);
       } catch (error) {
         $('course-word-feedback').textContent = describeApiError(error);
@@ -67,7 +68,7 @@ async function load() {
       setWorkspaceUser(user);
       courses = await listCourses();
       if (serial !== request) return;
-      $('word-course').replaceChildren(new Option('All courses', ''), ...courses.map((course) => new Option(`${course.level} · ${course.title}`, course.id)));
+      $('word-course').replaceChildren(new Option(t('cw.allCourses'), ''), ...courses.map((course) => new Option(`${course.level} · ${course.title}`, course.id)));
       sessionReady = true;
     }
     const courseId = $('word-course').value;
