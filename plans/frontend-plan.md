@@ -143,6 +143,6 @@ existing practice/stream lifecycle and scoped styles. Details:
 
 - [x] Remove Our Team assets/navigation and obsolete journey coverage.
 - [x] Clarify public landing, registration CTA and remove operational status UI.
-- [ ] Existing Placement onboarding and Dashboard recommendations.
+- [x] Existing Placement onboarding and Dashboard recommendations.
 - [ ] Exercise guidance, feedback and navigation.
 - [ ] EN/UK shared localization and mobile/accessibility polish.

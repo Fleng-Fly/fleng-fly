@@ -900,3 +900,7 @@ a.quick-card:focus-visible {
 .words-submenu { display: grid; gap: 3px; margin: 3px 10px 9px 23px; padding-left: 13px; border-left: 1px solid #674484; }
 .words-submenu .sidebar-sub-link { min-height: 40px; padding: 8px 12px; font-size: 12px; }
 .words-submenu .sidebar-sub-link.active { background: #382046; border-color: #724591; box-shadow: none; }
+
+.placement-guidance { padding: 1.25rem; margin-bottom: 1.5rem; }
+.placement-guidance h2 { margin-top: 0; }
+.placement-guidance .btn { margin: .4rem .6rem .2rem 0; white-space: normal; }

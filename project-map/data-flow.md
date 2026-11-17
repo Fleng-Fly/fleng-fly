@@ -339,3 +339,11 @@ JWT user → placement start → private bank snapshot in PlacementAttempt → p
 question DTO → owned partial answers → completion under an attempt-row write lock
 → deterministic stored score/review → published catalog suggestions. History reads
 only the caller's attempts. No flow enters AI, XP, Profile, Progress or lesson writes.
+
+## Optional placement guidance
+
+Dashboard loads owned recent attempts through placement-api.js. A completed
+attempt is resolved through the existing detail API for live published-course
+recommendations. In-progress attempts resume; no attempts prompts an optional
+introduction. Only dismissal is stored per user in localStorage; scores remain
+server-owned. No auth, grading, XP or database change.

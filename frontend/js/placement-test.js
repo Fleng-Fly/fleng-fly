@@ -73,11 +73,13 @@ function renderResult() {
   target.append(bands, el('h3', undefined, 'Suggested courses'), el('p', 'muted', attempt.recommendationNote));
   const courses = el('ul');
   for (const course of attempt.recommendedCourses) {
-    const link = el('a', undefined, `${course.level} · ${course.title}`);
+    const link = el('a', 'btn btn-primary', `Start ${course.title} · ${course.level}`);
     link.href = `/course.html?slug=${encodeURIComponent(course.slug)}`;
     const item = el('li'); item.append(link); courses.append(item);
   }
-  target.append(courses, el('h3', undefined, 'Answer review'));
+  const dashboard = el('a', 'btn btn-secondary', 'Back to Dashboard');
+  dashboard.href = '/dashboard.html';
+  target.append(courses, dashboard, el('h3', undefined, 'Answer review'));
   for (const review of result.review) {
     const question = attempt.questions.find((item) => item.id === review.questionId);
     const details = el('details', 'placement-review');
