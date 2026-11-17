@@ -100,3 +100,22 @@ Remaining: optional live PostgreSQL coverage (24 skips), real SMTP/OpenRouter,
 human editorial review/publication of the draft candidate, and browser installer
 extraction reliability under this Node 26 environment. No local application gate
 remains blocked.
+
+## Full integration follow-up
+
+The subsequent integration starts at 76ef2b6 and combines CI bb68fb9, platform
+polish ca08125 and UX 69cff1c in a new `/tmp/fleng-full-integration` worktree.
+The data-flow conflict was merged by preserving both sections. CI commands, all
+frontend tests, EN/UK dictionaries, API contracts and the draft A0–A1 sidecar are
+retained. Commit 6c3a133 updates radio-option E2E selection for visible option
+letters and adds four-width, EN/UK persistence and sidecar browser regressions.
+The published curriculum SHA and existing draft curriculum are unchanged; no
+production migration, content publication, push or deploy is performed.
+Validation: full backend 2386 passed / 25 skipped; frontend 76 passed; Ruff/mypy,
+docs/contracts, disposable SQLite Alembic heads/upgrade/drift/integrity, dependency
+checks and actionlint pass. Live PostgreSQL and hosted Actions are not claimed.
+
+Final follow-up browser gate: **15 passed** (50.2s), no retries. Four viewport
+widths and EN/UK account persistence checked; A0 authored guide/hint/wrong-answer
+feedback displayed with zero XP for an incorrect answer. Screenshots reviewed.
+All participating source HEADs are ancestors of the final integration commit.

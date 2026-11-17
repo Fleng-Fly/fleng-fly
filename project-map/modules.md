@@ -381,3 +381,11 @@ Security precedes Placement; Progress Analytics precedes Progress UI; Content Au
 precedes Published Content and the separate Draft candidate. Runtime module/API
 changes are documented above. Gate results, exclusions and conflict decisions:
 [local integration report](../docs/qa/fleng-1.0-integration.md).
+
+## Full local integration — 2026-11-17
+
+CI automation, platform polish and UX/i18n are combined. `exercises/guidance.py`
+loads authored A0–A1 sidecar text; its draft review gate stays disabled in production.
+The existing published curriculum and XP rules are unchanged. Integration browser
+regressions in `e2e/integration-ux.spec.mjs` cover shared pages at four widths,
+EN/UK persistence and A0 hint/guide/feedback rendering.

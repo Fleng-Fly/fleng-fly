@@ -249,3 +249,16 @@ merged in dependency order. Backend 2373 passed / 24 skipped, frontend 10/10,
 Chromium E2E 9/9, Ruff/mypy/docs and temporary SQLite migrations passed.
 Next: optional external integrations and human review of unpublished candidate.
 [Release evidence and source commits](../docs/qa/fleng-1.0-integration.md).
+
+## Full integration follow-up — 2026-11-17
+
+Combined actual branch heads, in order: CI bb68fb9, platform polish ca08125,
+UX/learning guidance 69cff1c, from main 76ef2b6. All participating worktrees were
+clean; backup is `backup/main-before-full-integration-20261117`. The only merge
+conflict was the appended data-flow documentation; both flows were retained.
+Completed: backend 2386 passed / 25 skipped, frontend 76 passed, Ruff/mypy/docs,
+Alembic temporary SQLite smoke, pip/pnpm integrity and conflict-marker checks.
+Completed: Chromium E2E 15/15 (50.2s), including 1440/768/390/360px, EN/UK
+persistence and A0 guidance; screenshots reviewed. All gates passed before
+guarded fast-forward of unchanged local main. No push/deploy/publication.
+Next: hosted CI/live PostgreSQL and human sidecar review remain external.
