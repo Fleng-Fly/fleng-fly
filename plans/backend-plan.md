@@ -96,3 +96,16 @@ blocked. See ai-plan.md for completed/blocked/next work. No automatic commits.
 - next: optional real PostgreSQL suite/migration drift, real SMTP/OpenRouter checks.
 - blocked: live PostgreSQL verification lacks a configured test database;
   no local server/credentials are changed for this phase.
+
+## Existing platform polish
+
+- Completed: delayed-cookie logout revokes linked successor sessions.
+- Completed: reject oversized canonical vocabulary before persistence; Unicode
+  expansion and duplicate regression verified.
+- Completed: fresh profile responses under overlapping settings requests, verified
+  against independent database sessions.
+- Completed: self-review of auth lock order/device isolation, fresh profile fields
+  and canonical validation before commit. All three regressions reproduced before fixes.
+- Verified: full backend 2376 passed / 25 skipped, 77 existing warnings; frontend
+  63 passed, Ruff/mypy/docs/whitespace passed. No models or migrations changed.
+- Next: optional live PostgreSQL verification; no push/merge/deploy authorized.

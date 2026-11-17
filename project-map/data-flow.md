@@ -347,3 +347,13 @@ JWT user → placement start → private bank snapshot in PlacementAttempt → p
 question DTO → owned partial answers → completion under an attempt-row write lock
 → deterministic stored score/review → published catalog suggestions. History reads
 only the caller's attempts. No flow enters AI, XP, Profile, Progress or lesson writes.
+
+Logout now takes the existing user identity lock and revokes the presented
+refresh-token successor chain through a recursive query. It adds no model,
+endpoint or migration and retains separate-device sessions.
+
+Saved-word input normalizes through VocabularyCreate before length validation;
+canonical words reaching vocabulary/service.py fit the persisted/public contract.
+
+Profile PATCH acquires lock_learner, reloads email/profile, applies only requested
+fields and returns the current persisted profile within the same transaction.

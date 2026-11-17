@@ -253,3 +253,36 @@ async def test_register_is_case_insensitive(client: AsyncClient) -> None:
     assert (await register(client, email="Case@Example.com")).status_code == 201
     duplicate = await register(client, email="case@example.com")
     assert duplicate.status_code == 409
+
+async def test_logout_revokes_rotated_descendants_without_other_devices(
+    client: AsyncClient, db_session: AsyncSession
+) -> None:
+    registration = await register(client)
+    original = registration.cookies[COOKIE]
+    for _ in range(2):
+        assert (await client.post(REFRESH)).status_code == 200
+    successor = client.cookies[COOKIE]
+    other = await login(client, "learner@example.com", PASSWORD)
+    other_token = other.cookies[COOKIE]
+
+    # A logout request was sent with the old cookie before a competing refresh
+    # response updated it. It must revoke the successor, not only the old row.
+    response = await client.post(LOGOUT, headers={"Cookie": f"{COOKIE}={original}"})
+    assert response.status_code == 204
+    rotated = await db_session.scalar(
+        select(RefreshToken).where(RefreshToken.token_hash == hash_refresh_token(successor))
+    )
+    unrelated = await db_session.scalar(
+        select(RefreshToken).where(RefreshToken.token_hash == hash_refresh_token(other_token))
+    )
+    assert rotated.revoked_at is not None
+    assert unrelated.revoked_at is None
+    assert (
+        await client.post(LOGOUT, headers={"Cookie": f"{COOKIE}={original}"})
+    ).status_code == 204
+    assert (
+        await client.post(REFRESH, headers={"Cookie": f"{COOKIE}={other_token}"})
+    ).status_code == 200
+    assert (
+        await client.post(REFRESH, headers={"Cookie": f"{COOKIE}={successor}"})
+    ).status_code == 401
