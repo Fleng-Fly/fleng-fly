@@ -583,4 +583,12 @@ export default {
   "cw.save": "+ До моїх слів",
   "cw.savePractise": "Зберегти й тренувати ↗",
   "cw.ready": "Слово є в «Моїх словах» і готове до тренування.",
+  // hints, guide, completion
+  "lesson.hint": "Підказка",
+  "lesson.hideHint": "Сховати підказку",
+  "lesson.whyNot": "Чому це не підходить",
+  "lesson.guideTitle": "Пояснення",
+  "lesson.guideExamples": "Приклади",
+  "lesson.firstTry": "З першої спроби правильно: {n} / {total}",
+  "lesson.resultPercent": "Результат: {pct}%",
 };

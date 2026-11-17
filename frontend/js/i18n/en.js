@@ -583,4 +583,12 @@ export default {
   "cw.save": "+ My Words",
   "cw.savePractise": "Save & practise ↗",
   "cw.ready": "This word is in My Words and ready to practise.",
+  // hints, guide, completion
+  "lesson.hint": "Hint",
+  "lesson.hideHint": "Hide hint",
+  "lesson.whyNot": "Why this does not fit",
+  "lesson.guideTitle": "Explanation",
+  "lesson.guideExamples": "Examples",
+  "lesson.firstTry": "Correct on the first try: {n} / {total}",
+  "lesson.resultPercent": "Result: {pct}%",
 };

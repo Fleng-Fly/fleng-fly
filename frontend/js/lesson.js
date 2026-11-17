@@ -1,7 +1,7 @@
 import { getCourse, getLesson, getLessonProgress, getLessonVocabulary, listCourses, startLesson, submitAnswer } from './api.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
-import { t } from './i18n.js';
+import { getLang, t } from './i18n.js';
 import { letterTiles } from './letter-tiles.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
@@ -14,8 +14,13 @@ const state = {
   lesson: null, progress: null, tab: tabs.includes(requestedTab) ? requestedTab : 'theory', index: 0, busy: false,
   drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
   vocabulary: { items: [], loaded: false, loading: false, more: false, error: null },
-  nextStep: null, nextStepFor: null,
+  nextStep: null, nextStepFor: null, hints: new Set(),
 };
+
+/** Pick the current interface language from an authored { en, uk } text (English fallback). */
+function pick(text) {
+  return text ? (text[getLang()] || text.en || '') : '';
+}
 
 function renderTheory(container, theory) {
   container.textContent = '';
@@ -35,6 +40,21 @@ function renderTheory(container, theory) {
       container.append(el('p', undefined, lines.join(' ')));
     }
   }
+}
+
+/** Plain-language rule with English examples; Ukrainian explanation when the UI is Ukrainian. */
+function guideCard(guide) {
+  const card = el('section', 'lesson-card lesson-guide');
+  card.append(el('h2', undefined, t('lesson.guideTitle')), el('p', 'lesson-guide-text', pick(guide.explanation)));
+  const list = el('ul', 'lesson-guide-examples');
+  for (const example of guide.examples) {
+    const item = el('li');
+    item.append(el('span', 'lesson-guide-en', example.en));
+    if (getLang() !== 'en' && example.uk) item.append(el('span', 'lesson-guide-uk', example.uk));
+    list.append(item);
+  }
+  card.append(el('h3', undefined, t('lesson.guideExamples')), list);
+  return card;
 }
 
 function exerciseState(exercise) {
@@ -99,9 +119,16 @@ function renderCompleted() {
   const completed = $('lesson-completed');
   completed.hidden = !progress.completed;
   if (!progress.completed) return;
+  const records = progress.exercises;
+  const total = progress.exercisesTotal;
+  // Real data only: first-try correct answers come from the stored attempt counts.
+  const firstTry = records.filter((record) => record.completed && record.isCorrect && record.attempts === 1).length;
+  const percent = total ? Math.round((firstTry / total) * 100) : 0;
   const metrics = el('div', 'lesson-finish-metrics');
   metrics.append(
-    el('span', undefined, t('lesson.activities', { done: progress.exercisesCompleted, total: progress.exercisesTotal })),
+    el('span', undefined, t('lesson.activities', { done: progress.exercisesCompleted, total })),
+    el('span', undefined, t('lesson.firstTry', { n: firstTry, total })),
+    el('span', undefined, t('lesson.resultPercent', { pct: percent })),
     el('span', undefined, t('lesson.xpEarned', { xp: progress.xpEarned })),
   );
   const actions = el('div', 'lesson-finish-actions');
@@ -153,7 +180,7 @@ async function loadNextStep() {
 
 function labelled(label, text) {
   const row = el('p', 'lesson-feedback-line');
-  row.append(el('span', 'lesson-feedback-label', `${label}: `), text);
+  row.append(el('span', 'lesson-feedback-label', `${label}: `), el('span', undefined, text));
   return row;
 }
 
@@ -190,7 +217,10 @@ function feedback(exercise, record) {
       box.append(labelled(t('lesson.acceptedAnswer'), result.acceptedAnswers[0]));
     }
     if (result.modelAnswer) box.append(labelled(t('lesson.modelAnswer'), result.modelAnswer));
-    if (result.explanation) box.append(labelled(t('lesson.explanation'), result.explanation));
+    // Authored explanation (EN/UK) is preferred; the legacy English text is the fallback.
+    if (result.wrongAnswerNote && !ok) box.append(labelled(t('lesson.whyNot'), pick(result.wrongAnswerNote)));
+    const explanation = pick(result.explanationLocalized) || result.explanation;
+    if (explanation) box.append(labelled(t('lesson.explanation'), explanation));
   } else if (record?.attempts) {
     const status = record.completed ? t('lesson.statusDone') : t('lesson.statusSaved');
     box.append(el('strong', undefined, status));
@@ -279,6 +309,32 @@ function setBusy(busy) {
   });
 }
 
+/** Hint toggle: authored text from the API, shown only on request, never the answer. */
+function hintControl(exercise) {
+  const text = pick(exercise.hint);
+  const box = el('div', 'lesson-hint');
+  const note = el('p', 'lesson-hint-text', text);
+  note.setAttribute('role', 'note');
+  note.id = `hint-${exercise.id}`;
+  const toggle = el('button', 'lesson-hint-toggle', '');
+  toggle.type = 'button';
+  toggle.setAttribute('aria-controls', note.id);
+  const sync = () => {
+    const open = state.hints.has(exercise.id);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.textContent = `💡 ${open ? t('lesson.hideHint') : t('lesson.hint')}`;
+    note.hidden = !open;
+  };
+  toggle.addEventListener('click', () => {
+    if (state.hints.has(exercise.id)) state.hints.delete(exercise.id);
+    else state.hints.add(exercise.id);
+    sync();
+  });
+  sync();
+  box.append(toggle, note);
+  return box;
+}
+
 function questionCard(exercise, index) {
   const record = exerciseState(exercise);
   const result = state.results.get(exercise.id);
@@ -300,6 +356,7 @@ function questionCard(exercise, index) {
   card.append(prompt);
   const instructionKey = `lesson.instruction.${exerciseType(exercise)}`;
   if (t(instructionKey) !== instructionKey) card.append(el('p', 'lesson-instruction', t(instructionKey)));
+  if (pick(exercise.hint)) card.append(hintControl(exercise));
   const form = el('form', 'lesson-answer-form');
   let readAnswer;
   if (exercise.type === 'single_choice') {
@@ -526,6 +583,7 @@ async function loadLesson() {
     state.results.clear();
     state.errors.clear();
     state.vocabulary = { items: [], loaded: false, loading: false, more: false, error: null };
+    state.hints.clear();
     state.nextStep = null;
     state.nextStepFor = null;
     for (const entry of progress.exercises) {
@@ -535,6 +593,7 @@ async function loadLesson() {
     theory.replaceChildren(el('div', 'lesson-card lesson-theory'));
     const body = theory.firstElementChild;
     body.append(el('h2', undefined, t('lesson.tabTheory')));
+    if (lesson.guide) theory.prepend(guideCard(lesson.guide));
     if (lesson.theory?.trim()) renderTheory(body, `## Theory\n\n${lesson.theory}`);
     else body.append(el('p', undefined, t('lesson.noTheory')));
     renderHero();
