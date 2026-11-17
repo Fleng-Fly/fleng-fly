@@ -29,7 +29,6 @@ async def test_app_pages_are_served(client: AsyncClient) -> None:
         "/course.html",
         "/lesson.html",
         "/vocabulary.html",
-        "/team.html",
         "/reset-password.html",
     ):
         response = await client.get(path)
@@ -72,6 +71,11 @@ async def test_api_is_reachable_alongside_the_frontend(client: AsyncClient) -> N
     response = await client.get("/api/v1/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+async def test_removed_team_page_is_not_served(client: AsyncClient) -> None:
+    for path in ("/team.html", "/js/team.js", "/css/team.css"):
+        assert (await client.get(path)).status_code == 404, path
 
 
 async def test_unknown_api_path_keeps_the_error_envelope(client: AsyncClient) -> None:

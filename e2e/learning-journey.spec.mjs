@@ -17,7 +17,6 @@ const PRIVATE_PAGES = [
   '/settings.html',
   '/vocabulary.html',
   '/leaderboard.html',
-  '/team.html',
 ];
 
 function newLearner() {

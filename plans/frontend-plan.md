@@ -102,7 +102,7 @@ cards, responsive layouts. Tokens live in `frontend/css/app.css` and align with
 
 ## Website release — 2026-11-16
 
-Implemented latest purple interface, Our Team role areas, personal vocabulary and
+Implemented latest purple interface, personal vocabulary and
 four animated practice modes/results; removed install UI/standalone metadata.
 Main's A0 filter and three lesson tabs preserved. Assets revalidate; footer/sidebar
 show Web 2026.11.16. External publishing and live authenticated QA remain pending.

@@ -43,7 +43,6 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
         />
         <circle cx="12" cy="11" r="2.5" />
       </symbol>
-      <symbol id="icon-team" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3" /><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6m3 11v-3a6 6 0 0 0-3-5" /></symbol>
       <symbol id="icon-search" viewBox="0 0 24 24">
         <circle cx="10.8" cy="10.8" r="6.8" />
         <path d="m16 16 5 5" />
@@ -97,7 +96,6 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
               <a class="sidebar-link sidebar-sub-link" data-section="course-words" href="/course-words.html">Course Words</a>
             </nav>
           </details>
-          <a class="sidebar-link" href="/team.html"><svg><use href="#icon-team" /></svg><span>Our Team</span></a>
         </nav>
         <div class="sidebar-foot">
           <span class="sidebar-foot-mark">✦</span>
@@ -189,7 +187,7 @@ export function markWorkspaceNavigation(content, active) {
   for (const link of content.querySelectorAll('.sidebar-link[href]')) {
     const destination = {
       dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
-      settings: '/settings.html', lessons: '/courses.html', team: '/team.html',
+      settings: '/settings.html', lessons: '/courses.html',
       words: '/vocabulary.html', practice: '/vocabulary.html', 'course-words': '/course-words.html',
     }[active];
     const selected = active === 'courses'

@@ -74,7 +74,7 @@ For the presentation walkthrough and fictional accounts, see [DEMO.md](DEMO.md).
 
 The frontend connects login/register, Dashboard, courses, Lessons and Settings to
 the API. Lessons can save vocabulary; Dashboard displays progress, streaks and
-learned-word metrics. Vocabulary and four vocabulary practice modes are available, alongside Our Team.
+learned-word metrics. Vocabulary and four vocabulary practice modes are available.
 The Progress screen now displays real per-course analytics and streaks; Placement
 provides a separate CEFR diagnostic. Challenges and a dedicated AI Tutor screen remain future work.
 

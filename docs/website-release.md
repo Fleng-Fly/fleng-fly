@@ -9,7 +9,7 @@ SQLite startup and owner-authorized A0–B2 curriculum.
 
 Purple theme and local Poppins fonts; vocabulary search/add/learned filters;
 four API-backed practice modes, animated flashcards and results/mistakes-only
-retry; role-area Our Team cards and reduced-motion support. No invented people,
+retry; reduced-motion support (the Our Team page was later removed). No invented people,
 XP, audio lessons or pronunciation scoring were added.
 
 Desktop shell/build code, desktop diagnostics and EXE-based instructions were
