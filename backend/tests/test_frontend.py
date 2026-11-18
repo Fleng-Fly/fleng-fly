@@ -28,6 +28,8 @@ async def test_app_pages_are_served(client: AsyncClient) -> None:
         "/courses.html",
         "/course.html",
         "/lesson.html",
+        "/flashcards.html",
+        "/vocabulary.html",
     ):
         response = await client.get(path)
         assert response.status_code == 200, path
@@ -49,6 +51,21 @@ async def test_dashboard_shell_assets_are_served(client: AsyncClient) -> None:
     assert 'id="your-progress"' in page.text
     assert "prefers-reduced-motion" in styles.text
     assert "getVocabularyStats" in script.text
+
+
+async def test_vocabulary_page_assets_are_served(client: AsyncClient) -> None:
+    page = await client.get("/vocabulary.html")
+    styles = await client.get("/css/vocabulary.css")
+    script = await client.get("/js/vocabulary.js")
+    workspace = await client.get("/js/workspace.js")
+    assert all(response.status_code == 200 for response in (page, styles, script, workspace))
+    assert 'id="vocabulary-list"' in page.text
+    assert 'id="vocabulary-dialog"' in page.text
+    assert 'href="/vocabulary.html"' in workspace.text
+    assert "<span>My Words</span>" in workspace.text
+    assert "listVocabulary" in script.text
+    assert "createVocabularyItem" in script.text
+    assert "prefers-reduced-motion" in styles.text
 
 
 async def test_lesson_player_assets_are_served(client: AsyncClient) -> None:
