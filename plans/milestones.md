@@ -275,3 +275,18 @@ Pending/blocked: Google Cloud Console client + live OAuth check (owner), live Po
 migration run, human linguistic review of the practice supplement, live OpenRouter check of
 the exercise-help prompt. Next: spaced-repetition scheduler on the stored word state;
 pronunciation and example sentences for curated words (currently empty in the content).
+
+## Learning Experience 2.0 — QA and security review — 2026-11-18
+
+Completed: Google linking no longer resets passwords or revokes sessions. An existing email
+is refused at Google sign-in (`google_link_required`); linking happens from Settings after
+password re-entry (`POST /auth/google/link`), with an account-bound state cookie and a
+required email match. PostgreSQL 16 (disposable local cluster) ran the whole backend suite,
+both new migrations (fresh, upgrade from `20261117_1200` with data, downgrade, re-upgrade),
+`app.db.prepare` twice, OAuth/dictionary constraints and concurrent word collection.
+Playwright E2E ran in Chromium (18 specs).
+Pending/blocked: live Google OAuth and OpenRouter checks (owner credentials), production
+PostgreSQL migration rehearsal on a copy of production data, unlink endpoint.
+Observed (E2E): navigating away right after a redirect to the dashboard once ended up signed
+out. Refresh-token rotation has no grace window, so a refresh whose response is lost to an
+aborted navigation is probably replayed as token reuse; not root-caused or fixed here.
