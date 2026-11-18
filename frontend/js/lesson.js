@@ -31,7 +31,14 @@ const headingKey = (heading) => heading.toLowerCase().replace(/[^a-z]+/g, '-').r
 /** Split a dense rule paragraph into short steps (only when it has several sentences). */
 export function ruleSteps(text) {
   const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z"“(])/).map((part) => part.trim()).filter(Boolean);
-  return sentences.length >= 3 ? sentences : null;
+  // One- or two-word fragments ("Listen.", "Write.") are examples of the previous step, not steps.
+  const steps = [];
+  for (const sentence of sentences) {
+    const words = sentence.replace(/[.!?"“”()]/g, '').split(/\s+/).filter(Boolean).length;
+    if (words <= 2 && steps.length) steps[steps.length - 1] += ` ${sentence}`;
+    else steps.push(sentence);
+  }
+  return steps.length >= 3 ? steps : null;
 }
 
 /**
