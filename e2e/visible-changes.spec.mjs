@@ -87,3 +87,19 @@ test('Settings offers to connect Google when the server has it configured', asyn
   await expect(page.getByLabel('Confirm your password')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Connect Google' })).toBeVisible();
 });
+
+test('the sidebar has one "My Words" link next to "Courses" and no Words group', async ({ page }) => {
+  await register(page);
+  const nav = page.locator('#dashboard-sidebar nav.sidebar-nav');
+  await expect(nav.locator('details')).toHaveCount(0);
+  await expect(nav.getByText('Course Words')).toHaveCount(0);
+  await expect(nav.getByRole('link', { name: 'Courses' })).toBeVisible();
+  const myWords = nav.getByRole('link', { name: 'My Words' });
+  await expect(myWords).toBeVisible();
+  await myWords.click();
+  await expect(page).toHaveURL(/\/vocabulary\.html$/);
+  await expect(page.locator('#dashboard-sidebar a[aria-current="page"]')).toHaveText('My Words');
+  // The Course Words page keeps its URL, it is just not in the menu.
+  await page.goto('/course-words.html');
+  await expect(page.locator('h1')).toContainText('Course Words');
+});

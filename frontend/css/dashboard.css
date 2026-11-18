@@ -890,16 +890,6 @@ a.quick-card:focus-visible {
 }
 
 /* One native disclosure for the complete vocabulary area. */
-.sidebar-words { min-width: 0; }
-.sidebar-words summary { list-style: none; cursor: pointer; }
-.sidebar-words summary::-webkit-details-marker { display: none; }
-.sidebar-words summary span:first-of-type { flex: 1; }
-.sidebar-words .words-chevron { margin-left: auto; transition: transform .18s; }
-.sidebar-words[open] .words-chevron { transform: rotate(180deg); }
-.sidebar-words.is-current summary { color: #e3d9fc; }
-.words-submenu { display: grid; gap: 3px; margin: 3px 10px 9px 23px; padding-left: 13px; border-left: 1px solid #674484; }
-.words-submenu .sidebar-sub-link { min-height: 40px; padding: 8px 12px; font-size: 12px; }
-.words-submenu .sidebar-sub-link.active { background: #382046; border-color: #724591; box-shadow: none; }
 
 .placement-guidance { padding: 1.25rem; margin-bottom: 1.5rem; }
 .placement-guidance h2 { margin-top: 0; }

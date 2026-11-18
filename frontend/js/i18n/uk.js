@@ -188,8 +188,6 @@ export default {
   // workspace
   "ws.workspace": "РОБОЧИЙ ПРОСТІР",
   "ws.sections": "Розділи",
-  "ws.words": "Слова",
-  "ws.wordsSections": "Розділи «Слова»",
   "ws.myWords": "Мої слова",
   "ws.courseWords": "Слова курсів",
   "ws.progress": "Прогрес",

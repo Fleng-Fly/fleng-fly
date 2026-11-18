@@ -188,8 +188,6 @@ export default {
   // workspace
   "ws.workspace": "WORKSPACE",
   "ws.sections": "Sections",
-  "ws.words": "Words",
-  "ws.wordsSections": "Words sections",
   "ws.myWords": "My Words",
   "ws.courseWords": "Course Words",
   "ws.progress": "Progress",

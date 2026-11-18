@@ -70,17 +70,14 @@ await workspace.link((specifier) => {
 }); await workspace.evaluate();
 
 for (const active of ['words', 'practice', 'course-words', 'dashboard']) {
-  test(`Words navigation: ${active} selects its real section and opens only when relevant`, () => {
-    const destinations = ['/dashboard.html', '/vocabulary.html', '/course-words.html'];
+  test(`My Words is a single top-level link: ${active} selects it only on its own page`, () => {
+    const destinations = ['/dashboard.html', '/courses.html', '/vocabulary.html'];
     const links = destinations.map((href) => { const node = new Node('a'); node.setAttribute('href', href); return node; });
-    const group = new Node('details');
-    const scope = { querySelectorAll: () => links, querySelector: () => group };
+    const scope = { querySelectorAll: () => links, querySelector: () => null };
     workspace.namespace.markWorkspaceNavigation(scope, active);
-    assert.equal(group.open, active !== 'dashboard');
-    assert.equal(group.names.has('is-current'), active !== 'dashboard');
     const selected = links.filter((link) => link.attributes['aria-current'] === 'page');
-    assert.equal(selected.length, 1);
-    assert.equal(selected[0].attributes.href, active === 'course-words' ? destinations[2] : active === 'dashboard' ? destinations[0] : destinations[1]);
+    const expected = { words: '/vocabulary.html', practice: '/vocabulary.html', dashboard: '/dashboard.html' }[active];
+    assert.deepEqual(selected.map((link) => link.attributes.href), expected ? [expected] : []);
   });
 }
 
