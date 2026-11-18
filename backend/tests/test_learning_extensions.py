@@ -132,7 +132,9 @@ async def test_vocabulary_stats_count_only_owned_learned_words(client):
     other = await headers(client, "stats-other@example.com")
     assert (await client.get("/api/v1/vocabulary/stats")).status_code == 401
     assert (await client.get("/api/v1/vocabulary/stats", headers=auth)).json() == {
-        "wordsLearned": 0
+        "wordsLearned": 0,
+        "totalWords": 0,
+        "dueWords": 0,
     }
     learned = await client.post(
         "/api/v1/vocabulary", headers=auth, json={"word": "hello", "translation": "привіт"}
@@ -152,11 +154,16 @@ async def test_vocabulary_stats_count_only_owned_learned_words(client):
             json={"learned": True},
         )
     ).status_code == 200
+    # The learned word is scheduled 7 days ahead; the other learner's word is new and due.
     assert (await client.get("/api/v1/vocabulary/stats", headers=auth)).json() == {
-        "wordsLearned": 1
+        "wordsLearned": 1,
+        "totalWords": 1,
+        "dueWords": 0,
     }
     assert (await client.get("/api/v1/vocabulary/stats", headers=other)).json() == {
-        "wordsLearned": 0
+        "wordsLearned": 0,
+        "totalWords": 1,
+        "dueWords": 1,
     }
 
 

@@ -107,6 +107,8 @@ Table: `course_vocabulary_items`.
 | word | VARCHAR(120) | False | — |
 | translation | VARCHAR(300) | False | — |
 | example | VARCHAR(1000) | False | — |
+| lesson_id | CHAR(32) | True | FK lessons.id |
+| pronunciation | VARCHAR(120) | True | — |
 
 Constraints/indexes beyond primary/foreign keys:
 
@@ -377,6 +379,12 @@ Table: `vocabulary_items`.
 | learned | BOOLEAN | False | — |
 | due_at | DATETIME | False | — |
 | created_at | DATETIME | False | — |
+| course_id | CHAR(32) | True | FK courses.id |
+| pronunciation | VARCHAR(120) | True | — |
+| source | VARCHAR(10) | False | — |
+| interval_days | INTEGER | False | — |
+| repetitions | INTEGER | False | — |
+| last_reviewed_at | DATETIME | True | — |
 
 Constraints/indexes beyond primary/foreign keys:
 

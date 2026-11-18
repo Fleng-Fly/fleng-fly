@@ -46,6 +46,7 @@ from app.modules.exercises.schemas import (
 )
 from app.modules.gamification.service import lock_learner, record_activity
 from app.modules.progress import service as progress_service
+from app.modules.vocabulary.service import collect_lesson_words
 
 
 def _not_found(message: str) -> ApiError:
@@ -394,6 +395,8 @@ async def submit_answer(
             record.completed_at = now
             aggregate.lessons_completed += 1
             aggregate.study_minutes += lesson.estimated_minutes
+            # Same transaction as the completion: both persist or neither does.
+            await collect_lesson_words(db, user.id, lesson.id)
 
     aggregate.last_activity_at = now
     await record_activity(db, user.id)

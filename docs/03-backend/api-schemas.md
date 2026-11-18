@@ -2797,6 +2797,71 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "type": "string",
       "format": "date-time",
       "title": "Createdat"
+    },
+    "pronunciation": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Pronunciation"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "lesson"
+      ],
+      "title": "Source",
+      "default": "manual"
+    },
+    "courseId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Courseid"
+    },
+    "courseTitle": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Coursetitle"
+    },
+    "lessonSlug": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lessonslug"
+    },
+    "lessonTitle": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lessontitle"
     }
   },
   "type": "object",
@@ -2820,6 +2885,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "wordsLearned": {
       "type": "integer",
       "title": "Wordslearned"
+    },
+    "totalWords": {
+      "type": "integer",
+      "title": "Totalwords",
+      "default": 0
+    },
+    "dueWords": {
+      "type": "integer",
+      "title": "Duewords",
+      "default": 0
     }
   },
   "type": "object",
@@ -2877,5 +2952,128 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
   "type": "object",
   "title": "XPHistoryResponse",
   "description": "The current schema has no immutable XP award amounts/timestamps."
+}
+```
+
+## DictionaryCourse
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "level": {
+      "type": "string",
+      "title": "Level"
+    },
+    "position": {
+      "type": "integer",
+      "title": "Position"
+    },
+    "count": {
+      "type": "integer",
+      "title": "Count"
+    },
+    "lessons": {
+      "items": {
+        "$ref": "#/components/schemas/DictionaryLesson"
+      },
+      "type": "array",
+      "title": "Lessons"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "slug",
+    "title",
+    "level",
+    "position",
+    "count",
+    "lessons"
+  ],
+  "title": "DictionaryCourse"
+}
+```
+
+## DictionaryGroupsResponse
+
+```json
+{
+  "properties": {
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    },
+    "courses": {
+      "items": {
+        "$ref": "#/components/schemas/DictionaryCourse"
+      },
+      "type": "array",
+      "title": "Courses"
+    },
+    "other": {
+      "type": "integer",
+      "title": "Other"
+    }
+  },
+  "type": "object",
+  "required": [
+    "total",
+    "courses",
+    "other"
+  ],
+  "title": "DictionaryGroupsResponse",
+  "description": "Where the learner's words come from, for the dictionary filters."
+}
+```
+
+## DictionaryLesson
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "position": {
+      "type": "integer",
+      "title": "Position"
+    },
+    "count": {
+      "type": "integer",
+      "title": "Count"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "slug",
+    "title",
+    "position",
+    "count"
+  ],
+  "title": "DictionaryLesson"
 }
 ```

@@ -34,6 +34,8 @@ class VocabularyUpdate(CamelModel):
 
 class VocabularyStatsResponse(CamelModel):
     words_learned: int
+    total_words: int = 0
+    due_words: int = 0
 
 
 class ReviewRequest(CamelModel):
@@ -45,6 +47,38 @@ class VocabularyResponse(VocabularyCreate):
     learned: bool
     due_at: datetime
     created_at: datetime
+    pronunciation: str | None = None
+    source: Literal["manual", "lesson"] = "manual"
+    course_id: UUID | None = None
+    course_title: str | None = None
+    lesson_slug: str | None = None
+    lesson_title: str | None = None
+
+
+class DictionaryLesson(CamelModel):
+    id: UUID
+    slug: str
+    title: str
+    position: int
+    count: int
+
+
+class DictionaryCourse(CamelModel):
+    id: UUID
+    slug: str
+    title: str
+    level: str
+    position: int
+    count: int
+    lessons: list[DictionaryLesson]
+
+
+class DictionaryGroupsResponse(CamelModel):
+    """Where the learner's words come from, for the dictionary filters."""
+
+    total: int
+    courses: list[DictionaryCourse]
+    other: int
 
 
 class ReviewResponse(CamelModel):

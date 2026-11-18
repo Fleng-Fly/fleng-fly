@@ -1,18 +1,19 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
-from app.db.models import User, VocabularyItem, VocabularyReview
+from app.db.models import Course, Lesson, User, VocabularyItem, VocabularyReview
 from app.db.session import get_db
 from app.modules.gamification.service import lock_learner
 from app.modules.vocabulary import flashcards, service
 from app.modules.vocabulary.schemas import (
     CefrLevel,
     CourseWordResponse,
+    DictionaryGroupsResponse,
     FlashcardCreate,
     FlashcardResponse,
     ReviewRequest,
@@ -80,33 +81,94 @@ async def vocabulary_stats(
     user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> VocabularyStatsResponse:
     """Count the caller's saved words marked learned, without paging through the list."""
-    count = await db.scalar(
+    await service.sync_completed_lessons(db, user.id)
+    mine = VocabularyItem.user_id == user.id
+    learned = await db.scalar(
         select(func.count())
         .select_from(VocabularyItem)
-        .where(VocabularyItem.user_id == user.id, VocabularyItem.learned.is_(True))
+        .where(mine, VocabularyItem.learned.is_(True))
     )
-    return VocabularyStatsResponse(words_learned=int(count or 0))
+    total = await db.scalar(select(func.count()).select_from(VocabularyItem).where(mine))
+    due = await db.scalar(
+        select(func.count())
+        .select_from(VocabularyItem)
+        .where(mine, VocabularyItem.due_at <= datetime.now(UTC))
+    )
+    return VocabularyStatsResponse(
+        words_learned=int(learned or 0), total_words=int(total or 0), due_words=int(due or 0)
+    )
+
+
+@router.get("/groups", response_model=DictionaryGroupsResponse)
+async def dictionary_groups(
+    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+):
+    """Courses and lessons the learner's words come from, with counts."""
+    await service.sync_completed_lessons(db, user.id)
+    return await service.groups(db, user.id)
 
 
 @router.get("", response_model=list[VocabularyResponse])
 async def list_words(
+    response: Response,
     due: bool = False,
+    learned: bool | None = None,
+    q: str | None = Query(None, max_length=100, description="Search word or translation"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     lesson_id: UUID | None = Query(None, alias="lessonId"),
+    course_id: UUID | None = Query(None, alias="courseId"),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """The personal dictionary across all courses. `X-Total-Count` has the filtered total."""
+    await service.sync_completed_lessons(db, user.id)
     query = select(VocabularyItem).where(VocabularyItem.user_id == user.id)
     if lesson_id is not None:
         query = query.where(VocabularyItem.lesson_id == lesson_id)
+    if course_id is not None:
+        query = query.where(VocabularyItem.course_id == course_id)
+    if learned is not None:
+        query = query.where(VocabularyItem.learned.is_(learned))
+    if q and q.strip():
+        query = service.search_filter(query, q)
     if due:
         query = query.where(VocabularyItem.due_at <= datetime.now(UTC))
-    return (
+    total = await db.scalar(select(func.count()).select_from(query.subquery()))
+    response.headers["X-Total-Count"] = str(int(total or 0))
+    items = (
         await db.scalars(
             query.order_by(VocabularyItem.created_at, VocabularyItem.id).limit(limit).offset(offset)
         )
     ).all()
+    course_titles = dict(
+        (
+            await db.execute(
+                select(Course.id, Course.title).where(
+                    Course.id.in_({i.course_id for i in items if i.course_id})
+                )
+            )
+        ).all()
+    )
+    lessons = {
+        row.id: row
+        for row in (
+            await db.execute(
+                select(Lesson.id, Lesson.slug, Lesson.title).where(
+                    Lesson.id.in_({i.lesson_id for i in items if i.lesson_id})
+                )
+            )
+        ).all()
+    }
+    result = []
+    for item in items:
+        data = VocabularyResponse.model_validate(item, from_attributes=True)
+        data.course_title = course_titles.get(item.course_id) if item.course_id else None
+        lesson = lessons.get(item.lesson_id) if item.lesson_id else None
+        if lesson is not None:
+            data.lesson_slug, data.lesson_title = lesson.slug, lesson.title
+        result.append(data)
+    return result
 
 
 @router.post("", response_model=VocabularyResponse, status_code=201)

@@ -1,6 +1,6 @@
 # Vocabulary api
 
-Bearer caller only. Personal CRUD/history is owner-scoped (404 foreign/missing); duplicate word can return 409. Course words require published Course and inherit level; missing/draft courseId is 404. Only declared filters/page bounds apply. Review appends VocabularyReview and schedules one-/seven-day due. Models: VocabularyItem, VocabularyReview, CourseVocabularyItem, Course.
+Bearer caller only. Personal CRUD/history is owner-scoped (404 foreign/missing); duplicate word can return 409. Course words require published Course and inherit level; missing/draft courseId is 404. Only declared filters/page bounds apply. Review appends VocabularyReview, schedules one-/seven-day due and stores `intervalDays`/`repetitions`/`lastReviewedAt` for a later spaced-repetition scheduler. The list is one personal dictionary across every course: completing a lesson copies its curated words (source `lesson`) idempotently, in the same transaction; dictionary reads also backfill lessons completed earlier. A word already in the list (any course, or added by hand) is never duplicated or overwritten. Models: VocabularyItem, VocabularyReview, CourseVocabularyItem, Course.
 
 Shared runtime failures: 413 body overflow, 422 declared schema validation, 503 DATABASE_UNAVAILABLE and 500 unexpected error. Protected calls add 401 missing/invalid identity. See [error handling](error-handling.md) and [complete schemas](api-schemas.md). Module-specific rules above apply to each operation.
 
@@ -70,6 +70,22 @@ Synthetic response shape (not a seeded/live result):
 }
 ```
 
+## `GET /api/v1/vocabulary/groups`
+
+Dictionary Groups
+
+Authentication/permissions: Bearer JWT, owner scoped.
+
+Parameters: none.
+
+Request body: none.
+
+Declared responses:
+
+- **200**: Successful Response; `DictionaryGroupsResponse`: total words, the courses (and their lessons) the words came from with counts, and `other` for words without a course.
+
+Errors/permissions: module-specific and shared runtime rules above apply. No caller-selected owner override exists.
+
 ## `GET /api/v1/vocabulary`
 
 List Words
@@ -82,8 +98,13 @@ Authentication/permissions: Bearer JWT, owner scoped where applicable.
 | limit | query | False | `{"type": "integer", "maximum": 100, "minimum": 1, "default": 50, "title": "Limit"}` |
 | offset | query | False | `{"type": "integer", "minimum": 0, "default": 0, "title": "Offset"}` |
 | lessonId | query | False | `{"anyOf": [{"type": "string", "format": "uuid"}, {"type": "null"}], "title": "Lessonid"}` |
+| courseId | query | False | filter by the course a word was collected from |
+| learned | query | False | `true`/`false` filter |
+| q | query | False | up to 100 characters; matches the English word or the translation, case-insensitive, wildcards literal |
 
 Request body: none.
+
+Response header `X-Total-Count`: number of words matching the filters (for paging).
 
 Declared responses:
 

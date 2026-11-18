@@ -225,6 +225,36 @@ def rows(content: Curriculum) -> Iterator[tuple[RowModel, UUID, dict[str, Any]]]
             )
 
 
+async def link_lesson_vocabulary(db: AsyncSession, content: Curriculum) -> int:
+    """Record which lesson teaches each course word. Additive and idempotent.
+
+    A word that several lessons list belongs to the first one, matching `rows()`.
+    Existing links are never changed.
+    """
+    linked = 0
+    for course in content.courses:
+        course_id = stable_id("course", course.slug)
+        unlinked = {
+            item.word: item
+            for item in (
+                await db.scalars(
+                    select(CourseVocabularyItem).where(
+                        CourseVocabularyItem.course_id == course_id,
+                        CourseVocabularyItem.lesson_id.is_(None),
+                    )
+                )
+            ).all()
+        }
+        for lesson in course.lessons:
+            lesson_id = stable_id("lesson", lesson.slug)
+            for spec in lesson.vocabulary:
+                item = unlinked.pop(spec.word, None)
+                if item is not None:
+                    item.lesson_id = lesson_id
+                    linked += 1
+    return linked
+
+
 async def import_curriculum(
     db: AsyncSession,
     content: Curriculum,
@@ -295,6 +325,7 @@ async def import_curriculum(
         for row in existing:
             if isinstance(row, (Course, Lesson)):
                 row.is_published = True
+    report["linked_words"] = await link_lesson_vocabulary(db, content)
     await db.commit()
     return report
 

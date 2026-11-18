@@ -385,20 +385,48 @@ class LessonProgress(Base):
 
 
 class VocabularyItem(Base):
+    """One word in a learner's personal dictionary (shared by every course).
+
+    Unique per `(user_id, word)`: a word learned in several lessons or courses is
+    one entry that keeps the course/lesson it was first collected from. `source` is
+    `lesson` for words collected automatically on lesson completion and `manual` for
+    words the learner added. `interval_days`, `repetitions` and `last_reviewed_at`
+    are the scheduling state a spaced-repetition policy needs; today's 1/7-day
+    review policy fills them and a better scheduler can replace it without a new
+    schema.
+    """
+
     __tablename__ = "vocabulary_items"
-    __table_args__ = (UniqueConstraint("user_id", "word", name="vocabulary_user_word_key"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "word", name="vocabulary_user_word_key"),
+        CheckConstraint("source IN ('manual', 'lesson')", name="vocabulary_source_check"),
+    )
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
     lesson_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("lessons.id", ondelete="SET NULL")
+        ForeignKey("lessons.id", ondelete="SET NULL"), index=True
+    )
+    course_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("courses.id", ondelete="SET NULL"), index=True
     )
     word: Mapped[str] = mapped_column(String(120))
     translation: Mapped[str] = mapped_column(String(300))
     example: Mapped[str] = mapped_column(String(1000), default="")
+    pronunciation: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    source: Mapped[str] = mapped_column(
+        String(10), default="manual", server_default="manual", nullable=False
+    )
     learned: Mapped[bool] = mapped_column(Boolean, default=False)
     due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    interval_days: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    repetitions: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    last_reviewed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -522,7 +550,11 @@ class AIUsage(Base):
 
 
 class CourseVocabularyItem(Base):
-    """Shared curated vocabulary; learning level is inherited from its course."""
+    """Curated vocabulary: course words, each taught by one lesson (`lesson_id`).
+
+    Completing that lesson copies the word into the learner's `VocabularyItem` list.
+    The learning level is inherited from the course.
+    """
 
     __tablename__ = "course_vocabulary_items"
     __table_args__ = (UniqueConstraint("course_id", "word", name="course_vocabulary_word_key"),)
@@ -530,9 +562,14 @@ class CourseVocabularyItem(Base):
     course_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("courses.id", ondelete="CASCADE"), index=True
     )
+    # The lesson that teaches this word (NULL for course-level words without a lesson).
+    lesson_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("lessons.id", ondelete="SET NULL"), index=True, nullable=True
+    )
     word: Mapped[str] = mapped_column(String(120))
     translation: Mapped[str] = mapped_column(String(300))
     example: Mapped[str] = mapped_column(String(1000), default="", server_default="")
+    pronunciation: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
 
 class FlashcardSession(Base):
