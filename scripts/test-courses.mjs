@@ -344,6 +344,8 @@ async function lessonPage(search = '?slug=first', overrides = {}) {
     querySelectorAll: () => [],
   };
   let vocabularyReads = 0;
+  const aiContexts = [];
+  const aiAsks = [];
   const exercise = { id: 'exercise', type: 'single_choice', prompt: 'Choose a word', points: 1, options: [{ id: 'a', text: 'Hello' }, { id: 'b', text: 'Bye' }], ...overrides.exercise };
   const progress = {
     startedAt: '2026-01-01', completed: false, exercisesTotal: 1, exercisesCompleted: 0,
@@ -362,7 +364,7 @@ async function lessonPage(search = '?slug=first', overrides = {}) {
     'errors.js': { describeApiError: (error) => error.message },
     'i18n.js': i18nStub,
     'session.js': { requireSession: async () => ({ displayName: 'Learner' }) },
-    'workspace.js': { mountWorkspace() {}, setWorkspaceUser() {}, setWorkspaceAIContext() {} },
+    'workspace.js': { mountWorkspace() {}, setWorkspaceUser() {}, setWorkspaceAIContext(callback) { aiContexts.push(callback); }, askWorkspaceAI: (detail) => { aiAsks.push(detail); return overrides.aiMounted ?? true; } },
     'letter-tiles.js': { letterTiles() { throw new Error('Not used by this fixture'); } },
   };
   const context = vm.createContext({ window, document, URL, URLSearchParams, console });
@@ -386,7 +388,7 @@ async function lessonPage(search = '?slug=first', overrides = {}) {
   await (await module('lesson.js')).evaluate();
   const settle = () => new Promise((resolve) => setImmediate(resolve));
   await settle();
-  return { get: (id) => nodes.get(id), window, settle, vocabularyReads: () => vocabularyReads };
+  return { get: (id) => nodes.get(id), window, settle, vocabularyReads: () => vocabularyReads, aiContext: () => aiContexts.at(-1)?.(), aiAsks };
 }
 
 test('lesson defaults and obsolete Test links open Theory without losing the lesson URL', async () => {
@@ -539,4 +541,32 @@ test('theory shows the rule as steps first and folds reading and word list away'
   assert.match(more.textContent, /Do you walk/);
   assert.match(more.textContent, /usually/);
   assert.doesNotMatch(steps.textContent, /Do you walk/);
+});
+
+test('"I don\'t understand" opens Fleng AI about this exercise and keeps the draft answer', async () => {
+  const exercise = { type: 'text', prompt: 'She ___ tea every day.', options: undefined };
+  const p = await lessonPage('?slug=first&tab=practice', { exercise });
+  const card = p.get('panel-practice').querySelector('article');
+  const input = card.querySelector('input');
+  input.value = 'drink';
+  input.events.input();
+  const button = card.querySelector('.lesson-not-clear');
+  assert.match(button.textContent, /I don't understand/);
+  button.events.click();
+  assert.equal(p.aiAsks.length, 1);
+  const [ask] = p.aiAsks;
+  assert.match(ask.message, /don't understand this exercise/);
+  assert.match(ask.label, /Question 1: “She ___ tea every day\.”/);
+  assert.equal(ask.returnFocus, button);
+  assert.deepEqual(JSON.parse(JSON.stringify(p.aiContext())), { lessonId: 'lesson', exerciseId: 'exercise', currentAnswer: 'drink' });
+  // The page itself is untouched: the draft is still in the field.
+  assert.equal(p.get('panel-practice').querySelector('article').querySelector('input').value, 'drink');
+});
+
+test('"I don\'t understand" explains when the assistant is not mounted', async () => {
+  const p = await lessonPage('?slug=first&tab=practice', { aiMounted: false });
+  const button = p.get('panel-practice').querySelector('.lesson-not-clear');
+  button.events.click();
+  assert.equal(button.disabled, true);
+  assert.match(button.textContent, /not available/);
 });

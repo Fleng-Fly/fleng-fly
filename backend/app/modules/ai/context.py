@@ -16,6 +16,7 @@ from app.db.models import (
     User,
     VocabularyItem,
 )
+from app.modules.exercises.instructions import instruction_for
 
 
 async def lesson_context(db: AsyncSession, lesson_id: UUID) -> dict:
@@ -26,10 +27,12 @@ async def lesson_context(db: AsyncSession, lesson_id: UUID) -> dict:
     )
     if lesson is None:
         raise ApiError(404, "NOT_FOUND", "Lesson not found")
+    course = await db.scalar(select(Course).where(Course.id == lesson.course_id))
     return {
         "id": str(lesson.id),
         "slug": lesson.slug,
-        "level": await db.scalar(select(Course.level).where(Course.id == lesson.course_id)),
+        "level": course.level if course else None,
+        "course": {"id": str(lesson.course_id), "title": course.title[:200] if course else ""},
         "title": lesson.title[:200],
         "summary": lesson.summary[:1000],
         "theory": lesson.theory[:3000],
@@ -124,4 +127,39 @@ async def recommendations(db: AsyncSession, user: User) -> dict:
         "reviewWords": context["vocabulary_to_review"],
         "nextLessons": [{"slug": slug, "title": title} for slug, title in next_lessons],
         "reason": "Review incorrect submissions and unlearned words, then continue your level.",
+    }
+
+
+async def exercise_context(
+    db: AsyncSession, user: User, exercise: Exercise, current_answer: str | None
+) -> dict:
+    """What the learner sees for one exercise, plus their own answer/attempts.
+
+    Never includes answer keys (`correct_option_id`, `accepted_answers`, `model_answer`)
+    or the authored explanation, so the tutor teaches instead of revealing the answer.
+    """
+    options = {str(o["id"]): str(o["text"])[:300] for o in (exercise.options or [])}
+    submission = await db.scalar(
+        select(ExerciseSubmission).where(
+            ExerciseSubmission.user_id == user.id, ExerciseSubmission.exercise_id == exercise.id
+        )
+    )
+
+    def readable(answer: str | None) -> str | None:
+        if not answer or not answer.strip():
+            return None
+        # Choice answers are option ids; give the tutor the text the learner picked.
+        return options.get(answer, answer)[:2000]
+
+    return {
+        "id": str(exercise.id),
+        "position": exercise.position,
+        "type": "letter_tiles" if exercise.letter_tiles else exercise.type,
+        "instruction": instruction_for(exercise).en,
+        "prompt": exercise.prompt[:2000],
+        "options": list(options.values()) or None,
+        "current_answer": readable(current_answer),
+        "attempts": submission.attempts if submission else 0,
+        "last_checked_answer": readable(submission.answer) if submission else None,
+        "last_checked_correct": submission.is_correct if submission else None,
     }

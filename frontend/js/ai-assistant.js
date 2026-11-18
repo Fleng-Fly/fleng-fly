@@ -9,6 +9,17 @@ export function unmountAIAssistant(options) {
   widget?.destroy(options);
 }
 
+/**
+ * Open the assistant about one specific thing (e.g. the current exercise) and send
+ * `message` for the learner. Context IDs still come from the page's context callback.
+ * Returns false when no assistant is mounted.
+ */
+export function askAIAssistant(detail) {
+  if (!widget) return false;
+  widget.ask(detail);
+  return true;
+}
+
 /** One widget per authenticated workspace. The callback sends IDs only. */
 export function mountAIAssistant(user, getContext = () => ({})) {
   if (!user?.id) return;
@@ -66,6 +77,13 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   menu.append(menuToggle, reload);
   tools.append(select, fresh, menu);
   const contextLabel = el('p', 'ai-context');
+  const contextText = el('span');
+  const backToTask = button('', () => hide('MINIMIZED'));
+  backToTask.className = 'ai-back';
+  backToTask.hidden = true;
+  contextLabel.append(contextText, backToTask);
+  // Set by ask(): what the learner is asking about and where to return focus.
+  let focus = null;
   const messages = el('div', 'ai-messages');
   messages.tabIndex = 0;
   messages.setAttribute('aria-label', 'Messages');
@@ -191,12 +209,21 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   }
   function context() {
     const value = getContext() || {};
-    contextLabel.textContent = value.lessonId
-      ? 'Helping with your current lesson · hints first'
-      : 'General English learning';
+    const exerciseFocus = focus && value.exerciseId === focus.exerciseId;
+    contextText.textContent = exerciseFocus
+      ? focus.label
+      : value.lessonId
+        ? 'Helping with your current lesson · hints first'
+        : 'General English learning';
+    backToTask.hidden = !exerciseFocus || !focus.backLabel;
+    backToTask.textContent = exerciseFocus ? focus.backLabel || '' : '';
+    backToTask.setAttribute('aria-label', backToTask.textContent);
+    contextLabel.classList.toggle('is-exercise', Boolean(exerciseFocus));
+    const answer = typeof value.currentAnswer === 'string' ? value.currentAnswer.trim() : '';
     return {
       ...(value.lessonId ? { lessonId: value.lessonId } : {}),
       ...(value.exerciseId ? { exerciseId: value.exerciseId } : {}),
+      ...(value.exerciseId && answer ? { currentAnswer: answer.slice(0, input.maxLength) } : {}),
     };
   }
   function hide(value) {
@@ -204,7 +231,10 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     panel.hidden = true;
     launcher.hidden = false;
     launcher.setAttribute('aria-expanded', 'false');
-    launcher.focus();
+    // Return to the exercise the learner asked about, with their answer untouched.
+    const back = focus?.returnFocus;
+    if (back?.isConnected) back.focus();
+    else launcher.focus();
     // Closing/minimizing deliberately keeps an active request running until saved.
     phase(value);
   }
@@ -454,7 +484,22 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   }
   window.addEventListener('fleng:session-ended', onSessionEnd);
   window.addEventListener('storage', onStorage);
-  widget = { open, destroy, userId: user.id };
+  async function ask(detail = {}) {
+    const value = getContext() || {};
+    focus = {
+      exerciseId: value.exerciseId,
+      label: detail.label || '',
+      backLabel: detail.backLabel || '',
+      returnFocus: detail.returnFocus || null,
+    };
+    await open();
+    if (destroyed || !detail.message) return;
+    input.value = detail.message.slice(0, input.maxLength);
+    input.dispatchEvent(new Event('input'));
+    // Send only when it can succeed; otherwise the notice explains and the text waits.
+    if (available && !busy && !needsReload) form.dispatchEvent(new Event('submit', { cancelable: true }));
+  }
+  widget = { open, ask, destroy, userId: user.id };
   return widget;
 }
 

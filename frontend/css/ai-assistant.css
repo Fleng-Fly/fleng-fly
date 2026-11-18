@@ -102,3 +102,8 @@
   vertical-align: -1px; background: #d695fc;
   clip-path: polygon(50% 0,62% 36%,100% 50%,62% 64%,50% 100%,38% 64%,0 50%,38% 36%);
 }
+
+.ai-context { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ai-context.is-exercise { color: #f1e6ff; background: rgba(191, 64, 250, 0.12); border-left: 3px solid #bf40fa; }
+.ai-back { flex: none; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 7px; padding: 4px 9px; background: transparent; color: inherit; font: inherit; font-size: 11px; cursor: pointer; }
+.ai-back:focus-visible { outline: 2px solid #bf40fa; outline-offset: 2px; }

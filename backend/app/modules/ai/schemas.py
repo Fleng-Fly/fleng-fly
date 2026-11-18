@@ -17,6 +17,9 @@ class ChatRequest(CamelModel):
     lesson_id: UUID | None = None
     correct_grammar: bool = True
     exercise_id: UUID | None = None
+    # The learner's unsent answer for `exercise_id` ("I don't understand" help).
+    # Bounded by AI_MAX_MESSAGE_LENGTH like any learner-authored text.
+    current_answer: str | None = Field(default=None, max_length=16000)
     request_id: UUID | None = None
 
 

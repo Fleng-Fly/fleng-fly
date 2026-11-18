@@ -1,5 +1,5 @@
 import { getCourse, listCourses, logout, setAccessToken } from './api.js';
-import { mountAIAssistant, unmountAIAssistant } from './ai-assistant.js';
+import { askAIAssistant, mountAIAssistant, unmountAIAssistant } from './ai-assistant.js';
 import { requireSession } from './session.js';
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
@@ -12,6 +12,11 @@ let aiContext = () => ({});
 
 export function setWorkspaceAIContext(callback) {
   aiContext = callback;
+}
+
+/** Open Fleng AI about something on this page (see `askAIAssistant`). */
+export function askWorkspaceAI(detail) {
+  return askAIAssistant(detail);
 }
 
 // Trusted static navigation markup, shared by Dashboard and Lessons.

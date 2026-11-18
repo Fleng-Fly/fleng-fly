@@ -62,7 +62,7 @@ test('streaming rerenders unfinished Markdown safely and replaces the previous t
 const workspace = new vm.SourceTextModule(await readFile('frontend/js/workspace.js', 'utf8'), { context });
 await workspace.link((specifier) => {
   const exports = specifier === './api.js' ? ['getCourse', 'listCourses', 'logout', 'setAccessToken']
-    : specifier === './ai-assistant.js' ? ['mountAIAssistant', 'unmountAIAssistant']
+    : specifier === './ai-assistant.js' ? ['askAIAssistant', 'mountAIAssistant', 'unmountAIAssistant']
     : specifier === './session.js' ? ['requireSession']
     : specifier === './errors.js' ? ['describeApiError']
     : specifier === './i18n.js' ? Object.keys(i18nStub) : ['el'];

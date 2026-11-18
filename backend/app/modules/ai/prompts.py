@@ -17,6 +17,20 @@ to modify accounts, XP, achievements, grades or lesson completion. Never claim y
 Do not request sensitive personal information. Stay focused on English education."""
 
 
+EXERCISE_HELP = """
+The learner pressed "I don't understand" on the exercise in learner data ("exercise"),
+inside the lesson in learner data ("lesson": course, title, theory). Teach, do not solve:
+1. Say in one or two simple sentences what the exercise asks them to do.
+2. Explain any words in the prompt or options they may not know.
+3. Explain the grammar point from the lesson theory that the exercise practises.
+4. Give one or two short new examples (not the exercise itself).
+5. Give a hint that moves them one step closer; offer a further hint if they ask.
+Do not state the correct option or the final answer in this first reply. If they have
+tried several times and ask for the answer, you may confirm their reasoning step by step.
+Look at current_answer and last_checked_answer when present and explain gently what
+fits or does not. Match the learner's level and preferred language; keep it short."""
+
+
 def messages(
     context: dict,
     request: str,
@@ -25,7 +39,9 @@ def messages(
     schema: dict | None = None,
 ) -> list[dict]:
     system = SYSTEM
-    if task == "explain":
+    if task == "exercise_help":
+        system += EXERCISE_HELP
+    elif task == "explain":
         system += (
             " Explain the student's mistake: explanation, correct_example, rule, optional hint."
         )

@@ -168,3 +168,11 @@
 .lesson-guide-examples li { display: grid; gap: .15rem; padding: .6rem .8rem; border: 1px solid var(--dash-border); border-radius: .6rem; background: #0c0912; overflow-wrap: anywhere; }
 .lesson-guide-en { color: #f7f1ff; font-weight: 600; font-size: .9rem; }
 .lesson-guide-uk { color: var(--dash-muted); font-size: .8rem; }
+
+.lesson-help-row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: .6rem 1rem; margin: -.2rem 0 1rem; }
+.lesson-help-row .lesson-hint { margin: 0; flex: 1 1 auto; }
+.lesson-not-clear { min-height: 36px; padding: .4rem .8rem; border: 1px solid rgba(191,64,250,.45); border-radius: .55rem; background: transparent; color: #e3d9fc; font: inherit; font-size: .8rem; cursor: pointer; }
+.lesson-not-clear:hover { background: rgba(191,64,250,.1); }
+.lesson-not-clear:focus-visible { outline: 2px solid #bf40fa; outline-offset: 2px; }
+.lesson-not-clear:disabled { opacity: .6; cursor: default; }
+@media (max-width: 600px) { .lesson-not-clear { min-height: 44px; } }

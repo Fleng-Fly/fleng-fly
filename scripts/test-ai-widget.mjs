@@ -226,3 +226,46 @@ test('500-character cap, streamed Markdown and manual scroll are preserved', asy
   assert.equal(find(e.root(), 'ai-typing').hidden, true);
   assert.match(find(e.root(), 'ai-counter').textContent, /0 \/ 500/);
 });
+
+test('ask() opens the panel about one exercise, sends its context and returns focus', async () => {
+  const e = await environment();
+  let answer = 'drink';
+  e.workspace.setWorkspaceAIContext(() => ({ lessonId: 'lesson', exerciseId: 'exercise', currentAnswer: answer }));
+  e.workspace.setWorkspaceUser({ id: 'A', displayName: 'Learner' });
+  let focused = 0;
+  const returnFocus = { isConnected: true, focus: () => { focused++; } };
+  assert.equal(e.workspace.askWorkspaceAI({ message: 'I do not understand', label: 'Question 3: “She ___ tea.”', backLabel: 'Back to the exercise', returnFocus }), true);
+  for (let i = 0; i < 5; i++) await settle();
+  const root = e.root();
+  assert.equal(find(root, 'ai-panel').hidden, false);
+  assert.match(find(root, 'ai-context').textContent, /Question 3/);
+  assert.equal(e.calls.length, 1);
+  assert.equal(e.calls[0].payload.message, 'I do not understand');
+  assert.equal(e.calls[0].payload.exerciseId, 'exercise');
+  assert.equal(e.calls[0].payload.currentAnswer, 'drink');
+  // Follow-up questions keep the exercise context.
+  answer = '';
+  const input = find(root, 'ai-composer').children[0];
+  input.value = 'Why does?';
+  find(root, 'ai-composer').dispatchEvent(new Event('submit', { cancelable: true }));
+  for (let i = 0; i < 5; i++) await settle();
+  assert.equal(e.calls[1].payload.exerciseId, 'exercise');
+  assert.equal('currentAnswer' in e.calls[1].payload, false);
+  // "Back to the exercise" closes the panel and puts focus back on the exercise.
+  const back = find(root, 'ai-back');
+  assert.equal(back.hidden, false);
+  back.dispatchEvent(new Event('click'));
+  assert.equal(find(root, 'ai-panel').hidden, true);
+  assert.equal(focused, 1);
+});
+
+test('ask() never sends when Fleng AI is unavailable', async () => {
+  const e = await environment();
+  e.set({ available: false });
+  e.workspace.setWorkspaceAIContext(() => ({ lessonId: 'lesson', exerciseId: 'exercise' }));
+  e.workspace.setWorkspaceUser({ id: 'A', displayName: 'Learner' });
+  e.workspace.askWorkspaceAI({ message: 'Help', label: 'Question 1' });
+  for (let i = 0; i < 5; i++) await settle();
+  assert.equal(e.calls.length, 0);
+  assert.equal(e.root().dataset.state, 'UNAVAILABLE');
+});

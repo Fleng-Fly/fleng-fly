@@ -118,6 +118,18 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       ],
       "title": "Exerciseid"
     },
+    "currentAnswer": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 16000
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Currentanswer"
+    },
     "requestId": {
       "anyOf": [
         {

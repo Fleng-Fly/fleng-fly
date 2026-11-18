@@ -68,6 +68,8 @@ async def owned_conversation(
 
 async def prepare_chat(db: AsyncSession, user: User, payload: ChatRequest, settings: Settings):
     validate_input(payload.message, settings)
+    if payload.current_answer and payload.current_answer.strip():
+        validate_input(payload.current_answer, settings)
     await lock_learner(db, user.id)
     history = []
     conversation = None
@@ -119,9 +121,12 @@ async def prepare_chat(db: AsyncSession, user: User, payload: ChatRequest, setti
             )
         )
         if exercise is not None:
-            learner["exercise"] = {"type": exercise.type, "prompt": exercise.prompt[:2000]}
+            learner["exercise"] = await context.exercise_context(
+                db, user, exercise, payload.current_answer
+            )
     learner["correct_grammar"] = payload.correct_grammar
-    return conversation, prompts.messages(learner, payload.message, history)
+    task = "exercise_help" if "exercise" in learner else "tutor"
+    return conversation, prompts.messages(learner, payload.message, history, task=task)
 
 
 def utcnow() -> datetime:

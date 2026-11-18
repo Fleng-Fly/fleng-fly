@@ -282,3 +282,33 @@ releases its reservation without consuming the daily quota or charging a provide
 call. Provider uncertainty, actual costs, per-user/global limits and timeouts keep
 the existing policy. Refusal settlement uses a portable SQL CASE expression to
 subtract the output hold with a zero floor on SQLite and PostgreSQL.
+
+## "I don't understand" exercise help — 2026-11-18
+
+Every lesson exercise has an **I don't understand / Не зрозуміло?** button. It opens the
+existing floating Fleng AI panel (no second chatbot) and sends a starter message in the
+interface language. The panel shows which question is being discussed and a *Back to the
+exercise* button; closing it returns focus to the exercise. The lesson page is not
+re-rendered, so the learner's draft answer and progress stay as they were.
+
+Request: the normal `POST /ai/chat` or `/ai/chat/stream` with `lessonId`, `exerciseId` and the
+optional `currentAnswer` (the unsent draft; validated against `AI_MAX_MESSAGE_LENGTH` like any
+learner text). The browser sends IDs and the draft only; the server builds the context:
+
+| Context | Source |
+| ------- | ------ |
+| Learner level, preferred language | profile (no name or email) |
+| Course id/title, lesson id/title/summary/theory | published catalog only |
+| Exercise id, position, type, instruction, prompt, option texts | `exercises` row of *that* lesson |
+| Current answer, attempts, last checked answer and result | request draft + own submission; choice ids are turned into option text |
+
+Answer keys (`correct_option_id`, `accepted_answers`, `model_answer`) and the authored
+explanation are never included. When an exercise is in context the system prompt adds
+teaching rules: explain the task, unknown words and the grammar point, give new examples
+and a step-by-step hint, and do not give the final answer in the first reply. An exercise
+from another lesson, or an unpublished lesson, falls back to general tutoring.
+
+All existing controls apply unchanged (per-minute and per-day quotas, concurrency, token
+reservation, global USD budget, history limits). When AI is disabled the panel says so and
+nothing is sent. Tests: `backend/tests/test_ai_exercise_help.py`,
+`scripts/test-ai-widget.mjs`, `scripts/test-courses.mjs`.

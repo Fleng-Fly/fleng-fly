@@ -4,7 +4,7 @@ import { el, queryParam } from './layout.js';
 import { getLang, t } from './i18n.js';
 import { letterTiles } from './letter-tiles.js';
 import { requireSession } from './session.js';
-import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
+import { askWorkspaceAI, mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
 
 const $ = (id) => document.getElementById(id);
 const tabs = ['theory', 'practice', 'vocabulary'];
@@ -15,6 +15,8 @@ const state = {
   drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
   vocabulary: { items: [], loaded: false, loading: false, more: false, error: null },
   nextStep: null, nextStepFor: null, hints: new Set(),
+  // Reads the visible exercise's current (unsent) answer for Fleng AI context.
+  readCurrent: null,
 };
 
 /** Pick the current interface language from an authored { en, uk } text (English fallback). */
@@ -374,6 +376,31 @@ function hintControl(exercise) {
   return box;
 }
 
+/**
+ * "I don't understand": opens the existing Fleng AI panel about this exercise. The
+ * page stays as it is, so drafts and progress are kept; closing the panel returns
+ * focus to this button.
+ */
+function notClearButton(exercise, index) {
+  const button = el('button', 'lesson-not-clear', t('lesson.notClear'));
+  button.type = 'button';
+  button.setAttribute('aria-haspopup', 'dialog');
+  button.addEventListener('click', () => {
+    const prompt = exercise.prompt.length > 70 ? `${exercise.prompt.slice(0, 67)}…` : exercise.prompt;
+    const opened = askWorkspaceAI({
+      message: t('lesson.aiStarter'),
+      label: t('lesson.aiAbout', { n: index + 1, prompt }),
+      backLabel: t('lesson.aiBack'),
+      returnFocus: button,
+    });
+    if (!opened) {
+      button.disabled = true;
+      button.textContent = t('lesson.aiUnavailable');
+    }
+  });
+  return button;
+}
+
 function questionCard(exercise, index) {
   const record = exerciseState(exercise);
   const result = state.results.get(exercise.id);
@@ -403,7 +430,10 @@ function questionCard(exercise, index) {
   prompt.tabIndex = -1;
   if (task) prompt.setAttribute('aria-describedby', `task-${exercise.id}`);
   card.append(prompt);
-  if (pick(exercise.hint)) card.append(hintControl(exercise));
+  const help = el('div', 'lesson-help-row');
+  if (pick(exercise.hint)) help.append(hintControl(exercise));
+  help.append(notClearButton(exercise, index));
+  card.append(help);
   const form = el('form', 'lesson-answer-form');
   let readAnswer;
   if (exercise.type === 'single_choice') {
@@ -469,6 +499,7 @@ function questionCard(exercise, index) {
     form.addEventListener('submit', (event) => { event.preventDefault(); submit(exercise, readAnswer()); });
   }
   form.append(actions);
+  state.readCurrent = readAnswer || null;
   card.append(form, feedback(exercise, record));
   const nav = el('div', 'lesson-question-navigation');
   const previous = el('button', 'lesson-button lesson-button-secondary', `← ${t('lesson.previous')}`);
@@ -622,6 +653,7 @@ async function loadLesson() {
     setWorkspaceAIContext(() => ({
       lessonId: state.lesson?.id,
       exerciseId: ['test', 'practice'].includes(state.tab) ? state.lesson?.exercises[state.index]?.id : undefined,
+      currentAnswer: state.tab === 'practice' ? state.readCurrent?.() : undefined,
     }));
     state.progress = progress;
     state.index = Math.max(0, nextUnfinished());
