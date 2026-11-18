@@ -53,6 +53,30 @@ const GOOGLE_ERRORS = {
 };
 
 /**
+ * The button is a plain link to the backend's OAuth start route (state, nonce and PKCE are
+ * created there). Once clicked it ignores further clicks until the browser has left the page;
+ * if the learner comes back with the back button it works again.
+ */
+function guardGoogleButton(button) {
+  if (!button) return;
+  const reset = () => {
+    button.removeAttribute('aria-disabled');
+    button.classList.remove('is-busy');
+  };
+  button.addEventListener('click', (event) => {
+    if (button.getAttribute('aria-disabled') === 'true') {
+      event.preventDefault();
+      return;
+    }
+    button.setAttribute('aria-disabled', 'true');
+    button.classList.add('is-busy');
+  });
+  window.addEventListener?.('pageshow', (event) => {
+    if (event.persisted) reset();
+  });
+}
+
+/**
  * Login/register pages: reveal the Google button only when the server has Google
  * configured, and show why a previous Google attempt (`?error=google_*`) failed.
  * Returns the message to display, or an empty string.
@@ -60,7 +84,10 @@ const GOOGLE_ERRORS = {
 export async function setupGoogleSignIn() {
   try {
     const providers = await getAuthProviders();
-    if (providers?.google) document.getElementById('google-block')?.classList.remove('hidden');
+    if (providers?.google) {
+      document.getElementById('google-block')?.classList.remove('hidden');
+      guardGoogleButton(document.getElementById('google-button'));
+    }
   } catch {
     /* Providers unavailable: email/password sign-in still works. */
   }

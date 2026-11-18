@@ -103,3 +103,29 @@ test('the sidebar has one "My Words" link next to "Courses" and no Words group',
   await page.goto('/course-words.html');
   await expect(page.locator('h1')).toContainText('Course Words');
 });
+
+for (const [pageName, path, button] of [
+  ['login', '/login.html', 'Continue with Google'],
+  ['register', '/register.html', 'Sign up with Google'],
+]) {
+  test(`${pageName}: Google button is hidden by default, shown when available, and starts the OAuth route`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.locator('#google-block')).toBeHidden(); // the server has no Google settings here
+    await page.unrouteAll();
+    // Only availability is simulated; the start route and its error redirect are the real ones.
+    await page.route('**/api/v1/auth/providers', (route) => route.fulfill({ json: { google: true } }));
+    await page.goto(path);
+    const google = page.getByRole('link', { name: button });
+    await expect(google).toBeVisible();
+    await expect(google).toHaveAttribute('href', `/api/v1/auth/google/start?page=${pageName}`);
+    // Below the main submit button, above the forgot-password section / sign-in switch.
+    const submit = await page.locator('#submit-button').boundingBox();
+    const box = await google.boundingBox();
+    expect(box.y).toBeGreaterThan(submit.y + submit.height);
+    await google.click();
+    // Not configured on the test server: the real start route redirects back with an error.
+    await expect(page).toHaveURL(new RegExp(`${pageName}\\.html\\?error=google_unavailable`));
+    await expect(page.locator('#form-error')).toBeVisible();
+    await expect(page.locator('#form-error')).toContainText('not available');
+  });
+}

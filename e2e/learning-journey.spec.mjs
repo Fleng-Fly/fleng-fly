@@ -150,7 +150,7 @@ test.describe('catalog and lesson', () => {
     await page.locator('#course-search').fill('');
 
     await startFirstLesson(page);
-    await expect(page.locator('#lesson-activity-count')).toHaveText('0 / 3 activities');
+    await expect(page.locator('#lesson-activity-count')).toHaveText('0 / 10 activities');
     await expect(page.locator('#lesson-xp')).toHaveText('0 XP earned');
   });
 });
@@ -168,13 +168,13 @@ test.describe('exercise, progress and XP', () => {
     await expect(page.locator('#lesson-last-answer .lesson-feedback')).toContainText(
       'Correct · +1 XP',
     );
-    await expect(page.locator('#lesson-activity-count')).toHaveText('1 / 3 activities');
+    await expect(page.locator('#lesson-activity-count')).toHaveText('1 / 10 activities');
     await expect(page.locator('#lesson-xp')).toHaveText('1 XP earned');
     expect((await myProgress(page)).xp).toBe(1);
 
     // Saved on the server: a full reload restores progress and the learner's answer.
     await page.reload();
-    await expect(page.locator('#lesson-activity-count')).toHaveText('1 / 3 activities');
+    await expect(page.locator('#lesson-activity-count')).toHaveText('1 / 10 activities');
     await expect(page.locator('#lesson-xp')).toHaveText('1 XP earned');
     await openPractice(page);
     await openQuestion(page, 1);
@@ -206,7 +206,7 @@ test.describe('exercise, progress and XP', () => {
 
     await answerChoice(page, 'Goodbye');
     await expect(page.locator('#lesson-xp')).toHaveText('0 XP earned');
-    await expect(page.locator('#lesson-activity-count')).toHaveText('0 / 3 activities');
+    await expect(page.locator('#lesson-activity-count')).toHaveText('0 / 10 activities');
     expect((await myProgress(page)).xp).toBe(0);
 
     await openQuestion(page, 1);
