@@ -243,6 +243,10 @@ export function listVocabulary(offset = 0, limit = 100) {
   return apiFetch(`/vocabulary?${new URLSearchParams({ offset: String(offset), limit: String(limit) })}`);
 }
 
+export function getVocabularyGroups() {
+  return apiFetch('/vocabulary/groups');
+}
+
 export function addVocabulary(input) {
   return apiFetch('/vocabulary', { method: 'POST', body: JSON.stringify(input) });
 }

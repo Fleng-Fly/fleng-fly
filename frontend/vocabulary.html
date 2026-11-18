@@ -17,7 +17,7 @@
 <body class="dashboard-page vocabulary-page">
   <main class="dashboard-main">
     <div class="dashboard-page-heading">
-      <div><p class="dashboard-eyebrow" data-i18n="vocab.eyebrow">YOUR PERSONAL COLLECTION</p><h1 id="words-title" data-i18n="ws.myWords">My Words</h1><p class="dashboard-subtitle" data-i18n="vocab.subtitle">Save new words and practise them until you remember them.</p></div>
+      <div><p class="dashboard-eyebrow" data-i18n="vocab.eyebrow">YOUR PERSONAL COLLECTION</p><h1 id="words-title" data-i18n="ws.myWords">My Words</h1><p class="dashboard-subtitle" data-i18n="vocab.subtitle">Words from every lesson you finish, plus the ones you add yourself, in one dictionary.</p></div>
       <button id="add-word" class="lesson-button lesson-button-primary" type="button" data-i18n="vocab.add">＋ Add a word</button>
     </div>
     <section id="words-error" class="dashboard-alert" role="alert" hidden><span id="words-error-text"></span> <button id="words-retry" class="dashboard-text-button" type="button" data-i18n="common.tryAgain">Try again</button></section>
@@ -30,6 +30,10 @@
           <button type="button" data-filter="learning" aria-pressed="false" data-i18n="vocab.learning">Learning</button>
           <button type="button" data-filter="learned" aria-pressed="false" data-i18n="vocab.learned">Learned</button>
           <button type="button" data-filter="due" aria-pressed="false" data-i18n="vocab.due">Due today</button>
+        </div>
+        <div class="word-source-filters">
+          <label class="word-select" for="word-course"><span data-i18n="vocab.course">Course</span><select id="word-course"><option value="" data-i18n="vocab.allCourses">All courses</option></select></label>
+          <label class="word-select" for="word-lesson"><span data-i18n="vocab.lesson">Lesson</span><select id="word-lesson" disabled><option value="" data-i18n="vocab.allLessons">All lessons</option></select></label>
         </div>
         <label class="word-search"><span class="sr-only" data-i18n="vocab.searchLabel">Search your words or translations</span><span aria-hidden="true">⌕</span><input id="word-search" type="search" placeholder="Search your words…" data-i18n-attr="placeholder:vocab.searchPlaceholder" autocomplete="off" /></label>
       </div>

@@ -1,4 +1,4 @@
-import { addVocabulary, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
+import { addVocabulary, getVocabularyGroups, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
 import { el } from './layout.js';
 import { t, tn } from './i18n.js';
 import { describeApiError } from './errors.js';
@@ -9,7 +9,7 @@ import { letterTiles } from './letter-tiles.js';
 const $ = (id) => document.getElementById(id);
 const modes = ['list', 'flashcards', 'choice', 'write', 'letters'];
 const initialMode = new URLSearchParams(location.search).get('mode');
-const state = { words: [], filter: 'all', mode: modes.includes(initialMode) ? initialMode : 'list', loading: false, busy: false, queue: [], index: 0, remembered: new Set(), needsPractice: new Set(), reviewing: null, request: 0, startedAt: 0, finishedAt: null };
+const state = { words: [], groups: [], course: '', lesson: '', expanded: new Set(), filter: 'all', mode: modes.includes(initialMode) ? initialMode : 'list', loading: false, busy: false, queue: [], index: 0, remembered: new Set(), needsPractice: new Set(), reviewing: null, request: 0, startedAt: 0, finishedAt: null };
 const normalize = (value) => value.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('en');
 const isDue = (word) => new Date(word.dueAt).getTime() <= Date.now();
 
@@ -55,8 +55,53 @@ function filteredWords() {
   const query = normalize($('word-search').value);
   return state.words.filter((word) => (
     (state.filter === 'all' || (state.filter === 'learned' ? word.learned : state.filter === 'learning' ? !word.learned : isDue(word))) &&
+    (!state.course || word.courseId === state.course) &&
+    (!state.lesson || word.lessonId === state.lesson) &&
     (!query || normalize(`${word.word} ${word.translation} ${word.example}`).includes(query))
   ));
+}
+
+/** Courses/lessons that hold words, in curriculum order (server groups), else first-seen order. */
+function sourceGroups() {
+  if (state.groups.length) return state.groups;
+  const courses = new Map();
+  for (const word of state.words) {
+    if (!word.courseId) continue;
+    if (!courses.has(word.courseId)) courses.set(word.courseId, { id: word.courseId, title: word.courseTitle || '', lessons: [] });
+    const course = courses.get(word.courseId);
+    if (word.lessonId && !course.lessons.some((lesson) => lesson.id === word.lessonId)) course.lessons.push({ id: word.lessonId, title: word.lessonTitle || '' });
+  }
+  return [...courses.values()];
+}
+
+function option(value, label) {
+  const node = el('option', undefined, label);
+  node.value = value;
+  return node;
+}
+
+function renderSourceFilters() {
+  const groups = sourceGroups();
+  const courseSelect = $('word-course');
+  const lessonSelect = $('word-lesson');
+  if (!groups.some((course) => course.id === state.course)) state.course = '';
+  courseSelect.replaceChildren(option('', t('vocab.allCourses')), ...groups.map((course) => option(course.id, course.title)));
+  courseSelect.value = state.course;
+  courseSelect.disabled = !groups.length;
+  const lessons = groups.find((course) => course.id === state.course)?.lessons ?? [];
+  if (!lessons.some((lesson) => lesson.id === state.lesson)) state.lesson = '';
+  lessonSelect.replaceChildren(option('', t('vocab.allLessons')), ...lessons.map((lesson) => option(lesson.id, lesson.title)));
+  lessonSelect.value = state.lesson;
+  lessonSelect.disabled = !lessons.length;
+}
+
+function onSourceChange(courseChanged) {
+  if (state.busy) return;
+  state.course = $('word-course').value;
+  state.lesson = courseChanged ? '' : $('word-lesson').value;
+  renderSourceFilters();
+  if (state.mode === 'list') renderWords();
+  else startPractice();
 }
 
 function renderStats() {
@@ -90,14 +135,42 @@ function renderWords() {
   $('word-count').textContent = tn('vocab.count', words.length);
   if (!words.length) {
     const card = empty(target, state.words.length ? t('vocab.noMatch') : t('vocab.emptyTitle'), state.words.length ? t('vocab.noMatchText') : t('vocab.emptyText'));
-    if (!state.words.length) card.append(control(t('vocab.addFirst'), openAddDialog, 'lesson-button lesson-button-primary'));
+    if (!state.words.length) {
+      const actions = el('div', 'word-practice-actions');
+      const courses = el('a', 'lesson-button lesson-button-primary', t('vocab.goToCourses'));
+      courses.href = '/courses.html';
+      actions.append(courses, control(t('vocab.addFirst'), openAddDialog));
+      card.append(actions);
+    }
     return;
   }
   for (const word of words) {
     const row = el('article', 'word-row');
     const copy = el('div', 'word-copy');
-    copy.append(el('h3', undefined, word.word), el('p', undefined, word.translation));
-    if (word.example) copy.append(el('small', undefined, word.example));
+    const title = el('h3', undefined, word.word);
+    if (word.pronunciation) title.append(el('span', 'word-pronunciation', ` ${word.pronunciation}`));
+    copy.append(title, el('p', undefined, word.translation));
+    if (word.courseTitle || word.lessonTitle) {
+      copy.append(el('small', 'word-source', [word.courseTitle, word.lessonTitle].filter(Boolean).join(' · ')));
+    }
+    const open = state.expanded.has(word.id);
+    const details = el('div', 'word-details');
+    details.id = `word-details-${word.id}`;
+    details.hidden = !open;
+    details.append(el('p', 'word-detail-label', t('vocab.example')), el('p', 'word-example', word.example || t('vocab.noExample')));
+    if (word.lessonSlug) {
+      const link = el('a', 'dashboard-text-button', t('vocab.openLesson', { lesson: word.lessonTitle || word.lessonSlug }));
+      link.href = `/lesson.html?slug=${encodeURIComponent(word.lessonSlug)}`;
+      details.append(link);
+    }
+    details.append(el('p', 'dashboard-muted', word.source === 'lesson' ? t('vocab.fromLesson') : t('vocab.addedByYou')));
+    const more = control(open ? t('vocab.hideDetails') : t('vocab.details'), () => {
+      if (state.expanded.has(word.id)) state.expanded.delete(word.id); else state.expanded.add(word.id);
+      renderWords();
+    }, 'word-details-toggle');
+    more.setAttribute('aria-expanded', String(open));
+    more.setAttribute('aria-controls', details.id);
+    copy.append(more, details);
     const status = el('span', `word-status${word.learned ? ' is-learned' : ''}`, word.learned ? `✓ ${t('vocab.learned')}` : isDue(word) ? t('vocab.due') : t('vocab.learning'));
     const actions = el('div', 'word-row-actions');
     const toggle = control(word.learned ? t('vocab.keepLearning') : t('vocab.markLearned'), async () => {
@@ -378,6 +451,8 @@ async function load() {
     if (!user || request !== state.request) return;
     setWorkspaceUser(user);
     const words = [];
+    // Filters only need course/lesson order; the dictionary still works without it.
+    const groups = getVocabularyGroups().then((body) => body?.courses ?? [], () => []);
     for (let offset = 0; ; offset += 100) {
       const page = await listVocabulary(offset);
       if (request !== state.request) return;
@@ -385,8 +460,11 @@ async function load() {
       if (page.length < 100) break;
     }
     state.words = words;
+    state.groups = await groups;
+    if (request !== state.request) return;
     $('words-content').hidden = false;
     renderStats();
+    renderSourceFilters();
     const selectedWord = new URLSearchParams(location.search).get('word');
     setMode(state.mode, words.find((word) => selectedWord && normalize(word.word) === normalize(selectedWord))?.id);
   } catch (error) {
@@ -410,6 +488,8 @@ for (const button of document.querySelectorAll('[data-filter]')) button.addEvent
   if (state.mode === 'list') renderWords();
   else startPractice();
 });
+$('word-course').addEventListener('change', () => onSourceChange(true));
+$('word-lesson').addEventListener('change', () => onSourceChange(false));
 $('word-search').addEventListener('input', () => { if (state.mode === 'list') renderWords(); else startPractice(); });
 $('word-form').addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -423,6 +503,7 @@ $('word-form').addEventListener('submit', async (event) => {
     $('word-dialog').close();
     $('word-form').reset();
     renderStats();
+    renderSourceFilters();
     setMode('list');
     feedback(t('vocab.savedWord', { word: word.word }));
   } catch (error) {

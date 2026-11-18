@@ -27,7 +27,7 @@ class Element {
 
 const makeWord = (id = 'one', word = 'resilience', translation = 'стійкість') => ({ id, word, translation, example: 'Keep going.', learned: false, dueAt: '2020-01-01T00:00:00Z' });
 
-async function page({ words = [makeWord()], mode = '', reviewError = false } = {}) {
+async function page({ words = [makeWord()], mode = '', reviewError = false, groups = [] } = {}) {
   const nodes = new Map(); const events = {}; const writes = [];
   const modeButtons = ['list', 'flashcards', 'choice', 'write', 'letters'].map((mode) => { const n = new Element('button'); n.dataset.mode = mode; return n; });
   const filters = ['all', 'learning', 'learned', 'due'].map((filter) => { const n = new Element('button'); n.dataset.filter = filter; return n; });
@@ -40,6 +40,7 @@ async function page({ words = [makeWord()], mode = '', reviewError = false } = {
   };
   let failReview = reviewError;
   const helpers = {
+    getVocabularyGroups: async () => { if (groups === null) throw new Error('down'); return { courses: groups }; },
     listVocabulary: async (offset) => words.slice(offset, offset + 100),
     addVocabulary: async (input) => { writes.push({ add: input }); const word = { ...makeWord('added'), ...input }; words.push(word); return word; },
     updateVocabulary: async (id, learned) => { writes.push({ update: id, learned }); const word = words.find((w) => w.id === id); word.learned = learned; return { ...word }; },
@@ -183,4 +184,52 @@ test('replaying a due-only session keeps its words after their review dates move
   await app.click(app.byText('word-practice', 'Practise again'));
   assert.ok(app.node('word-practice').querySelector('input'));
   assert.doesNotMatch(app.node('word-practice').textContent, /No words for this activity/);
+});
+
+test('filters the dictionary by course and lesson and shows where each word came from', async () => {
+  const words = [
+    { ...makeWord('a', 'cat', 'кіт'), courseId: 'c1', courseTitle: 'A1', lessonId: 'l1', lessonTitle: 'Pets', lessonSlug: 'pets', source: 'lesson', pronunciation: '/kæt/' },
+    { ...makeWord('b', 'ocean', 'океан'), courseId: 'c2', courseTitle: 'B1', lessonId: 'l2', lessonTitle: 'Travel', lessonSlug: 'travel', source: 'lesson' },
+    { ...makeWord('c', 'mine', 'мій'), source: 'manual' },
+  ];
+  const groups = [
+    { id: 'c1', title: 'A1', lessons: [{ id: 'l1', title: 'Pets' }] },
+    { id: 'c2', title: 'B1', lessons: [{ id: 'l2', title: 'Travel' }] },
+  ];
+  const app = await page({ words, groups });
+  assert.match(app.node('word-count').textContent, /3 words/);
+  assert.equal(app.node('word-course').children.length, 3);
+  assert.equal(app.node('word-lesson').disabled, true);
+  app.node('word-course').value = 'c2';
+  app.node('word-course').events.change();
+  assert.match(app.node('word-count').textContent, /1 word/);
+  assert.match(app.node('word-list').textContent, /ocean/);
+  assert.equal(app.node('word-lesson').disabled, false);
+  app.node('word-lesson').value = 'l2';
+  app.node('word-lesson').events.change();
+  assert.match(app.node('word-list').textContent, /B1 · Travel/);
+  app.node('word-course').value = '';
+  app.node('word-course').events.change();
+  assert.equal(app.node('word-lesson').value, '');
+  assert.match(app.node('word-count').textContent, /3 words/);
+  assert.match(app.node('word-list').textContent, /\/kæt\//);
+  const details = app.node('word-list').querySelectorAll('button').find((n) => n.className === 'word-details-toggle');
+  assert.equal(details.attributes['aria-expanded'], 'false');
+  await app.click(details);
+  const opened = app.node('word-list').querySelectorAll('button').find((n) => n.className === 'word-details-toggle');
+  assert.equal(opened.attributes['aria-expanded'], 'true');
+  assert.match(app.node('word-list').textContent, /Keep going\./);
+});
+
+test('new learners see how words arrive and a way to the courses', async () => {
+  const app = await page({ words: [] });
+  assert.match(app.node('word-list').textContent, /Finish a lesson/);
+  assert.equal(app.node('word-course').disabled, true);
+});
+
+test('the dictionary still loads when course groups are unavailable', async () => {
+  const words = [{ ...makeWord('a', 'cat', 'кіт'), courseId: 'c1', courseTitle: 'A1', lessonId: 'l1', lessonTitle: 'Pets' }];
+  const app = await page({ words, groups: null });
+  assert.match(app.node('word-count').textContent, /1 word/);
+  assert.equal(app.node('word-course').children.length, 2);
 });
