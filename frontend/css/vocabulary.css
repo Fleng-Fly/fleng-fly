@@ -1,0 +1,705 @@
+/*
+ * My Words — the personal vocabulary list.
+ * Matches the dark violet dashboard language: a soft panel, pill filters,
+ * status-tinted rows and a modal add-word form.
+ */
+
+.vocabulary-main {
+  max-width: 84rem;
+}
+
+.vocabulary-heading {
+  align-items: center;
+  margin-bottom: 1.45rem;
+}
+
+.vocabulary-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.15rem 0;
+}
+
+.vocabulary-title-row h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 2.5vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.vocabulary-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  border: 1px solid rgba(191, 64, 250, 0.32);
+  border-radius: 999px;
+  background: rgba(191, 64, 250, 0.14);
+  color: #e9d5ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.vocabulary-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.vocabulary-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(236, 177, 255, 0.4);
+  border-radius: 0.8rem;
+  padding: 0.62rem 1.05rem;
+  background: linear-gradient(120deg, #c026d3, #7c3aed 62%, #6d28d9);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+  box-shadow:
+    0 0.55rem 1.4rem rgba(147, 51, 234, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.vocabulary-add svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.vocabulary-add:hover,
+.vocabulary-add:focus-visible {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow:
+    0 0.75rem 1.8rem rgba(147, 51, 234, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.vocabulary-add:disabled {
+  cursor: progress;
+  opacity: 0.6;
+  transform: none;
+}
+
+.vocabulary-panel {
+  overflow: hidden;
+  border: 1px solid var(--dash-border);
+  border-radius: 1.35rem;
+  background: linear-gradient(160deg, rgba(24, 17, 33, 0.97), rgba(11, 8, 16, 0.99));
+  box-shadow:
+    0 1.4rem 3rem rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.vocabulary-panel::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(191, 64, 250, 0.55),
+    rgba(34, 211, 238, 0.25),
+    transparent
+  );
+}
+
+.vocabulary-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.95rem 1.15rem;
+  border-bottom: 1px solid var(--dash-border);
+  background: rgba(191, 64, 250, 0.035);
+}
+
+.vocabulary-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.vocabulary-filter {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.48rem 0.9rem;
+  background: transparent;
+  color: #a99bb8;
+  font: inherit;
+  font-size: 0.79rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.vocabulary-filter:hover,
+.vocabulary-filter:focus-visible {
+  color: #f5edff;
+  background: rgba(191, 64, 250, 0.09);
+}
+
+.vocabulary-filter.is-active {
+  color: #fff;
+  background: linear-gradient(120deg, rgba(191, 64, 250, 0.95), rgba(124, 58, 237, 0.92));
+  box-shadow: 0 0.4rem 1rem rgba(147, 51, 234, 0.28);
+}
+
+.vocabulary-search {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: min(18rem, 100%);
+  border: 1px solid var(--dash-border);
+  border-radius: 0.75rem;
+  padding: 0.42rem 0.8rem;
+  background: #120e19;
+  color: #8e7fa0;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.vocabulary-search:focus-within {
+  border-color: rgba(191, 64, 250, 0.6);
+  box-shadow: 0 0 0 3px rgba(191, 64, 250, 0.1);
+}
+
+.vocabulary-search svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.vocabulary-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f7f1ff;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.vocabulary-search input::placeholder {
+  color: #7d6e8c;
+}
+
+.vocabulary-status {
+  margin: 0;
+  padding: 0.7rem 1.15rem;
+  color: var(--dash-muted);
+  font-size: 0.8rem;
+}
+
+.vocabulary-list {
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  list-style: none;
+}
+
+.vocabulary-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.25fr) auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3.9rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.85rem;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.vocabulary-row + .vocabulary-row {
+  border-top-color: rgba(227, 217, 252, 0.06);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.vocabulary-row:hover,
+.vocabulary-row:focus-within {
+  border-color: rgba(191, 64, 250, 0.2);
+  border-radius: 0.85rem;
+  background: rgba(191, 64, 250, 0.055);
+  transform: translateX(1px);
+}
+
+.vocabulary-row-main {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.vocabulary-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  border-radius: 50%;
+  background: #a78bfa;
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.14);
+}
+
+.vocabulary-dot.is-due {
+  background: #f472b6;
+  box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.14);
+}
+
+.vocabulary-dot.is-learned {
+  background: var(--success);
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.14);
+}
+
+.vocabulary-dot.is-scheduled {
+  background: #a78bfa;
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.14);
+}
+
+.vocabulary-word {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.vocabulary-word strong {
+  overflow: hidden;
+  color: #f7f1ff;
+  font-size: 0.94rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vocabulary-word small {
+  overflow: hidden;
+  color: #9383a3;
+  font-size: 0.7rem;
+  letter-spacing: 0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vocabulary-translation {
+  overflow: hidden;
+  margin: 0;
+  color: #c9b8d8;
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vocabulary-row-side {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-self: end;
+}
+
+.vocabulary-chip {
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  border-radius: 999px;
+  padding: 0.28rem 0.62rem;
+  background: rgba(167, 139, 250, 0.1);
+  color: #c4b5fd;
+  white-space: nowrap;
+  font-size: 0.67rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.vocabulary-chip.is-due {
+  border-color: rgba(244, 114, 182, 0.34);
+  background: rgba(244, 114, 182, 0.12);
+  color: #fbcfe8;
+}
+
+.vocabulary-chip.is-learned {
+  border-color: rgba(52, 211, 153, 0.34);
+  background: rgba(52, 211, 153, 0.12);
+  color: #a7f3d0;
+}
+
+.vocabulary-actions {
+  display: flex;
+  gap: 0.15rem;
+  margin-left: 0.15rem;
+}
+
+.vocabulary-action {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: #8f7ea0;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.vocabulary-action svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vocabulary-action:hover,
+.vocabulary-action:focus-visible {
+  border-color: rgba(191, 64, 250, 0.26);
+  background: rgba(191, 64, 250, 0.14);
+  color: #fff;
+}
+
+.vocabulary-action.is-danger:hover,
+.vocabulary-action.is-danger:focus-visible {
+  border-color: rgba(248, 113, 113, 0.32);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+}
+
+.vocabulary-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 3.2rem 1.5rem 3.4rem;
+  text-align: center;
+}
+
+.vocabulary-empty-orb {
+  display: grid;
+  place-items: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  margin-bottom: 0.4rem;
+  border: 1px solid rgba(191, 64, 250, 0.35);
+  border-radius: 1.1rem;
+  background: radial-gradient(circle at 30% 25%, rgba(236, 177, 255, 0.4), rgba(73, 40, 194, 0.2));
+  color: #f5d0fe;
+  font-size: 1.35rem;
+  box-shadow: 0 0.8rem 1.8rem rgba(147, 51, 234, 0.22);
+}
+
+.vocabulary-empty h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.vocabulary-empty p {
+  max-width: 28rem;
+  margin: 0;
+}
+
+.vocabulary-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.vocabulary-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.85rem 1.15rem;
+  border-top: 1px solid var(--dash-border);
+  color: #9c8baa;
+  font-size: 0.76rem;
+}
+
+.vocabulary-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.vocabulary-page {
+  min-width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--dash-border);
+  border-radius: 0.55rem;
+  padding: 0 0.45rem;
+  background: transparent;
+  color: #c9b8d8;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.vocabulary-page:hover:not(:disabled),
+.vocabulary-page:focus-visible {
+  border-color: rgba(191, 64, 250, 0.35);
+  background: rgba(191, 64, 250, 0.12);
+  color: #fff;
+}
+
+.vocabulary-page.is-active {
+  border-color: transparent;
+  background: linear-gradient(120deg, rgba(191, 64, 250, 0.95), rgba(124, 58, 237, 0.92));
+  color: #fff;
+  box-shadow: 0 0.35rem 0.9rem rgba(147, 51, 234, 0.28);
+}
+
+.vocabulary-page:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* ── Add word dialog ─────────────────────────────────────────────── */
+
+.vocabulary-dialog {
+  width: min(39rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  border: 1px solid rgba(191, 64, 250, 0.28);
+  border-radius: 1.35rem;
+  padding: 0;
+  background: linear-gradient(160deg, #1a1224, #0c0912 70%);
+  color: #f5edff;
+  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.6);
+}
+
+.vocabulary-dialog::backdrop {
+  background: rgba(3, 2, 6, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.vocabulary-dialog form {
+  display: grid;
+  gap: 1.1rem;
+  padding: 1.4rem;
+}
+
+.vocabulary-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.vocabulary-dialog-head h2 {
+  margin: 0.2rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.vocabulary-dialog-close {
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 1px solid var(--dash-border);
+  border-radius: 0.65rem;
+  background: transparent;
+  color: #c9b8d8;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vocabulary-dialog-close:hover,
+.vocabulary-dialog-close:focus-visible {
+  border-color: rgba(191, 64, 250, 0.4);
+  background: rgba(191, 64, 250, 0.12);
+  color: #fff;
+}
+
+.vocabulary-form-error {
+  margin: 0;
+  border: 1px solid #a54b6b;
+  border-radius: 0.65rem;
+  padding: 0.6rem 0.8rem;
+  background: #351b2a;
+  color: #ffe3e9;
+  font-size: 0.8rem;
+}
+
+.vocabulary-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.vocabulary-field {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.vocabulary-field.is-wide {
+  grid-column: 1 / -1;
+}
+
+.vocabulary-field > span {
+  color: #b9abc9;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.vocabulary-field em {
+  color: #f472b6;
+  font-style: normal;
+}
+
+.vocabulary-field input,
+.vocabulary-field select,
+.vocabulary-field textarea {
+  width: 100%;
+  border: 1px solid var(--dash-border);
+  border-radius: 0.65rem;
+  padding: 0.6rem 0.7rem;
+  background: #120e19;
+  color: #f7f1ff;
+  font: inherit;
+  font-size: 0.85rem;
+  outline: 0;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.vocabulary-field textarea {
+  resize: vertical;
+  min-height: 4.6rem;
+}
+
+.vocabulary-field input:focus,
+.vocabulary-field select:focus,
+.vocabulary-field textarea:focus {
+  border-color: rgba(191, 64, 250, 0.6);
+  box-shadow: 0 0 0 3px rgba(191, 64, 250, 0.12);
+}
+
+.vocabulary-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+@media (max-width: 760px) {
+  .vocabulary-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .vocabulary-heading-actions {
+    width: 100%;
+  }
+
+  .vocabulary-heading-actions .btn,
+  .vocabulary-heading-actions .vocabulary-add {
+    flex: 1;
+  }
+
+  .vocabulary-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .vocabulary-search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .vocabulary-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.4rem;
+    padding: 0.7rem;
+  }
+
+  .vocabulary-row + .vocabulary-row {
+    border-top-color: rgba(227, 217, 252, 0.08);
+  }
+
+  .vocabulary-translation {
+    padding-left: 1.3rem;
+  }
+
+  .vocabulary-row-side {
+    justify-self: start;
+    padding-left: 1.3rem;
+  }
+
+  .vocabulary-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 430px) {
+  .vocabulary-row-side {
+    flex-wrap: wrap;
+  }
+
+  .vocabulary-actions {
+    margin-left: 0;
+  }
+
+  .vocabulary-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .vocabulary-dialog-actions .btn,
+  .vocabulary-dialog-actions .vocabulary-add {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vocabulary-add,
+  .vocabulary-row,
+  .vocabulary-filter,
+  .vocabulary-page,
+  .vocabulary-action,
+  .vocabulary-field input,
+  .vocabulary-field select,
+  .vocabulary-field textarea {
+    transition: none;
+  }
+
+  .vocabulary-add:hover,
+  .vocabulary-row:hover {
+    transform: none;
+  }
+}

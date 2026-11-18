@@ -181,9 +181,30 @@ export function getVocabularyStats() {
   return apiFetch('/vocabulary/stats');
 }
 
-export function getLessonVocabulary(lessonId, offset = 0, limit = 30) {
-  const query = new URLSearchParams({ lessonId, offset: String(offset), limit: String(limit) });
+export function listVocabulary({ lessonId, due = false, offset = 0, limit = 100 } = {}) {
+  const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+  if (lessonId) query.set('lessonId', lessonId);
+  if (due) query.set('due', 'true');
   return apiFetch(`/vocabulary?${query}`);
+}
+
+export function getLessonVocabulary(lessonId, offset = 0, limit = 30) {
+  return listVocabulary({ lessonId, offset, limit });
+}
+
+export function createVocabularyItem(input) {
+  return apiFetch('/vocabulary', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function updateVocabularyItem(itemId, input) {
+  return apiFetch(`/vocabulary/${encodeURIComponent(itemId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteVocabularyItem(itemId) {
+  return apiFetch(`/vocabulary/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
 }
 
 export function createFlashcardSession({ source, courseId, level } = {}) {

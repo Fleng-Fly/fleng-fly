@@ -37,6 +37,9 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           d="M7 3h10v7a5 5 0 0 1-10 0V3ZM7 5H4v3a4 4 0 0 0 4 4m9-7h3v3a4 4 0 0 1-4 4M12 15v4m-4 2h8"
         />
       </symbol>
+      <symbol id="icon-bookmark" viewBox="0 0 24 24">
+        <path d="M6 3h12v18l-6-4-6 4V3Z" />
+      </symbol>
       <symbol id="icon-settings" viewBox="0 0 24 24">
         <path
           d="M10 2h4l.6 2.4 2 1.1 2.3-.8 2 3.4-1.7 1.7v2.4l1.7 1.7-2 3.4-2.3-.8-2 1.1L14 20h-4l-.6-2.4-2-1.1-2.3.8-2-3.4 1.7-1.7V9.8L3.1 8.1l2-3.4 2.3.8 2-1.1L10 2Z"
@@ -82,6 +85,9 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
             ><svg><use href="#icon-trophy" /></svg><span>Leaderboard</span></a>
           <a class="sidebar-link" href="/courses.html"
             ><svg><use href="#icon-book" /></svg><span>Lessons</span></a
+          >
+          <a class="sidebar-link" href="/vocabulary.html"
+            ><svg><use href="#icon-bookmark" /></svg><span>My Words</span></a
           >
           <a id="sidebar-course-link" class="sidebar-link" href="/courses.html"
             ><svg><use href="#icon-layers" /></svg><span>Course</span></a
@@ -192,8 +198,8 @@ export function mountWorkspace(active) {
             ? link.getAttribute('href') === '/courses.html' && link.id !== 'sidebar-course-link'
             : active === 'courses'
               ? link.id === 'sidebar-course-link'
-              : active === 'flashcards'
-                ? false
+              : active === 'vocabulary' || active === 'flashcards'
+                ? link.getAttribute('href') === '/vocabulary.html'
                 : link.getAttribute('href') === '/dashboard.html';
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');

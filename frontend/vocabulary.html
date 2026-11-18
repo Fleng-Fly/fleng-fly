@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Words — Fleng</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/vocabulary.css" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#101126" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <script defer src="/js/pwa.js"></script>
+  </head>
+  <body class="dashboard-page vocabulary-page">
+    <main class="dashboard-main vocabulary-main">
+      <section id="vocabulary-error" class="dashboard-alert" role="alert" hidden>
+        <span id="vocabulary-error-text"></span>
+        <button id="vocabulary-retry" class="dashboard-text-button" type="button">Try again</button>
+      </section>
+
+      <div id="vocabulary-content" hidden>
+        <header class="dashboard-page-heading vocabulary-heading">
+          <div>
+            <p class="dashboard-eyebrow">VOCABULARY</p>
+            <div class="vocabulary-title-row">
+              <h1>My Words</h1>
+              <span id="vocabulary-count" class="vocabulary-count">0</span>
+            </div>
+            <p class="dashboard-subtitle">
+              Your personal dictionary — add, search and review the words you save.
+            </p>
+          </div>
+          <div class="vocabulary-heading-actions">
+            <a class="btn btn-secondary" href="/flashcards.html">Review due</a>
+            <button id="vocabulary-add-open" class="vocabulary-add" type="button">
+              <svg aria-hidden="true"><use href="#icon-plus" /></svg>
+              Add word
+            </button>
+          </div>
+        </header>
+
+        <section class="vocabulary-panel" aria-labelledby="vocabulary-list-heading">
+          <h2 id="vocabulary-list-heading" class="sr-only">Saved words</h2>
+
+          <div class="vocabulary-toolbar">
+            <div
+              id="vocabulary-filters"
+              class="vocabulary-filters"
+              role="tablist"
+              aria-label="Filter words"
+            >
+              <button
+                class="vocabulary-filter is-active"
+                type="button"
+                role="tab"
+                data-filter="all"
+                aria-selected="true"
+              >
+                All words
+              </button>
+              <button
+                class="vocabulary-filter"
+                type="button"
+                role="tab"
+                data-filter="due"
+                aria-selected="false"
+              >
+                Due now
+              </button>
+              <button
+                class="vocabulary-filter"
+                type="button"
+                role="tab"
+                data-filter="learning"
+                aria-selected="false"
+              >
+                Learning
+              </button>
+              <button
+                class="vocabulary-filter"
+                type="button"
+                role="tab"
+                data-filter="learned"
+                aria-selected="false"
+              >
+                Learned
+              </button>
+            </div>
+            <label class="vocabulary-search">
+              <svg aria-hidden="true"><use href="#icon-search" /></svg>
+              <span class="sr-only">Search words</span>
+              <input
+                id="vocabulary-query"
+                type="search"
+                placeholder="Search words or translations"
+                autocomplete="off"
+              />
+            </label>
+          </div>
+
+          <p id="vocabulary-status" class="vocabulary-status" role="status" aria-live="polite">
+            Loading words…
+          </p>
+
+          <ul id="vocabulary-list" class="vocabulary-list" hidden></ul>
+
+          <div id="vocabulary-empty" class="vocabulary-empty" hidden>
+            <span class="vocabulary-empty-orb" aria-hidden="true">✦</span>
+            <h3>No words here yet</h3>
+            <p id="vocabulary-empty-text" class="dashboard-muted">
+              Add your first word or save one from a lesson.
+            </p>
+            <div class="vocabulary-empty-actions">
+              <button id="vocabulary-empty-add" class="vocabulary-add" type="button">
+                <svg aria-hidden="true"><use href="#icon-plus" /></svg>
+                Add your first word
+              </button>
+              <button id="vocabulary-empty-clear" class="btn btn-secondary" type="button" hidden>
+                Clear filters
+              </button>
+              <a class="btn btn-secondary" href="/courses.html">Browse lessons</a>
+            </div>
+          </div>
+
+          <footer id="vocabulary-footer" class="vocabulary-footer" hidden>
+            <span id="vocabulary-range"></span>
+            <nav id="vocabulary-pages" class="vocabulary-pages" aria-label="Word pages"></nav>
+          </footer>
+        </section>
+      </div>
+    </main>
+
+    <dialog
+      id="vocabulary-dialog"
+      class="vocabulary-dialog"
+      aria-labelledby="vocabulary-dialog-title"
+    >
+      <form id="vocabulary-form" novalidate>
+        <header class="vocabulary-dialog-head">
+          <div>
+            <p class="dashboard-eyebrow">NEW WORD</p>
+            <h2 id="vocabulary-dialog-title">Add a word</h2>
+          </div>
+          <button
+            id="vocabulary-dialog-close"
+            class="vocabulary-dialog-close"
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </header>
+
+        <p id="vocabulary-form-error" class="vocabulary-form-error" role="alert" hidden></p>
+
+        <div class="vocabulary-fields">
+          <label class="vocabulary-field">
+            <span>Word <em aria-hidden="true">*</em></span>
+            <input id="vocabulary-word" name="word" required maxlength="120" autocomplete="off" />
+          </label>
+          <label class="vocabulary-field">
+            <span>Translation <em aria-hidden="true">*</em></span>
+            <input
+              id="vocabulary-translation"
+              name="translation"
+              required
+              maxlength="300"
+              autocomplete="off"
+            />
+          </label>
+          <label class="vocabulary-field">
+            <span>Part of speech</span>
+            <select id="vocabulary-pos" name="partOfSpeech">
+              <option value="">Not set</option>
+              <option value="noun">Noun</option>
+              <option value="verb">Verb</option>
+              <option value="adjective">Adjective</option>
+              <option value="adverb">Adverb</option>
+              <option value="phrase">Phrase</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="vocabulary-field">
+            <span>Transcription</span>
+            <input
+              id="vocabulary-transcription"
+              name="transcription"
+              maxlength="120"
+              placeholder="/ˈwɜːd/"
+              autocomplete="off"
+            />
+          </label>
+          <label class="vocabulary-field">
+            <span>Topic</span>
+            <input
+              id="vocabulary-topic"
+              name="topic"
+              maxlength="80"
+              placeholder="Travel, work, everyday…"
+              autocomplete="off"
+            />
+          </label>
+          <label class="vocabulary-field is-wide">
+            <span>Example</span>
+            <textarea
+              id="vocabulary-example"
+              name="example"
+              rows="3"
+              maxlength="1000"
+              placeholder="A sentence that helps you remember the word."
+            ></textarea>
+          </label>
+        </div>
+
+        <footer class="vocabulary-dialog-actions">
+          <button id="vocabulary-cancel" class="btn btn-secondary" type="button">Cancel</button>
+          <button id="vocabulary-submit" class="vocabulary-add" type="submit">Save word</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <svg class="dashboard-icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6" /></symbol>
+      <symbol id="icon-undo" viewBox="0 0 24 24">
+        <path d="M9 5 4 10l5 5M4 10h10a6 6 0 0 1 0 12H9" />
+      </symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24">
+        <path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6" />
+      </symbol>
+    </svg>
+
+    <script type="module" src="/js/vocabulary.js"></script>
+  </body>
+</html>
