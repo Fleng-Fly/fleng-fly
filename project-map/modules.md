@@ -401,8 +401,10 @@ up and prepared in place; no migration or API/business-policy change is introduc
 ## Learning Experience 2.0 — 2026-11-18
 
 - `auth/google.py` (new): server-side Google OAuth 2.0 + PKCE, signed state cookie,
-  ID-token verification. `auth/service.sign_in_with_google` links by Google `sub`, then
-  verified email (neutralizing a pre-registered password). Table `oauth_identities`.
+  ID-token verification. `auth/service.sign_in_with_google` resolves by Google `sub`, else
+  creates a user; an existing email is refused (`google_link_required`). Linking to a
+  password account is `POST /auth/google/link` (password re-entry, account-bound state,
+  Google email must equal the account email; `service.link_google`). Table `oauth_identities`.
   Off unless `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` are set.
 - Frontend session: `session.redirectIfSignedIn()` on landing/login/register; a non-secret
   `fleng.session.hint` lets `i18n-boot.js` hide those pages while restoring (no login flash).

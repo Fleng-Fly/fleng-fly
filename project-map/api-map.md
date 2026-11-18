@@ -26,6 +26,8 @@ Response: `{ status: "ok", service: "backend", timestamp, database: "up" | "down
 | GET | `/auth/providers` | public | ✅ |
 | GET | `/auth/google/start` | public | ✅ |
 | GET | `/auth/google/callback` | state cookie | ✅ |
+| GET | `/auth/identities` | bearer | ✅ |
+| POST | `/auth/google/link` | bearer + password | ✅ |
 | POST | `/auth/verify-email` | token | ⬜ |
 | POST | `/auth/forgot-password` | public | ⬜ |
 | POST | `/auth/reset-password` | token | ⬜ |
@@ -242,6 +244,8 @@ No keys before completion, no XP/profile update. Details: docs/03-backend/placem
 | GET | `/auth/providers` | public | ✅ |
 | GET | `/auth/google/start` | public | ✅ |
 | GET | `/auth/google/callback` | state cookie | ✅ |
+| GET | `/auth/identities` | bearer | ✅ |
+| POST | `/auth/google/link` | bearer + password | ✅ |
 | GET | `/vocabulary?q=&courseId=&lessonId=&learned=` | bearer | ✅ (`X-Total-Count`) |
 | GET | `/vocabulary/groups` | bearer | ✅ |
 | POST | `/ai/chat`, `/ai/chat/stream` (`currentAnswer`) | bearer | ✅ |

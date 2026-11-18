@@ -6,22 +6,29 @@ access token is returned in the JSON body and kept in memory by the frontend.
 
 import hashlib
 import logging
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_current_user
 from app.core.config import Settings, get_settings
 from app.core.errors import ApiError
 from app.core.limits import consume
+from app.db.models import User
 from app.db.session import get_db
 from app.modules.auth import google, service
 from app.modules.auth.schemas import (
     AccessTokenResponse,
+    GoogleLinkRequest,
+    GoogleLinkResponse,
+    IdentitiesResponse,
     LoginRequest,
     RegisterRequest,
     TokenResponse,
 )
+from app.modules.auth.security import password_work, verify_password
 from app.modules.users.service import to_user_response
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -220,6 +227,19 @@ def _clear_oauth_cookie(response: Response, settings: Settings) -> None:
     )
 
 
+def _set_oauth_cookie(response: Response, value: str, settings: Settings) -> None:
+    response.set_cookie(
+        key=google.STATE_COOKIE,
+        value=value,
+        max_age=int(google.STATE_TTL.total_seconds()),
+        httponly=True,
+        secure=settings.secure_cookies,
+        # Lax: Google returns to the callback with a top-level GET navigation.
+        samesite="lax",
+        path=google.STATE_COOKIE_PATH,
+    )
+
+
 @router.get("/google/start")
 async def google_start(
     page: str = Query(default="login", pattern="^(login|register)$"),
@@ -229,16 +249,59 @@ async def google_start(
         return _login_redirect(page, "google_unavailable")
     url, cookie = google.build_authorization(settings, page)
     response = RedirectResponse(url, status_code=status.HTTP_302_FOUND)
-    response.set_cookie(
-        key=google.STATE_COOKIE,
-        value=cookie,
-        max_age=int(google.STATE_TTL.total_seconds()),
-        httponly=True,
-        secure=settings.secure_cookies,
-        # Lax: Google returns to the callback with a top-level GET navigation.
-        samesite="lax",
-        path=google.STATE_COOKIE_PATH,
+    _set_oauth_cookie(response, cookie, settings)
+    return response
+
+
+@router.get("/identities", response_model=IdentitiesResponse)
+async def identities(
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> IdentitiesResponse:
+    return IdentitiesResponse(google_linked=await service.has_google_identity(db, current_user.id))
+
+
+@router.post("/google/link", response_model=GoogleLinkResponse)
+async def google_link(
+    payload: GoogleLinkRequest,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> GoogleLinkResponse:
+    """Start connecting Google to the signed-in account after re-entering its password.
+
+    The password proves ownership right now (a stolen access token or an old session is not
+    enough). The returned Google URL belongs to a state cookie bound to this account.
+    """
+    if not settings.google_enabled:
+        raise ApiError(503, "GOOGLE_UNAVAILABLE", "Google sign-in is not configured")
+    # Same budget as password logins: this endpoint is a password oracle for a stolen token.
+    await consume(
+        db, f"auth:google-link:{current_user.id}", settings.auth_login_email_per_minute, 60
     )
+    await db.commit()
+    if await service.has_google_identity(db, current_user.id):
+        raise ApiError(409, "GOOGLE_ALREADY_LINKED", "A Google account is already connected")
+    if not await password_work(verify_password, current_user.password_hash, payload.password):
+        raise ApiError(400, "INVALID_PASSWORD", "Password is incorrect")
+    url, cookie = google.build_authorization(settings, "login", str(current_user.id))
+    _set_oauth_cookie(response, cookie, settings)
+    response.headers["Cache-Control"] = "no-store"
+    return GoogleLinkResponse(url=url)
+
+
+_LINK_ERRORS = {
+    "GOOGLE_EMAIL_MISMATCH": "google_email_mismatch",
+    "GOOGLE_ALREADY_LINKED": "google_already_linked",
+}
+
+
+def _failed(page: str, linking: bool, code: str, settings: Settings) -> RedirectResponse:
+    if linking:
+        response = RedirectResponse(f"/settings.html?googleError={code}", status.HTTP_302_FOUND)
+    else:
+        response = _login_redirect(page, code)
+    _clear_oauth_cookie(response, settings)
     return response
 
 
@@ -253,11 +316,13 @@ async def google_callback(
     client: google.GoogleClient = Depends(google.get_google_client),
 ) -> RedirectResponse:
     page = "login"
+    linking = False
     try:
         if not settings.google_enabled:
             raise google.GoogleAuthError("google_unavailable")
         saved = google.read_state(settings, request.cookies.get(google.STATE_COOKIE), state)
         page = "register" if saved.get("page") == "register" else "login"
+        linking = bool(saved.get("link"))
         if error:
             raise google.GoogleAuthError("google_denied")
         if not code:
@@ -271,16 +336,21 @@ async def google_callback(
             raise google.GoogleAuthError("google_rate_limited") from None
         id_token = await client.exchange_code(code, saved["verifier"])
         profile = await client.verify_id_token(id_token, saved["nonce"])
+        if linking:
+            await service.link_google(db, user_id=UUID(saved["link"]), profile=profile)
+            response = RedirectResponse("/settings.html?google=linked", status.HTTP_302_FOUND)
+            _clear_oauth_cookie(response, settings)
+            return response
         user = await service.sign_in_with_google(db, profile)
         _, raw_refresh = await service.create_session(db, user=user, settings=settings)
     except google.GoogleAuthError as exc:
-        response = _login_redirect(page, exc.code)
-        _clear_oauth_cookie(response, settings)
-        return response
-    except ApiError:
-        response = _login_redirect(page, "google_failed")
-        _clear_oauth_cookie(response, settings)
-        return response
+        return _failed(page, linking, exc.code, settings)
+    except service.GoogleLinkRequired:
+        return _failed(page, linking, "google_link_required", settings)
+    except ApiError as exc:
+        return _failed(page, linking, _LINK_ERRORS.get(exc.code, "google_failed"), settings)
+    except ValueError:  # a state cookie without a usable account id
+        return _failed(page, linking, "google_state", settings)
     response = RedirectResponse("/dashboard.html", status_code=status.HTTP_302_FOUND)
     _set_refresh_cookie(response, raw_refresh, settings)
     _clear_oauth_cookie(response, settings)

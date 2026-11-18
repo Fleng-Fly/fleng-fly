@@ -63,6 +63,8 @@ test('Google button appears only when the server has Google configured', async (
 test('failed Google attempts explain themselves; unrelated error codes are ignored', async () => {
   const denied = await load({ search: '?error=google_denied' });
   assert.equal(await denied.session.setupGoogleSignIn(), english['auth.googleDenied']);
+  const needsLink = await load({ search: '?error=google_link_required' });
+  assert.equal(await needsLink.session.setupGoogleSignIn(), english['auth.googleLinkRequired']);
   const unknown = await load({ search: '?error=google_weird' });
   assert.equal(await unknown.session.setupGoogleSignIn(), english['auth.googleFailed']);
   const other = await load({ search: '?error=something' });

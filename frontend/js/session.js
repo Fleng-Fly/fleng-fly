@@ -49,6 +49,7 @@ const GOOGLE_ERRORS = {
   google_unverified: 'auth.googleUnverified',
   google_unavailable: 'auth.googleUnavailable',
   google_rate_limited: 'errors.429',
+  google_link_required: 'auth.googleLinkRequired',
 };
 
 /**

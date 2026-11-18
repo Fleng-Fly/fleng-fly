@@ -361,8 +361,12 @@ server-owned. No auth, grading, XP or database change.
 ## Learning Experience 2.0 — 2026-11-18
 
 - **Google sign-in:** browser → `GET /auth/google/start` (signed state cookie) → Google →
-  `GET /auth/google/callback` → code exchange + ID-token checks → user by `sub` / verified
-  email → refresh cookie → `/dashboard.html` → access token via `/auth/refresh`.
+  `GET /auth/google/callback` → code exchange + ID-token checks → user by `sub`, else a new
+  user; an existing email is refused (`google_link_required`) → refresh cookie →
+  `/dashboard.html` → access token via `/auth/refresh`.
+- **Connect Google:** Settings → `POST /auth/google/link` (password re-entry, account-bound
+  state cookie) → Google → same callback in link mode → identity attached (email must match)
+  → `/settings.html?google=linked`. No session is issued and no password changes.
 - **Lesson words:** last exercise completed → `exercises.submit_answer` marks the lesson
   completed and, in the same transaction, `vocabulary.collect_lesson_words` copies the
   lesson's `course_vocabulary_items` into `vocabulary_items` (insert-or-ignore per word).

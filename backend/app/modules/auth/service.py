@@ -212,15 +212,18 @@ async def invalidate_password_sessions(db: AsyncSession, user_id: UUID) -> None:
     )
 
 
+class GoogleLinkRequired(Exception):
+    """A password account already owns this email; Google must be linked from inside it."""
+
+
 async def sign_in_with_google(db: AsyncSession, profile: GoogleProfile) -> User:
-    """Return the user for a verified Google identity, linking or creating as needed.
+    """Return the user for a verified Google identity, or create one.
 
     1. Known Google `sub`  -> that user (the email may have changed; the `sub` is stable).
-    2. Else an account with the same verified email -> link it. Fleng does not verify
-       emails at sign-up, so someone could have pre-registered this address with a
-       password they know ("pre-hijacking"). Linking therefore replaces the password
-       with an unknown one and revokes existing sessions; the owner signs in with
-       Google or uses password reset to choose a new password.
+    2. Else an account already uses this email -> `GoogleLinkRequired`. Fleng does not
+       verify emails at sign-up, so a matching email alone proves nothing about who
+       registered the account. Nothing is linked, changed or revoked here; the owner
+       connects Google from inside the account (`link_google`) after re-entering the password.
     3. Else create a new account.
     """
     for attempt in range(2):
@@ -236,33 +239,10 @@ async def sign_in_with_google(db: AsyncSession, profile: GoogleProfile) -> User:
             return user
 
         email = _normalize_email(profile.email)
-        existing = await db.scalar(
-            select(User).options(selectinload(User.profile)).where(User.email == email)
-        )
-        try:
-            if existing is not None:
-                await lock_learner(db, existing.id)
-                has_google = await db.scalar(
-                    select(OAuthIdentity.id).where(
-                        OAuthIdentity.user_id == existing.id, OAuthIdentity.provider == "google"
-                    )
-                )
-                if has_google is not None:
-                    # A different Google account claims this email: never merge it.
-                    raise ApiError(409, "EMAIL_TAKEN", "An account with this email already exists")
-                existing.password_hash = await password_work(hash_password, random_password())
-                await _revoke_all_for_user(db, existing.id)
-                db.add(
-                    OAuthIdentity(
-                        user_id=existing.id,
-                        provider="google",
-                        subject=profile.subject,
-                        email=email,
-                    )
-                )
-                await db.commit()
-                return existing
+        if await db.scalar(select(User.id).where(User.email == email)) is not None:
+            raise GoogleLinkRequired
 
+        try:
             user = User(
                 email=email, password_hash=await password_work(hash_password, random_password())
             )
@@ -287,3 +267,47 @@ async def sign_in_with_google(db: AsyncSession, profile: GoogleProfile) -> User:
             raise ApiError(500, "INTERNAL_ERROR", "Account could not be loaded")
         return loaded
     raise ApiError(409, "EMAIL_TAKEN", "Could not complete sign-in")  # pragma: no cover
+
+
+async def has_google_identity(db: AsyncSession, user_id: UUID) -> bool:
+    found = await db.scalar(
+        select(OAuthIdentity.id).where(
+            OAuthIdentity.user_id == user_id, OAuthIdentity.provider == "google"
+        )
+    )
+    return found is not None
+
+
+async def link_google(db: AsyncSession, *, user_id: UUID, profile: GoogleProfile) -> None:
+    """Attach a verified Google identity to an account the caller proved they own.
+
+    The caller (callback) only reaches this with a state cookie that was minted after the
+    account password was re-entered. The Google email must equal the account email, so a
+    pre-registered account can never be tied to somebody else's Google identity.
+    Raises `ApiError` for every refusal; nothing is changed in that case.
+    """
+    await lock_learner(db, user_id)
+    user = await db.get(User, user_id)
+    if user is None:
+        raise ApiError(401, "UNAUTHORIZED", "Account no longer exists")
+    if _normalize_email(profile.email) != user.email:
+        raise ApiError(409, "GOOGLE_EMAIL_MISMATCH", "Google email differs from the account email")
+    if await has_google_identity(db, user_id):
+        raise ApiError(409, "GOOGLE_ALREADY_LINKED", "A Google account is already connected")
+    taken = await db.scalar(
+        select(OAuthIdentity.id).where(
+            OAuthIdentity.provider == "google", OAuthIdentity.subject == profile.subject
+        )
+    )
+    if taken is not None:
+        raise ApiError(409, "GOOGLE_ALREADY_LINKED", "This Google account belongs to another user")
+    db.add(
+        OAuthIdentity(user_id=user_id, provider="google", subject=profile.subject, email=user.email)
+    )
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise ApiError(
+            409, "GOOGLE_ALREADY_LINKED", "Could not connect this Google account"
+        ) from None

@@ -89,6 +89,24 @@
             </button>
             <p id="logout-feedback" class="settings-feedback" role="alert"></p>
           </section>
+          <section id="google-card" class="settings-card" aria-labelledby="google-title" hidden>
+            <div class="settings-card-heading">
+              <div>
+                <h2 id="google-title" data-i18n="settings.googleTitle">Google account</h2>
+                <p id="google-hint" data-i18n="settings.googleHint">
+                  Connect the Google account that uses your Fleng email to sign in with one click.
+                </p>
+              </div>
+            </div>
+            <form id="google-link-form" novalidate hidden>
+              <label for="google-link-password" data-i18n="settings.googleLinkPassword">Confirm your password</label>
+              <input id="google-link-password" class="settings-control" type="password" autocomplete="current-password" maxlength="128" required />
+              <button id="google-link-button" class="settings-outline-button" type="submit" data-i18n="settings.googleLinkButton">
+                Connect Google
+              </button>
+            </form>
+            <p id="google-feedback" class="settings-feedback" role="status"></p>
+          </section>
         </div>
         <section
           id="account-information"

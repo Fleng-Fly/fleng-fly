@@ -173,7 +173,43 @@ Request body: none.
 
 Declared responses:
 
-- **200**: Successful Response; this route actually answers `302` to `/dashboard.html` and sets the refresh cookie, or `302` to `/login.html?error=google_*`. See docs/authentication.md for the flow and account-linking rules.
+- **200**: Successful Response; this route actually answers `302` to `/dashboard.html` and sets the refresh cookie, or `302` to `/login.html?error=google_*` (`google_link_required` when a password account already uses the email). When the state cookie was minted by `POST /auth/google/link` it only links the identity and answers `302` to `/settings.html?google=linked` or `/settings.html?googleError=*`, without issuing a session. See docs/authentication.md for the flow and account-linking rules.
+
+Errors/permissions: module-specific and shared runtime rules above apply. No caller-selected owner override exists.
+
+## `GET /api/v1/auth/identities`
+
+Identities
+
+Authentication/permissions: Bearer access token; own account only.
+
+Parameters: none.
+
+Request body: none.
+
+Declared responses:
+
+- **200**: Successful Response; `IdentitiesResponse`, whether a Google account is connected.
+
+Errors/permissions: module-specific and shared runtime rules above apply. No caller-selected owner override exists.
+
+## `POST /api/v1/auth/google/link`
+
+Google Link
+
+Authentication/permissions: Bearer access token; requires the current account password (re-authentication); rate limited per user; sets the account-bound `fleng_oauth` state cookie.
+
+Parameters: none.
+
+Request body: `GoogleLinkRequest`.
+
+Declared responses:
+
+- **200**: Successful Response; `GoogleLinkResponse` with Google's authorization `url`.
+- **400**: `INVALID_PASSWORD`.
+- **409**: `GOOGLE_ALREADY_LINKED`.
+- **429**: `RATE_LIMITED`.
+- **503**: `GOOGLE_UNAVAILABLE` when Google is not configured.
 
 Errors/permissions: module-specific and shared runtime rules above apply. No caller-selected owner override exists.
 

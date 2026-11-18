@@ -215,6 +215,15 @@ export function changePassword(input) {
   return apiFetch('/users/me/password', { method: 'POST', body: JSON.stringify(input) });
 }
 
+export function getIdentities() {
+  return apiFetch('/auth/identities');
+}
+
+/** Re-authenticate with the account password; resolves to `{ url }`, Google's consent page. */
+export function startGoogleLink(password) {
+  return apiFetch('/auth/google/link', { method: 'POST', body: JSON.stringify({ password }) });
+}
+
 export function requestPasswordReset(email) {
   return apiFetch('/auth/password-reset/request', {
     method: 'POST', body: JSON.stringify({ email }),

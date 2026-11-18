@@ -31,3 +31,17 @@ class AccessTokenResponse(CamelModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int
+
+
+class GoogleLinkRequest(CamelModel):
+    """Re-authentication for connecting Google to the signed-in account."""
+
+    password: str = Field(min_length=1, max_length=PASSWORD_MAX_LENGTH)
+
+
+class GoogleLinkResponse(CamelModel):
+    url: str
+
+
+class IdentitiesResponse(CamelModel):
+    google_linked: bool

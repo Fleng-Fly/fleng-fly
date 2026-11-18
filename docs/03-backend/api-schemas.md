@@ -3099,3 +3099,60 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
   "title": "DictionaryLesson"
 }
 ```
+
+## GoogleLinkRequest
+
+```json
+{
+  "properties": {
+    "password": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Password"
+    }
+  },
+  "type": "object",
+  "required": [
+    "password"
+  ],
+  "title": "GoogleLinkRequest",
+  "description": "Re-authentication for connecting Google to the signed-in account."
+}
+```
+
+## GoogleLinkResponse
+
+```json
+{
+  "properties": {
+    "url": {
+      "type": "string",
+      "title": "Url"
+    }
+  },
+  "type": "object",
+  "required": [
+    "url"
+  ],
+  "title": "GoogleLinkResponse"
+}
+```
+
+## IdentitiesResponse
+
+```json
+{
+  "properties": {
+    "googleLinked": {
+      "type": "boolean",
+      "title": "Googlelinked"
+    }
+  },
+  "type": "object",
+  "required": [
+    "googleLinked"
+  ],
+  "title": "IdentitiesResponse"
+}
+```

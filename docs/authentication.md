@@ -124,7 +124,8 @@ Google token.
 
 Endpoints: `GET /auth/providers` (`{google: bool}`), `GET /auth/google/start?page=login|register`
 (302 to Google), `GET /auth/google/callback` (302 to `/dashboard.html`, or to
-`/login.html?error=google_*`).
+`/login.html?error=google_*`), and for the signed-in account `GET /auth/identities` and
+`POST /auth/google/link` (see *Connecting Google to an existing account*).
 
 Flow and checks:
 
@@ -136,15 +137,34 @@ Flow and checks:
    ID, `exp`, `nonce`, and `email_verified is True`. Anything else is refused.
 3. Account resolution (`service.sign_in_with_google`):
    - known Google `sub` (table `oauth_identities`) → that user, even if the email changed;
-   - else a user with the same verified email → **linked**. Fleng does not verify emails at
-     sign-up, so the address could have been pre-registered by someone else with a password
-     they know. Linking therefore replaces that password with an unknown one and revokes all
-     existing refresh sessions. The owner signs in with Google, or uses *Forgot password* to
-     set a new password;
+   - else a user with the same email → **refused** (`/login.html?error=google_link_required`).
+     Fleng does not verify emails at sign-up, so a matching address proves nothing about who
+     registered that account. Nothing is linked, no session is issued and the account's
+     password and sessions are left untouched;
    - else a new user (random unknown password; display name from Google).
-   A *different* Google account claiming an already-linked email is refused, never merged.
 4. The normal refresh cookie session is then issued; the browser lands on the dashboard and
    restores its access token through `/auth/refresh`.
+
+### Connecting Google to an existing account
+
+An existing password account is linked only from inside the account, with proof of ownership:
+
+1. Signed in, the owner opens *Settings → Google account* and re-enters the account password.
+   `POST /auth/google/link` checks it (same per-minute budget as password logins, so a stolen
+   access token cannot be used to guess it) and returns Google's authorization URL together
+   with a state cookie that is **bound to that account**.
+2. Google redirects back to the same callback. In link mode the callback validates state,
+   nonce, PKCE and the ID token exactly as for sign-in, then attaches the identity to the
+   account named in the state cookie. It does not sign anyone in and issues no session.
+3. Refusals (redirect to `/settings.html?googleError=<code>`, nothing is changed):
+   `google_email_mismatch` (the verified Google email must equal the account email, so a
+   pre-registered account can never be tied to somebody else's Google identity),
+   `google_already_linked` (the account already has a Google identity, or this Google `sub`
+   belongs to another account). A success redirects to `/settings.html?google=linked`.
+
+The database enforces one identity per `(provider, subject)` and one per `(user, provider)`,
+so concurrent attempts cannot create duplicates. No password is ever reset by linking. There is
+no unlink endpoint yet.
 
 ### Google Cloud Console setup
 
@@ -161,7 +181,7 @@ Flow and checks:
 
 The live Google flow cannot be exercised without real credentials; automated tests cover
 state/PKCE handling, token validation (with locally signed tokens) and account linking
-against a fake Google client.
+against a fake Google client (`backend/tests/test_google_auth.py`).
 
 ## Stabilized sessions and password changes
 

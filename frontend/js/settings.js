@@ -1,4 +1,4 @@
-import { requestEmailChange, confirmEmailChange, changePassword, logout, setAccessToken, updateCurrentUser } from './api.js';
+import { requestEmailChange, confirmEmailChange, changePassword, getAuthProviders, getIdentities, logout, setAccessToken, startGoogleLink, updateCurrentUser } from './api.js';
 import { describeApiError } from './errors.js';
 import { getLang, languageFromAccount, setLang, t } from './i18n.js';
 import { requireSession } from './session.js';
@@ -169,6 +169,51 @@ function bindPage() {
   });
 }
 
+/** Connecting Google needs the account password again; Google's consent page opens next. */
+async function setupGoogle() {
+  const params = new URLSearchParams(window.location.search);
+  const outcome = params.get('google');
+  const failure = params.get('googleError');
+  if (outcome || failure) history.replaceState(null, '', window.location.pathname);
+  try {
+    if (!(await getAuthProviders())?.google) return;
+    const { googleLinked } = await getIdentities();
+    $('google-card').hidden = false;
+    $('google-link-form').hidden = googleLinked;
+    $('google-hint').hidden = googleLinked;
+    if (googleLinked) feedback('google-feedback', t('settings.googleLinked'));
+    if (outcome === 'linked') feedback('google-feedback', t('settings.googleLinkDone'));
+    if (failure) {
+      const key = `settings.googleErr.${failure}`;
+      const message = t(key);
+      feedback('google-feedback', message === key ? t('settings.googleErr.default') : message, true);
+    }
+  } catch {
+    return; // Optional feature: the rest of the page keeps working.
+  }
+  $('google-link-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const password = $('google-link-password').value;
+    if (!password) {
+      $('google-link-password').focus();
+      return;
+    }
+    const button = $('google-link-button');
+    button.disabled = true;
+    button.textContent = t('settings.googleLinkWorking');
+    feedback('google-feedback', '');
+    try {
+      const { url } = await startGoogleLink(password);
+      $('google-link-password').value = '';
+      window.location.assign(url);
+    } catch (error) {
+      feedback('google-feedback', describeApiError(error), true);
+      button.disabled = false;
+      button.textContent = t('settings.googleLinkButton');
+    }
+  });
+}
+
 async function main() {
   const token = new URLSearchParams(window.location.hash.slice(1)).get('email-change');
   if (token) {
@@ -189,6 +234,7 @@ async function main() {
     renderUser(currentUser);
     bindPage();
     $('settings-content').hidden = false;
+    await setupGoogle();
   } catch (error) {
     $('settings-error-text').textContent = describeApiError(error);
     $('settings-error').hidden = false;

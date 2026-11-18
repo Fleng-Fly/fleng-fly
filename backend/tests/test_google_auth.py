@@ -141,34 +141,197 @@ async def test_changed_email_keeps_same_account_by_subject(
     assert await db_session.scalar(select(func.count()).select_from(User)) == 1
 
 
-async def test_links_existing_password_account_and_neutralizes_old_credentials(
-    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
-) -> None:
+PASSWORD = "owner-known-pass"
+LINK = "/api/v1/auth/google/link"
+
+
+async def register_account(client: AsyncClient, email: str = "ada@example.com") -> str:
+    """Create a password account, return its access token and leave the client signed out."""
     registered = await client.post(
         "/api/v1/auth/register",
-        json={"email": "ada@example.com", "password": "attacker-known-pass", "displayName": "X"},
+        json={"email": email, "password": PASSWORD, "displayName": "Ada"},
     )
     assert registered.status_code == 201
-    old_refresh = client.cookies.get(COOKIE)
     client.cookies.clear()
+    return registered.json()["accessToken"]
 
-    await finish(client, await begin(client))
 
-    assert await db_session.scalar(select(func.count()).select_from(User)) == 1
-    assert await db_session.scalar(select(func.count()).select_from(OAuthIdentity)) == 1
-    # The pre-registered password and its sessions no longer work.
+def bearer(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
+
+
+async def count(db: AsyncSession, model: type) -> int:
+    return await db.scalar(select(func.count()).select_from(model)) or 0
+
+
+async def test_google_sign_in_never_takes_over_an_existing_password_account(
+    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
+) -> None:
+    await register_account(client)
+    tokens_before = await count(db_session, RefreshToken)
+
+    response = await finish(client, await begin(client))
+
+    assert response.headers["location"] == "/login.html?error=google_link_required"
+    assert client.cookies.get(COOKIE) is None  # no session was issued
+    assert await count(db_session, User) == 1
+    assert await count(db_session, OAuthIdentity) == 0
+    assert await count(db_session, RefreshToken) == tokens_before
+    # The owner's password and sessions are untouched.
     login = await client.post(
-        "/api/v1/auth/login",
-        json={"email": "ada@example.com", "password": "attacker-known-pass"},
+        "/api/v1/auth/login", json={"email": "ada@example.com", "password": PASSWORD}
     )
-    assert login.status_code == 401
-    active = await db_session.scalar(
-        select(func.count()).select_from(RefreshToken).where(RefreshToken.revoked_at.is_(None))
+    assert login.status_code == 200
+
+
+async def test_signed_in_owner_links_google_after_password_reauthentication(
+    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
+) -> None:
+    token = await register_account(client)
+    assert (await client.get("/api/v1/auth/identities", headers=bearer(token))).json() == {
+        "googleLinked": False
+    }
+    started = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    assert started.status_code == 200
+    assert started.headers["cache-control"] == "no-store"
+    query = parse_qs(urlsplit(started.json()["url"]).query)
+    assert started.json()["url"].startswith(google.AUTH_URL)
+    assert google.STATE_COOKIE in started.headers["set-cookie"]
+
+    tokens_before = await count(db_session, RefreshToken)
+    done = await finish(client, query["state"][0])
+
+    assert done.headers["location"] == "/settings.html?google=linked"
+    assert client.cookies.get(COOKIE) is None  # linking is not a sign-in
+    assert await count(db_session, RefreshToken) == tokens_before
+    assert await count(db_session, User) == 1
+    assert await count(db_session, OAuthIdentity) == 1
+    assert (await client.get("/api/v1/auth/identities", headers=bearer(token))).json() == {
+        "googleLinked": True
+    }
+    # Password still works, and Google now signs in to the same account.
+    ok = await client.post(
+        "/api/v1/auth/login", json={"email": "ada@example.com", "password": PASSWORD}
     )
-    assert active == 1  # only the fresh Google session survives
+    assert ok.status_code == 200
     client.cookies.clear()
-    client.cookies.set(COOKIE, old_refresh or "", path="/api/v1/auth")
-    assert (await client.post("/api/v1/auth/refresh")).status_code == 401
+    signed = await finish(client, await begin(client))
+    assert signed.headers["location"] == "/dashboard.html"
+    assert await count(db_session, User) == 1
+
+
+async def test_link_matches_email_case_insensitively(
+    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
+) -> None:
+    token = await register_account(client)
+    fake.profile = GoogleProfile(subject="sub-1", email="ADA@Example.COM", name="Ada")
+    started = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    state = parse_qs(urlsplit(started.json()["url"]).query)["state"][0]
+    done = await finish(client, state)
+    assert done.headers["location"] == "/settings.html?google=linked"
+
+
+async def test_link_requires_authentication_and_the_current_password(
+    client: AsyncClient, fake: FakeGoogle
+) -> None:
+    token = await register_account(client)
+    assert (await client.post(LINK, json={"password": PASSWORD})).status_code == 401
+    wrong = await client.post(LINK, json={"password": "not-the-password"}, headers=bearer(token))
+    assert wrong.status_code == 400
+    assert google.STATE_COOKIE not in wrong.headers.get("set-cookie", "")
+    forged = await client.post(LINK, json={"password": PASSWORD}, headers=bearer("nope"))
+    assert forged.status_code == 401
+
+
+async def test_link_password_guesses_are_rate_limited(
+    client: AsyncClient, fake: FakeGoogle
+) -> None:
+    token = await register_account(client)
+    app.dependency_overrides[get_settings] = lambda: SETTINGS.model_copy(
+        update={"auth_login_email_per_minute": 2}
+    )
+    wrong = [
+        (await client.post(LINK, json={"password": f"guess-{i}"}, headers=bearer(token)))
+        for i in range(3)
+    ]
+    assert [r.status_code for r in wrong] == [400, 400, 429]
+    # Even the right password is refused while throttled.
+    right = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    assert right.status_code == 429
+
+
+async def test_link_is_unavailable_without_google_configuration(client: AsyncClient) -> None:
+    token = await register_account(client)
+    response = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    assert response.status_code == 503
+
+
+async def test_link_refuses_a_google_account_with_a_different_email(
+    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
+) -> None:
+    token = await register_account(client)
+    fake.profile = GoogleProfile(subject="sub-x", email="someone-else@example.com", name="X")
+    started = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    state = parse_qs(urlsplit(started.json()["url"]).query)["state"][0]
+    done = await finish(client, state)
+    assert done.headers["location"] == "/settings.html?googleError=google_email_mismatch"
+    assert await count(db_session, OAuthIdentity) == 0
+
+
+async def test_link_refuses_a_google_account_owned_by_another_user(
+    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
+) -> None:
+    await finish(client, await begin(client))  # ada@example.com signs up with Google (sub-1)
+    client.cookies.clear()
+    token = await register_account(client, "bob@example.com")
+    fake.profile = GoogleProfile(subject="sub-1", email="bob@example.com", name="Bob")
+    started = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    state = parse_qs(urlsplit(started.json()["url"]).query)["state"][0]
+    done = await finish(client, state)
+    assert done.headers["location"] == "/settings.html?googleError=google_already_linked"
+    assert await count(db_session, OAuthIdentity) == 1
+
+
+async def test_second_google_account_cannot_be_linked_to_the_same_user(
+    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
+) -> None:
+    token = await register_account(client)
+    started = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    await finish(client, parse_qs(urlsplit(started.json()["url"]).query)["state"][0])
+    again = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    assert again.status_code == 409
+    assert await count(db_session, OAuthIdentity) == 1
+
+
+async def test_preregistered_account_cannot_be_tied_to_the_attackers_google(
+    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
+) -> None:
+    """Pre-hijacking: the attacker registers the victim's email and knows its password."""
+    attacker_token = await register_account(client, "victim@example.com")
+    # The victim signs in with Google first: refused, nothing merged.
+    fake.profile = GoogleProfile(subject="victim-sub", email="victim@example.com", name="V")
+    refused = await finish(client, await begin(client))
+    assert refused.headers["location"] == "/login.html?error=google_link_required"
+    # The attacker tries to attach their own Google account to it: refused (email differs).
+    fake.profile = GoogleProfile(subject="evil-sub", email="evil@example.com", name="E")
+    started = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(attacker_token))
+    state = parse_qs(urlsplit(started.json()["url"]).query)["state"][0]
+    done = await finish(client, state)
+    assert done.headers["location"].endswith("googleError=google_email_mismatch")
+    assert await count(db_session, OAuthIdentity) == 0
+
+
+async def test_link_state_cannot_be_replayed_or_reused_for_sign_in(
+    client: AsyncClient, fake: FakeGoogle, db_session: AsyncSession
+) -> None:
+    token = await register_account(client)
+    started = await client.post(LINK, json={"password": PASSWORD}, headers=bearer(token))
+    state = parse_qs(urlsplit(started.json()["url"]).query)["state"][0]
+    await finish(client, state)
+    # The state cookie was consumed; replaying the callback fails and links nothing more.
+    replay = await finish(client, state)
+    assert replay.headers["location"].startswith("/login.html?error=google_state")
+    assert await count(db_session, OAuthIdentity) == 1
 
 
 async def test_other_google_account_with_same_email_is_not_merged(

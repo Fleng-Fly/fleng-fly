@@ -53,8 +53,15 @@ def _pkce_challenge(verifier: str) -> str:
     return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
 
 
-def build_authorization(settings: Settings, origin_page: str) -> tuple[str, str]:
-    """Return `(google_url, signed_state_cookie_value)` for a new sign-in attempt."""
+def build_authorization(
+    settings: Settings, origin_page: str, link_user_id: str | None = None
+) -> tuple[str, str]:
+    """Return `(google_url, signed_state_cookie_value)` for a new sign-in attempt.
+
+    `link_user_id` marks a link request: the state cookie is then bound to that account
+    (it is only minted after the account's password was re-entered) and the callback
+    attaches the Google identity to it instead of signing anyone in.
+    """
     state = secrets.token_urlsafe(32)
     nonce = secrets.token_urlsafe(32)
     verifier = secrets.token_urlsafe(64)
@@ -65,6 +72,7 @@ def build_authorization(settings: Settings, origin_page: str) -> tuple[str, str]
             "nonce": nonce,
             "verifier": verifier,
             "page": origin_page,
+            "link": link_user_id,
             "exp": datetime.now(UTC) + STATE_TTL,
         },
         settings.jwt_access_secret,
