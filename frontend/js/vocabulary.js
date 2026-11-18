@@ -169,7 +169,7 @@ function row(word) {
 }
 
 function pageButton(label, disabled, action, { active = false, ariaLabel } = {}) {
-  const button = el('button', 'vocabulary-page', label);
+  const button = el('button', 'vocabulary-page-button', label);
   button.type = 'button';
   button.disabled = disabled;
   if (active) {

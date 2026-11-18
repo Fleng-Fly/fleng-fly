@@ -453,7 +453,7 @@
   gap: 0.3rem;
 }
 
-.vocabulary-page {
+.vocabulary-page-button {
   min-width: 2rem;
   height: 2rem;
   border: 1px solid var(--dash-border);
@@ -470,21 +470,21 @@
     border-color 0.16s ease;
 }
 
-.vocabulary-page:hover:not(:disabled),
-.vocabulary-page:focus-visible {
+.vocabulary-page-button:hover:not(:disabled),
+.vocabulary-page-button:focus-visible {
   border-color: rgba(191, 64, 250, 0.35);
   background: rgba(191, 64, 250, 0.12);
   color: #fff;
 }
 
-.vocabulary-page.is-active {
+.vocabulary-page-button.is-active {
   border-color: transparent;
   background: linear-gradient(120deg, rgba(191, 64, 250, 0.95), rgba(124, 58, 237, 0.92));
   color: #fff;
   box-shadow: 0 0.35rem 0.9rem rgba(147, 51, 234, 0.28);
 }
 
-.vocabulary-page:disabled {
+.vocabulary-page-button:disabled {
   cursor: not-allowed;
   opacity: 0.4;
 }
@@ -690,7 +690,7 @@
   .vocabulary-add,
   .vocabulary-row,
   .vocabulary-filter,
-  .vocabulary-page,
+  .vocabulary-page-button,
   .vocabulary-action,
   .vocabulary-field input,
   .vocabulary-field select,
