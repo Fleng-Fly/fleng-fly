@@ -386,6 +386,15 @@ Next: human draft review and separately authorized publication; optional live
 PostgreSQL/SMTP/OpenRouter verification. No deployment or push authorized.
 Evidence: [integration report](../docs/qa/fleng-1.0-integration.md).
 
+## VPS deployment preparation — 2026-11-17
+
+Completed locally: `HOST` setting (loopback default, Render keeps 0.0.0.0), `deploy/`
+nginx/systemd/backup files, `docs/09-deployment/vps.md`. Not executed on any server.
+In progress/next: owner runs the VPS steps; verify TLS on the sslip.io host; backup +
+restore drill. Blocked on owner: Render data transfer (needs separate approval; must
+precede the first service start on the target DB), Netlify proxy switch, push.
+Next after proxy: verify client-IP rate limits behind Netlify (shared quota risk).
+
 ## Learning Experience 2.0 — 2026-11-18
 
 Completed: persistent sessions (entry pages → dashboard, logo → dashboard), Google OAuth

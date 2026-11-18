@@ -263,6 +263,11 @@ persistence and A0 guidance; screenshots reviewed. All gates passed before
 guarded fast-forward of unchanged local main. No push/deploy/publication.
 Next: hosted CI/live PostgreSQL and human sidecar review remain external.
 
+## VPS deployment preparation — 2026-11-17
+
+Completed: local `HOST` setting, `deploy/` files and runbook. Pending (owner): VPS
+execution, rate-limit verification behind proxy, off-host backup, data transfer. No push/deploy.
+
 ## Learning Experience 2.0 — 2026-11-18
 
 Completed: persistent sessions (entry pages → dashboard, logo → dashboard), Google OAuth

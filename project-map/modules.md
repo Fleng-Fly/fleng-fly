@@ -197,6 +197,13 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
 - `.env.production.example` and `docs/deployment.md`: single-service HTTPS release
   with explicit migrations, optional initial catalog and managed PostgreSQL.
 
+## VPS deployment preparation — 2026-11-17
+
+- `deploy/`: nginx site, systemd service/backup timer, backup and restore-drill scripts,
+  env template. Not applied anywhere; see `docs/09-deployment/vps.md`.
+- `run.py` listens on Settings `host` (`HOST`): loopback by default, `0.0.0.0` when
+  `RENDER_EXTERNAL_URL` is set. No new module, dependency or API.
+
 ## Course surfaces — 2026-11-04
 
 - `frontend/courses.html` + `js/courses.js`: published course catalog with local

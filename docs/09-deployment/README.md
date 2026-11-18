@@ -9,6 +9,7 @@ Repository-supported static/Python topology, release commands and explicit stora
 - [Production checklist](production-checklist.md)
 - [Render](render.md)
 - [Troubleshooting](troubleshooting.md)
+- [VPS (Debian, nginx, systemd, PostgreSQL)](vps.md)
 
 [Documentation home](../README.md)
 
