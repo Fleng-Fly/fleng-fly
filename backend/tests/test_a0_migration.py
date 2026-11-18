@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 from alembic.config import Config
-from sqlalchemy import create_engine, event, insert, select, text
+from sqlalchemy import column, create_engine, event, insert, select, table, text
 
 from alembic import command
 from app.db.models import (
@@ -21,6 +21,24 @@ from app.db.models import (
     User,
     VocabularyItem,
 )
+
+# Columns added by revisions after the ones this test exercises.
+LATER = {
+    ("exercises", "letter_tiles"),
+    *(
+        ("vocabulary_items", name)
+        for name in (
+            "course_id",
+            "pronunciation",
+            "source",
+            "interval_days",
+            "repetitions",
+            "last_reviewed_at",
+        )
+    ),
+    ("course_vocabulary_items", "lesson_id"),
+    ("course_vocabulary_items", "pronunciation"),
+}
 
 
 def test_a0_constraint_keeps_foreign_key_children(tmp_path):
@@ -75,14 +93,36 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
             )
         )
         connection.execute(insert(LessonProgress).values(user_id=user, lesson_id=lesson))
+        # Explicit columns: the models now have columns added by later revisions.
         connection.execute(
-            insert(VocabularyItem).values(
-                user_id=user, lesson_id=lesson, word="keep", translation="зберігати"
+            insert(
+                table(
+                    "vocabulary_items",
+                    *(column(n) for n in ("id", "user_id", "lesson_id", "word", "translation")),
+                    *(column(n) for n in ("example", "learned")),
+                )
+            ).values(
+                id=uuid4().hex,
+                user_id=user.hex,
+                lesson_id=lesson.hex,
+                word="keep",
+                translation="зберігати",
+                example="",
+                learned=False,
             )
         )
         connection.execute(
-            insert(CourseVocabularyItem).values(
-                course_id=course, word="keep", translation="зберігати"
+            insert(
+                table(
+                    "course_vocabulary_items",
+                    *(column(n) for n in ("id", "course_id", "word", "translation", "example")),
+                )
+            ).values(
+                id=uuid4().hex,
+                course_id=course.hex,
+                word="keep",
+                translation="зберігати",
+                example="",
             )
         )
         connection.commit()
@@ -99,7 +139,7 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
         ]
         before = {
             table: connection.execute(
-                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+                select(*(c for c in table.__table__.c if (c.table.name, c.name) not in LATER))
             ).all()
             for table in tables
         }
@@ -109,7 +149,7 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
         assert connection.execute(text("PRAGMA foreign_key_check")).all() == []
         assert {
             table: connection.execute(
-                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+                select(*(c for c in table.__table__.c if (c.table.name, c.name) not in LATER))
             ).all()
             for table in tables
         } == before
@@ -126,7 +166,7 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
         command.upgrade(config, "20261110_1400")
         assert {
             table: connection.execute(
-                select(*(column for column in table.__table__.c if column.name != "letter_tiles"))
+                select(*(c for c in table.__table__.c if (c.table.name, c.name) not in LATER))
             ).all()
             for table in tables
         } == before
