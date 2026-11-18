@@ -16,8 +16,25 @@ export const API_BASE = '/api/v1';
 
 let accessToken = null;
 
+/**
+ * A non-secret "this browser probably has a session" hint. It only lets the landing
+ * and login pages hold back their content while the session is being restored, so a
+ * signed-in learner never sees a login screen flash. The refresh cookie stays the
+ * only credential.
+ */
+const SESSION_HINT_KEY = 'fleng.session.hint';
+function rememberSession(active) {
+  try {
+    if (active) localStorage.setItem(SESSION_HINT_KEY, '1');
+    else localStorage.removeItem(SESSION_HINT_KEY);
+  } catch {
+    /* Storage unavailable: only the loading polish is lost. */
+  }
+}
+
 export function setAccessToken(token) {
   accessToken = token;
+  rememberSession(Boolean(token));
   if (token === null && typeof window !== 'undefined') {
     window.dispatchEvent(new Event('fleng:session-ended'));
   }
@@ -66,6 +83,7 @@ async function refreshAccessToken() {
     throw new ApiError('Backend returned an invalid response', response.status, 'INVALID_RESPONSE');
   }
   accessToken = body.accessToken;
+  rememberSession(true);
   return accessToken;
 }
 
@@ -169,6 +187,10 @@ export function register(input) {
 
 export function login(email, password) {
   return withSessionLock(() => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }, { retryOnUnauthorized: false }));
+}
+
+export function getAuthProviders() {
+  return apiFetch('/auth/providers', {}, { retryOnUnauthorized: false });
 }
 
 export async function logout() {

@@ -129,6 +129,54 @@ Synthetic response shape (not a seeded/live result):
 }
 ```
 
+## `GET /api/v1/auth/providers`
+
+Providers
+
+Authentication/permissions: public.
+
+Parameters: none.
+
+Request body: none.
+
+Declared responses:
+
+- **200**: Successful Response; `{"google": bool}`; reports whether Google sign-in is configured.
+
+Errors/permissions: module-specific and shared runtime rules above apply. No caller-selected owner override exists.
+
+## `GET /api/v1/auth/google/start`
+
+Google Start
+
+Authentication/permissions: public; sets a signed HttpOnly `fleng_oauth` state cookie.
+
+Parameters: query `page` = `login` or `register`.
+
+Request body: none.
+
+Declared responses:
+
+- **200**: Successful Response; this route actually answers `302` to Google (or to `/login.html?error=google_unavailable` when Google is not configured).
+
+Errors/permissions: module-specific and shared runtime rules above apply. No caller-selected owner override exists.
+
+## `GET /api/v1/auth/google/callback`
+
+Google Callback
+
+Authentication/permissions: state cookie (signed, single use); no Bearer.
+
+Parameters: query `code`, `state`, `error`.
+
+Request body: none.
+
+Declared responses:
+
+- **200**: Successful Response; this route actually answers `302` to `/dashboard.html` and sets the refresh cookie, or `302` to `/login.html?error=google_*`. See docs/authentication.md for the flow and account-linking rules.
+
+Errors/permissions: module-specific and shared runtime rules above apply. No caller-selected owner override exists.
+
 ## `POST /api/v1/auth/logout`
 
 Logout

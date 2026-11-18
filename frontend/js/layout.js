@@ -33,7 +33,7 @@ export function renderMessage(container, title, message, onRetry) {
 }
 
 const NAV_ITEMS = [
-  { href: '/index.html', key: 'home', label: 'nav.home', signedInOnly: false },
+  { href: '/index.html', key: 'home', label: 'nav.home', signedInOnly: false, guestOnly: true },
   { href: '/courses.html', key: 'courses', label: 'nav.courses', signedInOnly: true },
   { href: '/dashboard.html', key: 'dashboard', label: 'nav.dashboard', signedInOnly: true },
 ];
@@ -71,10 +71,12 @@ export async function mountHeader(active = '', user) {
     }
   }
   signedIn = Boolean(current);
+  // The logo leads to the learner's home: the dashboard when signed in.
+  if (current) brand.href = '/dashboard.html';
   if (current) await applyUserLanguage(current);
 
   for (const item of NAV_ITEMS) {
-    if (item.signedInOnly && !current) continue;
+    if ((item.signedInOnly && !current) || (item.guestOnly && current)) continue;
     const link = el('a', undefined, t(item.label));
     link.dataset.i18n = item.label;
     link.href = item.href;

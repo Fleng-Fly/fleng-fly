@@ -75,6 +75,9 @@ can distinguish "API down" from "database down".
 | POST ✅ | `/login` | Authenticate | none | `{ email, password }` | `200 { accessToken, tokenType, expiresIn, user }` + refresh cookie |
 | POST ✅ | `/refresh` | Rotate session | refresh cookie | — | `200 { accessToken, tokenType, expiresIn }` + rotated cookie |
 | POST ✅ | `/logout` | Revoke session | refresh cookie | — | `204` |
+| GET ✅ | `/providers` | Optional sign-in methods | none | — | `200 { google }` |
+| GET ✅ | `/google/start?page=login\|register` | Begin Google sign-in | none | — | `302` to Google + state cookie |
+| GET ✅ | `/google/callback` | Finish Google sign-in | state cookie | `code`, `state` | `302 /dashboard.html` + refresh cookie, or `302 /login.html?error=google_*` |
 | POST ⬜ | `/verify-email` | Confirm email | token | `{ token }` | `204` |
 | POST ⬜ | `/forgot-password` | Start reset | none | `{ email }` | `202` (always, to avoid enumeration) |
 | POST ⬜ | `/reset-password` | Complete reset | token | `{ token, password }` | `204` |

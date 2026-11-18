@@ -33,6 +33,7 @@ async function page(name, api = {}, search = '?token=private-reset-secret') {
     const values = specifier === './api.js' ? api
       : specifier === './errors.js' ? { describeApiError: (e) => e.message }
       : specifier === './i18n.js' ? { t: (key) => english[key] ?? key, applyUserLanguage: async () => {}, createLanguageSwitch: () => new Element() }
+      : specifier === './session.js' ? { redirectIfSignedIn: async () => null, setupGoogleSignIn: async () => '' }
       : { mountHeader: () => {} };
     return new vm.SyntheticModule(Object.keys(values), function () {
       for (const [key, value] of Object.entries(values)) this.setExport(key, value);
@@ -96,6 +97,7 @@ test('header logout failure preserves session and permits retry; success redirec
     setAccessToken: () => { cleared++; },
   });
   await app.module.namespace.mountHeader('home', { displayName: 'Me' });
+  assert.equal(app.node('site-header').children[0].children[0].href, '/dashboard.html');
   const auth = app.node('site-header').children[0].children[2];
   const button = auth.children.find((n) => n.tag === 'button');
   await button.events.click();

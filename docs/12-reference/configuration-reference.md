@@ -72,4 +72,7 @@ DATABASE_URL sslmode maps to asyncpg ssl; ambiguous SSL/channel_binding inputs
 are rejected. Settings validation hides input values, including database passwords.
 No additional Settings fields or fallback storage locations were introduced.
 
+| `GOOGLE_CLIENT_ID` | empty; Google OAuth client ID. Google sign-in needs all three `GOOGLE_*` values |
+| `GOOGLE_CLIENT_SECRET` | empty; server-only secret, never commit or log |
+| `GOOGLE_REDIRECT_URI` | empty; exact callback registered in Google Cloud Console (`https://<domain>/api/v1/auth/google/callback`) |
 | `EMAIL_CHANGE_URL` | `http://localhost:3001/settings.html`; public confirmation page, HTTPS in production |

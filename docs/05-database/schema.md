@@ -433,3 +433,20 @@ Table: `email_changes`. One-use authorization; see [authentication](../authentic
 | authorization_hash | VARCHAR(64) | False | — |
 | expires_at | DATETIME | False | — |
 | used_at | DATETIME | True | — |
+
+## OAuthIdentity
+
+Table: `oauth_identities`. Third-party (Google) identity linked to one user.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| user_id | CHAR(32) | False | FK users.id |
+| provider | VARCHAR(20) | False | — |
+| subject | VARCHAR(255) | False | — |
+| email | VARCHAR(320) | False | — |
+| created_at | DATETIME | False | — |
+
+Unique `oauth_identity_provider_subject_key` on provider, subject (the stable Google `sub`,
+never the email) and `oauth_identity_user_provider_key` on user_id, provider. User deletion
+cascades.

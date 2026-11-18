@@ -856,3 +856,37 @@ a:focus-visible {
     width: 100%;
   }
 }
+
+/* Held back while a remembered session is restored (see i18n-boot.js). */
+html.session-pending main,
+html.session-pending footer {
+  visibility: hidden;
+}
+
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  color: var(--muted, #9a96b5);
+  font-size: 0.85rem;
+}
+.oauth-divider::before,
+.oauth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.3;
+}
+.btn-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+.btn-google svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+}

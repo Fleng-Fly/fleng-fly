@@ -23,6 +23,9 @@ Response: `{ status: "ok", service: "backend", timestamp, database: "up" | "down
 | POST | `/auth/login` | public | ✅ |
 | POST | `/auth/refresh` | refresh cookie | ✅ |
 | POST | `/auth/logout` | refresh cookie | ✅ |
+| GET | `/auth/providers` | public | ✅ |
+| GET | `/auth/google/start` | public | ✅ |
+| GET | `/auth/google/callback` | state cookie | ✅ |
 | POST | `/auth/verify-email` | token | ⬜ |
 | POST | `/auth/forgot-password` | public | ⬜ |
 | POST | `/auth/reset-password` | token | ⬜ |

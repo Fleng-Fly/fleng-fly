@@ -10,7 +10,8 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import Settings
 from app.core.errors import ApiError
-from app.db.models import PasswordReset, Profile, Progress, RefreshToken, User
+from app.db.models import OAuthIdentity, PasswordReset, Profile, Progress, RefreshToken, User
+from app.modules.auth.google import GoogleProfile, random_password
 from app.modules.auth.security import (
     create_access_token,
     generate_refresh_token,
@@ -209,3 +210,80 @@ async def invalidate_password_sessions(db: AsyncSession, user_id: UUID) -> None:
         .where(PasswordReset.user_id == user_id, PasswordReset.used_at.is_(None))
         .values(used_at=datetime.now(UTC))
     )
+
+
+async def sign_in_with_google(db: AsyncSession, profile: GoogleProfile) -> User:
+    """Return the user for a verified Google identity, linking or creating as needed.
+
+    1. Known Google `sub`  -> that user (the email may have changed; the `sub` is stable).
+    2. Else an account with the same verified email -> link it. Fleng does not verify
+       emails at sign-up, so someone could have pre-registered this address with a
+       password they know ("pre-hijacking"). Linking therefore replaces the password
+       with an unknown one and revokes existing sessions; the owner signs in with
+       Google or uses password reset to choose a new password.
+    3. Else create a new account.
+    """
+    for attempt in range(2):
+        identity = await db.scalar(
+            select(OAuthIdentity).where(
+                OAuthIdentity.provider == "google", OAuthIdentity.subject == profile.subject
+            )
+        )
+        if identity is not None:
+            user = await get_user_with_profile(db, identity.user_id)
+            if user is None:  # pragma: no cover - foreign key protection
+                raise ApiError(500, "INTERNAL_ERROR", "Account could not be loaded")
+            return user
+
+        email = _normalize_email(profile.email)
+        existing = await db.scalar(
+            select(User).options(selectinload(User.profile)).where(User.email == email)
+        )
+        try:
+            if existing is not None:
+                await lock_learner(db, existing.id)
+                has_google = await db.scalar(
+                    select(OAuthIdentity.id).where(
+                        OAuthIdentity.user_id == existing.id, OAuthIdentity.provider == "google"
+                    )
+                )
+                if has_google is not None:
+                    # A different Google account claims this email: never merge it.
+                    raise ApiError(409, "EMAIL_TAKEN", "An account with this email already exists")
+                existing.password_hash = await password_work(hash_password, random_password())
+                await _revoke_all_for_user(db, existing.id)
+                db.add(
+                    OAuthIdentity(
+                        user_id=existing.id,
+                        provider="google",
+                        subject=profile.subject,
+                        email=email,
+                    )
+                )
+                await db.commit()
+                return existing
+
+            user = User(
+                email=email, password_hash=await password_work(hash_password, random_password())
+            )
+            user.profile = Profile(display_name=(profile.name or email.split("@")[0])[:80])
+            user.progress = Progress()
+            db.add(user)
+            await db.flush()
+            db.add(
+                OAuthIdentity(
+                    user_id=user.id, provider="google", subject=profile.subject, email=email
+                )
+            )
+            await db.commit()
+        except IntegrityError:
+            # Lost a race (parallel callback or sign-up); look everything up again once.
+            await db.rollback()
+            if attempt == 1:
+                raise ApiError(409, "EMAIL_TAKEN", "Could not complete sign-in") from None
+            continue
+        loaded = await get_user_with_profile(db, user.id)
+        if loaded is None:  # pragma: no cover - defensive
+            raise ApiError(500, "INTERNAL_ERROR", "Account could not be loaded")
+        return loaded
+    raise ApiError(409, "EMAIL_TAKEN", "Could not complete sign-in")  # pragma: no cover

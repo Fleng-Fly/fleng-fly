@@ -92,6 +92,11 @@ and the client must re-authenticate (`401 REFRESH_TOKEN_REUSED`).
   `localStorage`/`sessionStorage`.
 - `apiFetch` attaches `Authorization: Bearer`; on `401` it attempts **one**
   refresh and retries the request once, de-duplicating concurrent refreshes.
+- Entry pages (landing, login, register) call `redirectIfSignedIn()`: a restored session
+  goes straight to `/dashboard.html`. A non-secret `fleng.session.hint` flag in
+  `localStorage` (set when a token is obtained, cleared when the session ends) lets
+  `i18n-boot.js` hide these pages while the session is restored, so there is no login flash.
+  The hint is not a credential. The Fleng logo links to the dashboard when signed in.
 - `js/session.js` resolves the session on load (`loadSession`); protected pages
   call `requireSession()`, which redirects to `/login.html` when unauthenticated.
 - The static frontend is served by the backend on the same origin, so the
@@ -103,7 +108,60 @@ and the client must re-authenticate (`401 REFRESH_TOKEN_REUSED`).
 - Role-based access control (`ADMIN`) and public profiles.
 - Rate limiting on refresh (login/register/reset already have persistent limits).
 - Multi-device session listing / "log out everywhere" (the schema supports it).
-- OAuth providers and MFA.
+- MFA and OAuth providers other than Google.
+
+## Google sign-in
+
+Optional; off unless all three variables are set. Server-side OAuth 2.0 authorization
+code flow with PKCE (`backend/app/modules/auth/google.py`); the browser never sees a
+Google token.
+
+| Variable | Meaning |
+| -------- | ------- |
+| `GOOGLE_CLIENT_ID` | OAuth client ID from Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | OAuth client secret (server only, never commit) |
+| `GOOGLE_REDIRECT_URI` | Exact callback, e.g. `https://your-domain/api/v1/auth/google/callback` |
+
+Endpoints: `GET /auth/providers` (`{google: bool}`), `GET /auth/google/start?page=login|register`
+(302 to Google), `GET /auth/google/callback` (302 to `/dashboard.html`, or to
+`/login.html?error=google_*`).
+
+Flow and checks:
+
+1. `start` sets an HttpOnly, `SameSite=Lax`, 10-minute signed cookie holding `state`, `nonce`
+   and the PKCE verifier, then redirects to Google (`openid email profile`, S256 challenge).
+2. `callback` requires the `state` query value to match the signed cookie (single use: the
+   cookie is cleared), exchanges the code server-to-server with the client secret and verifier,
+   and verifies the ID token: RS256 signature against Google's JWKS, `iss`, `aud` = our client
+   ID, `exp`, `nonce`, and `email_verified is True`. Anything else is refused.
+3. Account resolution (`service.sign_in_with_google`):
+   - known Google `sub` (table `oauth_identities`) → that user, even if the email changed;
+   - else a user with the same verified email → **linked**. Fleng does not verify emails at
+     sign-up, so the address could have been pre-registered by someone else with a password
+     they know. Linking therefore replaces that password with an unknown one and revokes all
+     existing refresh sessions. The owner signs in with Google, or uses *Forgot password* to
+     set a new password;
+   - else a new user (random unknown password; display name from Google).
+   A *different* Google account claiming an already-linked email is refused, never merged.
+4. The normal refresh cookie session is then issued; the browser lands on the dashboard and
+   restores its access token through `/auth/refresh`.
+
+### Google Cloud Console setup
+
+1. Open <https://console.cloud.google.com/> → *APIs & Services* → *OAuth consent screen*;
+   choose *External*, set app name, support email, and add the scopes `openid`, `email`,
+   `profile` (non-sensitive). Add test users while the app is in *Testing*, or publish it.
+2. *Credentials* → *Create credentials* → *OAuth client ID* → type *Web application*.
+3. *Authorized redirect URIs*: add exactly the value of `GOOGLE_REDIRECT_URI`:
+   - production: `https://<your-domain>/api/v1/auth/google/callback`
+   - local: `http://localhost:3001/api/v1/auth/google/callback`
+   (*Authorized JavaScript origins* are not needed: the flow is server-side.)
+4. Put the client ID/secret/redirect URI in the server environment (see `.env.example`).
+   Restart the backend; the *Continue with Google* buttons appear on login/register.
+
+The live Google flow cannot be exercised without real credentials; automated tests cover
+state/PKCE handling, token validation (with locally signed tokens) and account linking
+against a fake Google client.
 
 ## Stabilized sessions and password changes
 

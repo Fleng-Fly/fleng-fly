@@ -140,7 +140,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
     with sqlite3.connect(path) as db:
         catalog = db.execute("SELECT count(*) FROM courses").fetchone()
         assert db.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "20261117_1200",
+            "20261118_1200",
         )
         assert not db.execute(
             "SELECT name FROM sqlite_master WHERE name LIKE '_fleng_write_probe_%'"

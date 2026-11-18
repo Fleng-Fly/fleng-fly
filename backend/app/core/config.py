@@ -55,6 +55,14 @@ class Settings(BaseSettings):
     cookie_secure: bool | None = None
     cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
+    # Google sign-in (OAuth 2.0 authorization code + PKCE). All three values are
+    # required to enable it; leaving any unset keeps the feature off.
+    google_client_id: str = ""
+    google_client_secret: SecretStr = SecretStr("")
+    # Exact callback registered in Google Cloud Console, e.g.
+    # https://example.com/api/v1/auth/google/callback. Never derived from request headers.
+    google_redirect_uri: str = ""
+
     # Learning dates use one server policy; clients cannot move the streak clock.
     learning_timezone: str = "UTC"
     reset_token_minutes: int = Field(default=30, ge=1, le=1440)
@@ -227,6 +235,14 @@ class Settings(BaseSettings):
         if self.render_external_url and self.render_external_url not in origins:
             origins.append(self.render_external_url)
         return origins
+
+    @property
+    def google_enabled(self) -> bool:
+        return bool(
+            self.google_client_id
+            and self.google_client_secret.get_secret_value()
+            and self.google_redirect_uri
+        )
 
     @property
     def is_production(self) -> bool:

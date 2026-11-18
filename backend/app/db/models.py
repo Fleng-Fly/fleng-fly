@@ -61,6 +61,32 @@ class User(Base):
     )
 
 
+class OAuthIdentity(Base):
+    """A third-party identity (currently Google) linked to one user.
+
+    `subject` is the provider's stable account id (`sub`), never the email: emails
+    can change. One identity maps to one user, and a user has at most one identity
+    per provider.
+    """
+
+    __tablename__ = "oauth_identities"
+    __table_args__ = (
+        UniqueConstraint("provider", "subject", name="oauth_identity_provider_subject_key"),
+        UniqueConstraint("user_id", "provider", name="oauth_identity_user_provider_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    provider: Mapped[str] = mapped_column(String(20), nullable=False)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(320), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class Profile(Base):
     """Public-facing learner profile. One-to-one with User."""
 

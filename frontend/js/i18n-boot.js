@@ -15,3 +15,18 @@
     /* Storage unavailable: keep the default English page. */
   }
 })();
+
+// Landing/login/register: hold the page back while a remembered session is restored, so a
+// signed-in learner is sent straight to the dashboard without seeing these pages.
+(function () {
+  try {
+    var path = window.location.pathname;
+    var entry = path === '/' || path === '/index.html' || path === '/login.html' || path === '/register.html';
+    if (entry && window.localStorage.getItem('fleng.session.hint')) {
+      document.documentElement.classList.add('session-pending');
+      window.setTimeout(function () { document.documentElement.classList.remove('session-pending'); }, 3000);
+    }
+  } catch (error) {
+    /* Storage unavailable: pages render normally. */
+  }
+})();
