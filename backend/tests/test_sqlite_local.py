@@ -70,7 +70,7 @@ def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path, app_env):
         assert counts[0] == 7
         assert db.execute("SELECT count(*) FROM lessons WHERE is_published=0").fetchone() == (0,)
         assert db.execute("SELECT count(*) FROM courses WHERE is_published=1").fetchone() == (7,)
-        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (500,)
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (560,)
         db.execute(
             "INSERT INTO users (id, email, password_hash, created_at, updated_at) "
             "VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",

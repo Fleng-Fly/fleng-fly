@@ -296,3 +296,13 @@ Refresh-rotation sign-outs (root cause found): a refresh request aborted by navi
 still rotated the token on the server, so the old cookie was replayed and treated as reuse.
 Fixed with a bounded retry window (`REFRESH_REUSE_GRACE_SECONDS`, default 10, 0 = off); see
 docs/authentication.md. Pending: run the new backend and browser regression tests locally.
+
+## Learning Experience 2.0 — visible-changes investigation — 2026-11-18
+
+Cause: the 2.0 frontend and data were served correctly, but the first two courses in the
+catalog are the seeded demo courses, which had 3 exercises per lesson and no vocabulary, so
+nothing new appeared and the dictionary stayed empty. Fixed with additive demo-lesson
+content (`db/demo_lessons.py`) and shorter, sentence-merged rule steps in the theory view.
+Google sign-in UI stays hidden until `GOOGLE_*` are set; AI help needs `AI_ENABLED`.
+Pending: human review of the demo content; the A0 "Explanation" guide card still shows above
+the new theory steps (pre-existing draft guidance).

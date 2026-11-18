@@ -14,6 +14,7 @@ from alembic import command
 from app.core.config import BACKEND_ROOT, get_settings
 from app.db.base import Base
 from app.db.curriculum import import_curriculum, load_curriculum
+from app.db.demo_lessons import import_demo_lessons
 from app.db.diagnostics import log_sqlite_snapshot
 from app.db.models import Course
 from app.db.practice import import_practice
@@ -45,6 +46,11 @@ async def populate_catalog(db: AsyncSession) -> None:
     )
     practice = await import_practice(db, content)
     print(f"Lesson practice: {practice['added']} added, {practice['existing']} already present.")
+    demo = await import_demo_lessons(db)
+    print(
+        f"Demo lessons: {demo['words_added']} words and {demo['practice_added']} exercises added, "
+        f"{demo['words_existing'] + demo['practice_existing']} already present."
+    )
 
 
 async def ensure_catalog() -> None:

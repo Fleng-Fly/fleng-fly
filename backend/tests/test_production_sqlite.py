@@ -80,7 +80,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
             assert db.execute("SELECT count(*) FROM lessons WHERE is_published=1").fetchone() == (
                 57,
             )
-            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (500,)
+            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (560,)
             published_ids = db.execute(
                 "SELECT id FROM courses WHERE is_published=1 ORDER BY id"
             ).fetchall()
@@ -172,7 +172,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
             db.execute("SELECT id FROM courses WHERE is_published=1 ORDER BY id").fetchall()
             == published_ids
         )
-        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (500,)
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (560,)
         tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert {"request_limits", "users", "profiles", "refresh_tokens"} <= tables
     logs = (tmp_path / "production.log").read_text()

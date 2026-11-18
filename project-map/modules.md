@@ -431,3 +431,8 @@ up and prepared in place; no migration or API/business-policy change is introduc
 - Frontend: `lesson.js` task line, step-by-step theory, "I don't understand" →
   `workspace.askWorkspaceAI` → `ai-assistant.askAIAssistant`; `vocabulary.js` course/lesson
   filters and word details.
+
+- `db/demo_lessons.py` + `content/demo-lessons-extras.json`: additive vocabulary (10 words)
+  and 7 extra exercises (10 per lesson) for the six seeded demo lessons (English Foundations,
+  Everyday Conversations), imported on every `app.db.prepare` after the curriculum/practice
+  steps. Without it the first two courses in the catalog kept the pre-2.0 experience.

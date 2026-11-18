@@ -1,0 +1,674 @@
+{
+ "version": 1,
+ "review_status": "authored",
+ "note": "Additive vocabulary and practice for the seeded demo lessons. Existing rows are never changed.",
+ "lessons": {
+  "greetings-and-introductions": {
+   "vocabulary": [
+    {
+     "word": "hello",
+     "translation": "привіт; добрий день",
+     "example": "Hello, my name is Alex."
+    },
+    {
+     "word": "goodbye",
+     "translation": "до побачення",
+     "example": "Goodbye. See you tomorrow."
+    },
+    {
+     "word": "please",
+     "translation": "будь ласка",
+     "example": "Please sit down."
+    },
+    {
+     "word": "thank you",
+     "translation": "дякую",
+     "example": "Thank you for your help."
+    },
+    {
+     "word": "sorry",
+     "translation": "вибачте",
+     "example": "Sorry, I am late."
+    },
+    {
+     "word": "name",
+     "translation": "ім'я",
+     "example": "What is your name?"
+    },
+    {
+     "word": "nice",
+     "translation": "приємний",
+     "example": "Nice to meet you."
+    },
+    {
+     "word": "meet",
+     "translation": "зустрічати; знайомитися",
+     "example": "I meet my friends on Friday."
+    },
+    {
+     "word": "morning",
+     "translation": "ранок",
+     "example": "Good morning, Mrs Brown."
+    },
+    {
+     "word": "friend",
+     "translation": "друг; подруга",
+     "example": "Sam is my friend."
+    }
+   ],
+   "practice": [
+    {
+     "kind": "fill_gap",
+     "prompt": "___ morning, Mrs Brown. (a polite word for the start of the day)",
+     "accepted_answers": [
+      "good"
+     ],
+     "explanation": "We say Good morning to greet someone before noon."
+    },
+    {
+     "kind": "fill_gap",
+     "prompt": "Nice to ___ you. (the verb for the first time you see someone)",
+     "accepted_answers": [
+      "meet"
+     ],
+     "explanation": "The phrase is Nice to meet you."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: name / is / My / Alex",
+     "accepted_answers": [
+      "My name is Alex"
+     ],
+     "explanation": "A sentence starts with the subject: My name is Alex."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: you / Nice / meet / to",
+     "accepted_answers": [
+      "Nice to meet you"
+     ],
+     "explanation": "This is the usual phrase when you meet someone: Nice to meet you."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «до побачення»",
+     "accepted_answers": [
+      "goodbye",
+      "bye"
+     ],
+     "explanation": "«до побачення» is goodbye (or the shorter, friendlier bye)."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «Привіт, мене звати Сем.»",
+     "accepted_answers": [
+      "hello, my name is sam",
+      "hi, my name is sam"
+     ],
+     "explanation": "Use Hello or Hi, then My name is ..."
+    },
+    {
+     "kind": "write",
+     "prompt": "Introduce yourself in two short sentences.",
+     "model_answer": "Hello, my name is Anna. Nice to meet you.",
+     "explanation": "Compare your answer with the example. Different correct answers are fine."
+    }
+   ]
+  },
+  "the-verb-to-be": {
+   "vocabulary": [
+    {
+     "word": "am",
+     "translation": "є (з «I»)",
+     "example": "I am a student."
+    },
+    {
+     "word": "is",
+     "translation": "є (з he, she, it)",
+     "example": "She is from Spain."
+    },
+    {
+     "word": "are",
+     "translation": "є (з you, we, they)",
+     "example": "We are ready."
+    },
+    {
+     "word": "student",
+     "translation": "студент; учень",
+     "example": "I am a student."
+    },
+    {
+     "word": "teacher",
+     "translation": "вчитель",
+     "example": "He is a teacher."
+    },
+    {
+     "word": "from",
+     "translation": "з; родом з",
+     "example": "She is from Spain."
+    },
+    {
+     "word": "ready",
+     "translation": "готовий",
+     "example": "We are ready."
+    },
+    {
+     "word": "tired",
+     "translation": "втомлений",
+     "example": "I'm tired."
+    },
+    {
+     "word": "late",
+     "translation": "запізнілий; пізно",
+     "example": "I am not late."
+    },
+    {
+     "word": "home",
+     "translation": "дім; вдома",
+     "example": "They're at home."
+    }
+   ],
+   "practice": [
+    {
+     "kind": "fill_gap",
+     "prompt": "I ___ a student. (the form of «to be» for I)",
+     "accepted_answers": [
+      "am"
+     ],
+     "explanation": "Use am with I: I am a student."
+    },
+    {
+     "kind": "fill_gap",
+     "prompt": "They ___ at home. (the form of «to be» for they)",
+     "accepted_answers": [
+      "are"
+     ],
+     "explanation": "Use are with you, we and they: They are at home."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: she / from / is / Spain",
+     "accepted_answers": [
+      "She is from Spain"
+     ],
+     "explanation": "Use is with she: She is from Spain."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: you / Are / ready",
+     "accepted_answers": [
+      "Are you ready"
+     ],
+     "explanation": "For a question, move the verb to the front: Are you ready?"
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «Я втомлений.»",
+     "accepted_answers": [
+      "i am tired",
+      "i'm tired",
+      "im tired"
+     ],
+     "explanation": "I am tired, or the short form I'm tired."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «Вони вдома.»",
+     "accepted_answers": [
+      "they are at home",
+      "they're at home",
+      "theyre at home"
+     ],
+     "explanation": "They are at home, or the short form They're at home."
+    },
+    {
+     "kind": "write",
+     "prompt": "Write two sentences about yourself with am: your name and your job or study.",
+     "model_answer": "I am Anna. I am a student.",
+     "explanation": "Compare your answer with the example. Different correct answers are fine."
+    }
+   ]
+  },
+  "numbers-and-days": {
+   "vocabulary": [
+    {
+     "word": "one",
+     "translation": "один",
+     "example": "I have one book."
+    },
+    {
+     "word": "two",
+     "translation": "два",
+     "example": "We have two cats."
+    },
+    {
+     "word": "ten",
+     "translation": "десять",
+     "example": "Ten students are here."
+    },
+    {
+     "word": "twelve",
+     "translation": "дванадцять",
+     "example": "There are twelve months in a year."
+    },
+    {
+     "word": "twenty",
+     "translation": "двадцять",
+     "example": "I am twenty years old."
+    },
+    {
+     "word": "Monday",
+     "translation": "понеділок",
+     "example": "The lesson is on Monday."
+    },
+    {
+     "word": "Friday",
+     "translation": "п'ятниця",
+     "example": "The meeting is on Friday."
+    },
+    {
+     "word": "Sunday",
+     "translation": "неділя",
+     "example": "We rest on Sunday."
+    },
+    {
+     "word": "week",
+     "translation": "тиждень",
+     "example": "There are seven days in a week."
+    },
+    {
+     "word": "date",
+     "translation": "дата",
+     "example": "What is the date today?"
+    }
+   ],
+   "practice": [
+    {
+     "kind": "fill_gap",
+     "prompt": "Ten and two is ___. (write the number as a word)",
+     "accepted_answers": [
+      "twelve"
+     ],
+     "explanation": "10 + 2 = 12, written twelve."
+    },
+    {
+     "kind": "fill_gap",
+     "prompt": "The day after Friday is ___.",
+     "accepted_answers": [
+      "saturday"
+     ],
+     "explanation": "The week goes Friday, Saturday, Sunday."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: meeting / The / is / on / Friday",
+     "accepted_answers": [
+      "The meeting is on Friday"
+     ],
+     "explanation": "Use on before a day of the week: on Friday."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: birthday / is / My / on / the / first / of / June",
+     "accepted_answers": [
+      "My birthday is on the first of June"
+     ],
+     "explanation": "In British English the day comes before the month: the first of June."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «двадцять»",
+     "accepted_answers": [
+      "twenty"
+     ],
+     "explanation": "«двадцять» is twenty."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «понеділок»",
+     "accepted_answers": [
+      "monday"
+     ],
+     "explanation": "«понеділок» is Monday. Days of the week start with a capital letter."
+    },
+    {
+     "kind": "write",
+     "prompt": "Write today's date and the day of the week in English.",
+     "model_answer": "Today is Monday, the eleventh of October.",
+     "explanation": "Compare your answer with the example. Different correct answers are fine."
+    }
+   ]
+  },
+  "small-talk": {
+   "vocabulary": [
+    {
+     "word": "weather",
+     "translation": "погода",
+     "example": "The weather is lovely today."
+    },
+    {
+     "word": "weekend",
+     "translation": "вихідні",
+     "example": "How was your weekend?"
+    },
+    {
+     "word": "topic",
+     "translation": "тема",
+     "example": "Food is a good topic."
+    },
+    {
+     "word": "travel",
+     "translation": "подорож; подорожувати",
+     "example": "I love to travel."
+    },
+    {
+     "word": "food",
+     "translation": "їжа",
+     "example": "The food here is great."
+    },
+    {
+     "word": "lovely",
+     "translation": "чудовий; милий",
+     "example": "It's a lovely day, isn't it?"
+    },
+    {
+     "word": "really",
+     "translation": "справді",
+     "example": "Really? What did you do?"
+    },
+    {
+     "word": "polite",
+     "translation": "ввічливий",
+     "example": "Small talk is polite."
+    },
+    {
+     "word": "conversation",
+     "translation": "розмова",
+     "example": "We had a nice conversation."
+    },
+    {
+     "word": "interest",
+     "translation": "інтерес",
+     "example": "Show interest with a question."
+    }
+   ],
+   "practice": [
+    {
+     "kind": "fill_gap",
+     "prompt": "It's a ___ day, isn't it? (very nice)",
+     "accepted_answers": [
+      "lovely"
+     ],
+     "explanation": "Lovely is a friendly word for a very nice day."
+    },
+    {
+     "kind": "fill_gap",
+     "prompt": "How was your ___? (Saturday and Sunday)",
+     "accepted_answers": [
+      "weekend"
+     ],
+     "explanation": "We ask How was your weekend? to start small talk."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: was / How / weekend / your",
+     "accepted_answers": [
+      "How was your weekend"
+     ],
+     "explanation": "A question starts with the question word: How was your weekend?"
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: nice / was / It / talking / to / you",
+     "accepted_answers": [
+      "It was nice talking to you"
+     ],
+     "explanation": "This is a polite way to end a conversation."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «погода»",
+     "accepted_answers": [
+      "weather"
+     ],
+     "explanation": "«погода» is weather, a classic small-talk topic."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «Як минули твої вихідні?»",
+     "accepted_answers": [
+      "how was your weekend"
+     ],
+     "explanation": "Use How was your weekend?"
+    },
+    {
+     "kind": "write",
+     "prompt": "Write a friendly follow-up question after someone says: «I went to the mountains.»",
+     "model_answer": "That sounds great. Did you like it?",
+     "explanation": "Compare your answer with the example. Different correct answers are fine."
+    }
+   ]
+  },
+  "asking-for-help": {
+   "vocabulary": [
+    {
+     "word": "help",
+     "translation": "допомога; допомагати",
+     "example": "Could you help me, please?"
+    },
+    {
+     "word": "could",
+     "translation": "могти б (ввічливо)",
+     "example": "Could you open the door?"
+    },
+    {
+     "word": "mind",
+     "translation": "заперечувати",
+     "example": "Would you mind opening the window?"
+    },
+    {
+     "word": "borrow",
+     "translation": "позичати (в когось)",
+     "example": "Could I borrow a pen?"
+    },
+    {
+     "word": "pass",
+     "translation": "передати",
+     "example": "Would you mind passing the salt?"
+    },
+    {
+     "word": "question",
+     "translation": "запитання",
+     "example": "Can I ask you a question?"
+    },
+    {
+     "word": "grateful",
+     "translation": "вдячний",
+     "example": "I am very grateful for your help."
+    },
+    {
+     "word": "problem",
+     "translation": "проблема",
+     "example": "No problem."
+    },
+    {
+     "word": "request",
+     "translation": "прохання",
+     "example": "This is a polite request."
+    },
+    {
+     "word": "sure",
+     "translation": "звичайно",
+     "example": "Sure, here you are."
+    }
+   ],
+   "practice": [
+    {
+     "kind": "fill_gap",
+     "prompt": "___ you help me, please? (a polite word, like «can»)",
+     "accepted_answers": [
+      "could"
+     ],
+     "explanation": "Could is more polite than can."
+    },
+    {
+     "kind": "fill_gap",
+     "prompt": "Would you mind ___ the window? (the verb «open»)",
+     "accepted_answers": [
+      "opening"
+     ],
+     "explanation": "After Would you mind, use the -ing form: opening."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: I / Can / question / a / ask",
+     "accepted_answers": [
+      "Can I ask a question"
+     ],
+     "explanation": "Start a request with the modal verb: Can I ask a question?"
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: help / you / Could / me",
+     "accepted_answers": [
+      "Could you help me"
+     ],
+     "explanation": "Could you help me? is a polite request."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «позичати»",
+     "accepted_answers": [
+      "borrow"
+     ],
+     "explanation": "«позичати» (в когось) is borrow."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «Без проблем.»",
+     "accepted_answers": [
+      "no problem"
+     ],
+     "explanation": "A friendly reply to thanks is No problem."
+    },
+    {
+     "kind": "write",
+     "prompt": "Write a polite request to a colleague to close the door.",
+     "model_answer": "Could you close the door, please?",
+     "explanation": "Compare your answer with the example. Different correct answers are fine."
+    }
+   ]
+  },
+  "past-experiences": {
+   "vocabulary": [
+    {
+     "word": "experience",
+     "translation": "досвід",
+     "example": "Travel is a great experience."
+    },
+    {
+     "word": "ever",
+     "translation": "коли-небудь",
+     "example": "Have you ever been to Ireland?"
+    },
+    {
+     "word": "never",
+     "translation": "ніколи",
+     "example": "I have never flown before."
+    },
+    {
+     "word": "visit",
+     "translation": "відвідувати",
+     "example": "I have visited London twice."
+    },
+    {
+     "word": "try",
+     "translation": "пробувати",
+     "example": "She has never tried sushi."
+    },
+    {
+     "word": "learn",
+     "translation": "вчити; вивчати",
+     "example": "She has learned Spanish."
+    },
+    {
+     "word": "twice",
+     "translation": "двічі",
+     "example": "I have been there twice."
+    },
+    {
+     "word": "before",
+     "translation": "раніше",
+     "example": "I have not seen it before."
+    },
+    {
+     "word": "been",
+     "translation": "був (від «be»)",
+     "example": "Have you ever been to Paris?"
+    },
+    {
+     "word": "play",
+     "translation": "вистава; грати",
+     "example": "Have you ever seen a play?"
+    }
+   ],
+   "practice": [
+    {
+     "kind": "fill_gap",
+     "prompt": "I have ___ eaten sushi. (not once in my life)",
+     "accepted_answers": [
+      "never"
+     ],
+     "explanation": "Use never in a negative statement: I have never eaten sushi."
+    },
+    {
+     "kind": "fill_gap",
+     "prompt": "She has ___ Paris twice. (the past participle of «visit»)",
+     "accepted_answers": [
+      "visited"
+     ],
+     "explanation": "The present perfect is has/have + past participle: visited."
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: you / Have / been / ever / to / Ireland",
+     "accepted_answers": [
+      "Have you ever been to Ireland"
+     ],
+     "explanation": "Use ever in questions: Have you ever been to Ireland?"
+    },
+    {
+     "kind": "word_order",
+     "prompt": "Put the words in order to make a sentence: never / have / I / flown / before",
+     "accepted_answers": [
+      "I have never flown before"
+     ],
+     "explanation": "Never goes between have and the past participle."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «досвід»",
+     "accepted_answers": [
+      "experience"
+     ],
+     "explanation": "«досвід» is experience."
+    },
+    {
+     "kind": "translate",
+     "prompt": "Translate into English: «Я ніколи не пробував суші.»",
+     "accepted_answers": [
+      "i have never tried sushi",
+      "i've never tried sushi"
+     ],
+     "explanation": "Use the present perfect with never: I have never tried sushi."
+    },
+    {
+     "kind": "write",
+     "prompt": "Write one thing you have done and one thing you have never done.",
+     "model_answer": "I have visited London. I have never flown in a plane.",
+     "explanation": "Compare your answer with the example. Different correct answers are fine."
+    }
+   ]
+  }
+ }
+}
