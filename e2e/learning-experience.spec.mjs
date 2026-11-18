@@ -20,7 +20,15 @@ test('a signed-in learner opening the site lands on the dashboard, signed-out on
   for (const path of ['/', '/index.html', '/login.html', '/register.html']) {
     await page.goto(path);
     await expect(page, path).toHaveURL(/\/dashboard\.html$/);
+    // Let the dashboard finish its session refresh before the next navigation: the refresh
+    // cookie rotates on every load, and an aborted request would lose the new cookie.
+    await page.waitForLoadState('networkidle');
   }
+  // Google is not configured here, so Settings must not offer to connect it.
+  await page.goto('/settings.html');
+  await expect(page.locator('#settings-content')).toBeVisible();
+  await expect(page.locator('#google-card')).toBeHidden();
+  await page.waitForLoadState('networkidle');
   // Google is not configured in this environment, so its button stays hidden.
   await page.context().clearCookies();
   await page.evaluate(() => localStorage.clear());
@@ -36,7 +44,7 @@ test('every exercise states its task and "I don\'t understand" keeps the draft a
   await page.goto(`/lesson.html?slug=${LESSON}&tab=practice`);
   const card = page.locator('.lesson-question');
   await expect(card.locator('.lesson-instruction')).toContainText('Task:');
-  await expect(card.locator('.lesson-question-meta')).toContainText('of 12');
+  await expect(card.locator('.lesson-question-meta')).toContainText('/ 12');
 
   // Go to the typed gap-fill (question 9) and leave a draft answer.
   for (let i = 0; i < 8; i++) await page.getByRole('button', { name: /Next/ }).click();
