@@ -1,0 +1,1623 @@
+{
+ "version": 1,
+ "review_status": "authored",
+ "note": "Additive practice for each curriculum lesson. Existing exercises are never changed.",
+ "lessons": {
+  "fleng-a0-classroom": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Please ___ your book. (the opposite of close)",
+    "accepted_answers": [
+     "open"
+    ],
+    "explanation": "Open is the opposite of close: Please open your book."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: the / Listen / to / teacher",
+    "accepted_answers": [
+     "Listen to the teacher"
+    ],
+    "explanation": "An instruction starts with the verb: Listen to the teacher."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «писати»",
+    "accepted_answers": [
+     "write"
+    ],
+    "explanation": "«писати» is write in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two classroom instructions for a friend. Start each one with a verb.",
+    "model_answer": "Open your book. Repeat the word, please.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-letters": [
+   {
+    "kind": "fill_gap",
+    "prompt": "A, E, I, O and U are ___ letters. (not consonants)",
+    "accepted_answers": [
+     "vowel"
+    ],
+    "explanation": "A, E, I, O and U are vowel letters; the others are consonants."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: your / Spell / please / name",
+    "accepted_answers": [
+     "Spell your name please",
+     "Please spell your name"
+    ],
+    "explanation": "An instruction starts with the verb: Spell your name, please."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «слово»",
+    "accepted_answers": [
+     "word"
+    ],
+    "explanation": "«слово» is word in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Spell your first name letter by letter, with a dash between the letters.",
+    "model_answer": "A-N-N-A. My name is Anna.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-hello": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Hello, I ___ Tom. Nice to meet you.",
+    "accepted_answers": [
+     "am",
+     "'m"
+    ],
+    "explanation": "Use am with I: I am Tom (or I'm Tom)."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: you / Nice / meet / to",
+    "accepted_answers": [
+     "Nice to meet you"
+    ],
+    "explanation": "The set phrase is: Nice to meet you."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «друг»",
+    "accepted_answers": [
+     "friend"
+    ],
+    "explanation": "«друг» is friend in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Introduce yourself in two short sentences: say hello and your name.",
+    "model_answer": "Hello! I am Olena. Nice to meet you.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-numbers": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Five and five is ___. (write the number as a word)",
+    "accepted_answers": [
+     "ten"
+    ],
+    "explanation": "5 + 5 = 10, and 10 is written ten."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: years / I / twenty / am / old",
+    "accepted_answers": [
+     "I am twenty years old"
+    ],
+    "explanation": "Age uses be: I am twenty years old."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «дванадцять»",
+    "accepted_answers": [
+     "twelve"
+    ],
+    "explanation": "«дванадцять» is twelve in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write your age and the number of people in your family as words.",
+    "model_answer": "I am nineteen. There are four people in my family.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-objects": [
+   {
+    "kind": "fill_gap",
+    "prompt": "I have ___ apple in my bag. (a or an?)",
+    "accepted_answers": [
+     "an"
+    ],
+    "explanation": "Use an before a vowel sound: an apple."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: is / This / a / pencil",
+    "accepted_answers": [
+     "This is a pencil"
+    ],
+    "explanation": "Statement order: This + is + a + noun."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «ключ»",
+    "accepted_answers": [
+     "key"
+    ],
+    "explanation": "«ключ» is key in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Name three things on your desk. Use a or an with each one.",
+    "model_answer": "a pen, an orange and a cup",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-people": [
+   {
+    "kind": "fill_gap",
+    "prompt": "This is my sister. ___ is a student. (he or she?)",
+    "accepted_answers": [
+     "she"
+    ],
+    "explanation": "A sister is a woman, so we say she."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: are / my / They / parents",
+    "accepted_answers": [
+     "They are my parents"
+    ],
+    "explanation": "They goes with are: They are my parents."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «брат»",
+    "accepted_answers": [
+     "brother"
+    ],
+    "explanation": "«брат» is brother in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two sentences about people in your family. Use he, she or they.",
+    "model_answer": "My mother is a teacher. She is kind.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-describing": [
+   {
+    "kind": "fill_gap",
+    "prompt": "My bag is ___. (колір: червоний)",
+    "accepted_answers": [
+     "red"
+    ],
+    "explanation": "Червоний is red: My bag is red."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: big / a / It / is / house",
+    "accepted_answers": [
+     "It is a big house"
+    ],
+    "explanation": "The adjective comes before the noun: a big house."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «старий»",
+    "accepted_answers": [
+     "old"
+    ],
+    "explanation": "«старий» is old in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Describe one thing in your room with two adjectives.",
+    "model_answer": "My chair is black and old.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-where": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The cat is ___ the box. (inside it)",
+    "accepted_answers": [
+     "in"
+    ],
+    "explanation": "Inside something is in: The cat is in the box."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: the / Where / keys / are",
+    "accepted_answers": [
+     "Where are the keys"
+    ],
+    "explanation": "Questions with where: Where + are + the keys?"
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «стіна»",
+    "accepted_answers": [
+     "wall"
+    ],
+    "explanation": "«стіна» is wall in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write where two things in your room are. Use in, on or under.",
+    "model_answer": "My phone is on the table. My bag is under the chair.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-questions": [
+   {
+    "kind": "fill_gap",
+    "prompt": "___ you tired? — Yes, I am.",
+    "accepted_answers": [
+     "are"
+    ],
+    "explanation": "Questions with you use Are at the start: Are you tired?"
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: not / I / am / late",
+    "accepted_answers": [
+     "I am not late"
+    ],
+    "explanation": "The negative puts not after am: I am not late."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «щасливий»",
+    "accepted_answers": [
+     "happy"
+    ],
+    "explanation": "«щасливий» is happy in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write one question with Are you…? and a short answer.",
+    "model_answer": "Are you cold? No, I am not.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a0-first-day": [
+   {
+    "kind": "fill_gap",
+    "prompt": "This ___ my classroom. (be)",
+    "accepted_answers": [
+     "is"
+    ],
+    "explanation": "This goes with is: This is my classroom."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: is / notebook / My / the / on / desk",
+    "accepted_answers": [
+     "My notebook is on the desk"
+    ],
+    "explanation": "Thing + is + place: My notebook is on the desk."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «урок»",
+    "accepted_answers": [
+     "lesson"
+    ],
+    "explanation": "«урок» is lesson in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two sentences about your first day at a new school or course.",
+    "model_answer": "Today is my first lesson. My partner is friendly.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-possessions": [
+   {
+    "kind": "fill_gap",
+    "prompt": "My brother ___ a new bicycle. (have)",
+    "accepted_answers": [
+     "has"
+    ],
+    "explanation": "He, she and it use has: My brother has a new bicycle."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: have / We / a / garden / small",
+    "accepted_answers": [
+     "We have a small garden"
+    ],
+    "explanation": "Subject + have + a + adjective + noun."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «кухня»",
+    "accepted_answers": [
+     "kitchen"
+    ],
+    "explanation": "«кухня» is kitchen in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two sentences about your home. Use have or has and my.",
+    "model_answer": "I have a small flat. My kitchen has a big window.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-routines": [
+   {
+    "kind": "fill_gap",
+    "prompt": "She ___ breakfast at seven. (have)",
+    "accepted_answers": [
+     "has"
+    ],
+    "explanation": "With he/she/it, have becomes has in the present simple."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: up / I / at / wake / six",
+    "accepted_answers": [
+     "I wake up at six"
+    ],
+    "explanation": "Subject + verb + time: I wake up at six."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «вечеря»",
+    "accepted_answers": [
+     "dinner"
+    ],
+    "explanation": "«вечеря» is dinner in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write three sentences about your weekday morning.",
+    "model_answer": "I wake up at seven. I have breakfast. I walk to work.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-routine-questions": [
+   {
+    "kind": "fill_gap",
+    "prompt": "___ he usually take the train? (do or does?)",
+    "accepted_answers": [
+     "does"
+    ],
+    "explanation": "He, she and it use Does in questions."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: often / go / you / Do / out",
+    "accepted_answers": [
+     "Do you often go out"
+    ],
+    "explanation": "Question order: Do + you + often + verb."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «завжди»",
+    "accepted_answers": [
+     "always"
+    ],
+    "explanation": "«завжди» is always in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write one question about a friend's habits and one negative sentence about yours.",
+    "model_answer": "Does your friend often cook? I don't take the bus.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-time": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The meeting is ___ Monday. (at, on or in?)",
+    "accepted_answers": [
+     "on"
+    ],
+    "explanation": "Use on with days: on Monday."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: at / starts / The / lesson / noon",
+    "accepted_answers": [
+     "The lesson starts at noon"
+    ],
+    "explanation": "Use at with clock times and noon."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «година»",
+    "accepted_answers": [
+     "hour"
+    ],
+    "explanation": "«година» is hour in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write when you do two things. Use at, on and in.",
+    "model_answer": "I study at eight. I visit my parents on Sunday and travel in July.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-town": [
+   {
+    "kind": "fill_gap",
+    "prompt": "There ___ two banks on this street. (is or are?)",
+    "accepted_answers": [
+     "are"
+    ],
+    "explanation": "Plural nouns use there are."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: a / near / There / station / is / the / park",
+    "accepted_answers": [
+     "There is a park near the station"
+    ],
+    "explanation": "There is + a + noun + place."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «лікарня»",
+    "accepted_answers": [
+     "hospital"
+    ],
+    "explanation": "«лікарня» is hospital in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two sentences about places in your town. Use there is and there are.",
+    "model_answer": "There is a library near my home. There are two parks.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-food": [
+   {
+    "kind": "fill_gap",
+    "prompt": "How ___ eggs do we need? (much or many?)",
+    "accepted_answers": [
+     "many"
+    ],
+    "explanation": "Eggs are countable, so we use many."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: much / is / How / there / milk",
+    "accepted_answers": [
+     "How much milk is there"
+    ],
+    "explanation": "Milk is uncountable: How much milk is there?"
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «хліб»",
+    "accepted_answers": [
+     "bread"
+    ],
+    "explanation": "«хліб» is bread in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write what is in your kitchen. Use some and any.",
+    "model_answer": "We have some rice, but we don't have any cheese.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-abilities": [
+   {
+    "kind": "fill_gap",
+    "prompt": "I ___ swim, but I can't dance. (positive)",
+    "accepted_answers": [
+     "can"
+    ],
+    "explanation": "Can + verb shows ability: I can swim."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: drive / My / can't / sister",
+    "accepted_answers": [
+     "My sister can't drive",
+     "My sister cannot drive"
+    ],
+    "explanation": "Subject + can't + verb."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «співати»",
+    "accepted_answers": [
+     "sing"
+    ],
+    "explanation": "«співати» is sing in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two things you can do and one thing you can't do.",
+    "model_answer": "I can cook and draw. I can't play the guitar.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-right-now": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Look! It ___ raining. (be)",
+    "accepted_answers": [
+     "is",
+     "'s"
+    ],
+    "explanation": "Present continuous: it + is + verb-ing."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: are / We / for / waiting / bus / the",
+    "accepted_answers": [
+     "We are waiting for the bus"
+    ],
+    "explanation": "Subject + are + verb-ing."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «чекати»",
+    "accepted_answers": [
+     "wait"
+    ],
+    "explanation": "«чекати» is wait in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two sentences about what people around you are doing now.",
+    "model_answer": "My brother is reading. I am sitting at my desk.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-likes": [
+   {
+    "kind": "fill_gap",
+    "prompt": "I enjoy ___ to music. (listen)",
+    "accepted_answers": [
+     "listening"
+    ],
+    "explanation": "After enjoy, use verb-ing: enjoy listening."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: love / They / films / watching",
+    "accepted_answers": [
+     "They love watching films"
+    ],
+    "explanation": "Love + verb-ing: love watching films."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «гра»",
+    "accepted_answers": [
+     "game"
+    ],
+    "explanation": "«гра» is game in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write about one hobby you like and one activity you don't like. Use -ing.",
+    "model_answer": "I love cycling, but I don't like shopping.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a1-yesterday": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Yesterday the weather ___ sunny. (be, past)",
+    "accepted_answers": [
+     "was"
+    ],
+    "explanation": "The past of is is was."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: at / We / beach / were / the",
+    "accepted_answers": [
+     "We were at the beach"
+    ],
+    "explanation": "We + were + place."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «вчора»",
+    "accepted_answers": [
+     "yesterday"
+    ],
+    "explanation": "«вчора» is yesterday in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two sentences about where you were last weekend.",
+    "model_answer": "I was at home on Saturday. On Sunday I was at the museum.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-past-actions": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Last week I ___ a new jacket. (buy, past)",
+    "accepted_answers": [
+     "bought"
+    ],
+    "explanation": "Buy is irregular: buy → bought."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: arrived / We / late / at / the / station",
+    "accepted_answers": [
+     "We arrived at the station late",
+     "We arrived late at the station"
+    ],
+    "explanation": "Past simple: subject + verb-ed + place/time."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «квиток»",
+    "accepted_answers": [
+     "ticket"
+    ],
+    "explanation": "«квиток» is ticket in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write three sentences about your last trip. Use the past simple.",
+    "model_answer": "I visited Lviv. I bought some souvenirs. We left on Sunday.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-comparisons": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The hostel is ___ than the hotel. (cheap)",
+    "accepted_answers": [
+     "cheaper"
+    ],
+    "explanation": "Short adjectives add -er: cheap → cheaper."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: is / most / This / the / comfortable / room",
+    "accepted_answers": [
+     "This is the most comfortable room"
+    ],
+    "explanation": "Long adjectives use the most."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «ціна»",
+    "accepted_answers": [
+     "price"
+    ],
+    "explanation": "«ціна» is price in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Compare two places to stay. Use a comparative and a superlative.",
+    "model_answer": "The flat is bigger than the room. The hotel is the most expensive.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-plans": [
+   {
+    "kind": "fill_gap",
+    "prompt": "I'm ___ to learn to sail this summer. (plan)",
+    "accepted_answers": [
+     "going"
+    ],
+    "explanation": "Plans use be going to + verb."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: meeting / We're / tomorrow / the / instructor",
+    "accepted_answers": [
+     "We're meeting the instructor tomorrow",
+     "We are meeting the instructor tomorrow"
+    ],
+    "explanation": "Fixed arrangements use the present continuous."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «завтра»",
+    "accepted_answers": [
+     "tomorrow"
+    ],
+    "explanation": "«завтра» is tomorrow in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write one plan with going to and one arrangement with the present continuous.",
+    "model_answer": "I'm going to study more. I'm seeing my friend on Friday.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-experiences": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Have you ___ tried climbing? (at any time)",
+    "accepted_answers": [
+     "ever"
+    ],
+    "explanation": "Ever asks about any time in your life."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: finished / already / I've / the / session",
+    "accepted_answers": [
+     "I've already finished the session",
+     "I have already finished the session"
+    ],
+    "explanation": "Already goes between have and the past participle."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «досвід»",
+    "accepted_answers": [
+     "experience"
+    ],
+    "explanation": "«досвід» is experience in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write one thing you have done and one thing you have never done.",
+    "model_answer": "I have visited Kyiv. I have never tried climbing.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-health": [
+   {
+    "kind": "fill_gap",
+    "prompt": "You have a headache. You ___ rest. (advice)",
+    "accepted_answers": [
+     "should"
+    ],
+    "explanation": "Should gives advice."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: wear / You / a / must / helmet",
+    "accepted_answers": [
+     "You must wear a helmet"
+    ],
+    "explanation": "Must + verb shows a strong rule."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «порада»",
+    "accepted_answers": [
+     "advice"
+    ],
+    "explanation": "«порада» is advice in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Give a friend with a cold two pieces of advice. Use should.",
+    "model_answer": "You should rest. You should drink warm tea.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-directions": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Go ___ the bridge to the other side. (через)",
+    "accepted_answers": [
+     "across"
+    ],
+    "explanation": "Across means from one side to the other."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: left / Turn / the / at / cinema",
+    "accepted_answers": [
+     "Turn left at the cinema"
+    ],
+    "explanation": "Directions start with the verb: Turn left."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «міст»",
+    "accepted_answers": [
+     "bridge"
+    ],
+    "explanation": "«міст» is bridge in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Explain how to get from your home to a shop. Use two directions.",
+    "model_answer": "Go straight along the street. Turn right at the bank.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-background": [
+   {
+    "kind": "fill_gap",
+    "prompt": "I was cooking when the phone ___ . (ring, past)",
+    "accepted_answers": [
+     "rang"
+    ],
+    "explanation": "The short action uses the past simple: rang."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: were / They / dinner / having / while / it / rained",
+    "accepted_answers": [
+     "They were having dinner while it rained"
+    ],
+    "explanation": "The longer action uses the past continuous."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «шум»",
+    "accepted_answers": [
+     "noise"
+    ],
+    "explanation": "«шум» is noise in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write one sentence with was/were + -ing and when.",
+    "model_answer": "I was walking home when it started to rain.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-conditions": [
+   {
+    "kind": "fill_gap",
+    "prompt": "If it rains, we ___ cancel the picnic. (future)",
+    "accepted_answers": [
+     "will",
+     "'ll"
+    ],
+    "explanation": "First conditional: if + present, will + verb."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: send / I'll / you / a / message / when / arrive / I",
+    "accepted_answers": [
+     "I'll send you a message when I arrive",
+     "I will send you a message when I arrive"
+    ],
+    "explanation": "After when, use the present: when I arrive."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «прогноз»",
+    "accepted_answers": [
+     "forecast"
+    ],
+    "explanation": "«прогноз» is forecast in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write one first-conditional sentence about the weekend.",
+    "model_answer": "If it is sunny, we will go to the lake.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-descriptions": [
+   {
+    "kind": "fill_gap",
+    "prompt": "This is the guide ___ showed us the park. (person)",
+    "accepted_answers": [
+     "who",
+     "that"
+    ],
+    "explanation": "Who (or that) refers to people."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: is / the / This / where / we / path / walked",
+    "accepted_answers": [
+     "This is the path where we walked"
+    ],
+    "explanation": "Where refers to places."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «парасоля»",
+    "accepted_answers": [
+     "umbrella"
+    ],
+    "explanation": "«парасоля» is umbrella in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Describe a useful object with which or that.",
+    "model_answer": "An umbrella is a thing which keeps you dry.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-a2-travel-problem": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Could you ___ my booking, please? (check)",
+    "accepted_answers": [
+     "check"
+    ],
+    "explanation": "Could you + verb is a polite request."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: was / My / delayed / luggage",
+    "accepted_answers": [
+     "My luggage was delayed"
+    ],
+    "explanation": "Luggage + was + past participle."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «паспорт»",
+    "accepted_answers": [
+     "passport"
+    ],
+    "explanation": "«паспорт» is passport in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write a polite request to a hotel receptionist about a problem.",
+    "model_answer": "Could you help me, please? My room is not available.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-lasting-change": [
+   {
+    "kind": "fill_gap",
+    "prompt": "We have lived in this neighbourhood ___ 2019. (from a point in time)",
+    "accepted_answers": [
+     "since"
+    ],
+    "explanation": "Since + a starting point; for + a period."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: for / has / She / here / worked / five / years",
+    "accepted_answers": [
+     "She has worked here for five years"
+    ],
+    "explanation": "Present perfect + for + period."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «сусід»",
+    "accepted_answers": [
+     "neighbour"
+    ],
+    "explanation": "«сусід» is neighbour in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write how long you have lived in your town. Use since or for.",
+    "model_answer": "I have lived in Odesa for ten years.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-ongoing-effort": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The volunteers have been ___ the roof all morning. (repair)",
+    "accepted_answers": [
+     "repairing"
+    ],
+    "explanation": "Present perfect continuous: have been + verb-ing."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: been / How / long / you / have / waiting",
+    "accepted_answers": [
+     "How long have you been waiting"
+    ],
+    "explanation": "Question: How long + have + you + been + verb-ing?"
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «громада»",
+    "accepted_answers": [
+     "community"
+    ],
+    "explanation": "«громада» is community in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write about something you have been doing recently and for how long.",
+    "model_answer": "I have been learning English for two years.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-story-order": [
+   {
+    "kind": "fill_gap",
+    "prompt": "When we reached the platform, the train had already ___ . (leave)",
+    "accepted_answers": [
+     "left"
+    ],
+    "explanation": "Past perfect: had + past participle (left)."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: realised / I / had / I / made / a / mistake",
+    "accepted_answers": [
+     "I realised I had made a mistake"
+    ],
+    "explanation": "The earlier action uses the past perfect."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «маршрут»",
+    "accepted_answers": [
+     "route"
+    ],
+    "explanation": "«маршрут» is route in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two sentences about a past event. Show which happened first with had.",
+    "model_answer": "When I arrived, the conference had started. I had missed the opening.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-future-options": [
+   {
+    "kind": "fill_gap",
+    "prompt": "It's cold. I think I ___ wear a coat. (decision now)",
+    "accepted_answers": [
+     "will",
+     "'ll"
+    ],
+    "explanation": "A decision at the moment of speaking uses will."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: are / We / going / the / to / client / call",
+    "accepted_answers": [
+     "We are going to call the client"
+    ],
+    "explanation": "An intention uses be going to."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «рішення»",
+    "accepted_answers": [
+     "decision"
+    ],
+    "explanation": "«рішення» is decision in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write a prediction with will and a plan with going to.",
+    "model_answer": "It will probably rain. I am going to stay at home.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-hypothetical": [
+   {
+    "kind": "fill_gap",
+    "prompt": "If I ___ more time, I would volunteer. (have)",
+    "accepted_answers": [
+     "had"
+    ],
+    "explanation": "Second conditional: if + past simple, would + verb."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: would / If / I / were / mayor / I / fund / parks",
+    "accepted_answers": [
+     "If I were mayor I would fund parks"
+    ],
+    "explanation": "If I were…, I would…"
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «бюджет»",
+    "accepted_answers": [
+     "budget"
+    ],
+    "explanation": "«бюджет» is budget in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write what you would do if you had a free year.",
+    "model_answer": "If I had a free year, I would travel and learn Spanish.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-processes": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Plastic bottles ___ recycled here. (be, present passive)",
+    "accepted_answers": [
+     "are"
+    ],
+    "explanation": "Present passive: are + past participle."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: was / The / machine / installed / last / year",
+    "accepted_answers": [
+     "The machine was installed last year"
+    ],
+    "explanation": "Past passive: was + past participle."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «відходи»",
+    "accepted_answers": [
+     "waste"
+    ],
+    "explanation": "«відходи» is waste in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Describe two steps of a process using the passive.",
+    "model_answer": "The paper is collected. Then it is sorted and recycled.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-reporting": [
+   {
+    "kind": "fill_gap",
+    "prompt": "She said that she ___ tired. (direct: \"I am tired\")",
+    "accepted_answers": [
+     "was"
+    ],
+    "explanation": "In reported speech, am usually becomes was."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: said / He / he / would / call / the / following / day",
+    "accepted_answers": [
+     "He said he would call the following day"
+    ],
+    "explanation": "Will becomes would; tomorrow becomes the following day."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «колега»",
+    "accepted_answers": [
+     "colleague"
+    ],
+    "explanation": "«колега» is colleague in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Report something a friend said to you yesterday.",
+    "model_answer": "My friend said that she was busy that day.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-choices": [
+   {
+    "kind": "fill_gap",
+    "prompt": "I'm considering ___ a new course. (take)",
+    "accepted_answers": [
+     "taking"
+    ],
+    "explanation": "Consider is followed by verb-ing."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: decided / We / to / the / avoid / traffic",
+    "accepted_answers": [
+     "We decided to avoid the traffic"
+    ],
+    "explanation": "Decide is followed by to + verb."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «уникати»",
+    "accepted_answers": [
+     "avoid"
+    ],
+    "explanation": "«уникати» is avoid in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write about a decision you made. Use one verb + -ing and one verb + to.",
+    "model_answer": "I decided to study online. I enjoy learning at home.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-deduction": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The lights are on. Someone ___ be at home. (almost certain)",
+    "accepted_answers": [
+     "must"
+    ],
+    "explanation": "Must shows a strong deduction."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: can't / be / That / his / car",
+    "accepted_answers": [
+     "That can't be his car",
+     "That cannot be his car"
+    ],
+    "explanation": "Can't shows that something is impossible."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «докази»",
+    "accepted_answers": [
+     "evidence"
+    ],
+    "explanation": "«докази» is evidence in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Look at a situation and write one deduction with must and one with might.",
+    "model_answer": "She is smiling, so she must be happy. She might have good news.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b1-opinion": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The plan is useful. ___, it is expensive. (contrast, new sentence)",
+    "accepted_answers": [
+     "however"
+    ],
+    "explanation": "However starts a new sentence to show contrast."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: Although / it / is / costly / it / helps / people",
+    "accepted_answers": [
+     "Although it is costly it helps people"
+    ],
+    "explanation": "Although + clause, + main clause."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «перевага»",
+    "accepted_answers": [
+     "benefit"
+    ],
+    "explanation": "«перевага» is benefit in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Give your opinion about free public transport in two sentences, with although or however.",
+    "model_answer": "Free transport helps people. However, it is expensive for the city.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-future-milestones": [
+   {
+    "kind": "fill_gap",
+    "prompt": "By June, we will have ___ the report. (submit)",
+    "accepted_answers": [
+     "submitted"
+    ],
+    "explanation": "Future perfect: will have + past participle."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: will / be / This / time / tomorrow / I / presenting",
+    "accepted_answers": [
+     "This time tomorrow I will be presenting"
+    ],
+    "explanation": "Future continuous: will be + verb-ing."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «результат»",
+    "accepted_answers": [
+     "outcome"
+    ],
+    "explanation": "«результат» is outcome in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write what you will have achieved by the end of next year.",
+    "model_answer": "By the end of next year, I will have finished my course.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-regret": [
+   {
+    "kind": "fill_gap",
+    "prompt": "If we had tested it, we would have ___ the problem. (identify)",
+    "accepted_answers": [
+     "identified"
+    ],
+    "explanation": "Third conditional: would have + past participle."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: have / known / If / I'd / would / I / helped",
+    "accepted_answers": [
+     "If I'd known I would have helped",
+     "If I had known I would have helped"
+    ],
+    "explanation": "If + past perfect, would have + past participle."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «розчарування»",
+    "accepted_answers": [
+     "disappointment"
+    ],
+    "explanation": "«розчарування» is disappointment in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write about a past situation you would change, with a third conditional.",
+    "model_answer": "If I had left earlier, I would not have missed the train.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-wish": [
+   {
+    "kind": "fill_gap",
+    "prompt": "I wish I ___ more flexible hours. (have, now)",
+    "accepted_answers": [
+     "had"
+    ],
+    "explanation": "A wish about now uses the past simple."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: only / If / had / I / asked / earlier",
+    "accepted_answers": [
+     "If only I had asked earlier"
+    ],
+    "explanation": "A regret about the past: if only + past perfect."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «угода»",
+    "accepted_answers": [
+     "agreement"
+    ],
+    "explanation": "«угода» is agreement in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write one wish about the present and one about the past.",
+    "model_answer": "I wish I lived nearer. I wish I had studied harder.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-reported-questions": [
+   {
+    "kind": "fill_gap",
+    "prompt": "Could you tell me where the briefing ___ ? (be, indirect)",
+    "accepted_answers": [
+     "is"
+    ],
+    "explanation": "Indirect questions keep statement order: where the briefing is."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: asked / She / whether / the / figures / were / accurate",
+    "accepted_answers": [
+     "She asked whether the figures were accurate"
+    ],
+    "explanation": "Reported yes/no questions use whether or if."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «речник»",
+    "accepted_answers": [
+     "spokesperson"
+    ],
+    "explanation": "«речник» is spokesperson in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Turn \"When does the meeting start?\" into a polite indirect question.",
+    "model_answer": "Could you tell me when the meeting starts?",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-modal-past": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The document is missing. Someone must have ___ it. (move)",
+    "accepted_answers": [
+     "moved"
+    ],
+    "explanation": "Must have + past participle: a confident deduction about the past."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: can't / have / He / seen / the / log",
+    "accepted_answers": [
+     "He can't have seen the log",
+     "He cannot have seen the log"
+    ],
+    "explanation": "Can't have + past participle: it was impossible."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «архів»",
+    "accepted_answers": [
+     "archive"
+    ],
+    "explanation": "«архів» is archive in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write two deductions about a past event with must have and might have.",
+    "model_answer": "The door was open, so someone must have left early. They might have forgotten.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-complex-nouns": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The committee, ___ meets monthly, approved the plan. (non-defining, things/groups)",
+    "accepted_answers": [
+     "which"
+    ],
+    "explanation": "Non-defining clauses use which (not that) and commas."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: The / editor / who / checked / it / is / precise",
+    "accepted_answers": [
+     "The editor who checked it is precise"
+    ],
+    "explanation": "A defining relative clause follows the noun directly."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «комітет»",
+    "accepted_answers": [
+     "committee"
+    ],
+    "explanation": "«комітет» is committee in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write a sentence about a person or place with a non-defining clause.",
+    "model_answer": "My city, which is on the coast, is popular in summer.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-stance": [
+   {
+    "kind": "fill_gap",
+    "prompt": "The results ___ that satisfaction is linked to pay. (suggest)",
+    "accepted_answers": [
+     "suggest"
+    ],
+    "explanation": "Suggest is a careful way to report evidence."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: appears / There / to / be / a / correlation",
+    "accepted_answers": [
+     "There appears to be a correlation"
+    ],
+    "explanation": "Appears to be softens the claim."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «вибірка»",
+    "accepted_answers": [
+     "sample"
+    ],
+    "explanation": "«вибірка» is sample in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Report a finding carefully, using a hedging phrase.",
+    "model_answer": "The data suggest that people sleep better after exercise.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-concession": [
+   {
+    "kind": "fill_gap",
+    "prompt": "___ the congestion, the market was busy. (preposition + noun)",
+    "accepted_answers": [
+     "despite",
+     "in spite of"
+    ],
+    "explanation": "Despite is followed by a noun."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: Whereas / traders / liked / it / residents / objected",
+    "accepted_answers": [
+     "Whereas traders liked it residents objected"
+    ],
+    "explanation": "Whereas contrasts two groups."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «заперечення»",
+    "accepted_answers": [
+     "objection"
+    ],
+    "explanation": "«заперечення» is objection in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write a balanced sentence that admits a counterargument.",
+    "model_answer": "Although the change caused disruption, it reduced traffic.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-formal-email": [
+   {
+    "kind": "fill_gap",
+    "prompt": "I would be grateful ___ you could send a replacement. (polite condition)",
+    "accepted_answers": [
+     "if"
+    ],
+    "explanation": "I would be grateful if you could… is a formal request."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: Please / find / attached / the / receipt",
+    "accepted_answers": [
+     "Please find attached the receipt",
+     "Please find the receipt attached"
+    ],
+    "explanation": "A formal way to refer to an attachment."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «заміна»",
+    "accepted_answers": [
+     "replacement"
+    ],
+    "explanation": "«заміна» is replacement in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write the first sentence of a formal complaint email.",
+    "model_answer": "I am writing to inform you that the item arrived damaged.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ],
+  "fleng-b2-synthesis": [
+   {
+    "kind": "fill_gap",
+    "prompt": "We recommend ___ the trial to all teams. (extend)",
+    "accepted_answers": [
+     "extending"
+    ],
+    "explanation": "Recommend is followed by verb-ing."
+   },
+   {
+    "kind": "word_order",
+    "prompt": "Put the words in order to make a sentence: should / The / results / be / monitored / carefully",
+    "accepted_answers": [
+     "The results should be monitored carefully"
+    ],
+    "explanation": "Modal passive: should be + past participle."
+   },
+   {
+    "kind": "translate",
+    "prompt": "Translate into English: «оцінювати»",
+    "accepted_answers": [
+     "evaluate"
+    ],
+    "explanation": "«оцінювати» is evaluate in English. It is one of this lesson's new words."
+   },
+   {
+    "kind": "write",
+    "prompt": "Write a short, qualified recommendation based on mixed evidence.",
+    "model_answer": "Given the mixed results, we recommend a small, carefully monitored trial.",
+    "explanation": "Compare your answer with the example. Different correct answers are fine."
+   }
+  ]
+ }
+}

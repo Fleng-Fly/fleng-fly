@@ -16,6 +16,7 @@ from app.db.base import Base
 from app.db.curriculum import import_curriculum, load_curriculum
 from app.db.diagnostics import log_sqlite_snapshot
 from app.db.models import Course
+from app.db.practice import import_practice
 from app.db.seed import seed_catalog
 from app.db.session import SessionLocal, engine
 from app.db.storage import DatabaseConfigurationError, validate_render_storage
@@ -31,9 +32,10 @@ async def populate_catalog(db: AsyncSession) -> None:
         print("Demo catalog loaded.")
     else:
         print("Catalog already present; use npm run db:seed to update demo content.")
+    content = load_curriculum()
     result = await import_curriculum(
         db,
-        load_curriculum(),
+        content,
         apply=True,
         owner_authorized_sha=OWNER_AUTHORIZED_CURRICULUM_SHA,
     )
@@ -41,6 +43,8 @@ async def populate_catalog(db: AsyncSession) -> None:
         "A0–B2 catalog published (owner authorized; linguistic review incomplete): "
         f"{result['new_rows']} new rows, {result['existing_rows']} existing rows."
     )
+    practice = await import_practice(db, content)
+    print(f"Lesson practice: {practice['added']} added, {practice['existing']} already present.")
 
 
 async def ensure_catalog() -> None:

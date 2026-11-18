@@ -554,6 +554,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
           "type": "null"
         }
       ]
+    },
+    "instruction": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/LocalizedText"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "type": "object",

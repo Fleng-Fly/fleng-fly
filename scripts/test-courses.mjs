@@ -351,7 +351,7 @@ async function lessonPage(search = '?slug=first', overrides = {}) {
   };
   const stubs = {
     'api.js': {
-      getLesson: async () => ({ id: 'lesson', slug: 'first', title: 'First', theory: 'Study words.', guide: overrides.guide, exercises: [exercise] }),
+      getLesson: async () => ({ id: 'lesson', slug: 'first', title: 'First', theory: overrides.theory ?? 'Study words.', guide: overrides.guide, exercises: [exercise] }),
       getLessonProgress: async () => overrides.progress ?? progress,
       startLesson: async () => overrides.progress ?? progress,
       submitAnswer: overrides.submit ?? (async () => { throw new Error('Navigation must not submit answers'); }),
@@ -508,4 +508,35 @@ test('completion screen shows only real counts from lesson progress', async () =
   assert.match(text, /Correct on the first try: 2 \/ 3/);
   assert.match(text, /Result: 67%/);
   assert.match(text, /3 XP earned/);
+});
+
+test('every exercise shows its task before the prompt, linked for screen readers', async () => {
+  const instruction = { en: 'Choose the one correct answer.', uk: 'Виберіть одну правильну відповідь.' };
+  const p = await lessonPage('?slug=first&tab=practice', { exercise: { instruction } });
+  const card = p.get('panel-practice').querySelector('article');
+  const task = card.querySelector('.lesson-instruction');
+  const heading = card.querySelector('h2');
+  assert.match(task.textContent, /Choose the one correct answer/);
+  assert.ok(card.children.indexOf(task) < card.children.indexOf(heading));
+  assert.equal(heading.attributes['aria-describedby'], task.id);
+});
+
+test('theory shows the rule as steps first and folds reading and word list away', async () => {
+  const theory = [
+    '## Learning goals', '- Ask about habits.',
+    '## Present simple questions',
+    'Use do or does before the subject. Does goes with he, she and it. After does, the verb has no -s.',
+    '## Read in context', 'A: Do you walk? B: Yes, I do.',
+    '## Vocabulary', '- usually — зазвичай',
+  ].join('\n\n');
+  const p = await lessonPage('?slug=first', { theory });
+  const panel = p.get('panel-theory');
+  const steps = panel.querySelector('.lesson-rule-steps');
+  assert.ok(steps, 'rule steps rendered');
+  assert.equal(steps.querySelectorAll('li').length, 3);
+  const more = panel.querySelector('.lesson-theory-more');
+  assert.equal(more.tagName, 'details');
+  assert.match(more.textContent, /Do you walk/);
+  assert.match(more.textContent, /usually/);
+  assert.doesNotMatch(steps.textContent, /Do you walk/);
 });

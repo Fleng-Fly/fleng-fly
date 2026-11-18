@@ -36,6 +36,7 @@ from app.db.models import (
 )
 from app.modules.exercises import grading, guidance
 from app.modules.exercises.guidance import LocalizedText
+from app.modules.exercises.instructions import instruction_for
 from app.modules.exercises.schemas import (
     ExerciseOptionResponse,
     ExercisePublicResponse,
@@ -129,6 +130,7 @@ def to_public_exercise(exercise: Exercise) -> ExercisePublicResponse:
             else None
         ),
         hint=guidance.hint_for(exercise.slug),
+        instruction=instruction_for(exercise),
     )
 
 

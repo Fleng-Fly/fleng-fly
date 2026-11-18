@@ -22,8 +22,25 @@ function pick(text) {
   return text ? (text[getLang()] || text.en || '') : '';
 }
 
-function renderTheory(container, theory) {
+// Sections that support the main rule; they are folded away so the rule stands out.
+const EXTRA_SECTIONS = new Set(['read-in-context', 'vocabulary']);
+const headingKey = (heading) => heading.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
+
+/** Split a dense rule paragraph into short steps (only when it has several sentences). */
+export function ruleSteps(text) {
+  const sentences = text.split(/(?<=[.!?])\s+(?=[A-Z"“(])/).map((part) => part.trim()).filter(Boolean);
+  return sentences.length >= 3 ? sentences : null;
+}
+
+/**
+ * Render lesson theory: the small documented markup (## headings, "- " lists,
+ * paragraphs). Long rule paragraphs become numbered steps; "Read in context" and
+ * "Vocabulary" go into a closed "More" section so the main rule comes first.
+ */
+export function renderTheory(container, theory) {
   container.textContent = '';
+  let target = container;
+  let extra = null;
   for (const raw of theory.split(/\n\s*\n/)) {
     const block = raw.trim();
     if (!block) continue;
@@ -31,13 +48,35 @@ function renderTheory(container, theory) {
     if (lines.every((line) => line.startsWith('- '))) {
       const list = el('ul');
       for (const line of lines) list.append(el('li', undefined, line.slice(2)));
-      container.append(list);
+      target.append(list);
     } else if (block.startsWith('## ')) {
       const heading = block.slice(3).trim();
-      const key = `lesson.heading.${heading.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')}`;
-      container.append(el('h3', undefined, t(key) === key ? heading : t(key)));
+      const slug = headingKey(heading);
+      const key = `lesson.heading.${slug}`;
+      if (EXTRA_SECTIONS.has(slug)) {
+        if (!extra) {
+          extra = el('details', 'lesson-theory-more');
+          extra.append(el('summary', undefined, t('lesson.moreTheory')));
+          container.append(extra);
+        }
+        target = extra;
+      } else {
+        target = container;
+      }
+      target.append(el('h3', undefined, t(key) === key ? heading : t(key)));
     } else {
-      container.append(el('p', undefined, lines.join(' ')));
+      const text = lines.join(' ');
+      const steps = target === container ? ruleSteps(text) : null;
+      if (steps) {
+        const box = el('div', 'lesson-rule-steps');
+        box.append(el('p', 'lesson-rule-label', t('lesson.stepByStep')));
+        const list = el('ol');
+        for (const step of steps) list.append(el('li', undefined, step));
+        box.append(list);
+        target.append(box);
+      } else {
+        target.append(el('p', undefined, text));
+      }
     }
   }
 }
@@ -351,11 +390,19 @@ function questionCard(exercise, index) {
   track.append(el('span', 'lesson-fill'));
   card.append(track);
   setProgressBar(track, state.progress.exercisesCompleted, state.progress.exercisesTotal);
+  // The task comes first, so the learner knows what to do before reading the prompt.
+  const instructionKey = `lesson.instruction.${exerciseType(exercise)}`;
+  const task = pick(exercise.instruction) || (t(instructionKey) !== instructionKey ? t(instructionKey) : '');
+  if (task) {
+    const instruction = el('p', 'lesson-instruction');
+    instruction.id = `task-${exercise.id}`;
+    instruction.append(el('strong', undefined, `${t('lesson.task')} `), el('span', undefined, task));
+    card.append(instruction);
+  }
   const prompt = el('h2', undefined, exercise.prompt);
   prompt.tabIndex = -1;
+  if (task) prompt.setAttribute('aria-describedby', `task-${exercise.id}`);
   card.append(prompt);
-  const instructionKey = `lesson.instruction.${exerciseType(exercise)}`;
-  if (t(instructionKey) !== instructionKey) card.append(el('p', 'lesson-instruction', t(instructionKey)));
   if (pick(exercise.hint)) card.append(hintControl(exercise));
   const form = el('form', 'lesson-answer-form');
   let readAnswer;

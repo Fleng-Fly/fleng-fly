@@ -41,6 +41,8 @@ class ExercisePublicResponse(CamelModel):
     letter_tiles: LetterTilesResponse | None = None
     # Authored hint (EN/UK). Guides the learner without revealing the answer.
     hint: LocalizedText | None = None
+    # What the learner has to do (EN/UK). Present on every exercise; never the answer.
+    instruction: LocalizedText | None = None
 
 
 class SubmissionRequest(CamelModel):
