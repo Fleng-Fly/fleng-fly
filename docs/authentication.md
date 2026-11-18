@@ -183,6 +183,28 @@ The live Google flow cannot be exercised without real credentials; automated tes
 state/PKCE handling, token validation (with locally signed tokens) and account linking
 against a fake Google client (`backend/tests/test_google_auth.py`).
 
+### Lost rotation responses (retry window)
+
+Each refresh rotates the token: the server revokes the old one and sets a new cookie. If the
+browser never receives that response (the page was left while the request was in flight, or
+the network dropped), the old cookie is presented again. Before this window existed that was
+indistinguishable from theft and signed the learner out; it was reproduced in Chromium with
+rapid navigation (the aborted request had still rotated the token on the server).
+
+`REFRESH_REUSE_GRACE_SECONDS` (default 10, maximum 60, 0 = off) allows exactly this retry:
+- the presented token must have been revoked **by rotation** (logout, password change and
+  reuse revocation never create a successor) at most that many seconds ago;
+- following the rotation chain forward must end at a live, unexpired token (a stale duplicate
+  request can arrive after later refreshes); any link revoked by logout, password change or
+  reuse detection stops the walk and keeps the reuse response;
+- that live token is revoked in the same statement that claims it, so one valid token exists
+  afterwards.
+
+Anything else, and every replay after the window, is still `REFRESH_TOKEN_REUSED` and revokes
+the whole session set. **What changes:** inside the window a stolen, just-rotated refresh token
+can be used once more instead of being detected at once; the legitimate client's next refresh
+then continues the chain, and any later use of a superseded token is detected as before.
+
 ## Stabilized sessions and password changes
 
 Only one transaction can claim a refresh token. Concurrent reuse returns

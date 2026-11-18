@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 30
+    # A rotated refresh token may be retried this long (seconds) when its successor was never
+    # used: covers a rotation response lost to a navigation or network drop. 0 = strict reuse
+    # detection only.
+    refresh_reuse_grace_seconds: int = Field(default=10, ge=0, le=60)
     refresh_cookie_name: str = "fleng_refresh"
     refresh_cookie_path: str = "/api/v1/auth"
     # `None` derives from `APP_ENV`: secure cookies in production only.

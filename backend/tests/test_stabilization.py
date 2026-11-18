@@ -101,7 +101,7 @@ async def account(connections):
         return user.id, access, refresh
 
 
-async def test_two_refresh_requests_have_only_one_winner(connections, isolated_api):
+async def test_two_simultaneous_refreshes_leave_exactly_one_valid_token(connections, isolated_api):
     user_id, _, raw = await account(connections)
     headers = {"Cookie": f"{get_settings().refresh_cookie_name}={raw}"}
     responses = await asyncio.wait_for(
@@ -110,16 +110,26 @@ async def test_two_refresh_requests_have_only_one_winner(connections, isolated_a
         ),
         10,
     )
-    assert sorted(r.status_code for r in responses) == [200, 401]
-    loser = next(r for r in responses if r.status_code == 401)
-    assert loser.json()["error"]["code"] == "REFRESH_TOKEN_REUSED"
+    # Inside the retry window the second request continues the chain instead of tripping
+    # reuse detection, and the database never ends up with two live tokens.
+    assert [r.status_code for r in responses] == [200, 200]
     async with connections() as db:
         rows = (await db.scalars(select(RefreshToken).where(RefreshToken.user_id == user_id))).all()
-        assert len(rows) == 2  # exactly one successor, never two
-        assert all(row.revoked_at is not None for row in rows)  # strict reuse detection
+        assert len(rows) == 3  # original -> successor -> newest, never two successors
+        assert sum(row.revoked_at is None for row in rows) == 1
+        await db.execute(
+            update(RefreshToken)
+            .where(RefreshToken.revoked_at.is_not(None))
+            .values(revoked_at=datetime.now(UTC) - timedelta(minutes=5))
+        )
+        await db.commit()
+    # Once the window has passed the old token is plain reuse and kills the whole set.
     replay = await isolated_api.post("/api/v1/auth/refresh", headers=headers)
     assert replay.status_code == 401
     assert replay.json()["error"]["code"] == "REFRESH_TOKEN_REUSED"
+    async with connections() as db:
+        rows = (await db.scalars(select(RefreshToken).where(RefreshToken.user_id == user_id))).all()
+        assert all(row.revoked_at is not None for row in rows)
 
 
 @pytest.mark.parametrize("kind", ["invalid", "expired"])

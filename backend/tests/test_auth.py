@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 from httpx import AsyncClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -108,9 +108,7 @@ async def test_refresh_rotates_the_token(client: AsyncClient, db_session: AsyncS
     assert new_cookie and new_cookie != old_cookie
 
     old_record = (
-        await db_session.execute(
-            select(RefreshToken).where(RefreshToken.token_hash == old_hash)
-        )
+        await db_session.execute(select(RefreshToken).where(RefreshToken.token_hash == old_hash))
     ).scalar_one()
     assert old_record.revoked_at is not None
     assert old_record.replaced_by_id is not None
@@ -122,6 +120,16 @@ async def test_refresh_without_cookie_is_rejected(client: AsyncClient) -> None:
     assert response.json()["error"]["code"] == "INVALID_REFRESH_TOKEN"
 
 
+async def expire_rotation_grace(db: AsyncSession) -> None:
+    """Pretend the rotations happened longer ago than `refresh_reuse_grace_seconds`."""
+    await db.execute(
+        update(RefreshToken)
+        .where(RefreshToken.revoked_at.is_not(None))
+        .values(revoked_at=datetime.now(UTC) - timedelta(minutes=5))
+    )
+    await db.commit()
+
+
 async def test_refresh_reuse_revokes_every_session(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
@@ -131,8 +139,9 @@ async def test_refresh_reuse_revokes_every_session(
     rotated = await client.post(REFRESH)
     assert rotated.status_code == 200
     new_cookie = client.cookies.get(COOKIE)
+    await expire_rotation_grace(db_session)
 
-    # Replay the already-rotated token: this is reuse.
+    # Replay the already-rotated token after the short retry window: this is reuse.
     client.cookies.clear()
     client.cookies.set(COOKIE, old_cookie)
     replay = await client.post(REFRESH)
@@ -233,12 +242,8 @@ async def test_users_cannot_see_each_other(client: AsyncClient) -> None:
     assert me_b["email"] == "b@example.com"
     assert me_a["id"] != me_b["id"]
 
-    progress_a = (
-        await client.get(PROGRESS, headers={"Authorization": f"Bearer {token_a}"})
-    ).json()
-    progress_b = (
-        await client.get(PROGRESS, headers={"Authorization": f"Bearer {token_b}"})
-    ).json()
+    progress_a = (await client.get(PROGRESS, headers={"Authorization": f"Bearer {token_a}"})).json()
+    progress_b = (await client.get(PROGRESS, headers={"Authorization": f"Bearer {token_b}"})).json()
     assert progress_a["userId"] == me_a["id"]
     assert progress_b["userId"] == me_b["id"]
     assert progress_a["userId"] != progress_b["userId"]
@@ -253,6 +258,7 @@ async def test_register_is_case_insensitive(client: AsyncClient) -> None:
     assert (await register(client, email="Case@Example.com")).status_code == 201
     duplicate = await register(client, email="case@example.com")
     assert duplicate.status_code == 409
+
 
 async def test_logout_revokes_rotated_descendants_without_other_devices(
     client: AsyncClient, db_session: AsyncSession

@@ -100,6 +100,70 @@ async def create_session(db: AsyncSession, *, user: User, settings: Settings) ->
     return create_access_token(user.id, settings), raw_token
 
 
+_MAX_GRACE_HOPS = 50
+
+
+def _aware(moment: datetime) -> datetime:
+    return moment if moment.tzinfo is not None else moment.replace(tzinfo=UTC)  # SQLite: naive UTC
+
+
+async def _claim_unused_successor(
+    db: AsyncSession, record: RefreshToken, now: datetime, settings: Settings
+) -> RefreshToken | None:
+    """Return the just-claimed live descendant of a *recently rotated* token, else `None`.
+
+    This is the only exception to reuse detection and it is deliberately narrow:
+    - the presented token must have been revoked by rotation (it has a successor; logout,
+      password change and reuse revocation never set one), at most
+      `refresh_reuse_grace_seconds` ago;
+    - following the rotation chain forward (a stale duplicate request may arrive after the
+      chain has advanced) must end at a live, unexpired token; any link revoked by logout,
+      password change or reuse detection ends the walk with `None`;
+    - that live token is revoked by the same statement that claims it, so exactly one valid
+      token exists afterwards and the caller issues the next one from it.
+    Everything else, including every replay after the window, remains reuse.
+    """
+    grace = settings.refresh_reuse_grace_seconds
+    if grace <= 0 or record.replaced_by_id is None or record.revoked_at is None:
+        return None
+    window = timedelta(seconds=grace)
+    if now - _aware(record.revoked_at) > window:
+        return None
+    next_id = record.replaced_by_id
+    for _ in range(_MAX_GRACE_HOPS):
+        claimed = await db.execute(
+            update(RefreshToken)
+            .where(
+                RefreshToken.id == next_id,
+                RefreshToken.revoked_at.is_(None),
+                RefreshToken.expires_at > now,
+            )
+            .values(revoked_at=now)
+            .returning(RefreshToken.id)
+            .execution_options(synchronize_session=False)
+        )
+        if claimed.scalar_one_or_none() is not None:
+            return await db.scalar(
+                select(RefreshToken)
+                .where(RefreshToken.id == next_id)
+                .execution_options(populate_existing=True)
+            )
+        link = await db.scalar(
+            select(RefreshToken)
+            .where(RefreshToken.id == next_id)
+            .execution_options(populate_existing=True)
+        )
+        if (
+            link is None
+            or link.revoked_at is None  # live but expired
+            or link.replaced_by_id is None  # revoked by logout / password change / reuse
+            or now - _aware(link.revoked_at) > window
+        ):
+            return None
+        next_id = link.replaced_by_id
+    return None
+
+
 async def rotate_session(
     db: AsyncSession, *, raw_token: str, settings: Settings
 ) -> tuple[User, str, str]:
@@ -135,11 +199,16 @@ async def rotate_session(
         if record is None:
             raise _invalid_refresh()
         if not won:
-            if record.revoked_at is not None:
+            if record.revoked_at is None:
+                raise _invalid_refresh()
+            successor = await _claim_unused_successor(db, record, now, settings)
+            if successor is None:
                 await _revoke_all_for_user(db, record.user_id)
                 await db.commit()
                 raise _refresh_reused()
-            raise _invalid_refresh()
+            # A rotation whose response never reached the browser (navigation, network drop)
+            # is retried with the old cookie: continue the same chain from the unused successor.
+            record = successor
         new_raw, new_hash = generate_refresh_token()
         new_record = RefreshToken(
             user_id=record.user_id,

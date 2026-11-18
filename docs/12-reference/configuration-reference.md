@@ -19,6 +19,7 @@ Source: [Settings](../../backend/app/core/config.py). Uppercase field names are 
 | `JWT_ALGORITHM` | `'HS256'` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `15` |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | `30` |
+| `REFRESH_REUSE_GRACE_SECONDS` | `Field(default=10, ge=0, le=60)`; retry window for a rotation response lost in transit; 0 = strict reuse detection |
 | `REFRESH_COOKIE_NAME` | `'fleng_refresh'` |
 | `REFRESH_COOKIE_PATH` | `'/api/v1/auth'` |
 | `COOKIE_SECURE` | `None` |

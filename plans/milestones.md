@@ -287,6 +287,7 @@ both new migrations (fresh, upgrade from `20261117_1200` with data, downgrade, r
 Playwright E2E ran in Chromium (18 specs).
 Pending/blocked: live Google OAuth and OpenRouter checks (owner credentials), production
 PostgreSQL migration rehearsal on a copy of production data, unlink endpoint.
-Observed (E2E): navigating away right after a redirect to the dashboard once ended up signed
-out. Refresh-token rotation has no grace window, so a refresh whose response is lost to an
-aborted navigation is probably replayed as token reuse; not root-caused or fixed here.
+Refresh-rotation sign-outs (root cause found): a refresh request aborted by navigation had
+still rotated the token on the server, so the old cookie was replayed and treated as reuse.
+Fixed with a bounded retry window (`REFRESH_REUSE_GRACE_SECONDS`, default 10, 0 = off); see
+docs/authentication.md. Pending: run the new backend and browser regression tests locally.
