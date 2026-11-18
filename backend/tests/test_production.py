@@ -109,3 +109,26 @@ def test_launcher_uses_only_explicit_proxy_trust(
     assert called["proxy_headers"] is bool(trusted)
     assert called["forwarded_allow_ips"] == trusted
     assert called["workers"] == 1
+
+
+@pytest.mark.parametrize(
+    ("host", "render", "expected"),
+    [
+        (None, "", "127.0.0.1"),
+        (None, "https://fleng-fly.onrender.com", "0.0.0.0"),
+        ("0.0.0.0", "", "0.0.0.0"),
+        ("127.0.0.1", "https://fleng-fly.onrender.com", "127.0.0.1"),
+    ],
+)
+def test_launcher_binds_loopback_unless_configured(
+    host: str | None, render: str, expected: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import run
+
+    settings = Settings(_env_file=None, host=host, render_external_url=render)
+    monkeypatch.setattr(run, "get_settings", lambda: settings)
+    monkeypatch.setattr("app.db.prepare.main", lambda: None)
+    called = {}
+    monkeypatch.setattr(run.uvicorn, "run", lambda *args, **kwargs: called.update(kwargs))
+    run.main()
+    assert called["host"] == expected

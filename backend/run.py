@@ -34,7 +34,7 @@ def main() -> None:
         raise SystemExit(1) from None
     uvicorn.run(
         "app.main:app",
-        host="0.0.0.0",
+        host=settings.bind_host,
         port=settings.port,
         proxy_headers=bool(settings.trusted_proxy_ips),
         forwarded_allow_ips=settings.trusted_proxy_ips,

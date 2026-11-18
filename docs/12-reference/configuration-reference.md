@@ -6,6 +6,7 @@ Source: [Settings](../../backend/app/core/config.py). Uppercase field names are 
 | --- | --- |
 | `APP_ENV` | `'development'` |
 | `PORT` | `Field(default=3001, ge=1, le=65535)` |
+| `HOST` | `None` |
 | `TRUSTED_PROXY_IPS` | `''` |
 | `HTTP_MAX_BODY_BYTES` | `Field(default=131072, ge=1024, le=1048576)` |
 | `DATABASE_URL` | `DEFAULT_DATABASE_URL` |
@@ -62,7 +63,7 @@ DEFAULT_DATABASE_URL is sqlite+aiosqlite:///./data/fleng.db, resolved against ba
 
 ## Script/test environment
 
-TEST_DATABASE_URL opts into PostgreSQL fixtures and is not a Settings field. Compose fixes POSTGRES_USER/PASSWORD/DB to local example values and reads only POSTGRES_PORT from the host, as in [docker-compose.yml](../../docker-compose.yml). PORT is also read directly by dev.mjs. run.py overrides platform FORWARDED_ALLOW_IPS with TRUSTED_PROXY_IPS. Preview supplies isolated Settings, never export its generated credentials. Validator budgets use explicit CLI flags.
+TEST_DATABASE_URL opts into PostgreSQL fixtures and is not a Settings field. Compose fixes POSTGRES_USER/PASSWORD/DB to local example values and reads only POSTGRES_PORT from the host, as in [docker-compose.yml](../../docker-compose.yml). PORT is also read directly by dev.mjs. HOST unset means 127.0.0.1 for run.py, or 0.0.0.0 when RENDER_EXTERNAL_URL is set ([VPS](../09-deployment/vps.md)). run.py overrides platform FORWARDED_ALLOW_IPS with TRUSTED_PROXY_IPS. Preview supplies isolated Settings, never export its generated credentials. Validator budgets use explicit CLI flags.
 
 See [configuration](../01-getting-started/configuration.md) and [deployment](../09-deployment/environment-variables.md).
 

@@ -29,6 +29,9 @@ class Settings(BaseSettings):
 
     app_env: str = "development"
     port: int = Field(default=3001, ge=1, le=65535)
+    # Listen address of `run.py`. Unset = loopback (safe behind nginx/systemd); the
+    # Render platform, which routes to the container's public interface, keeps 0.0.0.0.
+    host: str | None = None
     trusted_proxy_ips: str = ""
     http_max_body_bytes: int = Field(default=131072, ge=1024, le=1048576)
     database_url: str = DEFAULT_DATABASE_URL
@@ -239,6 +242,12 @@ class Settings(BaseSettings):
         if self.render_external_url and self.render_external_url not in origins:
             origins.append(self.render_external_url)
         return origins
+
+    @property
+    def bind_host(self) -> str:
+        if self.host:
+            return self.host
+        return "0.0.0.0" if self.render_external_url else "127.0.0.1"
 
     @property
     def google_enabled(self) -> bool:

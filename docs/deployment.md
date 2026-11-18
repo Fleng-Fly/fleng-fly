@@ -123,7 +123,7 @@ separate work. The frontend base avoids invoking this root install altogether.
 
 Local development remains `npm run dev`: SQLite preparation and uvicorn reload.
 Production uses `backend/run.py` (also declared in the root `Procfile`), binds
-`0.0.0.0:$PORT`, and disables reload and proxy trust by default.
+`$HOST:$PORT` (loopback by default; `0.0.0.0` on Render; see [VPS](09-deployment/vps.md)), and disables reload and proxy trust by default.
 
 On a Python 3.11+ host, keep the entire repository in the deployed checkout.
 Install from the repository root with the host's Python environment:
