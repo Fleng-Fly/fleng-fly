@@ -55,10 +55,12 @@
 
 ## Later sections ⬜
 
-- [~] Vocabulary, practice, challenges, gamification surfaces. Personal-word
-  flashcard deck implemented at `/flashcards.html` (2026-11-16); word management,
-  course-word deck selection, a navigation entry, practice, challenges and
-  gamification surfaces remain.
+- [x] Word management and navigation: `/vocabulary.html` (2026-11-18) lists,
+  filters, searches, paginates and edits personal words; the sidebar’s **My Words**
+  entry reaches it and also highlights while `/flashcards.html` is open.
+- [~] Vocabulary review and learning surfaces. Personal-word flashcard deck at
+  `/flashcards.html` (2026-11-16); course-word deck selection, practice,
+  challenges and gamification surfaces remain.
 - [ ] Browser e2e suite and full accessibility audit.
 
 ## Visual direction

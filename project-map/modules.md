@@ -86,9 +86,11 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 | Courses                                                  | `/courses.html`      | 🟢     | protected; catalog list (`GET /courses`)                                                                          |
 | Course                                                   | `/course.html?slug=` | 🟢     | protected; course detail + lesson list                                                                            |
 | Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Test/Vocabulary, grading, progress and saved words                                     |
+| My Words (vocabulary)                                    | `/vocabulary.html`   | 🟢     | protected; personal dictionary list, filters/search/pagination, add/toggle/delete, flashcards entry              |
+| Flashcards                                               | `/flashcards.html`   | 🟢     | protected; personal-word review deck with two rating controls                                                      |
 | Settings                                                 | `/settings.html`     | 🟢     | protected; profile/email editing, language preference, password change, logout                                    |
 | Lesson player (quiz)                                     | —                    | 🟢     | exercises, submission and grading via the exercises API                                                           |
-| Vocabulary / Practice / Challenges / Progress / AI Tutor | —                    | 🔴     |                                                                                                                   |
+| Practice / Challenges / Progress / AI Tutor              | —                    | 🔴     |                                                                                                                   |
 
 ## AI layer
 
@@ -205,8 +207,9 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
 - Empty deck, load failure and mid-session rating failure states are handled with
   the shared error helper. Keyboard: Space flips, 1–2 answer once revealed.
 - `js/api.js` gains `createFlashcardSession`, `completeFlashcardSession` and
-  `reviewVocabularyItem`; `workspace.mountWorkspace('flashcards')` leaves the
-  sidebar without a false Dashboard highlight. No navigation change.
+  `reviewVocabularyItem`; `workspace.mountWorkspace('flashcards')` highlights the
+  shared **My Words** sidebar entry (`/vocabulary.html`) instead of a false
+  Dashboard highlight.
 - The My Words stage uses its own scene (violet horizon, perspective grid
   floor, aurora orbs, starfield) via `.flashcards-stage.is-my-words`; the base
   stage scene remains the fallback for future deck tabs.

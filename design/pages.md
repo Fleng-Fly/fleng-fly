@@ -56,9 +56,18 @@ design idea. Exact Figma comparison is pending access to the target frame.
 
 ### Vocabulary `/vocabulary`
 
-- Word list with status and due counts.
-- Add word / search dictionary.
-- Review session: flashcards with rating controls.
+Implemented at `/vocabulary.html` as **My Words**:
+
+- Sidebar entry between Lessons and Course; the flashcards deck highlights it too.
+- Header with title, live word-count badge, `Review due` (→ `/flashcards.html`)
+  and a gradient `Add word` button.
+- Panel with pill filters (`All words`, `Due now`, `Learning`, `Learned`), search
+  and a newest-first word list showing word, transcription/POS/topic, translation,
+  a due/learned chip and learned-toggle + delete actions.
+- Pagination footer (`1–10 of 10 words`) and distinct empty vs filtered-empty states.
+- Add-word `<dialog>`: word, translation, part of speech, transcription, topic,
+  example.
+- Review session stays the separate flashcards screen with two rating controls.
 
 ### Practice `/practice`
 

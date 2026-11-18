@@ -223,9 +223,29 @@ Keyboard: Space flips, 1-2 answer once revealed; focus returns to the card on
 advance. The stage scene (violet horizon, receding grid floor, aurora orbs
 and starfield) lives in `css/flashcards.css` and is scoped to the My Words tab
 by `.flashcards-stage.is-my-words`; other deck tabs fall back to the base scene.
-There is no sidebar entry yet,
-so the screen is reached by URL until a Vocabulary navigation item ships. A test
-grader for `test-words` is still out of scope.
+The shared sidebar’s **My Words** entry opens `/vocabulary.html`; the flashcards
+screen highlights the same entry while it is open. A test grader for
+`test-words` is still out of scope.
+
+## My Words vocabulary — 2026-11-18
+
+`/vocabulary.html` is the personal dictionary behind the sidebar’s **My Words**
+entry. It mounts the shared workspace (`mountWorkspace('vocabulary')`), requires
+a session and reads `GET /vocabulary?limit=100`. The API has no server-side
+search or total count, so status tabs (`All words`, `Due now`, `Learning`,
+`Learned`), the search box and 10-row pagination are applied in the browser;
+words are listed newest first. A word is `Learned` when `learned` is true,
+`Due now` when `dueAt` has passed and otherwise shows the remaining days.
+
+Row actions call `PATCH /vocabulary/{id}` with `{ learned }` to toggle learned
+state and `DELETE /vocabulary/{id}` after a confirmation prompt. **Add word**
+opens a native `<dialog>` that posts word, translation, optional part of speech,
+transcription, topic and example to `POST /vocabulary`. The count badge, range
+label, empty/filter-empty states and retryable load errors are rendered locally.
+`js/api.js` exposes `listVocabulary`, `createVocabularyItem`,
+`updateVocabularyItem` and `deleteVocabularyItem`; `getLessonVocabulary`
+delegates to `listVocabulary`. Styles live in `css/vocabulary.css` with
+responsive single-column rows, a focus-visible modal and reduced-motion rules.
 
 ## Courses Catalog and Course Details — 2026-11-04
 
