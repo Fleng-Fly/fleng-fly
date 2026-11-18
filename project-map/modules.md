@@ -397,3 +397,28 @@ checks the requested port before preparation. `app/development.py` refuses mixed
 checkout imports/frontends and unintended new worktree databases, reports local
 paths and exposes the loopback-only checkout header. Existing SQLite is backed
 up and prepared in place; no migration or API/business-policy change is introduced.
+
+## Learning Experience 2.0 — 2026-11-18
+
+- `auth/google.py` (new): server-side Google OAuth 2.0 + PKCE, signed state cookie,
+  ID-token verification. `auth/service.sign_in_with_google` links by Google `sub`, then
+  verified email (neutralizing a pre-registered password). Table `oauth_identities`.
+  Off unless `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` are set.
+- Frontend session: `session.redirectIfSignedIn()` on landing/login/register; a non-secret
+  `fleng.session.hint` lets `i18n-boot.js` hide those pages while restoring (no login flash).
+  The logo links to the dashboard when signed in.
+- `vocabulary` is one personal dictionary across courses: `collect_lesson_words` (called
+  inside lesson completion in `exercises/service.py`) copies the lesson's curated words
+  (`course_vocabulary_items.lesson_id`) insert-or-ignore; dictionary reads backfill earlier
+  completions. `GET /vocabulary` search/course/lesson filters + `X-Total-Count`;
+  `GET /vocabulary/groups`. SRS-ready word state (`interval_days`, `repetitions`,
+  `last_reviewed_at`). Migrations `20261118_1200`, `20261118_1400`.
+- `db/practice.py` (new): additive practice supplement
+  (`content/curriculum-practice-supplement.json`, 4 per lesson → 12 per lesson) imported by
+  `prepare` after the pinned curriculum; never rewrites existing rows.
+- `exercises/instructions.py` (new): EN/UK task instruction for every exercise.
+- `ai`: chat accepts `currentAnswer`; `context.exercise_context` adds instruction, options,
+  draft and last attempt (no answer keys); `prompts.EXERCISE_HELP` teaching rules.
+- Frontend: `lesson.js` task line, step-by-step theory, "I don't understand" →
+  `workspace.askWorkspaceAI` → `ai-assistant.askAIAssistant`; `vocabulary.js` course/lesson
+  filters and word details.

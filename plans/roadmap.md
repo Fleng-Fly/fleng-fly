@@ -385,3 +385,16 @@ confirming unchanged main. Original work is preserved in a retained stash.
 Next: human draft review and separately authorized publication; optional live
 PostgreSQL/SMTP/OpenRouter verification. No deployment or push authorized.
 Evidence: [integration report](../docs/qa/fleng-1.0-integration.md).
+
+## Learning Experience 2.0 — 2026-11-18
+
+Completed: persistent sessions (entry pages → dashboard, logo → dashboard), Google OAuth
+(code + PKCE, verified email, safe linking; not live-verified without credentials), unified
+personal dictionary with automatic lesson collection, search and course/lesson filters,
+explicit instructions on every exercise, step-by-step theory layout, 4 new practice formats
+per curriculum lesson (12 exercises each), "I don't understand" Fleng AI help with
+exercise context. Migrations `20261118_1200`, `20261118_1400`.
+Pending/blocked: Google Cloud Console client + live OAuth check (owner), live PostgreSQL
+migration run, human linguistic review of the practice supplement, live OpenRouter check of
+the exercise-help prompt. Next: spaced-repetition scheduler on the stored word state;
+pronunciation and example sentences for curated words (currently empty in the content).

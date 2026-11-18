@@ -234,3 +234,15 @@ Bearer JWT required, /api/v1 prefix:
 | POST | /placement-test/attempts/{attempt_id}/complete | Deterministic immutable result and course suggestions |
 
 No keys before completion, no XP/profile update. Details: docs/03-backend/placement-api.md.
+
+## Learning Experience 2.0 — 2026-11-18
+
+| Method | Path | Auth | Status |
+| ------ | ---- | ---- | ------ |
+| GET | `/auth/providers` | public | ✅ |
+| GET | `/auth/google/start` | public | ✅ |
+| GET | `/auth/google/callback` | state cookie | ✅ |
+| GET | `/vocabulary?q=&courseId=&lessonId=&learned=` | bearer | ✅ (`X-Total-Count`) |
+| GET | `/vocabulary/groups` | bearer | ✅ |
+| POST | `/ai/chat`, `/ai/chat/stream` (`currentAnswer`) | bearer | ✅ |
+| GET | `/lessons/{slug}` exercises carry `instruction` | public | ✅ |

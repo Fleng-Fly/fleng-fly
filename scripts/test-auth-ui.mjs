@@ -18,7 +18,7 @@ class Element {
   reset() { this.wasReset = true; }
 }
 
-async function page(name, api = {}, search = '?token=private-reset-secret') {
+async function page(name, api = {}, search = '?token=private-reset-secret', session = {}) {
   const nodes = new Map();
   const node = (id) => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
   const location = { search, pathname: `/${name}.html`, href: 'unchanged' };
@@ -33,7 +33,7 @@ async function page(name, api = {}, search = '?token=private-reset-secret') {
     const values = specifier === './api.js' ? api
       : specifier === './errors.js' ? { describeApiError: (e) => e.message }
       : specifier === './i18n.js' ? { t: (key) => english[key] ?? key, applyUserLanguage: async () => {}, createLanguageSwitch: () => new Element() }
-      : specifier === './session.js' ? { redirectIfSignedIn: async () => null, setupGoogleSignIn: async () => '' }
+      : specifier === './session.js' ? { redirectIfSignedIn: async () => null, setupGoogleSignIn: async () => '', ...session }
       : { mountHeader: () => {} };
     return new vm.SyntheticModule(Object.keys(values), function () {
       for (const [key, value] of Object.entries(values)) this.setExport(key, value);
@@ -156,4 +156,13 @@ test('independent tabs rotate a shared cookie sequentially and serialize logout'
   tabs[0].setAccessToken(null);
   await Promise.all([tabs[0].getCurrentUser(), tabs[1].logout()]);
   assert.equal(reused, false);
+});
+
+test('login and register forms are handled while the session check is still pending', async () => {
+  for (const name of ['login', 'register']) {
+    const pending = { redirectIfSignedIn: () => new Promise(() => {}) };
+    const api = { login: async () => {}, register: async () => {}, requestPasswordReset: async () => {}, setAccessToken: () => {} };
+    const app = await page(name, api, '', pending);
+    assert.equal(typeof app.node(`${name}-form`).events.submit, 'function', name);
+  }
 });

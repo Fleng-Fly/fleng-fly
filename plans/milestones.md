@@ -262,3 +262,16 @@ Completed: Chromium E2E 15/15 (50.2s), including 1440/768/390/360px, EN/UK
 persistence and A0 guidance; screenshots reviewed. All gates passed before
 guarded fast-forward of unchanged local main. No push/deploy/publication.
 Next: hosted CI/live PostgreSQL and human sidecar review remain external.
+
+## Learning Experience 2.0 — 2026-11-18
+
+Completed: persistent sessions (entry pages → dashboard, logo → dashboard), Google OAuth
+(code + PKCE, verified email, safe linking; not live-verified without credentials), unified
+personal dictionary with automatic lesson collection, search and course/lesson filters,
+explicit instructions on every exercise, step-by-step theory layout, 4 new practice formats
+per curriculum lesson (12 exercises each), "I don't understand" Fleng AI help with
+exercise context. Migrations `20261118_1200`, `20261118_1400`.
+Pending/blocked: Google Cloud Console client + live OAuth check (owner), live PostgreSQL
+migration run, human linguistic review of the practice supplement, live OpenRouter check of
+the exercise-help prompt. Next: spaced-repetition scheduler on the stored word state;
+pronunciation and example sentences for curated words (currently empty in the content).

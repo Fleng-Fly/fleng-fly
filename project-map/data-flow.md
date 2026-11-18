@@ -357,3 +357,15 @@ attempt is resolved through the existing detail API for live published-course
 recommendations. In-progress attempts resume; no attempts prompts an optional
 introduction. Only dismissal is stored per user in localStorage; scores remain
 server-owned. No auth, grading, XP or database change.
+
+## Learning Experience 2.0 — 2026-11-18
+
+- **Google sign-in:** browser → `GET /auth/google/start` (signed state cookie) → Google →
+  `GET /auth/google/callback` → code exchange + ID-token checks → user by `sub` / verified
+  email → refresh cookie → `/dashboard.html` → access token via `/auth/refresh`.
+- **Lesson words:** last exercise completed → `exercises.submit_answer` marks the lesson
+  completed and, in the same transaction, `vocabulary.collect_lesson_words` copies the
+  lesson's `course_vocabulary_items` into `vocabulary_items` (insert-or-ignore per word).
+- **Exercise help:** "I don't understand" → assistant panel → `POST /ai/chat/stream` with
+  lesson/exercise IDs and the draft → server builds context from the database (no answer
+  keys) → normal quota/budget admission → provider.

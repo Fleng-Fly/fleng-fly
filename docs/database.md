@@ -345,3 +345,17 @@ Snapshots contain private keys; only the placement service may project them into
 public questions or completed review. No existing learning/auth table is altered.
 See [placement methodology and data flow](placement-test.md) and the
 [exact model schema](05-database/schema.md#placementattempt).
+
+## Learning Experience 2.0 — 2026-11-18
+
+- Revision `20261118_1200` adds `oauth_identities` (Google `sub` → user; unique per
+  provider/subject and per user/provider). No existing table changes.
+- Revision `20261118_1400` (additive, reversible): `course_vocabulary_items.lesson_id`
+  (FK `lessons`, SET NULL) and `pronunciation`; `vocabulary_items.course_id` (FK `courses`,
+  SET NULL), `pronunciation`, `source` (`manual`/`lesson`, existing rows `manual`),
+  `interval_days`, `repetitions`, `last_reviewed_at`, plus course/lesson indexes. Existing
+  words get the course of their lesson. Verified upgrade → downgrade → upgrade on SQLite with
+  data; PostgreSQL was not available in this environment.
+- Curated words are linked to the first lesson that lists them by the curriculum importer
+  (`link_lesson_vocabulary`, idempotent). Practice supplement rows are added by
+  `db/practice.py` with stable IDs; existing exercise rows are never changed.

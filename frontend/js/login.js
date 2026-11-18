@@ -4,8 +4,11 @@ import { mountHeader } from './layout.js';
 import { t } from './i18n.js';
 import { redirectIfSignedIn, setupGoogleSignIn } from './session.js';
 
-if (await redirectIfSignedIn()) await new Promise(() => {});
-mountHeader('login', null);
+// Handlers below attach immediately: the form must never fall back to a native submit
+// while the session check is still running.
+redirectIfSignedIn().then((user) => {
+  if (!user) mountHeader('login', null);
+});
 
 const form = document.getElementById('login-form');
 const errorBox = document.getElementById('form-error');

@@ -384,7 +384,7 @@ function hintControl(exercise) {
 function notClearButton(exercise, index) {
   const button = el('button', 'lesson-not-clear', t('lesson.notClear'));
   button.type = 'button';
-  button.setAttribute('aria-haspopup', 'dialog');
+  button.setAttribute('aria-controls', 'ai-panel');
   button.addEventListener('click', () => {
     const prompt = exercise.prompt.length > 70 ? `${exercise.prompt.slice(0, 67)}…` : exercise.prompt;
     const opened = askWorkspaceAI({
