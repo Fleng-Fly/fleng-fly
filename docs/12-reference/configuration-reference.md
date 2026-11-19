@@ -41,6 +41,7 @@ Source: [Settings](../../backend/app/core/config.py). Uppercase field names are 
 | `OPENROUTER_BASE_URL` | `'https://openrouter.ai/api/v1'` |
 | `OPENROUTER_MODEL` | `''` |
 | `AI_STRUCTURED_OUTPUTS` | `False` |
+| `AI_ALLOW_AUTO_ROUTER` | `False` |
 | `AI_MAX_OUTPUT_TOKENS` | `Field(default=800, ge=1, le=8192)` |
 | `AI_MAX_INPUT_TOKENS` | `Field(default=24000, ge=1, le=128000)` |
 | `AI_REQUEST_TIMEOUT` | `Field(default=30, gt=0, le=300)` |

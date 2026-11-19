@@ -120,3 +120,6 @@ class CourseWordResponse(CamelModel):
     word: str
     translation: str
     example: str
+    lesson_id: UUID | None = None
+    lesson_slug: str | None = None
+    lesson_title: str | None = None

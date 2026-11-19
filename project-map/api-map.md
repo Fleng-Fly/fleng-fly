@@ -180,7 +180,7 @@ policy and default quotas: `docs/authentication.md`.
 
 ## AI assistant — 2026-11-01
 
-`GET /ai/status` (Bearer) returns `{available, maxInputChars}` without a paid probe.
+`GET /ai/status` (Bearer) returns `{available, reason, maxInputChars}` without a paid probe.
 Existing `POST /ai/chat|chat/stream` additionally accept optional `exerciseId` and
 `requestId`; repeated request IDs return `409 AI_REQUEST_DUPLICATE` without provider
 I/O. Invalid/unpublished chat lesson context falls back to general tutoring.

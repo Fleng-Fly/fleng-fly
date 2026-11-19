@@ -1,3 +1,4 @@
+import './require-vm-modules.mjs';
 // Behaviour checks with the existing project's dependency-free VM/DOM approach.
 // These check state transitions/API writes; they do not verify browser rendering.
 import assert from 'node:assert/strict';
@@ -39,14 +40,16 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
     querySelectorAll: (selector) => selector === '[data-mode]' ? modeButtons : selector === '[data-filter]' ? filters : selector.includes('#word-search') ? [...modeButtons, ...filters, node('word-search'), node('add-word')] : [],
   };
   let failReview = reviewError;
+  let confirmRemoval = true;
   const helpers = {
     getVocabularyGroups: async () => { if (groups === null) throw new Error('down'); return { courses: groups }; },
     listVocabulary: async (offset) => words.slice(offset, offset + 100),
     addVocabulary: async (input) => { writes.push({ add: input }); const word = { ...makeWord('added'), ...input }; words.push(word); return word; },
     updateVocabulary: async (id, learned) => { writes.push({ update: id, learned }); const word = words.find((w) => w.id === id); word.learned = learned; return { ...word }; },
+    deleteVocabulary: async (id) => { writes.push({ remove: id }); words.splice(words.findIndex((w) => w.id === id), 1); },
     reviewVocabulary: async (id, remembered) => { writes.push({ review: id, remembered }); if (failReview) throw new Error('Offline'); const word = words.find((w) => w.id === id); word.learned = remembered; word.dueAt = new Date(Date.now() + 86400000).toISOString(); return { ...word }; },
   };
-  const context = vm.createContext({ document, location, history: { replaceState: (_a, _b, url) => { location.href = url.toString(); } }, window: { addEventListener: (name, action) => { events[name] = action; } }, URL, URLSearchParams, console, setTimeout });
+  const context = vm.createContext({ document, location, history: { replaceState: (_a, _b, url) => { location.href = url.toString(); } }, window: { addEventListener: (name, action) => { events[name] = action; }, confirm: () => confirmRemoval }, URL, URLSearchParams, console, setTimeout });
   const modules = new Map();
   function mock(name, values) { const mod = new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context, identifier: name }); modules.set(name, mod); }
   const el = (tag, cls, text) => { const n = new Element(tag, text); n.className = cls; return n; };
@@ -64,7 +67,7 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
   await flush();
   const click = async (element) => { assert.ok(element, 'control exists'); if (!element.disabled) await element.events.click?.({ preventDefault() {} }); await flush(); };
   const byText = (id, text) => node(id).querySelectorAll('button').find((n) => n.textContent.includes(text));
-  return { node, mode: async (value) => click(modeButtons.find((n) => n.dataset.mode === value)), filter: async (value) => click(filters.find((n) => n.dataset.filter === value)), click, byText, writes, words, flush, fail: (value) => { failReview = value; } };
+  return { node, mode: async (value) => click(modeButtons.find((n) => n.dataset.mode === value)), filter: async (value) => click(filters.find((n) => n.dataset.filter === value)), click, byText, writes, words, flush, fail: (value) => { failReview = value; }, confirmRemoval: (value) => { confirmRemoval = value; } };
 }
 
 test('loads every vocabulary page, searches translation and filters learned words', async () => {
@@ -86,6 +89,19 @@ test('adds a word through the API and shows it in the collection', async () => {
   assert.equal(app.writes[0].add.word, 'hello');
   assert.match(app.node('word-list').textContent, /hello/);
   assert.equal(app.node('word-dialog').open, false);
+});
+
+test('removes a word from My Words only after confirmation', async () => {
+  const app = await page({ words: [makeWord('1', 'alpha', 'один'), makeWord('2', 'beta', 'два')] });
+  app.confirmRemoval(false);
+  await app.click(app.byText('word-list', 'Remove'));
+  assert.equal(app.writes.length, 0);
+  app.confirmRemoval(true);
+  await app.click(app.byText('word-list', 'Remove'));
+  assert.deepEqual(app.writes, [{ remove: '1' }]);
+  assert.doesNotMatch(app.node('word-list').textContent, /alpha/);
+  assert.match(app.node('word-list').textContent, /beta/);
+  assert.match(app.node('word-count').textContent, /1 word/);
 });
 
 test('flashcards reveal before recording a review and persist remembered state', async () => {

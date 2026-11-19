@@ -1,5 +1,7 @@
+import './require-vm-modules.mjs';
 import { readFileSync } from 'node:fs';
-import { SourceTextModule, createContext } from 'node:vm';
+import vm from 'node:vm';
+const { SourceTextModule, createContext } = vm;
 import assert from 'node:assert/strict';
 
 async function setup(locks, authorized = false) {

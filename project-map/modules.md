@@ -436,3 +436,11 @@ up and prepared in place; no migration or API/business-policy change is introduc
   and 7 extra exercises (10 per lesson) for the six seeded demo lessons (English Foundations,
   Everyday Conversations), imported on every `app.db.prepare` after the curriculum/practice
   steps. Without it the first two courses in the catalog kept the pre-2.0 experience.
+
+## AI availability and Auto Router — 2026-11-19
+
+- `modules/ai/provider.py`: `unavailable_reason()` (disabled, missing_api_key, missing_model,
+  missing_pricing, unsupported_model, auto_router_not_enabled) feeds `GET /ai/status`;
+  `model_supported()` allows concrete models, or `openrouter/auto` only with `AI_ALLOW_AUTO_ROUTER`.
+- `modules/ai/billing.py`: for `openrouter/auto` only `usage.cost` settles; otherwise the hold.
+- `GET /vocabulary/course-words` additionally returns `lessonId/lessonSlug/lessonTitle`.

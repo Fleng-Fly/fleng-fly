@@ -1,3 +1,4 @@
+import './require-vm-modules.mjs';
 // Run with node --experimental-vm-modules scripts/test-ai-widget.mjs.
 // Minimal DOM checks execute the production widget/workspace; CSS requires browser QA.
 import assert from 'node:assert/strict';

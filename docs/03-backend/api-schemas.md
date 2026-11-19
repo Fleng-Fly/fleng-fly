@@ -397,6 +397,40 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "example": {
       "type": "string",
       "title": "Example"
+    },
+    "lessonId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lessonid"
+    },
+    "lessonSlug": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lessonslug"
+    },
+    "lessonTitle": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Lessontitle"
     }
   },
   "type": "object",

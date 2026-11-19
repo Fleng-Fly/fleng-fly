@@ -275,7 +275,9 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     try {
       const [status, conversations] = await Promise.all([getAIStatus(), listAIConversations()]);
       if (destroyed) return;
-      available = status.available;
+      available = status.available === true;
+      // Operator diagnostics only (a fixed code, never shown to learners): inspect via DevTools.
+      if (available) delete root.dataset.aiReason; else root.dataset.aiReason = String(status.reason ?? 'unknown');
       input.maxLength = Math.min(500, Number(status.maxInputChars) || 500);
       if (!initialized) {
         let saved;

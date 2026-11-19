@@ -14,7 +14,13 @@ from app.core.errors import ApiError
 from app.db.models import AIConversation, AIMessage, User
 from app.db.session import get_db
 from app.modules.ai import context, service
-from app.modules.ai.provider import Completion, Provider, get_provider, unavailable
+from app.modules.ai.provider import (
+    Completion,
+    Provider,
+    get_provider,
+    unavailable,
+    unavailable_reason,
+)
 from app.modules.ai.schemas import (
     ChatRequest,
     ChatResponse,
@@ -45,13 +51,14 @@ def chat_response(conversation, message):
 async def status(
     user: User = Depends(get_current_user), settings: Settings = Depends(get_settings)
 ):
-    # Configuration readiness only; no paid probe and no credentials exposed.
-    try:
-        get_provider(settings)
-        available = True
-    except ApiError:
-        available = False
-    return {"available": available, "maxInputChars": settings.ai_max_message_length}
+    # Configuration readiness only; no paid probe and no credentials exposed. `reason` is a
+    # fixed code naming the first missing requirement (never a value), null when ready.
+    reason = unavailable_reason(settings)
+    return {
+        "available": reason is None,
+        "reason": reason,
+        "maxInputChars": settings.ai_max_message_length,
+    }
 
 
 @router.post("/chat", response_model=ChatResponse)

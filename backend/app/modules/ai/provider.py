@@ -1,6 +1,7 @@
 """OpenRouter transport only. No database, user identity or learning mutations."""
 
 import json
+import re
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
 from typing import Protocol
@@ -9,6 +10,7 @@ import httpx
 
 from app.core.config import Settings
 from app.core.errors import ApiError
+from app.modules.ai.billing import AUTO_ROUTER
 
 
 @dataclass
@@ -59,13 +61,46 @@ def priced(settings: Settings) -> bool:
     time, and :online adds per-request search fees; neither has a price we can bound
     before sending, so they are refused rather than treated as free.
     """
-    model = settings.openrouter_model
     return (
         settings.ai_input_price_per_mtok_usd is not None
         and settings.ai_output_price_per_mtok_usd is not None
-        and not model.startswith("openrouter/")
-        and not model.endswith(":online")
+        and model_supported(settings)
     )
+
+
+def model_supported(settings: Settings) -> bool:
+    """Concrete models, or exactly `openrouter/auto` when the operator opted in.
+
+    For the Auto Router the configured prices are a ceiling (see Settings.ai_allow_auto_router).
+    Every other `openrouter/*` router and `:online` models stay refused.
+    """
+    model = settings.openrouter_model
+    if model == AUTO_ROUTER:
+        return settings.ai_allow_auto_router
+    return not model.startswith("openrouter/") and not model.endswith(":online")
+
+
+def unavailable_reason(settings: Settings) -> str | None:
+    """Why AI is not usable, as a non-secret code for operators (None when it is ready).
+
+    Mirrors OpenRouterProvider.validate(), but names the first missing requirement so a
+    misconfigured deployment is diagnosable from GET /ai/status without exposing any value.
+    """
+    if not settings.ai_enabled:
+        return "disabled"
+    if not settings.openrouter_api_key.get_secret_value():
+        return "missing_api_key"
+    if not settings.openrouter_model:
+        return "missing_model"
+    if not model_supported(settings):
+        return (
+            "auto_router_not_enabled"
+            if settings.openrouter_model == AUTO_ROUTER
+            else "unsupported_model"
+        )
+    if not priced(settings):
+        return "missing_pricing"
+    return None
 
 
 class OpenRouterProvider:
@@ -105,6 +140,22 @@ class OpenRouterProvider:
                 },
             }
         return data
+
+    def served_model(self, data: object) -> str:
+        """Model recorded for the answer: for the Auto Router, the model OpenRouter routed to.
+
+        Only a short identifier-shaped string is accepted; anything else falls back to the
+        configured id. Informational (audit); billing never depends on it.
+        """
+        configured = self.settings.openrouter_model
+        if configured != AUTO_ROUTER or not isinstance(data, dict):
+            return configured
+        routed = data.get("model")
+        if isinstance(routed, str) and re.fullmatch(
+            r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.:/-]{1,100}", routed
+        ):
+            return routed[:150]
+        return configured
 
     def client(self) -> httpx.AsyncClient:
         return httpx.AsyncClient(
@@ -161,9 +212,7 @@ class OpenRouterProvider:
                 or len(content) > self.settings.ai_max_response_chars
             ):
                 raise ValueError("Invalid content")
-            return Completion(
-                content, self.settings.openrouter_model, safe_usage(data.get("usage"))
-            )
+            return Completion(content, self.served_model(data), safe_usage(data.get("usage")))
         except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
             # No connection means the request body never reached OpenRouter.
             raise not_billed_unavailable() from exc
@@ -231,7 +280,7 @@ class OpenRouterProvider:
                         if total > self.settings.ai_max_response_chars:
                             raise ValueError("Response too long")
                         yield Completion(
-                            content, self.settings.openrouter_model, safe_usage(data.get("usage"))
+                            content, self.served_model(data), safe_usage(data.get("usage"))
                         )
                     raise ValueError("Stream ended without DONE")
         except (httpx.ConnectError, httpx.ConnectTimeout) as exc:

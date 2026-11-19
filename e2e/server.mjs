@@ -39,6 +39,12 @@ const env = {
   AUTH_REGISTER_IP_PER_HOUR: '10000',
   AUTH_LOGIN_IP_PER_MINUTE: '1000',
   OPENROUTER_API_KEY: '',
+  // The backend also reads <repo>/.env and backend/.env as defaults. A real-looking local .env
+  // (e.g. Google OAuth) must never reach the test server, so every optional integration is
+  // blanked here; process environment variables take precedence over dotenv files.
+  GOOGLE_CLIENT_ID: '',
+  GOOGLE_CLIENT_SECRET: '',
+  GOOGLE_REDIRECT_URI: '',
 };
 
 let child;

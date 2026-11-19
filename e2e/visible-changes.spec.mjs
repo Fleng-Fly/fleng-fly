@@ -88,19 +88,21 @@ test('Settings offers to connect Google when the server has it configured', asyn
   await expect(page.getByRole('button', { name: 'Connect Google' })).toBeVisible();
 });
 
-test('the sidebar has one "My Words" link next to "Courses" and no Words group', async ({ page }) => {
+test('the sidebar has a collapsible Words group with Course Words and My Words', async ({ page }) => {
   await register(page);
   const nav = page.locator('#dashboard-sidebar nav.sidebar-nav');
-  await expect(nav.locator('details')).toHaveCount(0);
-  await expect(nav.getByText('Course Words')).toHaveCount(0);
-  await expect(nav.getByRole('link', { name: 'Courses' })).toBeVisible();
-  const myWords = nav.getByRole('link', { name: 'My Words' });
-  await expect(myWords).toBeVisible();
-  await myWords.click();
+  const group = nav.locator('details#words-navigation');
+  await expect(group).toHaveCount(1);
+  await expect(group.locator('summary')).toContainText('Words');
+  await group.locator('summary').click();
+  await expect(group.getByRole('link', { name: 'Course Words' })).toBeVisible();
+  await expect(group.getByRole('link', { name: 'My Words' })).toBeVisible();
+  await group.getByRole('link', { name: 'My Words' }).click();
   await expect(page).toHaveURL(/\/vocabulary\.html$/);
   await expect(page.locator('#dashboard-sidebar a[aria-current="page"]')).toHaveText('My Words');
-  // The Course Words page keeps its URL, it is just not in the menu.
+  await expect(page.locator('#words-navigation')).toHaveJSProperty('open', true);
   await page.goto('/course-words.html');
+  await expect(page.locator('#dashboard-sidebar a[aria-current="page"]')).toHaveText('Course Words');
   await expect(page.locator('h1')).toContainText('Course Words');
 });
 

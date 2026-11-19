@@ -319,7 +319,7 @@ proxy trust policies.
 
 ### AI assistant additions (2026-11-01)
 
-- `GET /ai/status` (Bearer): `{available: boolean, maxInputChars: number}`;
+- `GET /ai/status` (Bearer): `{available: boolean, reason: string | null, maxInputChars: number}`;
   configuration readiness only, no paid provider probe.
 - `POST /ai/chat` and `/ai/chat/stream`: optional `exerciseId` (public exercise in
   `lessonId`) and `requestId` UUID. Duplicate identified requests return

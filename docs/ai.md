@@ -159,8 +159,23 @@ the units of `request` and the error returned when no endpoint matches are not
 documented. `usage.cost` is "in credits"; credits = USD is our assumption. The
 Chat Completions stream sends `usage` in a final chunk before `[DONE]`; if it is
 missing the hold stays as the charge. Reasoning tokens share `max_tokens` on most
-providers (not all), so the 800-token output bound is documentation-based. `openrouter/*` auto-routers and `:online`
-models are refused: their price cannot be bounded in advance. Learner-facing
+providers (not all), so the 800-token output bound is documentation-based. `:online` models and every `openrouter/*`
+router except `openrouter/auto` are refused: their price cannot be bounded in advance.
+
+### Auto Router (`OPENROUTER_MODEL=openrouter/auto`)
+
+Opt-in with `AI_ALLOW_AUTO_ROUTER=true` (otherwise `reason: auto_router_not_enabled`). OpenRouter
+picks the model per request, so there is no fixed tariff. Fleng therefore treats
+`AI_INPUT_PRICE_PER_MTOK_USD` / `AI_OUTPUT_PRICE_PER_MTOK_USD` as a **price ceiling**, not a price:
+the ceiling is sent as `provider.max_price` and is the worst-case hold per request (exactly like a
+concrete model), so admission, the $1 daily budget, 30/day, 500 characters, 800 output tokens and
+one active request per learner are unchanged. Settlement differs: only the provider-reported
+`usage.cost` is trusted. If it is missing, the whole hold is charged (`cost_source=reserved`);
+token counts are never priced for an unknown routed model. A reported cost above the hold is
+recorded as is and counts toward the budget. The routed model (`model` in the response) is stored
+on the message for audit and never affects billing. Residual risk: the ceiling relies on OpenRouter
+honouring `provider.max_price`; the hold bounds admission, and any overshoot is captured after the
+fact, so choose a ceiling at or above the most expensive model you accept. Learner-facing
 errors: `AI_DAILY_LIMIT`, `AI_BUDGET_LIMIT` (no amounts disclosed), `AI_BUSY`,
 `AI_INPUT_LIMIT`.
 
@@ -223,7 +238,10 @@ conversation selection, paginated chronological history, Reload, and incremental
 plain-text responses. Static welcome copy is separate from model messages.
 
 `GET /api/v1/ai/status` requires authentication and returns
-`{available, maxInputChars}`. Availability means server configuration is ready;
+`{available, reason, maxInputChars}`. `reason` is `null` when ready, otherwise the
+first missing requirement: `disabled`, `missing_api_key`, `missing_model` or
+`missing_pricing` (both `AI_*_PRICE_PER_MTOK_USD` values), `unsupported_model` (other
+`openrouter/*` routers, `:online`) or `auto_router_not_enabled`. It never contains a value. Availability means server configuration is ready;
 it does not probe provider health or bill the provider. History remains readable
 when generation is disabled. Provider failures update the widget without exposing
 configuration details.

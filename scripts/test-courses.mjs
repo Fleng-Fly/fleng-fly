@@ -1,3 +1,4 @@
+import './require-vm-modules.mjs';
 // DOM-level regression checks, not a replacement for browser/layout verification.
 // Run: node --experimental-vm-modules --test scripts/test-courses.mjs
 import assert from 'node:assert/strict';

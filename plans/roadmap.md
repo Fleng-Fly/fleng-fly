@@ -433,3 +433,16 @@ content (`db/demo_lessons.py`) and shorter, sentence-merged rule steps in the th
 Google sign-in UI stays hidden until `GOOGLE_*` are set; AI help needs `AI_ENABLED`.
 Pending: human review of the demo content; the A0 "Explanation" guide card still shows above
 the new theory steps (pre-existing draft guidance).
+
+## Test stabilization and Fleng AI availability — 2026-11-19
+
+- Done: frontend unit tests run without manual Node flags (`scripts/require-vm-modules.mjs`);
+  `npx playwright test` works from the repo root; test servers/suites no longer read a local
+  `.env` (Google values blanked); My Words delete and lesson info on Course Words; Words sidebar
+  group restored.
+- Done: `GET /ai/status` now returns `{available, reason, maxInputChars}`; empty
+  `AI_*_PRICE_PER_MTOK_USD` means "unset"; env templates list the required prices.
+- Done: opt-in `AI_ALLOW_AUTO_ROUTER` (default off) for `openrouter/auto`; prices act as a ceiling,
+  only provider `usage.cost` settles, missing cost charges the whole hold.
+- Open: verify on a few real requests that OpenRouter honours `provider.max_price` for the Auto
+  Router; intermittent `test_placement` failure in full backend runs.

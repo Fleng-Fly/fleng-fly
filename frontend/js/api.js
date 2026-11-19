@@ -272,6 +272,10 @@ export function updateVocabulary(id, learned) {
   });
 }
 
+export function deleteVocabulary(id) {
+  return apiFetch(`/vocabulary/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
 export function getLessonVocabulary(lessonId, offset = 0, limit = 30) {
   const query = new URLSearchParams({ lessonId, offset: String(offset), limit: String(limit) });
   return apiFetch(`/vocabulary?${query}`);

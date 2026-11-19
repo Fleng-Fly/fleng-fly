@@ -37,7 +37,25 @@ async def course_words(
     db: AsyncSession = Depends(get_db),
 ):
     query = await flashcards.course_query(db, course_id, level)
-    return (await db.scalars(query.limit(limit).offset(offset))).all()
+    items = (await db.scalars(query.limit(limit).offset(offset))).all()
+    lessons = {
+        row.id: row
+        for row in (
+            await db.execute(
+                select(Lesson.id, Lesson.slug, Lesson.title).where(
+                    Lesson.id.in_({i.lesson_id for i in items if i.lesson_id})
+                )
+            )
+        ).all()
+    }
+    result = []
+    for item in items:
+        data = CourseWordResponse.model_validate(item, from_attributes=True)
+        lesson = lessons.get(item.lesson_id) if item.lesson_id else None
+        if lesson is not None:
+            data.lesson_slug, data.lesson_title = lesson.slug, lesson.title
+        result.append(data)
+    return result
 
 
 @router.post("/flashcards/sessions", response_model=FlashcardResponse, status_code=201)

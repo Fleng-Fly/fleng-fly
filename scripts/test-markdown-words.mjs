@@ -1,3 +1,4 @@
+import './require-vm-modules.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
@@ -70,14 +71,17 @@ await workspace.link((specifier) => {
 }); await workspace.evaluate();
 
 for (const active of ['words', 'practice', 'course-words', 'dashboard']) {
-  test(`My Words is a single top-level link: ${active} selects it only on its own page`, () => {
-    const destinations = ['/dashboard.html', '/courses.html', '/vocabulary.html'];
+  test(`Words navigation: ${active} selects its real section and opens only when relevant`, () => {
+    const destinations = ['/dashboard.html', '/vocabulary.html', '/course-words.html'];
     const links = destinations.map((href) => { const node = new Node('a'); node.setAttribute('href', href); return node; });
-    const scope = { querySelectorAll: () => links, querySelector: () => null };
+    const group = new Node('details');
+    const scope = { querySelectorAll: () => links, querySelector: () => group };
     workspace.namespace.markWorkspaceNavigation(scope, active);
+    assert.equal(group.open, active !== 'dashboard');
+    assert.equal(group.names.has('is-current'), active !== 'dashboard');
     const selected = links.filter((link) => link.attributes['aria-current'] === 'page');
-    const expected = { words: '/vocabulary.html', practice: '/vocabulary.html', dashboard: '/dashboard.html' }[active];
-    assert.deepEqual(selected.map((link) => link.attributes.href), expected ? [expected] : []);
+    assert.equal(selected.length, 1);
+    assert.equal(selected[0].attributes.href, active === 'course-words' ? destinations[2] : active === 'dashboard' ? destinations[0] : destinations[1]);
   });
 }
 

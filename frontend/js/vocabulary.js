@@ -1,4 +1,4 @@
-import { addVocabulary, getVocabularyGroups, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
+import { addVocabulary, deleteVocabulary, getVocabularyGroups, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
 import { el } from './layout.js';
 import { t, tn } from './i18n.js';
 import { describeApiError } from './errors.js';
@@ -184,7 +184,22 @@ function renderWords() {
         toggle.disabled = false;
       }
     });
-    actions.append(toggle, control(t('vocab.practise'), () => setMode('flashcards', word.id), 'lesson-button lesson-button-primary'));
+    const remove = control(t('vocab.remove'), async () => {
+      if (!window.confirm(t('vocab.removeConfirm', { word: word.word }))) return;
+      remove.disabled = true;
+      try {
+        await deleteVocabulary(word.id);
+        state.words = state.words.filter((item) => item.id !== word.id);
+        state.expanded.delete(word.id);
+        renderStats();
+        renderWords();
+        feedback(t('vocab.removed'));
+      } catch (error) {
+        feedback(describeApiError(error), true);
+        remove.disabled = false;
+      }
+    }, 'lesson-button lesson-button-secondary word-remove');
+    actions.append(toggle, control(t('vocab.practise'), () => setMode('flashcards', word.id), 'lesson-button lesson-button-primary'), remove);
     row.append(speakButton(word.word), copy, status, actions);
     target.append(row);
   }

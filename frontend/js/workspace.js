@@ -87,9 +87,13 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           <a class="sidebar-link" href="/courses.html"
             ><svg><use href="#icon-book" /></svg><span data-i18n="nav.courses">Courses</span></a
           >
-          <a class="sidebar-link" href="/vocabulary.html"
-            ><svg><use href="#icon-layers" /></svg><span data-i18n="ws.myWords">My Words</span></a
-          >
+          <details id="words-navigation" class="sidebar-words">
+            <summary class="sidebar-link"><svg><use href="#icon-layers" /></svg><span data-i18n="ws.words">Words</span><span class="words-chevron" aria-hidden="true">⌄</span></summary>
+            <nav class="words-submenu" data-i18n-attr="aria-label:ws.wordsSections" aria-label="Words sections">
+              <a class="sidebar-link sidebar-sub-link" data-section="words" href="/vocabulary.html" data-i18n="ws.myWords">My Words</a>
+              <a class="sidebar-link sidebar-sub-link" data-section="course-words" href="/course-words.html" data-i18n="ws.courseWords">Course Words</a>
+            </nav>
+          </details>
           <a class="sidebar-link" href="/progress.html"><svg><use href="#icon-chart" /></svg><span data-i18n="ws.progress">Progress</span></a>
           <a class="sidebar-link" href="/leaderboard.html"
             ><svg><use href="#icon-trophy" /></svg><span data-i18n="ws.leaderboard">Leaderboard</span></a>
@@ -183,13 +187,16 @@ export function markWorkspaceNavigation(content, active) {
     const destination = {
       dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
       settings: '/settings.html', lessons: '/courses.html', courses: '/courses.html', progress: '/progress.html', placement: '/placement-test.html',
-      words: '/vocabulary.html', practice: '/vocabulary.html',
+      words: '/vocabulary.html', practice: '/vocabulary.html', 'course-words': '/course-words.html',
     }[active];
     const selected = link.getAttribute('href') === destination;
     link.classList.toggle('active', selected);
     if (selected) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
+  const wordsNavigation = content.querySelector('#words-navigation');
+  wordsNavigation.open = ['words', 'practice', 'course-words'].includes(active);
+  wordsNavigation.classList.toggle('is-current', wordsNavigation.open);
 }
 
 let signedIn = false;

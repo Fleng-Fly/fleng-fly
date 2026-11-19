@@ -118,7 +118,7 @@ async def test_secret_marker_never_reaches_responses_sse_history_or_logs(
         else:
             assert response.status_code == (200 if stream else 503)
         status = await client.get("/api/v1/ai/status", headers=auth)
-        assert status.json() == {"available": True, "maxInputChars": 500}
+        assert status.json() == {"available": True, "reason": None, "maxInputChars": 500}
         assert MARKER not in status.text
     finally:
         app.dependency_overrides.pop(get_settings, None)

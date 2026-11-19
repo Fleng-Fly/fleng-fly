@@ -89,6 +89,11 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = ""
     ai_structured_outputs: bool = False
+    # Opt-in for the single router id `openrouter/auto`. Its per-request model (and price) is
+    # chosen by OpenRouter, so the two AI_*_PRICE_* values are then a hard price CEILING (sent as
+    # provider.max_price and used for worst-case holds), and spend is settled from the
+    # provider-reported usage.cost only. See docs/ai.md.
+    ai_allow_auto_router: bool = False
     ai_max_output_tokens: int = Field(default=800, ge=1, le=8192)
     ai_max_input_tokens: int = Field(default=24000, ge=1, le=128000)
     ai_request_timeout: float = Field(default=30, gt=0, le=300)
@@ -115,6 +120,12 @@ class Settings(BaseSettings):
     # keep AI unavailable: an unknown price is never treated as free.
     ai_input_price_per_mtok_usd: Decimal | None = Field(default=None, ge=0, le=10000)
     ai_output_price_per_mtok_usd: Decimal | None = Field(default=None, ge=0, le=10000)
+
+    @field_validator("ai_input_price_per_mtok_usd", "ai_output_price_per_mtok_usd", mode="before")
+    @classmethod
+    def _blank_price_is_unset(cls, value: object) -> object:
+        """An empty `AI_*_PRICE_*=` line (as in the env templates) means "not set", not a crash."""
+        return None if isinstance(value, str) and not value.strip() else value
 
     @field_validator("render_external_url")
     @classmethod

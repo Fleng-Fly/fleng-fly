@@ -11,16 +11,22 @@ import os
 import uuid
 from collections.abc import AsyncGenerator
 
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy import event, text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.pool import StaticPool
+# Settings also read <repo>/.env and backend/.env. A developer's local .env (e.g. real Google
+# OAuth values) must not leak into the suite, so optional integrations are blanked before the
+# app is imported; process environment variables take precedence over dotenv files.
+for _name in ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI"):
+    os.environ[_name] = ""
 
-from app.db import models  # noqa: F401  (register all models on Base.metadata)
-from app.db.base import Base
-from app.db.session import get_db
-from app.main import app
+import pytest_asyncio  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+from sqlalchemy import event, text  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine  # noqa: E402
+from sqlalchemy.pool import StaticPool  # noqa: E402
+
+from app.db import models  # noqa: E402, F401  (register all models on Base.metadata)
+from app.db.base import Base  # noqa: E402
+from app.db.session import get_db  # noqa: E402
+from app.main import app  # noqa: E402
 
 
 @pytest_asyncio.fixture

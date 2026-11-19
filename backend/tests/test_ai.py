@@ -10,7 +10,7 @@ from app.db.models import AIConversation, AIMessage, AIUsage, Exercise, User
 from app.db.seed import seed_catalog
 from app.main import app
 from app.modules.ai import prompts, service
-from app.modules.ai.provider import Completion
+from app.modules.ai.provider import Completion, unavailable_reason
 from app.modules.ai.router import provider_dependency
 from tests.test_learning_extensions import headers
 
@@ -332,12 +332,36 @@ async def test_unavailable_status_and_chat(client, enabled, key):
         ai_enabled=enabled, openrouter_api_key=key, openrouter_model="test/model"
     )
     status = await client.get("/api/v1/ai/status", headers=auth)
-    assert status.json() == {"available": False, "maxInputChars": 500}
+    assert status.json() == {
+        "available": False,
+        "reason": "disabled" if not enabled else "missing_api_key",
+        "maxInputChars": 500,
+    }
     for path in ["chat", "chat/stream"]:
         response = await client.post(f"/api/v1/ai/{path}", headers=auth, json={"message": "Hi"})
         assert response.status_code == 503
         assert response.json()["error"]["code"] == "AI_UNAVAILABLE"
         assert "key" not in response.text.lower()
+
+
+@pytest.mark.parametrize(
+    "overrides,reason",
+    [
+        ({"openrouter_model": ""}, "missing_model"),
+        ({"ai_input_price_per_mtok_usd": None}, "missing_pricing"),
+        ({"ai_output_price_per_mtok_usd": None}, "missing_pricing"),
+        ({"openrouter_model": "openrouter/auto"}, "auto_router_not_enabled"),
+        ({"openrouter_model": "openrouter/free"}, "unsupported_model"),
+        ({}, None),
+    ],
+)
+async def test_status_names_the_missing_requirement_without_secrets(client, overrides, reason):
+    auth = await headers(client)
+    ready = {"ai_enabled": True, "openrouter_api_key": "k", "openrouter_model": "test/model"}
+    app.dependency_overrides[get_settings] = lambda: ai_settings(**{**ready, **overrides})
+    body = (await client.get("/api/v1/ai/status", headers=auth)).json()
+    assert body["reason"] == reason and body["available"] is (reason is None)
+    assert set(body) == {"available", "reason", "maxInputChars"}
 
 
 async def test_request_id_deduplicates_across_chat_routes(client, db_session, provider):
@@ -493,3 +517,12 @@ async def test_cancelled_stream_closes_provider_and_releases_lease(db_session):
     assert closed.is_set()
     assert (await db_session.scalar(select(AIUsage))).status == "failed"
     assert await db_session.scalar(select(func.count()).select_from(AIMessage)) == 0
+
+
+def test_blank_price_variables_mean_unset_not_a_startup_crash(monkeypatch):
+    monkeypatch.setenv("AI_INPUT_PRICE_PER_MTOK_USD", "")
+    monkeypatch.setenv("AI_OUTPUT_PRICE_PER_MTOK_USD", " ")
+    settings = Settings()
+    assert settings.ai_input_price_per_mtok_usd is None
+    assert settings.ai_output_price_per_mtok_usd is None
+    assert unavailable_reason(settings) is not None  # unknown price is never treated as free

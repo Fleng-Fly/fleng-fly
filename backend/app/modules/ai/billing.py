@@ -7,6 +7,7 @@ from decimal import Decimal
 from app.core.config import Settings
 
 MICRO = Decimal(1_000_000)
+AUTO_ROUTER = "openrouter/auto"
 
 
 def input_token_bound(messages: list[dict], schema: dict | None = None) -> int:
@@ -48,6 +49,10 @@ def settled_charge(settings: Settings, usage: dict | None) -> tuple[int, str] | 
     cost = usage.get("cost")
     if isinstance(cost, (int, float)) and not isinstance(cost, bool) and cost >= 0:
         return math.ceil(Decimal(str(cost)) * MICRO), "provider"
+    if settings.openrouter_model == AUTO_ROUTER:
+        # The routed model's price is unknown to us, so token counts are not a trustworthy
+        # basis: without usage.cost the whole worst-case hold becomes the charge.
+        return None
     prompt, completion = usage.get("prompt_tokens"), usage.get("completion_tokens")
     if (
         isinstance(prompt, int)
