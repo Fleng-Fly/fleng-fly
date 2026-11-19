@@ -1,0 +1,239 @@
+.leaderboard-spark {
+  color: #d99bff;
+  margin-left: 0.5em;
+  font-size: 0.8em;
+}
+.leaderboard-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: end;
+  margin: 2.8rem 0 2rem;
+}
+.podium-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1rem 1.6rem;
+  border: 1px solid var(--dash-border);
+  border-radius: 1.5rem;
+  background: linear-gradient(150deg, #21172d, #100d19);
+  min-width: 0;
+}
+.podium-1 {
+  grid-column: 2;
+  grid-row: 1;
+  padding-top: 2.8rem;
+  border-color: #ae63dd;
+  background:
+    radial-gradient(ellipse at top, #65336d80, transparent 75%),
+    linear-gradient(145deg, #291633, #171020);
+  box-shadow: 0 0 3rem #a745c51c;
+}
+.podium-2 {
+  grid-column: 1;
+  grid-row: 1;
+}
+.podium-3 {
+  grid-column: 3;
+  grid-row: 1;
+}
+.podium-place {
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: #c3add8;
+  font-weight: 600;
+  margin-bottom: 1.4rem;
+}
+.podium-1 .podium-place {
+  color: #edbdff;
+}
+.learner-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #724aa4, #35204b);
+  color: #fff;
+  font-weight: 600;
+}
+.avatar-1 {
+  background: linear-gradient(140deg, #437c94, #203047);
+}
+.avatar-2 {
+  background: linear-gradient(140deg, #b57070, #512c53);
+}
+.podium-card > .learner-avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: 1.6rem;
+  border: 3px solid #ffffff20;
+  margin-bottom: 1rem;
+}
+.podium-1 > .learner-avatar {
+  border-color: #d58dff;
+  box-shadow: 0 0 1.8rem #b440ff40;
+}
+.learner-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.learner-you {
+  display: inline-block;
+  margin-left: 0.55rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.35rem;
+  background: #bd65ff25;
+  color: #e7baff;
+  font-size: 0.65rem;
+  vertical-align: middle;
+}
+.podium-xp {
+  font-size: 1.7rem;
+  letter-spacing: -0.04em;
+  color: #e2b4ff;
+  margin-top: 0.5rem;
+}
+.podium-card p {
+  font-size: 0.7rem;
+  margin-top: 0.3rem;
+}
+.podium-rank {
+  margin-top: 0.8rem;
+  font-size: 0.8rem;
+  color: #c4b0db;
+}
+.leaderboard-panel {
+  padding: 1.6rem;
+}
+.leaderboard-panel .section-heading {
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+.leaderboard-panel .section-heading > span {
+  font-size: 0.75rem;
+}
+.leaderboard-scroll {
+  overflow-x: auto;
+}
+.leaderboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.4rem;
+  text-align: left;
+  font-size: 0.8rem;
+}
+.leaderboard-table th {
+  color: var(--dash-muted);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 0.9rem 0.8rem;
+}
+.leaderboard-table td {
+  background: #ffffff03;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+}
+.leaderboard-table td:first-child {
+  border-radius: 0.7rem 0 0 0.7rem;
+}
+.leaderboard-table td:last-child {
+  border-radius: 0 0.7rem 0.7rem 0;
+  white-space: nowrap;
+}
+.leaderboard-table .current-learner td {
+  background: #a751e41c;
+  border-color: #b864ef44;
+}
+.rank-cell {
+  width: 4rem;
+  color: var(--dash-muted);
+}
+.xp-cell {
+  color: #dfb2ff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.learner-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.leaderboard-note {
+  font-size: 0.72rem;
+  padding: 0.8rem 0.6rem 0;
+}
+.own-rank {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #a751e41c;
+  color: #e7baff;
+  font-size: 0.85rem;
+}
+.leaderboard-message {
+  padding: 2rem;
+  margin-top: 2rem;
+}
+@media (max-width: 768px) {
+  .leaderboard-podium {
+    gap: 0.65rem;
+  }
+  .podium-card {
+    padding: 1.5rem 0.5rem 1rem;
+  }
+  .podium-1 {
+    padding-top: 2rem;
+  }
+  .podium-place {
+    font-size: 0.55rem;
+    letter-spacing: 0.05em;
+  }
+  .podium-card .learner-name {
+    font-size: 0.8rem;
+  }
+  .podium-xp {
+    font-size: 1.3rem;
+  }
+  .leaderboard-panel {
+    padding: 1rem;
+  }
+}
+@media (max-width: 540px) {
+  .leaderboard-podium {
+    grid-template-columns: 1fr;
+    margin-top: 1.5rem;
+  }
+  .podium-1,
+  .podium-2,
+  .podium-3 {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .podium-card {
+    padding: 1.25rem;
+  }
+  .podium-card > .learner-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  .podium-place {
+    margin-bottom: 0.8rem;
+  }
+  .leaderboard-table {
+    min-width: 530px;
+  }
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 0.8rem 0.5rem;
+  }
+}
