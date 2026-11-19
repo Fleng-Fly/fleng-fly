@@ -47,8 +47,11 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   title.append(el('strong', '', 'Fleng AI'));
   const availability = el('small', '', 'Checking availability');
   title.append(availability);
+  const expand = button('', () => togglePreset(), 'Enlarge chat');
+  expand.className = 'ai-expand';
   header.append(
     title,
+    expand,
     button('−', () => hide('MINIMIZED'), 'Minimize chat'),
     button('×', () => hide('CLOSED'), 'Close chat'),
   );
@@ -119,7 +122,11 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   const composerHint = el('div', 'ai-composer-hint');
   composerHint.append(el('small', '', 'AI can make mistakes'), counter);
   form.append(input, send, composerHint);
-  panel.append(header, tools, contextLabel, messages, jump, typing, recovery, form);
+  const resizer = el('div', 'ai-resize');
+  resizer.tabIndex = 0;
+  resizer.setAttribute('role', 'separator');
+  resizer.setAttribute('aria-label', 'Resize chat. Drag, or use the arrow keys.');
+  panel.append(resizer, header, tools, contextLabel, messages, jump, typing, recovery, form);
   root.append(panel, launcher);
   document.body.append(root);
   let conversationId = null;
@@ -445,6 +452,75 @@ export function mountAIAssistant(user, getContext = () => ({})) {
       hide('CLOSED');
     }
   });
+  // Chat size: drag the top-left corner, arrow keys on it, or the header button (compact/large).
+  // The panel is anchored bottom-right, so growing means moving the corner left/up. Size is a
+  // per-browser preference only and is always clamped to the current window.
+  const COMPACT = { w: 356, h: 510 }, LARGE = { w: 620, h: 780 }, MIN = { w: 300, h: 360 };
+  const sizeKey = 'fleng.ai.size.v1';
+  let size = { ...COMPACT };
+  try {
+    const stored = JSON.parse(localStorage.getItem(sizeKey) || 'null');
+    if (stored && Number.isFinite(stored.w) && Number.isFinite(stored.h)) size = { w: stored.w, h: stored.h };
+  } catch {
+    /* Optional preference. */
+  }
+  const clampSize = (value) => ({
+    w: Math.round(Math.min(Math.max(value.w, MIN.w), Math.max(MIN.w, (window.innerWidth || 1200) - 32))),
+    h: Math.round(Math.min(Math.max(value.h, MIN.h), Math.max(MIN.h, (window.innerHeight || 900) - 40))),
+  });
+  function applySize(persist = false) {
+    size = clampSize(size);
+    root.style.setProperty('--ai-w', `${size.w}px`);
+    root.style.setProperty('--ai-h', `${size.h}px`);
+    const large = size.w > (COMPACT.w + LARGE.w) / 2 || size.h > (COMPACT.h + LARGE.h) / 2;
+    expand.classList.toggle('is-large', large);
+    expand.setAttribute('aria-label', large ? 'Restore chat size' : 'Enlarge chat');
+    if (persist) {
+      try {
+        localStorage.setItem(sizeKey, JSON.stringify(size));
+      } catch {
+        /* Optional preference. */
+      }
+    }
+  }
+  function togglePreset() {
+    const large = size.w > (COMPACT.w + LARGE.w) / 2 || size.h > (COMPACT.h + LARGE.h) / 2;
+    size = { ...(large ? COMPACT : LARGE) };
+    applySize(true);
+    scrollBottom();
+  }
+  resizer.addEventListener('pointerdown', (event) => {
+    if (event.button > 0) return;
+    event.preventDefault();
+    const start = { x: event.clientX, y: event.clientY, ...size };
+    resizer.setPointerCapture?.(event.pointerId);
+    root.classList.add('ai-resizing');
+    const move = (next) => {
+      size = { w: start.w + (start.x - next.clientX), h: start.h + (start.y - next.clientY) };
+      applySize();
+    };
+    const stop = () => {
+      resizer.removeEventListener('pointermove', move);
+      resizer.removeEventListener('pointerup', stop);
+      resizer.removeEventListener('pointercancel', stop);
+      root.classList.remove('ai-resizing');
+      applySize(true);
+    };
+    resizer.addEventListener('pointermove', move);
+    resizer.addEventListener('pointerup', stop);
+    resizer.addEventListener('pointercancel', stop);
+  });
+  resizer.addEventListener('keydown', (event) => {
+    const step = event.shiftKey ? 80 : 24;
+    const delta = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    size = { w: size.w + delta[0], h: size.h + delta[1] };
+    applySize(true);
+  });
+  const reclamp = () => applySize();
+  window.addEventListener('resize', reclamp);
+  applySize();
   function viewport() {
     const view = window.visualViewport;
     if (view) {
@@ -478,6 +554,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     if (clearSelection) remember();
     root.remove();
     css.remove();
+    window.removeEventListener('resize', reclamp);
     window.visualViewport?.removeEventListener('resize', viewport);
     window.visualViewport?.removeEventListener('scroll', viewport);
     window.removeEventListener('fleng:session-ended', onSessionEnd);

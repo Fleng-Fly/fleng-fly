@@ -25,9 +25,10 @@
   box-shadow: 0 6px 28px #08031066; font-size: 13px;
 }
 .ai-panel {
-  width: min(356px, calc(100vw - 32px));
+  position: relative;
+  width: min(var(--ai-w, 356px), calc(100vw - 32px));
   max-width: 100%;
-  height: min(510px, calc(var(--ai-height, 100dvh) - 40px));
+  height: min(var(--ai-h, 510px), calc(var(--ai-height, 100dvh) - 40px));
   display: flex; flex-direction: column; overflow: hidden;
   border: 1px solid #9974bd4d; border-radius: 18px;
   background: #130e20; box-shadow: 0 20px 70px #06020b99;
@@ -86,7 +87,7 @@
 .dashboard-page.drawer-open .fleng-ai { visibility: hidden; pointer-events: none; }
 @media(max-width:480px) {
   .fleng-ai { max-width: calc(100% - max(8px, env(safe-area-inset-left)) - max(8px, env(safe-area-inset-right))); right: max(8px, env(safe-area-inset-right)); bottom: calc(max(8px, env(safe-area-inset-bottom)) + var(--ai-bottom, 0px)); }
-  .ai-panel { width: calc(100vw - 16px); height: min(510px, calc(var(--ai-height, 100dvh) - 16px)); border-radius: 15px; }
+  .ai-panel { width: calc(100vw - 16px); height: min(var(--ai-h, 510px), calc(var(--ai-height, 100dvh) - 16px)); border-radius: 15px; }
   .ai-composer textarea { font-size: 16px; }
   .ai-header button, .ai-options summary { min-height: 44px; height: 44px; }
   .ai-tools select, .ai-tools > button, .fleng-ai .ai-send { min-height: 44px; height: 44px; }
@@ -107,3 +108,17 @@
 .ai-context.is-exercise { color: #f1e6ff; background: rgba(191, 64, 250, 0.12); border-left: 3px solid #bf40fa; }
 .ai-back { flex: none; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 7px; padding: 4px 9px; background: transparent; color: inherit; font: inherit; font-size: 11px; cursor: pointer; }
 .ai-back:focus-visible { outline: 2px solid #bf40fa; outline-offset: 2px; }
+
+/* Resizable chat: a grab corner at the top-left (the panel is anchored bottom-right). */
+.ai-resize { position: absolute; z-index: 3; top: 0; left: 0; width: 22px; height: 22px; cursor: nwse-resize; touch-action: none; border-top-left-radius: 18px; }
+.ai-resize::before { content: ''; position: absolute; top: 7px; left: 7px; width: 9px; height: 9px; border-top: 2px solid #8f73ad; border-left: 2px solid #8f73ad; border-top-left-radius: 3px; opacity: .7; }
+.ai-resize:hover::before, .ai-resize:focus-visible::before { opacity: 1; border-color: #d4a2ff; }
+.ai-resizing { user-select: none; }
+.ai-resizing .ai-panel { transition: none; }
+@media (max-width: 600px) {
+  .ai-resize { display: none; } /* touch screens use the header button; the panel fills the width */
+}
+/* Enlarge / restore icon drawn in CSS (no dependency on font glyphs). */
+.fleng-ai .ai-expand { display: grid; place-items: center; }
+.ai-expand::before { content: ''; width: 11px; height: 11px; border: 2px solid currentColor; border-radius: 2px; }
+.ai-expand.is-large::before { width: 9px; height: 9px; box-shadow: 3px -3px 0 -1px #130e20, 3px -3px 0 0 currentColor; }

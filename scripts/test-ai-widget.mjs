@@ -37,6 +37,7 @@ function all(root, predicate) {
   return [...(predicate(root) ? [root] : []), ...root.children.flatMap((node) => all(node, predicate))];
 }
 const find = (root, className) => all(root, (node) => node.className.split(' ').includes(className))[0];
+const headerButton = (root, label) => find(root, 'ai-header').children.find((node) => node.attributes?.['aria-label'] === label);
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
 async function environment() {
@@ -141,10 +142,10 @@ test('open/minimize/close, streaming XSS, context allowlist and navigation histo
   assert.equal(e.calls[0].payload.exerciseId, 'exercise');
   assert.equal(e.calls[0].payload.system, undefined);
   assert.equal(e.storage.get('fleng.ai.conversation.A'), 'chat-A');
-  find(root, 'ai-header').children[1].dispatchEvent(new Event('click'));
+  headerButton(root, 'Minimize chat').dispatchEvent(new Event('click'));
   assert.equal(root.dataset.state, 'MINIMIZED');
   await widget.open();
-  find(root, 'ai-header').children[2].dispatchEvent(new Event('click'));
+  headerButton(root, 'Close chat').dispatchEvent(new Event('click'));
   assert.equal(root.dataset.state, 'CLOSED');
   await widget.open();
   assert.match(find(root, 'ai-messages').textContent, /<script>alert/);
@@ -269,4 +270,33 @@ test('ask() never sends when Fleng AI is unavailable', async () => {
   for (let i = 0; i < 5; i++) await settle();
   assert.equal(e.calls.length, 0);
   assert.equal(e.root().dataset.state, 'UNAVAILABLE');
+});
+
+test('the chat can be enlarged, restored, resized by keyboard, and the size is remembered and clamped', async () => {
+  const e = await environment();
+  e.window.innerWidth = 1400;
+  const props = [];
+  const widget = e.widget.mountAIAssistant({ id: 'A' }); const root = e.root();
+  root.style.setProperty = (name, value) => props.push([name, value]);
+  const last = (name) => props.filter(([key]) => key === name).at(-1)?.[1];
+  await widget.open();
+  const expand = headerButton(root, 'Enlarge chat');
+  expand.dispatchEvent(new Event('click'));
+  assert.deepEqual([last('--ai-w'), last('--ai-h')], ['620px', '780px']);
+  assert.equal(headerButton(root, 'Restore chat size') !== undefined, true);
+  assert.deepEqual(JSON.parse(e.storage.get('fleng.ai.size.v1')), { w: 620, h: 780 });
+  headerButton(root, 'Restore chat size').dispatchEvent(new Event('click'));
+  assert.deepEqual([last('--ai-w'), last('--ai-h')], ['356px', '510px']);
+  // Keyboard on the corner handle: left/up grow the panel (it is anchored bottom-right).
+  const handle = find(root, 'ai-resize');
+  const key = (name, extra = {}) => { const event = new Event('keydown'); Object.assign(event, { key: name, preventDefault() {} }, extra); handle.dispatchEvent(event); };
+  key('ArrowLeft'); key('ArrowUp');
+  assert.deepEqual([last('--ai-w'), last('--ai-h')], ['380px', '534px']);
+  key('ArrowRight', { shiftKey: true });
+  assert.equal(last('--ai-w'), '300px');
+  // Never smaller than the minimum or larger than the window.
+  for (let i = 0; i < 30; i++) key('ArrowRight', { shiftKey: true });
+  assert.equal(last('--ai-w'), '300px');
+  for (let i = 0; i < 40; i++) key('ArrowUp', { shiftKey: true });
+  assert.equal(last('--ai-h'), '860px');
 });
