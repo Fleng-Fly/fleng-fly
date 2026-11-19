@@ -54,6 +54,7 @@ def summary(attempt: PlacementAttempt) -> PlacementSummary:
         total=len(attempt.questions),
         estimated_level=attempt.result["estimated_level"] if attempt.result else None,
         result_label=attempt.result["label"] if attempt.result else None,
+        correct=attempt.result["correct"] if attempt.result else None,
     )
 
 

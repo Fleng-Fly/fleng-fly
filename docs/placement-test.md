@@ -1,7 +1,13 @@
 # Placement Test MVP
 
-The private page is `/placement-test.html`. This feature is isolated from AI,
-Words, Dashboard, auth/security behavior, shared CSS and lesson grading. It uses
+The private page is `/placement-test.html`, part of the Courses area (breadcrumb
+"Courses / Placement Test", Courses highlighted in the sidebar, entered from the "Find your
+level" link on `/courses.html`; it has no sidebar item of its own). It uses the shared dashboard
+layout and shows the intro block, the four CEFR cards (the newest completed attempt's level is
+marked "CURRENT LEVEL") and the attempt history (level badge, date, `correct / total`, View
+results/Resume). While answering, only the questions are shown. `GET /placement-test/attempts`
+additionally returns `correct` for completed attempts. This feature is isolated from AI,
+Words, auth/security behavior and lesson grading. It uses
 existing JWT authentication and the existing same-origin API client. No XP,
 profile level, lesson/course progress, streak or achievement is written.
 

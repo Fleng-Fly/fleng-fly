@@ -97,7 +97,6 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           <a class="sidebar-link" href="/progress.html"><svg><use href="#icon-chart" /></svg><span data-i18n="ws.progress">Progress</span></a>
           <a class="sidebar-link" href="/leaderboard.html"
             ><svg><use href="#icon-trophy" /></svg><span data-i18n="ws.leaderboard">Leaderboard</span></a>
-          <a class="sidebar-link" href="/placement-test.html"><svg><use href="#icon-search" /></svg><span data-i18n="ws.placement">Level test</span></a>
           <a class="sidebar-link" href="/settings.html"
             ><svg><use href="#icon-settings" /></svg><span data-i18n="ws.settings">Settings</span></a
           >
@@ -186,7 +185,7 @@ export function markWorkspaceNavigation(content, active) {
   for (const link of content.querySelectorAll('.sidebar-link[href]')) {
     const destination = {
       dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
-      settings: '/settings.html', lessons: '/courses.html', courses: '/courses.html', progress: '/progress.html', placement: '/placement-test.html',
+      settings: '/settings.html', lessons: '/courses.html', courses: '/courses.html', progress: '/progress.html', placement: '/courses.html',
       words: '/vocabulary.html', practice: '/vocabulary.html', 'course-words': '/course-words.html',
     }[active];
     const selected = link.getAttribute('href') === destination;

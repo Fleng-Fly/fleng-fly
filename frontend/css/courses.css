@@ -372,3 +372,6 @@
   outline: 2px solid var(--dash-lilac);
   outline-offset: 2px;
 }
+
+.catalog-placement-link { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; color: #e3d9fc; border: 1px solid rgba(194,158,248,.3); border-radius: 9px; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.catalog-placement-link:hover { background: rgba(167,44,221,.14); border-color: rgba(194,158,248,.55); }

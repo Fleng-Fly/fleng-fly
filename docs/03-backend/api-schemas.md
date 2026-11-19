@@ -1753,6 +1753,17 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       ],
       "title": "Resultlabel"
     },
+    "correct": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Correct"
+    },
     "questions": {
       "items": {
         "$ref": "#/components/schemas/PlacementQuestion"
@@ -2090,6 +2101,17 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Resultlabel"
+    },
+    "correct": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Correct"
     }
   },
   "type": "object",

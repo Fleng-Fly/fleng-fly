@@ -256,6 +256,8 @@ async def test_complete_retake_recommendations_and_zero_learning_writes(client, 
     assert result["result"]["correct"] == 36
     assert result["result"]["estimatedLevel"] == "B2"
     assert len(result["result"]["review"]) == 36
+    listed = {a["id"]: a for a in (await client.get(BASE, headers=auth)).json()}[first["id"]]
+    assert (listed["correct"], listed["total"], listed["estimatedLevel"]) == (36, 36, "B2")
     assert [c["slug"] for c in result["recommendedCourses"]] == ["placement-b2"]
     again = (await client.post(complete_url, headers=auth)).json()
     assert result == again

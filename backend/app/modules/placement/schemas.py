@@ -73,6 +73,8 @@ class PlacementSummary(CamelModel):
     total: int
     estimated_level: Literal["A1", "A2", "B1", "B2"] | None
     result_label: str | None
+    # Correct answers of a completed attempt (out of `total`); null while in progress.
+    correct: int | None = None
 
     @field_validator("started_at", "completed_at")
     @classmethod

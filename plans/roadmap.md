@@ -446,3 +446,11 @@ the new theory steps (pre-existing draft guidance).
   only provider `usage.cost` settles, missing cost charges the whole hold.
 - Open: verify on a few real requests that OpenRouter honours `provider.max_price` for the Auto
   Router; intermittent `test_placement` failure in full backend runs.
+
+## Placement Test redesign — 2026-11-19
+
+- Done: `/placement-test.html` moved into the Courses area (dashboard layout, breadcrumb, no
+  sidebar item, "Find your level" link on Courses); compact intro, four CEFR cards with the
+  current level, one-line attempt rows; EN/UK. History summaries now include `correct`.
+- Open: the approved reference screenshot was not visible to the implementer; the layout follows
+  the written specification and needs a visual comparison.

@@ -1,14 +1,25 @@
-import { el, mountHeader } from './layout.js';
+import { el } from './layout.js';
 import { getLang, t } from './i18n.js';
 import { requireSession } from './session.js';
+import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 import { describeApiError } from './errors.js';
 import { completePlacement, getPlacement, listPlacements, savePlacementAnswer, startPlacement } from './placement-api.js';
 
 const $ = (id) => document.getElementById(id);
 let attempt = null, index = 0, busy = false, ready = false, historyBusy = false, historyOffset = 0;
 let retryAction = main;
-mountHeader('');
+let latestLevel = null; // estimated level of the newest completed attempt (history is newest first)
+mountWorkspace('placement');
 
+/** Highlights the learner's latest completed estimate in the CEFR row. */
+function markCurrentLevel() {
+  for (const card of document.querySelectorAll('#placement-levels li')) {
+    const current = card.dataset.level === latestLevel;
+    card.classList.toggle('is-current', current);
+    card.querySelector('.pt-current')?.remove();
+    if (current) card.prepend(el('span', 'pt-current', t('pt.current')));
+  }
+}
 function status(text) { $('placement-status').textContent = text; }
 function showError(error, retry) {
   $('placement-error-text').textContent = describeApiError(error);
@@ -29,7 +40,11 @@ function adopt(value) {
   const url = new URL(location.href); url.searchParams.set('attempt', attempt.id);
   history.replaceState(null, '', url);
   $('placement-error').hidden = true;
-  $('placement-player').hidden = attempt.status !== 'in_progress';
+  const answering = attempt.status === 'in_progress';
+  $('placement-player').hidden = !answering;
+  // While answering, only the questions are shown; the landing blocks return afterwards.
+  $('placement-intro').hidden = answering;
+  $('placement-levels').hidden = answering;
   $('placement-result').hidden = attempt.status !== 'completed';
   if (attempt.status === 'completed') renderResult();
   else renderQuestion();
@@ -69,7 +84,7 @@ function renderResult() {
   target.replaceChildren(el('h2', undefined, result.label), el('p', undefined, t('pt.score', { correct: result.correct, total: result.total, range: result.assessmentRange })));
   const limitations = el('ul');
   for (const text of result.limitations) limitations.append(el('li', undefined, text));
-  target.append(limitations);
+  target.append(limitations, el('p', 'muted', t('pt.disclaimer')), el('p', 'muted', t('pt.note')));
   const bands = el('ul', 'placement-band-list');
   for (const band of result.bands) bands.append(el('li', undefined, `${band.level}: ${band.correct}/${band.total}${['C1', 'C2'].includes(band.level) ? t('pt.exploratory') : ''}`));
   target.append(bands, el('h3', undefined, t('pt.suggested')), el('p', 'muted', attempt.recommendationNote));
@@ -103,17 +118,26 @@ async function loadHistory(reset = true) {
   if (historyBusy) return;
   historyBusy = true; $('placement-history-refresh').disabled = true;
   $('placement-history-more').disabled = true;
-  if (reset) { historyOffset = 0; $('placement-history-list').replaceChildren(); }
+  if (reset) { historyOffset = 0; latestLevel = null; $('placement-history-list').replaceChildren(); }
   $('placement-history-status').textContent = t('pt.loadingAttempts');
   try {
     const rows = await listPlacements(historyOffset);
     for (const row of rows) {
-      const item = el('li');
-      const label = row.status === 'completed' ? t('pt.viewResult', { label: row.resultLabel || row.estimatedLevel || '' }) : t('pt.resume', { done: row.answered, total: row.total });
-      const button = el('button', 'btn btn-secondary', `${new Date(row.startedAt).toLocaleString(getLang())} · ${label}`);
-      button.type = 'button'; button.addEventListener('click', () => openAttempt(row.id)); item.append(button);
+      const done = row.status === 'completed';
+      const item = el('li', 'pt-attempt');
+      const date = new Date(row.startedAt).toLocaleDateString(getLang(), { day: 'numeric', month: 'short', year: 'numeric' });
+      const open = el('button', 'pt-link', done ? t('pt.viewResults') : t('pt.resume', { done: row.answered, total: row.total }));
+      open.type = 'button'; open.addEventListener('click', () => openAttempt(row.id));
+      item.append(
+        el('span', `pt-badge${done && row.estimatedLevel ? '' : ' is-empty'}`, done ? row.estimatedLevel || '–' : '…'),
+        el('span', 'pt-attempt-date', date),
+        el('span', 'pt-attempt-score', done ? t('pt.scoreShort', { correct: row.correct ?? 0, total: row.total }) : t('pt.inProgress')),
+        open,
+      );
       $('placement-history-list').append(item);
+      if (done && row.estimatedLevel && !latestLevel) latestLevel = row.estimatedLevel;
     }
+    markCurrentLevel();
     historyOffset += rows.length;
     $('placement-history-more').hidden = rows.length < 20;
     $('placement-history-status').textContent = historyOffset ? '' : t('pt.noAttempts');
@@ -149,6 +173,7 @@ async function main() {
   try {
     const user = await requireSession({ throwOnUnavailable: true });
     if (!user) return;
+    setWorkspaceUser(user);
     ready = true; $('placement-error').hidden = true; controls(); status(t('pt.ready'));
     await loadHistory();
     const id = new URLSearchParams(location.search).get('attempt');
