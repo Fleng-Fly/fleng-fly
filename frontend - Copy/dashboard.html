@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard — Fleng</title>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#101126" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Fleng" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <script defer src="/js/pwa.js"></script>
+  </head>
+  <body class="dashboard-page">
+        <main class="dashboard-main">
+          <section id="session-error" class="dashboard-alert" role="alert" hidden>
+            <span id="session-error-text"></span>
+            <button id="session-retry" class="dashboard-text-button" type="button">
+              Try again
+            </button>
+          </section>
+
+          <div id="dashboard-content" hidden>
+            <div class="dashboard-page-heading">
+              <div>
+                <p class="dashboard-eyebrow">OVERVIEW</p>
+                <h1>Dashboard</h1>
+                <p class="dashboard-subtitle">Your learning space, all in one place.</p>
+              </div>
+              <span id="dashboard-level" class="dashboard-level">Level —</span>
+            </div>
+            <div class="dashboard-grid">
+              <div class="dashboard-primary">
+                <section class="welcome-card dashboard-reveal" aria-labelledby="welcome-title">
+                  <div class="welcome-copy">
+                    <span class="welcome-kicker">WELCOME TO FLENG</span>
+                    <h2 id="welcome-title">Welcome back!</h2>
+                    <p id="welcome-message">
+                      Make a little progress today and keep your momentum going.
+                    </p>
+                    <a class="dashboard-cta" href="/courses.html"
+                      >Go to lessons <svg><use href="#icon-arrow" /></svg
+                    ></a>
+                  </div>
+                  <div class="welcome-art" aria-hidden="true">
+                    <span class="art-orbit art-orbit-one"></span
+                    ><span class="art-orbit art-orbit-two"></span><span class="art-core">✦</span>
+                  </div>
+                </section>
+                <section class="dashboard-section dashboard-reveal" aria-labelledby="quick-heading">
+                  <div class="section-heading">
+                    <div>
+                      <p class="dashboard-eyebrow">YOUR SPACE</p>
+                      <h2 id="quick-heading">Quick access</h2>
+                    </div>
+                  </div>
+                  <div class="quick-grid">
+                    <a class="quick-card dashboard-card" href="/courses.html"
+                      ><span class="quick-icon"
+                        ><svg><use href="#icon-book" /></svg></span
+                      ><span class="quick-copy"
+                        ><strong>Lessons</strong
+                        ><small>Pick up a lesson and keep learning.</small></span
+                      ><svg class="quick-arrow"><use href="#icon-arrow" /></svg
+                    ></a>
+                    <a class="quick-card dashboard-card" href="#your-progress"
+                      ><span class="quick-icon"
+                        ><svg><use href="#icon-chart" /></svg></span
+                      ><span class="quick-copy"
+                        ><strong>Progress</strong><small>See how far you have come.</small></span
+                      ><svg class="quick-arrow"><use href="#icon-arrow" /></svg
+                    ></a>
+                    <a class="quick-card dashboard-card" href="/leaderboard.html">
+                      <span class="quick-icon"
+                        ><svg><use href="#icon-trophy" /></svg></span
+                      ><span class="quick-copy"
+                        ><strong>Leaderboard</strong><small>Meet the top learners.</small></span>
+                    </a>
+                  </div>
+                </section>
+                <section
+                  class="dashboard-section dashboard-reveal"
+                  aria-labelledby="current-course-heading"
+                >
+                  <div class="section-heading">
+                    <div>
+                      <p class="dashboard-eyebrow">KEEP GOING</p>
+                      <h2 id="current-course-heading">Current course</h2>
+                    </div>
+                  </div>
+                  <div
+                    id="current-course-body"
+                    class="dashboard-card current-course-card"
+                    aria-live="polite"
+                  >
+                    <p class="dashboard-muted">Loading course…</p>
+                  </div>
+                </section>
+              </div>
+              <aside
+                id="your-progress"
+                class="dashboard-secondary dashboard-reveal"
+                aria-labelledby="progress-heading"
+              >
+                <div class="dashboard-card progress-panel">
+                  <div class="section-heading">
+                    <div>
+                      <p class="dashboard-eyebrow">AT A GLANCE</p>
+                      <h2 id="progress-heading">Your progress</h2>
+                    </div>
+                  </div>
+                  <div id="progress-body" aria-live="polite">
+                    <p class="dashboard-muted">Loading progress…</p>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </main>
+    <script type="module" src="/js/dashboard.js"></script>
+  </body>
+</html>
