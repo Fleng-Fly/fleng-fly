@@ -80,17 +80,24 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
             assert db.execute("SELECT count(*) FROM lessons WHERE is_published=1").fetchone() == (
                 57,
             )
-            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (560,)
+            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1060,)
             published_ids = db.execute(
                 "SELECT id FROM courses WHERE is_published=1 ORDER BY id"
             ).fetchall()
         assert len(client.get("/api/v1/courses").json()) == 7
+        curriculum_courses = []
         for level in ("a0", "a1", "a2", "b1", "b2"):
             course = client.get("/api/v1/courses/fleng-" + level)
             assert course.status_code == 200
-            assert len(course.json()["lessons"]) == 10
-            for lesson in course.json()["lessons"]:
-                assert client.get("/api/v1/lessons/" + lesson["slug"]).status_code == 200
+            course_data = course.json()
+            curriculum_courses.append(course_data)
+            assert len(course_data["lessons"]) == 10
+            for lesson in course_data["lessons"]:
+                detail = client.get("/api/v1/lessons/" + lesson["slug"])
+                assert detail.status_code == 200
+                exercises = detail.json()["exercises"]
+                assert [e["position"] for e in exercises] == list(range(1, 23))
+                assert all("-vocabulary-" in e["slug"] for e in exercises[-10:])
         response = client.post(
             "/api/v1/auth/register", json={**login, "displayName": "Render"}, headers=origin
         )
@@ -111,13 +118,28 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
         assert saved_refresh != refresh
         auth = {"Authorization": f"Bearer {response.json()['accessToken']}"}
         assert client.get("/dashboard.html").status_code == 200
-        for level in ("A0", "A1", "A2", "B1", "B2"):
-            words = client.get(
-                "/api/v1/vocabulary/course-words",
-                params={"level": level, "limit": 100},
-                headers=auth,
-            )
-            assert words.status_code == 200 and len(words.json()) == 100
+        for course in curriculum_courses:
+            vocabulary = []
+            for offset, expected in ((0, 100), (100, 100), (200, 0)):
+                words = client.get(
+                    "/api/v1/vocabulary/course-words",
+                    params={"courseId": course["id"], "limit": 100, "offset": offset},
+                    headers=auth,
+                )
+                assert words.status_code == 200 and len(words.json()) == expected
+                vocabulary.extend(words.json())
+            assert len({word["word"] for word in vocabulary}) == 200
+            for lesson in course["lessons"]:
+                assert sum(w["lessonId"] == lesson["id"] for w in vocabulary) == 20
+        exercises = client.get("/api/v1/lessons/fleng-a0-classroom").json()["exercises"]
+        question = next(e for e in exercises if e["slug"].endswith("-vocabulary-1"))
+        correct = next(option for option in question["options"] if option["text"] == "екран")
+        result = client.post(
+            "/api/v1/lessons/fleng-a0-classroom/submit",
+            json={"exerciseId": question["id"], "answer": correct["id"]},
+            headers=auth,
+        )
+        assert result.status_code == 200 and result.json()["isCorrect"] is True
         for route in ("users/me", "progress/me", "streaks/me", "vocabulary/stats"):
             assert client.get(f"/api/v1/{route}", headers=auth).status_code == 200
         lesson = client.get("/api/v1/lessons/greetings-and-introductions").json()
@@ -172,7 +194,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
             db.execute("SELECT id FROM courses WHERE is_published=1 ORDER BY id").fetchall()
             == published_ids
         )
-        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (560,)
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1060,)
         tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert {"request_limits", "users", "profiles", "refresh_tokens"} <= tables
     logs = (tmp_path / "production.log").read_text()

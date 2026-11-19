@@ -5,20 +5,25 @@ adds four more exercises per lesson in other formats (typed gap fill, sentence
 building, translation, short written answer) using the existing exercise types
 (`text`, `self_check`). Rows are added once, keyed by stable slugs/IDs; an existing row
 that differs aborts the import instead of changing learners' graded content.
+The vocabulary supplement adds ten word pairs and their translation questions
+to each lesson after those four exercises.
 """
 
 import re
 from pathlib import Path
-from typing import Literal, Self
+from typing import Literal, Self, cast
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlalchemy import select
+from sqlalchemy import Table, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.curriculum import Curriculum, stable_id
-from app.db.models import Exercise, Lesson
+from app.db.curriculum import Curriculum, WordSpec, stable_id
+from app.db.models import CourseVocabularyItem, Exercise, Lesson
 
 CONTENT = Path(__file__).with_name("content") / "curriculum-practice-supplement.json"
+VOCABULARY_CONTENT = CONTENT.with_name("curriculum-vocabulary-supplement.json")
 KINDS = ("fill_gap", "word_order", "translate", "write")
 
 
@@ -124,3 +129,95 @@ async def import_practice(
         added += 1
     await db.commit()
     return {"added": added, "existing": existing}
+
+
+class VocabularySupplement(_Strict):
+    version: Literal[1]
+    lessons: dict[str, list[WordSpec]]
+
+
+def vocabulary_rows(
+    content: Curriculum, supplement: PracticeSupplement
+) -> tuple[list[dict], list[dict]]:
+    """Build ten lesson words and one translation question per word."""
+    expansion = VocabularySupplement.model_validate_json(
+        VOCABULARY_CONTENT.read_text(encoding="utf-8")
+    )
+    expected = {lesson.slug for course in content.courses for lesson in course.lessons}
+    if set(expansion.lessons) != expected:
+        raise ValueError("Vocabulary supplement must cover exactly the curriculum lessons")
+
+    words: list[dict] = []
+    exercises: list[dict] = []
+    for course in content.courses:
+        known = {item.word for lesson in course.lessons for item in lesson.vocabulary}
+        course_id = stable_id("course", course.slug)
+        for lesson in course.lessons:
+            items = expansion.lessons[lesson.slug]
+            new_words = {item.word for item in items}
+            if len(items) != 10 or len(new_words) != 10 or known & new_words:
+                raise ValueError(f"{lesson.slug}: expected ten new course words")
+            if len({item.translation.casefold() for item in items}) != 10:
+                raise ValueError(f"{lesson.slug}: translations must distinguish the options")
+            known.update(new_words)
+            lesson_id = stable_id("lesson", lesson.slug)
+            start = len(lesson.exercises) + len(supplement.lessons[lesson.slug])
+            for index, item in enumerate(items):
+                words.append(
+                    {
+                        "id": stable_id("word", f"{course.slug}/{item.word}"),
+                        "course_id": course_id,
+                        "lesson_id": lesson_id,
+                        **item.model_dump(),
+                    }
+                )
+                to_english = index % 2 == 1
+                prompt = (
+                    f"Which English expression means «{item.translation}»?"
+                    if to_english
+                    else f"What is the Ukrainian translation of «{item.word}»?"
+                )
+                choices = [items[(index + offset) % len(items)] for offset in (3, 7)]
+                correct_index = (index + lesson.position) % 3
+                choices.insert(correct_index, item)
+                slug = f"{lesson.slug}-vocabulary-{index + 1}"
+                exercises.append(
+                    {
+                        "id": stable_id("exercise", slug),
+                        "lesson_id": lesson_id,
+                        "slug": slug,
+                        "position": start + index + 1,
+                        "type": "single_choice",
+                        "prompt": prompt,
+                        "options": [
+                            {
+                                "id": str(number),
+                                "text": choice.word if to_english else choice.translation,
+                            }
+                            for number, choice in enumerate(choices, start=1)
+                        ],
+                        "correct_option_id": str(correct_index + 1),
+                        "points": 1,
+                        "explanation": f"{item.word} — {item.translation}.",
+                    }
+                )
+    return words, exercises
+
+
+async def import_vocabulary_practice(db: AsyncSession, content: Curriculum) -> None:
+    """Install the new words and their questions atomically after the base practice."""
+    words, exercises = vocabulary_rows(content, load_supplement())
+    insert = pg_insert if db.get_bind().dialect.name == "postgresql" else sqlite_insert
+    for model, rows in ((CourseVocabularyItem, words), (Exercise, exercises)):
+        table = cast(Table, model.__table__)
+        query = select(table).where(table.c.id.in_([r["id"] for r in rows]))
+        existing = {row["id"]: row for row in (await db.execute(query)).mappings()}
+        missing = [values for values in rows if values["id"] not in existing]
+        if missing:
+            await db.execute(insert(table).on_conflict_do_nothing(index_elements=["id"]), missing)
+            existing = {row["id"]: row for row in (await db.execute(query)).mappings()}
+        for values in rows:
+            row = existing[values["id"]]
+            if any(row[key] != value for key, value in values.items()):
+                raise ValueError(f"Existing vocabulary content differs: {row['id']}")
+    await db.commit()

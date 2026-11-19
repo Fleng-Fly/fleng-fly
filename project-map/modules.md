@@ -425,6 +425,9 @@ up and prepared in place; no migration or API/business-policy change is introduc
 - `db/practice.py` (new): additive practice supplement
   (`content/curriculum-practice-supplement.json`, 4 per lesson → 12 per lesson) imported by
   `prepare` after the pinned curriculum; never rewrites existing rows.
+- `db/practice.py` also imports `content/curriculum-vocabulary-supplement.json`
+  through `prepare`. It links ten additional words to each of the 50 A0–B2
+  lessons and adds one graded translation question per new word.
 - `exercises/instructions.py` (new): EN/UK task instruction for every exercise.
 - `ai`: chat accepts `currentAnswer`; `context.exercise_context` adds instruction, options,
   draft and last attempt (no answer keys); `prompts.EXERCISE_HELP` teaching rules.
