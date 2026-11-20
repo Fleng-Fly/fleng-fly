@@ -467,3 +467,9 @@ on finished course pages; EN/UK; unit tests. Next: daily-goals design proposal
 Completed: profile goal settings + timezone, `GET /progress/daily`, derived progress, tests.
 Frontend integration completed on the existing dashboard styles (card with two bars, inline
 goal editor, browser time zone sync); the full Dashboard redesign still waits for a reference.
+
+## Curriculum expansion — 2026-11-20
+
+Completed: audit of the 50 lessons, additive extension pipeline (validator, importer, SHA gate),
+A0 lessons 11–15 authored as unpublished draft, tests. Blocked on review: publication (owner adds
+the SHA). Next: A1 lessons 11–15, then A2, B1, B2 per `docs/curriculum-expansion-plan.md`.
