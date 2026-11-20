@@ -31,6 +31,10 @@
   Firefox checks at 360/768/desktop passed on local SQLite (2026-10-22).
   Exact Figma comparison remains pending.
   Notifications and dedicated word/topic search remain unavailable.
+- [x] Dashboard redesign (2026-11-20): welcome hero with CTA, Your Progress, Quick
+  Access (Lessons/Words/Progress/Leaderboard), Current Course, Daily Goals,
+  next-course/placement cards and a benefits strip; EN/UK; real data only. No
+  notifications or Authors page exist, so neither is shown.
   Leaderboard is implemented (see 2026-11-04 update).
 - [x] Lessons visual phase: shared Dashboard workspace, lesson hero and four
   keyboard-accessible tabs, three existing exercise types, server feedback,

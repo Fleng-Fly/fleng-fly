@@ -23,49 +23,29 @@
       </section>
 
       <div id="dashboard-content" hidden>
-        <div class="dashboard-page-heading">
-          <div>
-            <p class="dashboard-eyebrow" data-i18n="dashboard.eyebrow">YOUR LEARNING</p>
-            <h1 id="welcome-title" data-i18n="dashboard.heading">Dashboard</h1>
-            <p id="welcome-message" class="dashboard-subtitle" data-i18n="dashboard.subtitle">
-              Pick up where you left off.
-            </p>
-          </div>
-          <span id="dashboard-level" class="dashboard-level" hidden></span>
-        </div>
         <div class="dashboard-grid">
-          <div class="dashboard-primary">
-            <section class="dashboard-section dashboard-reveal" aria-labelledby="current-course-heading">
-              <div class="section-heading">
-                <div>
-                  <p class="dashboard-eyebrow" data-i18n="dashboard.keepGoing">CONTINUE LEARNING</p>
-                  <h2 id="current-course-heading" data-i18n="dashboard.currentCourse">Current course</h2>
-                </div>
+          <section class="welcome-card dashboard-reveal" aria-labelledby="welcome-title">
+            <div class="welcome-copy">
+              <p class="welcome-kicker dashboard-eyebrow" data-i18n="dashboard.eyebrow">YOUR LEARNING</p>
+              <h1 id="welcome-title" data-i18n="dashboard.heading">Dashboard</h1>
+              <p id="welcome-message" class="dashboard-subtitle" data-i18n="dashboard.subtitle">
+                Pick up where you left off.
+              </p>
+              <div class="welcome-actions">
+                <a id="hero-cta" class="dashboard-cta" href="/courses.html"
+                  ><span data-i18n="dashboard.goLessons">Go to lessons</span
+                  ><svg aria-hidden="true"><use href="#icon-arrow" /></svg
+                ></a>
+                <span id="dashboard-level" class="dashboard-level" hidden></span>
               </div>
-              <div id="current-course-body" class="dashboard-card current-course-card" aria-live="polite">
-                <p class="dashboard-muted" data-i18n="common.loading">Loading…</p>
-              </div>
-            </section>
-            <section
-              id="daily-goals"
-              class="dashboard-card daily-goals dashboard-reveal"
-              aria-live="polite"
-            ></section>
-            <section
-              id="next-course"
-              class="dashboard-card next-course dashboard-reveal"
-              aria-live="polite"
-              hidden
-            ></section>
-            <section
-              id="placement-guidance"
-              class="dashboard-card placement-guidance dashboard-reveal"
-              aria-label="Your next step"
-              data-i18n-attr="aria-label:dashboard.nextStep"
-              aria-live="polite"
-            ></section>
-          </div>
-          <aside id="your-progress" class="dashboard-secondary dashboard-reveal" aria-labelledby="progress-heading">
+            </div>
+            <div class="welcome-art" aria-hidden="true">
+              <span class="art-orbit"></span><span class="art-orbit art-orbit-two"></span
+              ><span class="art-core">✦</span>
+            </div>
+          </section>
+
+          <aside id="your-progress" class="dashboard-progress dashboard-reveal" aria-labelledby="progress-heading">
             <div class="dashboard-card progress-panel">
               <div class="section-heading">
                 <div>
@@ -79,6 +59,99 @@
               </div>
             </div>
           </aside>
+
+          <section class="dashboard-quick dashboard-reveal" aria-labelledby="quick-heading">
+            <div class="section-heading">
+              <div>
+                <p class="dashboard-eyebrow" data-i18n="dashboard.quickEyebrow">SHORTCUTS</p>
+                <h2 id="quick-heading" data-i18n="dashboard.quickTitle">Quick access</h2>
+              </div>
+            </div>
+            <div class="quick-grid">
+              <a class="dashboard-card quick-card" href="/courses.html">
+                <span class="quick-icon"><svg aria-hidden="true"><use href="#icon-book" /></svg></span>
+                <span class="quick-copy"
+                  ><strong data-i18n="dashboard.qLessons">Lessons</strong
+                  ><small data-i18n="dashboard.qLessonsHint">Courses and lessons</small></span
+                >
+                <svg class="quick-arrow" aria-hidden="true"><use href="#icon-arrow" /></svg>
+              </a>
+              <a class="dashboard-card quick-card" href="/vocabulary.html">
+                <span class="quick-icon"><svg aria-hidden="true"><use href="#icon-layers" /></svg></span>
+                <span class="quick-copy"
+                  ><strong data-i18n="ws.words">Words</strong
+                  ><small data-i18n="dashboard.qWordsHint">Review saved words</small></span
+                >
+                <svg class="quick-arrow" aria-hidden="true"><use href="#icon-arrow" /></svg>
+              </a>
+              <a class="dashboard-card quick-card" href="/progress.html">
+                <span class="quick-icon"><svg aria-hidden="true"><use href="#icon-chart" /></svg></span>
+                <span class="quick-copy"
+                  ><strong data-i18n="ws.progress">Progress</strong
+                  ><small data-i18n="dashboard.qProgressHint">Your results so far</small></span
+                >
+                <svg class="quick-arrow" aria-hidden="true"><use href="#icon-arrow" /></svg>
+              </a>
+              <a class="dashboard-card quick-card" href="/leaderboard.html">
+                <span class="quick-icon"><svg aria-hidden="true"><use href="#icon-trophy" /></svg></span>
+                <span class="quick-copy"
+                  ><strong data-i18n="ws.leaderboard">Leaderboard</strong
+                  ><small data-i18n="dashboard.qBoardHint">Compare your XP</small></span
+                >
+                <svg class="quick-arrow" aria-hidden="true"><use href="#icon-arrow" /></svg>
+              </a>
+            </div>
+          </section>
+
+          <section class="dashboard-course dashboard-reveal" aria-labelledby="current-course-heading">
+            <div class="section-heading">
+              <div>
+                <p class="dashboard-eyebrow" data-i18n="dashboard.keepGoing">CONTINUE LEARNING</p>
+                <h2 id="current-course-heading" data-i18n="dashboard.currentCourse">Current course</h2>
+              </div>
+            </div>
+            <div id="current-course-body" class="dashboard-card current-course-card" aria-live="polite">
+              <p class="dashboard-muted" data-i18n="common.loading">Loading…</p>
+            </div>
+          </section>
+
+          <section id="daily-goals" class="dashboard-card daily-goals dashboard-goals dashboard-reveal" aria-live="polite"></section>
+
+          <div class="dashboard-extras">
+            <section id="next-course" class="dashboard-card next-course dashboard-reveal" aria-live="polite" hidden></section>
+            <section
+              id="placement-guidance"
+              class="dashboard-card placement-guidance dashboard-reveal"
+              aria-label="Your next step"
+              data-i18n-attr="aria-label:dashboard.nextStep"
+              aria-live="polite"
+            ></section>
+          </div>
+
+          <section class="dashboard-benefits dashboard-reveal" aria-labelledby="why-heading">
+            <h2 id="why-heading" class="sr-only" data-i18n="dashboard.whyTitle">Why it works</h2>
+            <div class="benefit">
+              <span class="quick-icon"><svg aria-hidden="true"><use href="#icon-book" /></svg></span>
+              <div>
+                <strong data-i18n="dashboard.why1Title">Short daily lessons</strong>
+                <p data-i18n="dashboard.why1Text">Small steps that fit into any day.</p>
+              </div>
+            </div>
+            <div class="benefit">
+              <span class="quick-icon"><svg aria-hidden="true"><use href="#icon-layers" /></svg></span>
+              <div>
+                <strong data-i18n="dashboard.why2Title">Words that stay</strong>
+                <p data-i18n="dashboard.why2Text">Save words and come back to review them.</p>
+              </div>
+            </div>
+            <div class="benefit">
+              <span class="quick-icon"><svg aria-hidden="true"><use href="#icon-chart" /></svg></span>
+              <div>
+                <strong data-i18n="dashboard.why3Title">Visible progress</strong>
+                <p data-i18n="dashboard.why3Text">Streaks, XP and daily goals keep you going.</p>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </main>

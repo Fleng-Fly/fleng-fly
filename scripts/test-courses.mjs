@@ -473,12 +473,18 @@ test('lesson valid links and click/keyboard navigation use the three tabs', asyn
   assert.match(linked.get('panel-vocabulary').textContent, /hello/);
 });
 
-test('Dashboard shows continue-learning, next-step and progress sections without duplicate navigation cards', async () => {
+test('Dashboard shows hero, quick access, current course, goals and progress, each shortcut a real page', async () => {
   const html = await readFile(new URL('../frontend/dashboard.html', import.meta.url), 'utf8');
   for (const id of ['current-course-body', 'placement-guidance', 'progress-body', 'your-progress']) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.doesNotMatch(html, /quick-grid|quick-card|welcome-card|quick-course-link/);
+  for (const id of ['hero-cta', 'daily-goals', 'next-course']) assert.match(html, new RegExp(`id="${id}"`));
+  const quick = [...html.matchAll(/<a class="dashboard-card quick-card" href="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(quick, ['/courses.html', '/vocabulary.html', '/progress.html', '/leaderboard.html']);
+  for (const href of quick) {
+    const file = new URL(`../frontend${href}`, import.meta.url);
+    await readFile(file, 'utf8'); // throws when the shortcut target does not exist
+  }
 });
 
 test('hint stays hidden until requested and uses the interface language', async () => {
