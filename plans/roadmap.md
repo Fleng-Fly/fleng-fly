@@ -473,3 +473,9 @@ goal editor, browser time zone sync); the full Dashboard redesign still waits fo
 Completed: audit of the 50 lessons, additive extension pipeline (validator, importer, SHA gate),
 A0 lessons 11–15 authored as unpublished draft, tests. Blocked on review: publication (owner adds
 the SHA). Next: A1 lessons 11–15, then A2, B1, B2 per `docs/curriculum-expansion-plan.md`.
+
+## A0–B2 vocabulary expansion
+
+- Completed: 200 curated words per curriculum course and 500 new graded translation
+  questions across the five courses.
+- Next: human linguistic review of the new vocabulary and answer choices.
