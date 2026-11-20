@@ -228,6 +228,18 @@ result to courses after a just-finished one. Result `status`: `next`, `complete`
 loads the inputs and renders the card used by the dashboard (shown once at least one
 course is completed) and by the finished-course banner in `course.js`. No backend
 endpoint or migration. Tests: `scripts/test-next-course.mjs`.
+`pickCurrentCourse` (same module) chooses the dashboard's current course: the furthest
+unfinished started course, else the furthest finished one; never an old finished course
+while a newer one is active. The Placement prompt is hidden once the main line is complete.
+
+**Daily goals.** `js/daily-goals.js` (pure: percent, goal-met, time-zone sync check, input
+parsing) and `js/daily-goals-ui.js` (card on the dashboard). On load the browser's IANA zone
+(`Intl.DateTimeFormat().resolvedOptions().timeZone`) is sent with `PATCH /users/me` only when
+it differs from the profile, then `GET /progress/daily` is rendered as two bars (lessons,
+words). "Edit goals" saves `dailyLessonsGoal`/`dailyWordsGoal` on the profile, so they follow
+the learner across devices. A failed zone save or goals request never blocks the rest of the
+dashboard. Tests: `scripts/test-daily-goals.mjs` and the dashboard cases in
+`scripts/test-courses.mjs`.
 
 - Catalog reads `GET /courses` and `GET /progress/me`. Search matches title and
   description without case sensitivity and combines with All/A1/A2/B1/B2 CEFR

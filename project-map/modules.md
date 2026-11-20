@@ -215,6 +215,8 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
 - Next-course recommendation: `js/next-course.js` (pure logic) and
   `js/next-course-ui.js` (data loading + card), used by `dashboard.js` and `course.js`;
   frontend-only, reads `/courses`, `/progress/me` and placement summaries.
+- Daily goals card: `js/daily-goals.js` + `js/daily-goals-ui.js` on the dashboard, reads
+  `GET /progress/daily`, writes goals/time zone through `PATCH /users/me`.
 - `scripts/test-courses.mjs`: DOM regression coverage; real HTTP coverage in
   `scripts/backend-stabilization-smoke.py`. Browser/Stitch QA remains pending.
 

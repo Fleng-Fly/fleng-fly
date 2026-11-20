@@ -95,3 +95,30 @@ test('placementLevelFrom uses only a completed attempt with a main-line level', 
     'A2',
   );
 });
+
+import { pickCurrentCourse } from '../frontend/js/next-course.js';
+
+const row = (level, started, completed, total = 10) => ({
+  courseId: level, level, lessonsTotal: total, lessonsStarted: started, lessonsCompleted: completed,
+});
+
+test('current course: furthest unfinished started course, never an old finished one', () => {
+  assert.equal(pickCurrentCourse([row('A0', 10, 10), row('A1', 2, 1), row('A2', 0, 0)]).level, 'A1');
+  // Moved on before finishing the earlier course: the later one is current.
+  assert.equal(pickCurrentCourse([row('A0', 9, 9), row('A1', 1, 0)]).level, 'A1');
+  // Same level: higher completion wins.
+  const a = { ...row('A1', 3, 2), courseId: 'x' };
+  const b = { ...row('A1', 5, 4), courseId: 'y' };
+  assert.equal(pickCurrentCourse([a, b]).courseId, 'y');
+});
+
+test('current course: when everything started is finished, show the furthest finished', () => {
+  assert.equal(pickCurrentCourse([row('A0', 10, 10), row('A1', 10, 10), row('A2', 0, 0)]).level, 'A1');
+  assert.equal(pickCurrentCourse([row('A1', 10, 10), row('A0', 10, 10)]).level, 'A1'); // API order is irrelevant
+});
+
+test('current course: nothing started or empty data gives null', () => {
+  assert.equal(pickCurrentCourse([row('A0', 0, 0)]), null);
+  assert.equal(pickCurrentCourse([]), null);
+  assert.equal(pickCurrentCourse(undefined), null);
+});

@@ -7,6 +7,8 @@ import {
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
 import { t, tn } from './i18n.js';
+import { mountDailyGoals } from './daily-goals-ui.js';
+import { pickCurrentCourse } from './next-course.js';
 import { loadNextCourse, nextCourseCard } from './next-course-ui.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
@@ -141,19 +143,6 @@ function renderProgress(progressResult, streakResult, wordsResult) {
   }
 }
 
-function chooseCurrentCourse(courses) {
-  const started = courses.filter((course) => course.lessonsStarted > 0);
-  // Prefer an unfinished course with the highest completion ratio; API order breaks ties.
-  const unfinished = started.filter((course) => course.lessonsCompleted < course.lessonsTotal);
-  const choices = unfinished.length ? unfinished : started;
-  return choices.reduce((best, course) => {
-    if (!best) return course;
-    const ratio = course.lessonsTotal ? course.lessonsCompleted / course.lessonsTotal : 0;
-    const bestRatio = best.lessonsTotal ? best.lessonsCompleted / best.lessonsTotal : 0;
-    return ratio > bestRatio ? course : best;
-  }, null);
-}
-
 function renderCurrentCourse(progressResult) {
   const target = $('current-course-body');
   target.replaceChildren();
@@ -166,7 +155,7 @@ function renderCurrentCourse(progressResult) {
     );
     return;
   }
-  const current = chooseCurrentCourse(progressResult.value.courses || []);
+  const current = pickCurrentCourse(progressResult.value.courses || []);
   if (!current) {
     message(target, t('dashboard.noCourse'), t('dashboard.noCourseHint'));
     const link = el('a', 'dashboard-cta dashboard-cta-small', t('dashboard.browse'));
@@ -237,6 +226,8 @@ async function renderNextCourse(progressResult) {
   target.hidden = true;
   if (progressResult.status !== 'fulfilled') return;
   const result = await loadNextCourse(progressResult.value.courses || []);
+  // A learner who finished the whole main line no longer needs the placement prompt.
+  $('placement-guidance').hidden = result.status === 'complete';
   if (!result.hasCompleted) return;
   const card = nextCourseCard(result, 'next-course-body');
   if (!card) return;
@@ -251,7 +242,11 @@ async function main() {
     $('session-error').hidden = true;
     setProfile(user);
     $('dashboard-content').hidden = false;
-    await Promise.all([loadDashboardData(), mountPlacementGuidance($('placement-guidance'), user)]);
+    await Promise.all([
+      loadDashboardData(),
+      mountDailyGoals($('daily-goals'), user),
+      mountPlacementGuidance($('placement-guidance'), user),
+    ]);
   } catch (error) {
     $('session-error-text').textContent = describeApiError(error);
     $('session-error').hidden = false;

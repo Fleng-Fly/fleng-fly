@@ -61,3 +61,21 @@ export function placementLevelFrom(attempts) {
   const done = (attempts || []).find((attempt) => attempt.status === 'completed');
   return done && lineIndex(done.estimatedLevel) >= 0 ? done.estimatedLevel : null;
 }
+
+/**
+ * The course the dashboard should present as "current", from /progress/me `courses`.
+ * An unfinished started course wins (the furthest main-line level first, then the highest
+ * completion); when everything started is finished, the furthest finished course is shown.
+ * A course the learner never touched is never current.
+ */
+export function pickCurrentCourse(courses) {
+  const started = (courses || []).filter((course) => course.lessonsStarted > 0);
+  const unfinished = started.filter((course) => !isCompleted(course));
+  const pool = unfinished.length ? unfinished : started;
+  const ratio = (course) => (course.lessonsTotal ? course.lessonsCompleted / course.lessonsTotal : 0);
+  return pool.reduce((best, course) => {
+    if (!best) return course;
+    const diff = lineIndex(course.level) - lineIndex(best.level);
+    return diff > 0 || (diff === 0 && ratio(course) > ratio(best)) ? course : best;
+  }, null);
+}

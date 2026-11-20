@@ -240,6 +240,10 @@ export function getMyProgress() {
   return apiFetch('/progress/me');
 }
 
+export function getDailyGoals() {
+  return apiFetch('/progress/daily');
+}
+
 export function getMyStreak() {
   return apiFetch('/streaks/me');
 }

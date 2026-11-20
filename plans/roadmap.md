@@ -465,5 +465,5 @@ on finished course pages; EN/UK; unit tests. Next: daily-goals design proposal
 ## Daily goals (backend) — 2026-11-20
 
 Completed: profile goal settings + timezone, `GET /progress/daily`, derived progress, tests.
-Next: Dashboard/Settings UI after the approved Dashboard reference; browser sends its IANA
-zone through `PATCH /users/me`.
+Frontend integration completed on the existing dashboard styles (card with two bars, inline
+goal editor, browser time zone sync); the full Dashboard redesign still waits for a reference.
