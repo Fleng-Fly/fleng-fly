@@ -275,12 +275,16 @@ Table: `profiles`.
 | preferred_language | VARCHAR(40) | False | — |
 | level | INTEGER | False | — |
 | xp | INTEGER | False | — |
+| daily_lessons_goal | INTEGER | False | CHECK 1–10 |
+| daily_words_goal | INTEGER | False | CHECK 1–100 |
+| timezone | VARCHAR(64) | True | IANA zone name |
 | created_at | DATETIME | False | — |
 | updated_at | DATETIME | False | — |
 
 Constraints/indexes beyond primary/foreign keys:
 
 - `unnamed` (UniqueConstraint): `user_id`
+- `profiles_daily_lessons_goal_check`, `profiles_daily_words_goal_check` (CheckConstraint)
 
 ## Progress
 

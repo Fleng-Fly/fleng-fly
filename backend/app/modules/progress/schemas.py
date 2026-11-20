@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -48,3 +48,20 @@ class ProgressResponse(CamelModel):
     active_courses: int
     streak: StreakResponse
     xp_history: XPHistoryResponse
+
+
+class DailyGoalResponse(CamelModel):
+    goal: int
+    done: int
+
+
+class DailyGoalsResponse(CamelModel):
+    """Today's goals and real activity in the learner's own calendar day.
+
+    `done` may exceed `goal`; clients cap the bar, not the number.
+    """
+
+    date: date
+    timezone: str
+    lessons: DailyGoalResponse
+    vocabulary: DailyGoalResponse

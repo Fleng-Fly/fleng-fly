@@ -38,6 +38,9 @@ LATER = {
     ),
     ("course_vocabulary_items", "lesson_id"),
     ("course_vocabulary_items", "pronunciation"),
+    ("profiles", "daily_lessons_goal"),
+    ("profiles", "daily_words_goal"),
+    ("profiles", "timezone"),
 }
 
 
@@ -59,7 +62,13 @@ def test_a0_constraint_keeps_foreign_key_children(tmp_path):
         connection.execute(
             insert(User).values(id=user, email="kept@example.com", password_hash="x")
         )
-        connection.execute(insert(Profile).values(user_id=user, display_name="Keep", xp=12))
+        connection.execute(
+            text(
+                "INSERT INTO profiles (id, user_id, display_name, xp) "
+                "VALUES (:id, :user, 'Keep', 12)"
+            ),
+            {"id": uuid4().hex, "user": user.hex},
+        )
         connection.execute(insert(Progress).values(user_id=user, lessons_started=1))
         connection.execute(
             insert(Course).values(

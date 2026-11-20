@@ -455,8 +455,4 @@ the new theory steps (pre-existing draft guidance).
 - Open: the approved reference screenshot was not visible to the implementer; the layout follows
   the written specification and needs a visual comparison.
 
-## A0–B2 vocabulary expansion
 
-- Completed: 200 curated words per curriculum course and 500 new graded translation
-  questions across the five courses.
-- Next: human linguistic review of the new vocabulary and answer choices.

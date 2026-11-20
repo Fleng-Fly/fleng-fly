@@ -16,6 +16,7 @@ from app.db.base import Base
 from app.db.curriculum import import_curriculum, load_curriculum
 from app.db.demo_lessons import import_demo_lessons
 from app.db.diagnostics import log_sqlite_snapshot
+from app.db.extension import extension_sha, import_extension, load_extensions
 from app.db.models import Course
 from app.db.practice import import_practice, import_vocabulary_practice
 from app.db.seed import seed_catalog
@@ -25,6 +26,12 @@ from app.db.storage import DatabaseConfigurationError, validate_render_storage
 # Owner explicitly authorized publication on 2026-11-14. Linguistic review remains incomplete.
 # A different content SHA needs a new release decision; never derive this approval dynamically.
 OWNER_AUTHORIZED_CURRICULUM_SHA = "27ab5cdc8cdadbfc85353cea58fc2584459c130aea460cf391a2e5d67b108013"
+
+
+# Extension files (more lessons for the published courses) are imported and published only when
+# their exact SHA is listed here. An empty set means every extension stays out of the catalog.
+# Add a SHA only as an explicit release decision after reviewing that content.
+OWNER_AUTHORIZED_EXTENSION_SHAS: frozenset[str] = frozenset()
 
 
 async def populate_catalog(db: AsyncSession) -> None:
@@ -46,7 +53,7 @@ async def populate_catalog(db: AsyncSession) -> None:
     )
     practice = await import_practice(db, content)
     print(f"Lesson practice: {practice['added']} added, {practice['existing']} already present.")
-    await import_vocabulary_practice(db, content)
+
     demo = await import_demo_lessons(db)
     print(
         f"Demo lessons: {demo['words_added']} words and {demo['practice_added']} exercises added, "

@@ -68,6 +68,7 @@ def test_existing_words_keep_data_and_gain_course_then_roll_back(tmp_path):
         assert rows["loose"].course_id is None
         assert rows["word"].source == "manual" and rows["word"].learned == 1
         assert rows["word"].repetitions == 0
+        command.upgrade(config, "20261120_1200")  # later revision; models include its columns
         assert compare_metadata(MigrationContext.configure(connection), Base.metadata) == []
 
         connection.commit()
