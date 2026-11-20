@@ -218,6 +218,17 @@ entry; Dashboard/Leaderboard layouts and lesson grading remain unchanged.
 compact lesson rows, purple tokens, focus/hover states and reduced-motion rules.
 `js/catalog-ui.js` shares progress bars and loading/empty/error messages.
 
+**Next-course recommendation.** `js/next-course.js` is a pure function
+(`recommendNextCourse`) over `GET /courses`, `GET /progress/me` and, optionally, the
+estimated level of the latest completed placement attempt. The main line is
+A0 → A1 → A2 → B1 → B2. Completed courses and courses already in progress are never
+offered; courses below the placement level are skipped; `afterSlug` limits the
+result to courses after a just-finished one. Result `status`: `next`, `complete`
+(all main-line courses finished) or `none` (render nothing). `js/next-course-ui.js`
+loads the inputs and renders the card used by the dashboard (shown once at least one
+course is completed) and by the finished-course banner in `course.js`. No backend
+endpoint or migration. Tests: `scripts/test-next-course.mjs`.
+
 - Catalog reads `GET /courses` and `GET /progress/me`. Search matches title and
   description without case sensitivity and combines with All/A1/A2/B1/B2 CEFR
   filters locally. Clear removes only the query; Reset filters removes both.

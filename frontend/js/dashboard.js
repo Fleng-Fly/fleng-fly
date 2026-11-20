@@ -7,6 +7,7 @@ import {
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
 import { t, tn } from './i18n.js';
+import { loadNextCourse, nextCourseCard } from './next-course-ui.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 
@@ -226,6 +227,21 @@ async function loadDashboardData() {
   }
   renderProgress(progress, streak, words);
   renderCurrentCourse(progress);
+  await renderNextCourse(progress);
+}
+
+// Shown only once the learner has finished a course (or the whole line); hidden otherwise.
+async function renderNextCourse(progressResult) {
+  const target = $('next-course');
+  target.replaceChildren();
+  target.hidden = true;
+  if (progressResult.status !== 'fulfilled') return;
+  const result = await loadNextCourse(progressResult.value.courses || []);
+  if (!result.hasCompleted) return;
+  const card = nextCourseCard(result, 'next-course-body');
+  if (!card) return;
+  target.append(card);
+  target.hidden = false;
 }
 
 async function main() {

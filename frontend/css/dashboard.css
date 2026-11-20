@@ -953,3 +953,11 @@ a.quick-card:focus-visible {
     gap: 0.4rem;
   }
 }
+
+/* Next-course recommendation (dashboard card and finished-course banner) */
+.next-course { padding: 1.25rem; margin: 1rem 0 1.5rem; }
+.next-course .next-course-body { display: grid; gap: 0.5rem; justify-items: start; }
+.next-course h3, .catalog-next h3 { margin: 0; font-size: 1.1rem; }
+.next-course p, .catalog-next p { margin: 0; }
+.next-course-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.catalog-next { margin-top: 1rem !important; display: grid; gap: 0.5rem; justify-items: start; }

@@ -173,7 +173,8 @@ export default {
   "catalog.courseDone": "Курс завершено. Чудова робота!",
   "catalog.nextCourseText": "Далі в каталозі: {title} ({level}).",
   "catalog.startNext": "Перейти до наступного курсу",
-  "catalog.allDone": "Ви пройшли всі доступні курси.",
+  "catalog.allDone": "Ви пройшли всі курси від A0 до B2.",
+  "catalog.lineDoneTitle": "Основну лінійку курсів завершено",
   // pages: courses / course
   "courses.title": "Курси — Fleng",
   "courses.heading": "Курси",

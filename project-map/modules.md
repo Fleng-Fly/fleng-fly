@@ -212,6 +212,9 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
   published lesson list; individual statuses from `/lessons/{slug}/progress`.
 - Both reuse `js/workspace.js`, `css/dashboard.css`, shared `js/catalog-ui.js`
   state/progress rendering and scoped `css/courses.css`. No new backend module.
+- Next-course recommendation: `js/next-course.js` (pure logic) and
+  `js/next-course-ui.js` (data loading + card), used by `dashboard.js` and `course.js`;
+  frontend-only, reads `/courses`, `/progress/me` and placement summaries.
 - `scripts/test-courses.mjs`: DOM regression coverage; real HTTP coverage in
   `scripts/backend-stabilization-smoke.py`. Browser/Stitch QA remains pending.
 

@@ -251,6 +251,18 @@ test('catalog Start/Continue/Review and completion use API counts; return refres
   );
 });
 
+test('finished course offers the next main-line course; unfinished shows none', async () => {
+  const done = freshProgress();
+  done.courses[0].lessonsStarted = 3;
+  done.courses[0].lessonsCompleted = 3;
+  const p = await page('course', { progress: done });
+  assert.match(p.get('course-body').textContent, /Course completed/);
+  assert.match(p.get('course-body').textContent, /Everyday Conversations/);
+  assert.ok(p.get('course-body').querySelectorAll('a').some((a) => a.href === '/course.html?slug=everyday'));
+  const open = await page('course');
+  assert.doesNotMatch(open.get('course-body').textContent, /Course completed/);
+});
+
 test('empty catalog and service failure never render fake courses; retry recovers', async () => {
   const empty = await page('courses', { empty: true });
   assert.match(empty.get('courses-body').textContent, /No courses yet/);

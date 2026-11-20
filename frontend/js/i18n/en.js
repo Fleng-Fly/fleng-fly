@@ -173,7 +173,8 @@ export default {
   "catalog.courseDone": "Course completed. Well done!",
   "catalog.nextCourseText": "Next in the catalog: {title} ({level}).",
   "catalog.startNext": "Go to the next course",
-  "catalog.allDone": "You have completed every available course.",
+  "catalog.allDone": "You have completed every course from A0 to B2.",
+  "catalog.lineDoneTitle": "Main course line complete",
   // pages: courses / course
   "courses.title": "Courses — Fleng",
   "courses.heading": "Courses",
