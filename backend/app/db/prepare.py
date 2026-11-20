@@ -18,7 +18,7 @@ from app.db.demo_lessons import import_demo_lessons
 from app.db.diagnostics import log_sqlite_snapshot
 from app.db.extension import extension_sha, import_extension, load_extensions
 from app.db.models import Course
-from app.db.practice import import_practice
+from app.db.practice import import_practice, import_vocabulary_practice
 from app.db.seed import seed_catalog
 from app.db.session import SessionLocal, engine
 from app.db.storage import DatabaseConfigurationError, validate_render_storage
@@ -53,13 +53,7 @@ async def populate_catalog(db: AsyncSession) -> None:
     )
     practice = await import_practice(db, content)
     print(f"Lesson practice: {practice['added']} added, {practice['existing']} already present.")
-    for name, extension in load_extensions():
-        digest = extension_sha(extension)
-        if digest not in OWNER_AUTHORIZED_EXTENSION_SHAS:
-            print(f"Curriculum extension {name} is not authorized for publication; skipped.")
-            continue
-        added = await import_extension(db, extension, base=content, publish_sha=digest)
-        print(f"Curriculum extension {name}: {added['added_rows']} new rows published.")
+
     demo = await import_demo_lessons(db)
     print(
         f"Demo lessons: {demo['words_added']} words and {demo['practice_added']} exercises added, "

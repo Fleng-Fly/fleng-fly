@@ -6,8 +6,11 @@ SQLite preparation calls the underlying seed function only when no Course exists
 
 SQLite preparation calls the existing A0–B2 importer with the pinned
 owner-authorized publication SHA, including production startup. Fresh SQLite
-databases contain seven public courses; all 50 A0–B2 lessons and 500 words are
-available. Linguistic review remains incomplete. This imports only
+databases contain seven public courses. All 50 A0–B2 lessons and their 1,000
+words are available. Startup imports the vocabulary supplement alongside the
+pinned base curriculum and adds 500 words and 500 matching exercises in one
+transaction. Words and exercises use stable IDs for repeat imports.
+Linguistic review remains incomplete. This imports only
 packaged curriculum content, not local accounts, passwords or learning history.
 PostgreSQL preparation remains explicit and unchanged. app.db.curriculum defaults to DB dry-run; --apply-draft inserts unpublished rows after collision checks. UUIDv5 identities and exact-content preflight refuse drift. Existing rows/IDs are preserved; only approved curriculum publication flags are
 promoted, and conflicting content

@@ -15,6 +15,7 @@ from app.db.practice import (
     PracticeSupplement,
     exercise_rows,
     import_practice,
+    import_vocabulary_practice,
     load_supplement,
 )
 from app.modules.exercises.instructions import instruction_kind
@@ -152,6 +153,15 @@ async def test_new_formats_grade_award_xp_once_and_complete_the_lesson(
     assert again["xpAwarded"] == 0
     me = (await client.get("/api/v1/users/me", headers=auth)).json()
     assert me["xp"] == 12
+
+    await import_vocabulary_practice(db_session, load_curriculum())
+    words = await client.get("/api/v1/vocabulary", headers=auth)
+    assert words.status_code == 200 and len(words.json()) == 20
+    assert {w["word"] for w in words.json()} >= {"usually", "once a week"}
+    progress = await client.get(f"/api/v1/lessons/{LESSON}/progress", headers=auth)
+    assert progress.status_code == 200
+    assert progress.json()["completed"] is True
+    assert progress.json()["exercisesCompleted"] == 12
 
 
 async def test_practice_import_is_additive_and_refuses_changes(db_session: AsyncSession) -> None:
