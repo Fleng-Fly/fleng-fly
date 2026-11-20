@@ -2,6 +2,7 @@
 
 import time
 from collections.abc import AsyncGenerator
+from datetime import UTC, datetime, tzinfo
 from urllib.parse import parse_qs, urlsplit
 
 import jwt
@@ -12,6 +13,7 @@ from httpx import AsyncClient
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core import limits
 from app.core.config import Settings, get_settings
 from app.db.models import OAuthIdentity, RefreshToken, User
 from app.main import app
@@ -244,8 +246,16 @@ async def test_link_requires_authentication_and_the_current_password(
 
 
 async def test_link_password_guesses_are_rate_limited(
-    client: AsyncClient, fake: FakeGoogle
+    client: AsyncClient, fake: FakeGoogle, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    class MidWindowClock(datetime):
+        # The limiter uses fixed 60 s windows; a real clock crossing a minute boundary
+        # between the guesses would reset the counter and make this test flaky.
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> datetime:
+            return datetime(2026, 10, 28, 12, 0, 30, tzinfo=UTC)
+
+    monkeypatch.setattr(limits, "datetime", MidWindowClock)
     token = await register_account(client)
     app.dependency_overrides[get_settings] = lambda: SETTINGS.model_copy(
         update={"auth_login_email_per_minute": 2}
