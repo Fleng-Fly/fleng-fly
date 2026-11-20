@@ -1084,7 +1084,12 @@ async def test_auto_parallel_users_cannot_overbook_the_daily_budget(http, world)
     try:
         async with asyncio.timeout(5):
             await gate.entered.wait()
-            await asyncio.sleep(0.3)  # every competitor has been decided while the hold is open
+            # Every competitor must be decided (refused) while the hold is still open. A fixed
+            # sleep was racy: on SQLite a competitor can wait on the write lock for longer, and
+            # would then legitimately be admitted after the hold ended. An admitted competitor
+            # blocks in the provider gate and never finishes, so this wait would time out.
+            while sum(task.done() for task in tasks) < len(tasks) - 1:
+                await asyncio.sleep(0.02)
         held = await rows(world)
         assert len(gate.requests) == 1 and [r.status for r in held] == ["reserved"]
         assert sum(r.reserved_microusd for r in held) <= 1_000_000
