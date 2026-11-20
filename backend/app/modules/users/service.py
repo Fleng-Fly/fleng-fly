@@ -30,5 +30,8 @@ def to_user_response(user: User) -> UserResponse:
         xp=profile.xp if profile else 0,
         english_level=profile.english_level if profile else "A1",
         preferred_language=profile.preferred_language if profile else "English",
+        daily_lessons_goal=profile.daily_lessons_goal if profile else 1,
+        daily_words_goal=profile.daily_words_goal if profile else 10,
+        timezone=profile.timezone if profile else None,
         created_at=user.created_at,
     )

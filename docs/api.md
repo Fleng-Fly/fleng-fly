@@ -373,3 +373,19 @@ See [authentication](authentication.md#fleng-10-securitystability--2026-11-16).
 JWT-owned `/placement-test/attempts` start/history/resume, PUT answers and POST
 complete are implemented independently of lesson grading and XP. See the
 [placement API](03-backend/placement-api.md) and [assessment limits](placement-test.md).
+
+## Daily goals — 2026-11-20
+
+- `GET /api/v1/progress/daily` (Bearer, read-only) → `{ date, timezone, lessons: {goal, done},
+  vocabulary: {goal, done} }`. The day is the learner's own calendar day (`profiles.timezone`,
+  falling back to the server `learning_timezone`); DST days are 23/25 hours. `done` can exceed
+  `goal`.
+- `PATCH /api/v1/users/me` additionally accepts `dailyLessonsGoal` (1–10, default 1),
+  `dailyWordsGoal` (1–100, default 10) and `timezone` (validated IANA name). `GET /users/me`
+  returns the same three fields.
+- Progress is derived, never stored per day. Lessons: `lesson_progress.completed_at` (written
+  once per lesson) inside the day window. Words: distinct words with a `remembered` review
+  (`vocabulary_reviews`) inside the window, so repeating a word counts once. Manual "learned"
+  toggles, auto-collected lesson words and wrong answers do not count. Deleting a word removes
+  its reviews and therefore today's credit for it. XP and streaks are unchanged; the streak
+  keeps using the server `learning_timezone`.

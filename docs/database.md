@@ -359,3 +359,11 @@ See [placement methodology and data flow](placement-test.md) and the
 - Curated words are linked to the first lesson that lists them by the curriculum importer
   (`link_lesson_vocabulary`, idempotent). Practice supplement rows are added by
   `db/practice.py` with stable IDs; existing exercise rows are never changed.
+
+## Daily goals — 2026-11-20
+
+Revision `20261120_1200` (additive, reversible): `profiles.daily_lessons_goal` (1–10, default
+1), `profiles.daily_words_goal` (1–100, default 10), both check-constrained, and
+`profiles.timezone` (nullable IANA name). No per-day table: progress is computed from
+`lesson_progress` and `vocabulary_reviews`. Verified upgrade → downgrade → upgrade on SQLite;
+PostgreSQL was not available in this environment.

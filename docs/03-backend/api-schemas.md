@@ -445,6 +445,62 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
+## DailyGoalResponse
+
+```json
+{
+  "properties": {
+    "goal": {
+      "type": "integer",
+      "title": "Goal"
+    },
+    "done": {
+      "type": "integer",
+      "title": "Done"
+    }
+  },
+  "type": "object",
+  "required": [
+    "goal",
+    "done"
+  ],
+  "title": "DailyGoalResponse"
+}
+```
+
+## DailyGoalsResponse
+
+```json
+{
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "timezone": {
+      "type": "string",
+      "title": "Timezone"
+    },
+    "lessons": {
+      "$ref": "#/components/schemas/DailyGoalResponse"
+    },
+    "vocabulary": {
+      "$ref": "#/components/schemas/DailyGoalResponse"
+    }
+  },
+  "type": "object",
+  "required": [
+    "date",
+    "timezone",
+    "lessons",
+    "vocabulary"
+  ],
+  "title": "DailyGoalsResponse",
+  "description": "Today's goals and real activity in the learner's own calendar day.\n\n`done` may exceed `goal`; clients cap the bar, not the number."
+}
+```
+
 ## EmailChangeConfirm
 
 ```json
@@ -2193,6 +2249,45 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Preferredlanguage"
+    },
+    "dailyLessonsGoal": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "maximum": 10.0,
+          "minimum": 1.0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Dailylessonsgoal"
+    },
+    "dailyWordsGoal": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "maximum": 100.0,
+          "minimum": 1.0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Dailywordsgoal"
+    },
+    "timezone": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Timezone"
     }
   },
   "type": "object",
@@ -2712,6 +2807,27 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "type": "string",
       "title": "Preferredlanguage",
       "default": "English"
+    },
+    "dailyLessonsGoal": {
+      "type": "integer",
+      "title": "Dailylessonsgoal",
+      "default": 1
+    },
+    "dailyWordsGoal": {
+      "type": "integer",
+      "title": "Dailywordsgoal",
+      "default": 10
+    },
+    "timezone": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Timezone"
     },
     "createdAt": {
       "type": "string",

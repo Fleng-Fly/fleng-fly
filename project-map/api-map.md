@@ -100,6 +100,7 @@ authenticated caller; no answer keys are exposed by this read endpoint.
 | Method | Path | Auth | Status |
 | ------ | ---- | ---- | ------ |
 | GET | `/progress/me` | bearer | ✅ |
+| GET | `/progress/daily` | bearer | ✅ |
 | GET | `/progress/summary` | bearer | ⬜ |
 | GET | `/progress/courses/:courseId` | bearer | ⬜ |
 | GET | `/progress/skills` | bearer | ⬜ |
@@ -107,6 +108,10 @@ authenticated caller; no answer keys are exposed by this read endpoint.
 
 `/progress/me` also returns `exercisesCompleted`, `xp` and a `courses[]`
 breakdown with `lessonsStarted` and `lessonsCompleted` per course (additive).
+
+`/progress/daily` returns the learner's daily goals and today's real activity:
+`{date, timezone, lessons:{goal,done}, vocabulary:{goal,done}}`. `PATCH /users/me` also
+accepts `dailyLessonsGoal` (1–10), `dailyWordsGoal` (1–100) and `timezone` (IANA).
 
 ## Challenges
 

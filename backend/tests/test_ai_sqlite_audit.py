@@ -174,8 +174,16 @@ def test_migration_keeps_users_history_progress_and_usage(tmp_path):
             }
             command.upgrade(config, "head")
             for name in tables[:-1]:
+                # Later additive revisions put new columns on profiles; compare the old ones.
+                columns = (
+                    "id, user_id, display_name, level, xp, created_at, updated_at,"
+                    " english_level, preferred_language"
+                    if name == "profiles"
+                    else "*"
+                )
                 after = [
-                    tuple(r) for r in connection.execute(text(f"SELECT * FROM {name} ORDER BY 1"))
+                    tuple(r)
+                    for r in connection.execute(text(f"SELECT {columns} FROM {name} ORDER BY 1"))
                 ]
                 assert after == before[name], name
             columns = {c["name"] for c in inspect(connection).get_columns("ai_usage")}

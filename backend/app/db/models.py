@@ -91,6 +91,14 @@ class Profile(Base):
     """Public-facing learner profile. One-to-one with User."""
 
     __tablename__ = "profiles"
+    __table_args__ = (
+        CheckConstraint(
+            "daily_lessons_goal BETWEEN 1 AND 10", name="profiles_daily_lessons_goal_check"
+        ),
+        CheckConstraint(
+            "daily_words_goal BETWEEN 1 AND 100", name="profiles_daily_words_goal_check"
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -103,6 +111,15 @@ class Profile(Base):
     )
     level: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
     xp: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    # Daily goals are settings only; the day's progress is derived from lesson_progress and
+    # vocabulary_reviews. `timezone` is the learner's IANA zone (None = server policy).
+    daily_lessons_goal: Mapped[int] = mapped_column(
+        Integer, default=1, server_default="1", nullable=False
+    )
+    daily_words_goal: Mapped[int] = mapped_column(
+        Integer, default=10, server_default="10", nullable=False
+    )
+    timezone: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

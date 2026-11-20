@@ -454,3 +454,16 @@ the new theory steps (pre-existing draft guidance).
   current level, one-line attempt rows; EN/UK. History summaries now include `correct`.
 - Open: the approved reference screenshot was not visible to the implementer; the layout follows
   the written specification and needs a visual comparison.
+
+## Next-course recommendation — 2026-11-20
+
+Completed: deterministic frontend recommendation (A0→A1→A2→B1→B2, placement-aware,
+never offers completed courses, reports main-line completion) on the dashboard and
+on finished course pages; EN/UK; unit tests. Next: daily-goals design proposal
+(no migration yet), then curriculum quality review and A0–B2 expansion plan.
+
+## Daily goals (backend) — 2026-11-20
+
+Completed: profile goal settings + timezone, `GET /progress/daily`, derived progress, tests.
+Next: Dashboard/Settings UI after the approved Dashboard reference; browser sends its IANA
+zone through `PATCH /users/me`.

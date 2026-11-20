@@ -6,14 +6,32 @@ counters (`exercises_completed`, per-course progress) are computed from
 `exercise_submissions` and `lesson_progress` on read.
 """
 
+from datetime import UTC, date, datetime, time, timedelta
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import and_, func, select, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Course, ExerciseSubmission, Lesson, LessonProgress, Progress
+from app.core.config import get_settings
+from app.db.models import (
+    Course,
+    ExerciseSubmission,
+    Lesson,
+    LessonProgress,
+    Profile,
+    Progress,
+    VocabularyItem,
+    VocabularyReview,
+)
 from app.modules.gamification.service import streak
-from app.modules.progress.schemas import CourseProgressResponse, ProgressResponse, XPHistoryResponse
+from app.modules.progress.schemas import (
+    CourseProgressResponse,
+    DailyGoalResponse,
+    DailyGoalsResponse,
+    ProgressResponse,
+    XPHistoryResponse,
+)
 
 
 async def get_progress(db: AsyncSession, user_id: UUID) -> Progress | None:
@@ -125,4 +143,59 @@ async def to_progress_response(
         ),
         streak=await streak(db, user_id),
         xp_history=XPHistoryResponse(),
+    )
+
+
+def local_day_window(
+    zone_name: str, now: datetime | None = None
+) -> tuple[date, datetime, datetime]:
+    """The learner's current local date and its [start, next start) bounds in UTC.
+
+    Local midnights are converted individually, so 23/25-hour DST days are exact.
+    """
+    zone = ZoneInfo(zone_name)
+    today = (now or datetime.now(UTC)).astimezone(zone).date()
+    start = datetime.combine(today, time.min, tzinfo=zone).astimezone(UTC)
+    end = datetime.combine(today + timedelta(days=1), time.min, tzinfo=zone).astimezone(UTC)
+    return today, start, end
+
+
+async def daily_goals(
+    db: AsyncSession, user_id: UUID, profile: Profile | None, now: datetime | None = None
+) -> DailyGoalsResponse:
+    """Derive today's progress from existing records; nothing is stored per day.
+
+    Lessons: `completed_at` is written once per lesson, so reopening never recounts.
+    Words: distinct words remembered in a review today, so repeating one word counts once.
+    """
+    zone_name = (profile.timezone if profile else None) or get_settings().learning_timezone
+    today, start, end = local_day_window(zone_name, now)
+    lessons = await db.scalar(
+        select(func.count())
+        .select_from(LessonProgress)
+        .where(
+            LessonProgress.user_id == user_id,
+            LessonProgress.completed_at >= start,
+            LessonProgress.completed_at < end,
+        )
+    )
+    words = await db.scalar(
+        select(func.count(func.distinct(VocabularyReview.item_id)))
+        .join(VocabularyItem, VocabularyItem.id == VocabularyReview.item_id)
+        .where(
+            VocabularyItem.user_id == user_id,
+            VocabularyReview.remembered.is_(True),
+            VocabularyReview.created_at >= start,
+            VocabularyReview.created_at < end,
+        )
+    )
+    return DailyGoalsResponse(
+        date=today,
+        timezone=zone_name,
+        lessons=DailyGoalResponse(
+            goal=profile.daily_lessons_goal if profile else 1, done=lessons or 0
+        ),
+        vocabulary=DailyGoalResponse(
+            goal=profile.daily_words_goal if profile else 10, done=words or 0
+        ),
     )
