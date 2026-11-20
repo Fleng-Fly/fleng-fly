@@ -221,7 +221,8 @@ compact lesson rows, purple tokens, focus/hover states and reduced-motion rules.
 **Next-course recommendation.** `js/next-course.js` is a pure function
 (`recommendNextCourse`) over `GET /courses`, `GET /progress/me` and, optionally, the
 estimated level of the latest completed placement attempt. The main line is
-A0 → A1 → A2 → B1 → B2. Completed courses and courses already in progress are never
+A0 → A1 → A2 → B1 → B2 and consists only of the curated `fleng-a0` … `fleng-b2` courses; demo
+courses of the same level (`english-foundations`, `everyday-conversations`) are ignored. Completed courses and courses already in progress are never
 offered; courses below the placement level are skipped; `afterSlug` limits the
 result to courses after a just-finished one. Result `status`: `next`, `complete`
 (all main-line courses finished) or `none` (render nothing). `js/next-course-ui.js`

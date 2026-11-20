@@ -112,7 +112,7 @@ async function page(name, options = {}) {
   };
   const window = {
     location: {
-      search: '?slug=foundations',
+      search: options.search ?? '?slug=foundations',
       replace: (url) => {
         window.redirect = url;
       },
@@ -129,7 +129,7 @@ async function page(name, options = {}) {
     filters.append(button);
   }
   const detail = {
-    ...catalog[0],
+    ...(options.catalog?.[0] ?? catalog[0]),
     lessons: ['First', 'Second', 'Third'].map((title, index) => ({
       title,
       slug: `lesson-${index}`,
@@ -276,15 +276,21 @@ test('catalog Start/Continue/Review and completion use API counts; return refres
 });
 
 test('finished course offers the next main-line course; unfinished shows none', async () => {
+  const mainLine = catalog.map((course) => ({ ...course, slug: `fleng-${course.level.toLowerCase()}` }));
   const done = freshProgress();
   done.courses[0].lessonsStarted = 3;
   done.courses[0].lessonsCompleted = 3;
-  const p = await page('course', { progress: done });
+  const options = { catalog: mainLine, search: '?slug=fleng-a1' };
+  const p = await page('course', { ...options, progress: done });
   assert.match(p.get('course-body').textContent, /Course completed/);
   assert.match(p.get('course-body').textContent, /Everyday Conversations/);
-  assert.ok(p.get('course-body').querySelectorAll('a').some((a) => a.href === '/course.html?slug=everyday'));
-  const open = await page('course');
+  assert.ok(p.get('course-body').querySelectorAll('a').some((a) => a.href === '/course.html?slug=fleng-b1'));
+  const open = await page('course', options);
   assert.doesNotMatch(open.get('course-body').textContent, /Course completed/);
+  // A finished demo/side course never produces a "next course" banner.
+  const demo = await page('course', { progress: done });
+  assert.match(demo.get('course-body').textContent, /Course completed/);
+  assert.doesNotMatch(demo.get('course-body').textContent, /Next course/);
 });
 
 test('empty catalog and service failure never render fake courses; retry recovers', async () => {
@@ -678,7 +684,7 @@ test('goals above the target stay capped at 100% and show the reached note', asy
 test('Placement prompt is hidden once the whole main line is complete, but not before', async () => {
   const levels = ['A0', 'A1', 'A2', 'B1', 'B2'];
   const catalogAll = levels.map((level) => ({
-    id: level, slug: level.toLowerCase(), title: level, description: '', level, lessonCount: 2,
+    id: level, slug: `fleng-${level.toLowerCase()}`, title: level, description: '', level, lessonCount: 2,
   }));
   const progressFor = (done) => ({
     courses: catalogAll.map((c) => ({
@@ -699,8 +705,8 @@ test('Placement prompt is hidden once the whole main line is complete, but not b
 
 test('dashboard current course is the furthest unfinished one, not an old finished course', async () => {
   const catalogTwo = [
-    { id: 'a0', slug: 'a0', title: 'Old finished A0', description: '', level: 'A0', lessonCount: 2 },
-    { id: 'a1', slug: 'a1', title: 'Active A1', description: '', level: 'A1', lessonCount: 4 },
+    { id: 'a0', slug: 'fleng-a0', title: 'Old finished A0', description: '', level: 'A0', lessonCount: 2 },
+    { id: 'a1', slug: 'fleng-a1', title: 'Active A1', description: '', level: 'A1', lessonCount: 4 },
   ];
   const progress = {
     courses: [

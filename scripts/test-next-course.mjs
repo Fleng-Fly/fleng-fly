@@ -122,3 +122,19 @@ test('current course: nothing started or empty data gives null', () => {
   assert.equal(pickCurrentCourse([]), null);
   assert.equal(pickCurrentCourse(undefined), null);
 });
+
+test('demo courses of the same level are not part of the main line', () => {
+  const demo = [
+    { id: 'demoA1', slug: 'english-foundations', title: 'English Foundations', description: '', level: 'A1', lessonCount: 3 },
+    { id: 'demoB1', slug: 'everyday-conversations', title: 'Everyday', description: '', level: 'B1', lessonCount: 3 },
+  ];
+  const withDemo = [...demo, ...courses]; // demo courses come first in the catalog, as in the real database
+  const rows = [...progress({ A0: 'done' }), ...demo.map((c) => ({ courseId: c.id, lessonsTotal: 3, lessonsStarted: 0, lessonsCompleted: 0 }))];
+  assert.equal(slug(recommendNextCourse({ courses: withDemo, progress: rows })), 'fleng-a1');
+  assert.equal(slug(recommendNextCourse({ courses: withDemo, progress: rows, afterSlug: 'fleng-a0', placementLevel: 'B1' })), 'fleng-b1');
+  // Finishing every main-line course completes the line even if demo courses are untouched.
+  const all = [...progress(Object.fromEntries(LEVELS.map((level) => [level, 'done']))), ...rows.slice(5)];
+  assert.equal(recommendNextCourse({ courses: withDemo, progress: all }).status, 'complete');
+  // A demo course the learner finished is not an "after" anchor for the main line.
+  assert.equal(recommendNextCourse({ courses: withDemo, progress: rows, afterSlug: 'english-foundations' }).status, 'none');
+});

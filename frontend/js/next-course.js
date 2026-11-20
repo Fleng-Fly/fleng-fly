@@ -6,6 +6,13 @@ export const MAIN_LINE = ['A0', 'A1', 'A2', 'B1', 'B2'];
 
 const lineIndex = (level) => MAIN_LINE.indexOf(level);
 
+/**
+ * The main line is the curated `fleng-<level>` series. Demo/side courses of the same level
+ * (e.g. "english-foundations") are never part of the A0 → B2 sequence.
+ */
+export const isMainLineCourse = (course) =>
+  lineIndex(course.level) >= 0 && course.slug === `fleng-${course.level.toLowerCase()}`;
+
 function isCompleted(entry) {
   return Boolean(entry) && entry.lessonsTotal > 0 && entry.lessonsCompleted >= entry.lessonsTotal;
 }
@@ -22,7 +29,7 @@ function isCompleted(entry) {
  *         | {status: 'complete', course: null, hasCompleted: true}
  *         | {status: 'none', course: null, hasCompleted: boolean}}
  *
- * Rules: completed courses are never recommended; a course the learner is already
+ * Rules: only the curated main-line courses (`fleng-a0` … `fleng-b2`) take part; completed courses are never recommended; a course the learner is already
  * working on is "Continue", not "next", so it is skipped; courses below the placement
  * level are skipped; courses without lessons or outside A0–B2 are ignored. 'complete'
  * means every published main-line course is finished.
@@ -30,7 +37,7 @@ function isCompleted(entry) {
 export function recommendNextCourse({ courses, progress, placementLevel = null, afterSlug = null }) {
   const byCourse = new Map((progress || []).map((entry) => [entry.courseId, entry]));
   const line = (courses || [])
-    .filter((course) => lineIndex(course.level) >= 0 && course.lessonCount > 0)
+    .filter((course) => isMainLineCourse(course) && course.lessonCount > 0)
     .map((course, order) => ({ course, order, entry: byCourse.get(course.id) }))
     .sort((a, b) => lineIndex(a.course.level) - lineIndex(b.course.level) || a.order - b.order);
 

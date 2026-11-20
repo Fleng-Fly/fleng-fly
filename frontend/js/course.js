@@ -42,7 +42,12 @@ function lessonItem(lesson, progress, index) {
 
 function nextCourseBanner(result) {
   const box = nextCourseCard(result, 'catalog-panel catalog-next');
-  if (!box) return null;
+  if (!box) {
+    // A finished side/demo course still earns the congratulation, just without a suggestion.
+    const plain = el('aside', 'catalog-panel catalog-next');
+    plain.append(el('h2', undefined, t('catalog.courseDone')));
+    return plain;
+  }
   if (result.status === 'next') box.prepend(el('h2', undefined, t('catalog.courseDone')));
   return box;
 }
