@@ -8,14 +8,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.core.errors import ApiError
 from app.core.limits import consume
-from app.db.models import ReadingArticle, ReadingUserProgress, User
+from app.db.models import ReadingArticle, ReadingAttempt, ReadingUserProgress, User
 from app.db.session import get_db
 from app.modules.reading import content, learning, library, personal
 from app.modules.reading.content import ArticleFilters
 from app.modules.reading.schemas import (
+    ReadingAnswerPublic,
+    ReadingAnswersUpdate,
     ReadingArticleDetail,
     ReadingArticleList,
     ReadingArticleSummary,
+    ReadingAttemptResponse,
+    ReadingAttemptResult,
+    ReadingAttemptSummary,
     ReadingBookmarkResponse,
     ReadingCategoryRef,
     ReadingCategoryResponse,
@@ -24,11 +29,16 @@ from app.modules.reading.schemas import (
     ReadingPreferencesUpdate,
     ReadingProgressResponse,
     ReadingProgressUpdate,
+    ReadingQuestionPublic,
+    ReadingReviewItem,
+    ReadingSubmitRequest,
 )
 
 router = APIRouter(prefix="/reading", tags=["reading"])
 
 PROGRESS_WRITES_PER_MINUTE = 60
+ATTEMPT_STARTS_PER_HOUR = 30
+ATTEMPT_WRITES_PER_MINUTE = 30
 
 
 def _progress(row: ReadingUserProgress | None) -> ReadingProgressResponse | None:
@@ -195,3 +205,125 @@ async def set_preferences(
     return ReadingPreferencesResponse(
         categories=[ReadingCategoryRef(id=c.id, slug=c.slug, title=c.title) for c in categories]
     )
+
+
+# --- quiz attempts ----------------------------------------------------------------------
+
+
+async def _attempt_response(
+    db: AsyncSession, attempt: ReadingAttempt, *, already_submitted: bool = False
+) -> ReadingAttemptResponse:
+    article = await db.get(ReadingArticle, attempt.article_id)
+    assert article is not None
+    questions = None
+    result = None
+    if attempt.status == "in_progress":
+        full = await content.get_article(db, article_id=article.id, available_only=False)
+        assert full is not None
+        questions = [
+            ReadingQuestionPublic(
+                id=q.id,
+                prompt=q.prompt,
+                points=q.points,
+                answers=[ReadingAnswerPublic(id=a.id, text=a.text) for a in q.answers],
+            )
+            for q in full.questions
+        ]
+    elif attempt.result is not None:
+        result = ReadingAttemptResult(
+            score_percent=attempt.score_percent or 0,
+            points_earned=attempt.points_earned or 0,
+            points_possible=attempt.points_possible or 0,
+            passed=bool(attempt.passed),
+            pass_mark=learning.PASS_PERCENT,
+            xp_awarded=attempt.xp_awarded,
+            questions=[
+                ReadingReviewItem.model_validate(item) for item in attempt.result["questions"]
+            ],
+        )
+    return ReadingAttemptResponse(
+        id=attempt.id,
+        article_slug=article.slug,
+        attempt_number=attempt.attempt_number,
+        status=attempt.status,  # type: ignore[arg-type]
+        answers={UUID(q): UUID(a) for q, a in attempt.answers.items()},
+        questions=questions,
+        result=result,
+        already_submitted=already_submitted,
+        started_at=attempt.started_at,
+        submitted_at=attempt.submitted_at,
+    )
+
+
+@router.post("/articles/{slug}/attempts", response_model=ReadingAttemptResponse)
+async def start_attempt(
+    slug: str,
+    response: Response,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ReadingAttemptResponse:
+    """Start a quiz attempt (201) or resume the one already open (200)."""
+    article = await _article(db, slug)
+    resumed = await learning.get_active_attempt(db, user.id, article.id)
+    if resumed is None:
+        await consume(db, f"reading:attempt-start:{user.id}", ATTEMPT_STARTS_PER_HOUR, 3600)
+    attempt = await learning.start_attempt(db, user.id, article.id)
+    response.status_code = 200 if resumed is not None else 201
+    return await _attempt_response(db, attempt)
+
+
+@router.get("/articles/{slug}/attempts", response_model=list[ReadingAttemptSummary])
+async def list_attempts(
+    slug: str, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> list[ReadingAttemptSummary]:
+    article = await _article(db, slug)
+    return [
+        ReadingAttemptSummary(
+            id=a.id,
+            attempt_number=a.attempt_number,
+            status=a.status,  # type: ignore[arg-type]
+            score_percent=a.score_percent,
+            passed=a.passed,
+            xp_awarded=a.xp_awarded,
+            started_at=a.started_at,
+            submitted_at=a.submitted_at,
+        )
+        for a in await learning.list_attempts(db, user.id, article.id)
+    ]
+
+
+@router.get("/attempts/{attempt_id}", response_model=ReadingAttemptResponse)
+async def get_attempt(
+    attempt_id: UUID, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+) -> ReadingAttemptResponse:
+    return await _attempt_response(db, await learning.get_attempt(db, user.id, attempt_id))
+
+
+@router.patch("/attempts/{attempt_id}/answers", response_model=ReadingAttemptResponse)
+async def save_answers(
+    attempt_id: UUID,
+    body: ReadingAnswersUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ReadingAttemptResponse:
+    await consume(db, f"reading:attempt-write:{user.id}", ATTEMPT_WRITES_PER_MINUTE, 60)
+    attempt = await learning.save_answers(db, user.id, attempt_id, body.answers)
+    return await _attempt_response(db, attempt)
+
+
+@router.post("/attempts/{attempt_id}/submit", response_model=ReadingAttemptResponse)
+async def submit_attempt(
+    attempt_id: UUID,
+    body: ReadingSubmitRequest | None = None,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ReadingAttemptResponse:
+    """Grade the attempt. Repeating the call returns the stored result and pays no XP."""
+    current = await learning.get_attempt(db, user.id, attempt_id)
+    already = current.status == "submitted"
+    if not already:
+        await consume(db, f"reading:attempt-write:{user.id}", ATTEMPT_WRITES_PER_MINUTE, 60)
+    attempt = await learning.submit_attempt(
+        db, user.id, attempt_id, body.answers if body is not None else None
+    )
+    return await _attempt_response(db, attempt, already_submitted=already)

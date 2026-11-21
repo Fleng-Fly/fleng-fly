@@ -244,3 +244,239 @@ async def test_preferences_replace_validate_and_isolate(
     assert (
         await client.put(f"{API}/preferences", headers=auth, json={"categoryIds": []})
     ).json() == {"categories": []}
+
+
+# --- attempts -------------------------------------------------------------------------------
+
+
+async def start(client, auth, slug="story"):
+    return await client.post(f"{API}/articles/{slug}/attempts", headers=auth)
+
+
+def choose(attempt: dict, *, right: bool, questions: list | None = None) -> dict[str, str]:
+    """Pick answers using the learner-visible question list plus a known answer layout.
+
+    Tests create answers as `opt 0..2` with `opt 0` correct, so the key is derivable by text.
+    """
+    wanted = "opt 0" if right else "opt 1"
+    return {
+        q["id"]: next(a["id"] for a in q["answers"] if a["text"] == wanted)
+        for q in attempt["questions"]
+    }
+
+
+async def story(db_session, slug="story", **kw):
+    return await make_article(db_session, await make_category(db_session, f"c-{slug}"), slug, **kw)
+
+
+async def test_attempt_routes_require_a_session(client: AsyncClient):
+    some = uuid.uuid4()
+    for method, path in [
+        ("POST", "/articles/x/attempts"),
+        ("GET", "/articles/x/attempts"),
+        ("GET", f"/attempts/{some}"),
+        ("PATCH", f"/attempts/{some}/answers"),
+        ("POST", f"/attempts/{some}/submit"),
+    ]:
+        assert (await client.request(method, API + path)).status_code == 401, path
+
+
+async def test_start_hides_the_answer_key_and_resumes(client: AsyncClient, db_session):
+    auth = await login(client)
+    await story(db_session)
+    first = await start(client, auth)
+    assert first.status_code == 201
+    body = first.json()
+    assert body["status"] == "in_progress" and body["attemptNumber"] == 1
+    assert body["articleSlug"] == "story" and body["result"] is None and body["answers"] == {}
+    assert len(body["questions"]) == 2 and len(body["questions"][0]["answers"]) == 3
+    for forbidden in ("isCorrect", "correctAnswerId", "explanation", "Because"):
+        assert forbidden not in first.text
+
+    again = await start(client, auth)
+    assert again.status_code == 200 and again.json()["id"] == body["id"]
+    assert (await client.get(f"{API}/attempts/{body['id']}", headers=auth)).json()["id"] == body[
+        "id"
+    ]
+
+
+async def test_start_requires_a_quiz_and_a_visible_article(client: AsyncClient, db_session):
+    auth = await login(client)
+    await story(db_session, "plain", questions=[])
+    await story(db_session, "draft", publish=False)
+    no_quiz = await start(client, auth, "plain")
+    assert (no_quiz.status_code, no_quiz.json()["error"]["code"]) == (409, "NO_QUESTIONS")
+    assert (await start(client, auth, "draft")).status_code == 404
+    assert (await start(client, auth, "missing")).status_code == 404
+
+
+async def test_save_and_restore_answers(client: AsyncClient, db_session):
+    auth = await login(client)
+    await story(db_session)
+    attempt = (await start(client, auth)).json()
+    picked = choose(attempt, right=False)
+    first_q = next(iter(picked))
+    saved = await client.patch(
+        f"{API}/attempts/{attempt['id']}/answers",
+        headers=auth,
+        json={"answers": {first_q: picked[first_q]}},
+    )
+    assert saved.status_code == 200 and saved.json()["answers"] == {first_q: picked[first_q]}
+    restored = (await start(client, auth)).json()  # resume
+    assert restored["answers"] == {first_q: picked[first_q]}
+    assert len(restored["questions"]) == 2
+
+
+async def test_save_validation(client: AsyncClient, db_session):
+    auth = await login(client)
+    await story(db_session)
+    attempt = (await start(client, auth)).json()
+    q1, q2 = attempt["questions"]
+    url = f"{API}/attempts/{attempt['id']}/answers"
+    bad_bodies = [
+        {"answers": {str(uuid.uuid4()): q1["answers"][0]["id"]}},
+        {"answers": {q1["id"]: str(uuid.uuid4())}},
+        {"answers": {q1["id"]: q2["answers"][0]["id"]}},
+        {"answers": {"nope": "nope"}},
+        {"answers": "x"},
+        {},
+    ]
+    for bad in bad_bodies:
+        assert (await client.patch(url, headers=auth, json=bad)).status_code == 422, bad
+    error = await client.patch(url, headers=auth, json=bad_bodies[1])
+    assert error.json()["error"]["code"] == "INVALID_ANSWER"
+
+
+async def test_submit_grades_reveals_review_and_pays_xp_once(client: AsyncClient, db_session):
+    auth = await login(client)
+    await story(db_session)
+    attempt = (await start(client, auth)).json()
+    answers = choose(attempt, right=True)
+
+    done = await client.post(
+        f"{API}/attempts/{attempt['id']}/submit", headers=auth, json={"answers": answers}
+    )
+    body = done.json()
+    assert done.status_code == 200 and body["status"] == "submitted"
+    assert body["questions"] is None and body["alreadySubmitted"] is False
+    result = body["result"]
+    assert (result["scorePercent"], result["passed"], result["passMark"]) == (100, True, 70)
+    assert (result["pointsEarned"], result["pointsPossible"], result["xpAwarded"]) == (5, 5, 5)
+    review = result["questions"][0]
+    assert review["isCorrect"] is True and review["explanation"].startswith("Because")
+    assert review["prompt"] and len(review["answers"]) == 3
+
+    me = (await client.get("/api/v1/progress/me", headers=auth)).json()
+    assert me["xp"] == 5
+
+    again = await client.post(f"{API}/attempts/{attempt['id']}/submit", headers=auth)
+    assert again.status_code == 200
+    assert again.json()["alreadySubmitted"] is True
+    assert again.json()["result"] == result
+    assert (await client.get("/api/v1/progress/me", headers=auth)).json()["xp"] == 5
+
+    progress = (await client.get(f"{API}/articles/story", headers=auth)).json()["progress"]
+    assert progress["status"] == "completed" and progress["xpAwarded"] == 5
+    assert progress["bestScorePercent"] == 100 and progress["attemptsCount"] == 1
+
+
+async def test_submit_without_body_grades_saved_answers(client: AsyncClient, db_session):
+    auth = await login(client)
+    await story(db_session)
+    attempt = (await start(client, auth)).json()
+    await client.patch(
+        f"{API}/attempts/{attempt['id']}/answers",
+        headers=auth,
+        json={"answers": choose(attempt, right=True)},
+    )
+    done = await client.post(f"{API}/attempts/{attempt['id']}/submit", headers=auth)
+    assert done.json()["result"]["passed"] is True
+
+
+async def test_failed_then_retry_pays_once_and_lists_history(client: AsyncClient, db_session):
+    auth = await login(client)
+    await story(db_session)
+    failed = (await start(client, auth)).json()
+    result = (
+        await client.post(
+            f"{API}/attempts/{failed['id']}/submit",
+            headers=auth,
+            json={"answers": choose(failed, right=False)},
+        )
+    ).json()["result"]
+    assert (result["passed"], result["xpAwarded"], result["scorePercent"]) == (False, 0, 0)
+    assert (await client.get("/api/v1/progress/me", headers=auth)).json()["xp"] == 0
+
+    retry = await start(client, auth)
+    assert retry.status_code == 201 and retry.json()["attemptNumber"] == 2
+    await client.post(
+        f"{API}/attempts/{retry.json()['id']}/submit",
+        headers=auth,
+        json={"answers": choose(retry.json(), right=True)},
+    )
+    third = (await start(client, auth)).json()
+    await client.post(
+        f"{API}/attempts/{third['id']}/submit",
+        headers=auth,
+        json={"answers": choose(third, right=True)},
+    )
+    assert (await client.get("/api/v1/progress/me", headers=auth)).json()["xp"] == 5
+
+    history = (await client.get(f"{API}/articles/story/attempts", headers=auth)).json()
+    assert [h["attemptNumber"] for h in history] == [3, 2, 1]
+    assert [h["xpAwarded"] for h in history] == [0, 5, 0]
+    assert history[0]["passed"] is True and history[2]["passed"] is False
+
+
+async def test_cannot_change_a_submitted_attempt(client: AsyncClient, db_session):
+    auth = await login(client)
+    await story(db_session)
+    attempt = (await start(client, auth)).json()
+    await client.post(f"{API}/attempts/{attempt['id']}/submit", headers=auth)
+    response = await client.patch(
+        f"{API}/attempts/{attempt['id']}/answers",
+        headers=auth,
+        json={"answers": choose(attempt, right=True)},
+    )
+    assert (response.status_code, response.json()["error"]["code"]) == (409, "ATTEMPT_SUBMITTED")
+    reread = (await client.get(f"{API}/attempts/{attempt['id']}", headers=auth)).json()
+    assert reread["questions"] is None and reread["result"]["scorePercent"] == 0
+
+
+async def test_attempts_are_isolated_between_learners(client: AsyncClient, db_session):
+    a, b = await login(client, "a@example.com"), await login(client, "b@example.com")
+    await story(db_session)
+    attempt = (await start(client, a)).json()
+    for method, path, body in [
+        ("GET", f"/attempts/{attempt['id']}", None),
+        ("PATCH", f"/attempts/{attempt['id']}/answers", {"answers": {}}),
+        ("POST", f"/attempts/{attempt['id']}/submit", {}),
+    ]:
+        response = await client.request(method, API + path, headers=b, json=body)
+        assert response.status_code == 404, path
+    assert (await client.get(f"{API}/attempts/{uuid.uuid4()}", headers=a)).status_code == 404
+    assert (await client.get(f"{API}/attempts/not-a-uuid", headers=a)).status_code == 422
+    mine = (await client.get(f"{API}/articles/story/attempts", headers=b)).json()
+    assert mine == []
+    own = await start(client, b)
+    assert own.status_code == 201 and own.json()["id"] != attempt["id"]
+    assert (await client.get("/api/v1/progress/me", headers=b)).json()["xp"] == 0
+
+
+async def test_attempt_starts_are_rate_limited(client: AsyncClient, db_session):
+    auth = await login(client)
+    for i in range(31):
+        await story(db_session, f"s{i}")
+    codes = []
+    for i in range(31):
+        codes.append((await start(client, auth, f"s{i}")).status_code)
+    assert codes[:30] == [201] * 30 and codes[30] == 429
+
+
+async def test_submit_for_hidden_article_is_not_found(client: AsyncClient, db_session):
+    auth = await login(client)
+    article = await story(db_session)
+    attempt = (await start(client, auth)).json()
+    await content.set_status(db_session, article, "archived")
+    response = await client.post(f"{API}/attempts/{attempt['id']}/submit", headers=auth)
+    assert response.status_code == 404
