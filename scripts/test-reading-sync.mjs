@@ -2,21 +2,33 @@ import './require-vm-modules.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  RATE_LIMIT_BACKOFF_MS, createWriter, progressWorthSending, readPercent,
+  RATE_LIMIT_BACKOFF_MS,
+  createWriter,
+  progressWorthSending,
+  readPercent,
 } from '../frontend/js/reading-sync.js';
 
 /** Deterministic clock + timers: `advance(ms)` fires due timers in order. */
 function clock() {
-  let time = 0, nextId = 1;
+  let time = 0,
+    nextId = 1;
   const timers = new Map();
   return {
     now: () => time,
-    setTimer: (fn, ms) => { const id = nextId++; timers.set(id, { fn, at: time + ms }); return id; },
-    clearTimer: (id) => { timers.delete(id); },
+    setTimer: (fn, ms) => {
+      const id = nextId++;
+      timers.set(id, { fn, at: time + ms });
+      return id;
+    },
+    clearTimer: (id) => {
+      timers.delete(id);
+    },
     async advance(ms) {
       const target = time + ms;
       for (;;) {
-        const due = [...timers.entries()].filter(([, t]) => t.at <= target).sort((a, b) => a[1].at - b[1].at)[0];
+        const due = [...timers.entries()]
+          .filter(([, t]) => t.at <= target)
+          .sort((a, b) => a[1].at - b[1].at)[0];
         if (!due) break;
         timers.delete(due[0]);
         time = Math.max(time, due[1].at);
@@ -39,7 +51,9 @@ function setup(options = {}) {
       sent.push({ value, at: c.now() });
     },
     onState: (s) => states.push(s),
-    now: c.now, setTimer: c.setTimer, clearTimer: c.clearTimer,
+    now: c.now,
+    setTimer: c.setTimer,
+    clearTimer: c.clearTimer,
     ...options.config,
   });
   return { c, sent, states, writer };
@@ -51,7 +65,10 @@ test('a burst of changes sends only the latest value after the quiet period', as
   await c.advance(999);
   assert.equal(sent.length, 0);
   await c.advance(2);
-  assert.deepEqual(sent.map((s) => s.value), [50]);
+  assert.deepEqual(
+    sent.map((s) => s.value),
+    [50],
+  );
 });
 
 test('never sends twice within the minimum interval and stays far below 60 per minute', async () => {
@@ -61,7 +78,10 @@ test('never sends twice within the minimum interval and stays far below 60 per m
     await c.advance(1000);
   }
   const gaps = sent.slice(1).map((s, i) => s.at - sent[i].at);
-  assert.ok(gaps.every((gap) => gap >= 5000), `gaps: ${gaps}`);
+  assert.ok(
+    gaps.every((gap) => gap >= 5000),
+    `gaps: ${gaps}`,
+  );
   const perMinute = sent.filter((s) => s.at < 60_000).length;
   assert.ok(perMinute <= 12, `sent ${perMinute} in the first minute`);
   assert.equal(sent.at(-1).value >= 110, true); // trailing value is not lost
@@ -69,11 +89,27 @@ test('never sends twice within the minimum interval and stays far below 60 per m
 
 test('requests never overlap', async () => {
   const c = clock();
-  let running = 0, peak = 0, calls = 0;
+  let running = 0,
+    peak = 0,
+    calls = 0;
   let release;
   const writer = createWriter({
-    write: () => { calls++; running++; peak = Math.max(peak, running); return new Promise((resolve) => { release = () => { running--; resolve(); }; }); },
-    delayMs: 0, minIntervalMs: 0, now: c.now, setTimer: c.setTimer, clearTimer: c.clearTimer,
+    write: () => {
+      calls++;
+      running++;
+      peak = Math.max(peak, running);
+      return new Promise((resolve) => {
+        release = () => {
+          running--;
+          resolve();
+        };
+      });
+    },
+    delayMs: 0,
+    minIntervalMs: 0,
+    now: c.now,
+    setTimer: c.setTimer,
+    clearTimer: c.clearTimer,
   });
   writer.set(1);
   await c.advance(1);
@@ -89,7 +125,9 @@ test('requests never overlap', async () => {
 });
 
 test('shouldSend skips values that do not change anything', async () => {
-  const { c, sent, writer } = setup({ config: { shouldSend: progressWorthSending, delayMs: 0, minIntervalMs: 0 } });
+  const { c, sent, writer } = setup({
+    config: { shouldSend: progressWorthSending, delayMs: 0, minIntervalMs: 0 },
+  });
   writer.set(3);
   await c.advance(5);
   writer.set(6); // +3 only
@@ -98,19 +136,28 @@ test('shouldSend skips values that do not change anything', async () => {
   await c.advance(5);
   writer.set(9);
   await c.advance(5);
-  assert.deepEqual(sent.map((s) => s.value), [3, 9]);
+  assert.deepEqual(
+    sent.map((s) => s.value),
+    [3, 9],
+  );
 });
 
 test('flush sends right away when spacing allows and still honours it otherwise', async () => {
   const { c, sent, writer } = setup({ config: { delayMs: 5000, minIntervalMs: 3000 } });
   writer.set('a');
   await writer.flush();
-  assert.deepEqual(sent.map((s) => s.value), ['a']);
+  assert.deepEqual(
+    sent.map((s) => s.value),
+    ['a'],
+  );
   writer.set('b');
   await writer.flush(); // too soon: deferred, not dropped
   assert.equal(sent.length, 1);
   await c.advance(3000);
-  assert.deepEqual(sent.map((s) => s.value), ['a', 'b']);
+  assert.deepEqual(
+    sent.map((s) => s.value),
+    ['a', 'b'],
+  );
   assert.equal(writer.isDirty(), false);
 });
 
@@ -120,9 +167,16 @@ test('a failed write keeps the value and retries later with back-off', async () 
   let failing = true;
   const states = [];
   const writer = createWriter({
-    write: async (value) => { if (failing) throw Object.assign(new Error('x'), { status: 500 }); sent.push(value); },
-    onState: (s) => states.push(s), delayMs: 0, minIntervalMs: 0,
-    now: c.now, setTimer: c.setTimer, clearTimer: c.clearTimer,
+    write: async (value) => {
+      if (failing) throw Object.assign(new Error('x'), { status: 500 });
+      sent.push(value);
+    },
+    onState: (s) => states.push(s),
+    delayMs: 0,
+    minIntervalMs: 0,
+    now: c.now,
+    setTimer: c.setTimer,
+    clearTimer: c.clearTimer,
   });
   writer.set('kept');
   await c.advance(1);
@@ -138,8 +192,15 @@ test('429 pauses all writes for a full minute', async () => {
   const c = clock();
   let attempts = 0;
   const writer = createWriter({
-    write: async () => { attempts++; if (attempts === 1) throw Object.assign(new Error('limit'), { status: 429 }); },
-    delayMs: 0, minIntervalMs: 0, now: c.now, setTimer: c.setTimer, clearTimer: c.clearTimer,
+    write: async () => {
+      attempts++;
+      if (attempts === 1) throw Object.assign(new Error('limit'), { status: 429 });
+    },
+    delayMs: 0,
+    minIntervalMs: 0,
+    now: c.now,
+    setTimer: c.setTimer,
+    clearTimer: c.clearTimer,
   });
   writer.set(1);
   await c.advance(1);

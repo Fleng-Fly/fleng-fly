@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="rd.pageTitle">Reading — Fleng</title>
+    <script src="/js/i18n-boot.js"></script>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/lesson.css" />
+    <link rel="stylesheet" href="/css/reading.css" />
+    <meta name="theme-color" content="#0b0917" />
+    <script defer src="/js/pwa.js"></script>
+    <link rel="stylesheet" href="/css/fleng-theme.css" />
+    <link rel="stylesheet" href="/css/motion.css" />
+  </head>
+  <body class="dashboard-page reading-page">
+    <main class="dashboard-main">
+      <div class="dashboard-page-heading">
+        <div>
+          <p class="dashboard-eyebrow" data-i18n="rd.eyebrow">READ AND UNDERSTAND</p>
+          <h1 data-i18n="rd.heading">Reading</h1>
+          <p class="dashboard-subtitle" data-i18n="rd.subtitle">
+            Short English texts for your level, each with a quick quiz.
+          </p>
+        </div>
+        <button
+          id="topics-open"
+          class="lesson-button lesson-button-secondary"
+          type="button"
+          data-i18n="rd.editTopics"
+          disabled
+        >
+          Choose my topics
+        </button>
+      </div>
+
+      <section id="reading-error" class="dashboard-alert" role="alert" hidden>
+        <span id="reading-error-text"></span>
+        <button
+          id="reading-retry"
+          class="dashboard-text-button"
+          type="button"
+          data-i18n="common.tryAgain"
+        >
+          Try again
+        </button>
+      </section>
+
+      <div id="reading-filters" class="reading-filters" hidden>
+        <div class="reading-filter-group">
+          <span class="reading-filter-label" id="lbl-topic" data-i18n="rd.topics">Topic</span>
+          <div
+            id="filter-topic"
+            class="reading-chips"
+            role="group"
+            aria-labelledby="lbl-topic"
+          ></div>
+        </div>
+        <div class="reading-filter-group">
+          <span class="reading-filter-label" id="lbl-level" data-i18n="rd.level">Level</span>
+          <div
+            id="filter-level"
+            class="reading-chips"
+            role="group"
+            aria-labelledby="lbl-level"
+          ></div>
+        </div>
+        <div class="reading-filter-group">
+          <span class="reading-filter-label" id="lbl-status" data-i18n="rd.status">Status</span>
+          <div
+            id="filter-status"
+            class="reading-chips"
+            role="group"
+            aria-labelledby="lbl-status"
+          ></div>
+        </div>
+      </div>
+
+      <p id="reading-loading" class="dashboard-muted" role="status" data-i18n="rd.loading">
+        Loading articles…
+      </p>
+      <p id="reading-feedback" class="reading-feedback" role="status"></p>
+      <section id="reading-list" class="reading-list" aria-live="polite" hidden></section>
+      <div id="reading-empty" class="dashboard-card reading-message" hidden>
+        <h2 id="reading-empty-title"></h2>
+        <p id="reading-empty-text" class="dashboard-muted"></p>
+        <button
+          id="reading-clear"
+          class="lesson-button lesson-button-secondary"
+          type="button"
+          data-i18n="rd.clearFilters"
+          hidden
+        >
+          Clear filters
+        </button>
+      </div>
+      <div id="reading-more" class="reading-more" hidden>
+        <p id="reading-count" class="dashboard-muted" role="status"></p>
+        <button
+          id="reading-load-more"
+          class="lesson-button lesson-button-secondary"
+          type="button"
+          data-i18n="rd.loadMore"
+        >
+          Show more
+        </button>
+      </div>
+    </main>
+
+    <dialog id="topics-dialog" class="reading-dialog" aria-labelledby="topics-title">
+      <form id="topics-form" method="dialog">
+        <div class="section-heading">
+          <h2 id="topics-title" data-i18n="rd.topicsTitle">Your topics</h2>
+          <button
+            id="topics-close"
+            class="reading-close"
+            type="button"
+            aria-label="Close topics dialog"
+            data-i18n-attr="aria-label:rd.topicsClose"
+          >
+            ×
+          </button>
+        </div>
+        <p class="dashboard-muted" data-i18n="rd.topicsHint">
+          Pick the topics you like. They appear first and in “My topics”.
+        </p>
+        <div id="topics-options" class="reading-topic-options"></div>
+        <p id="topics-status" class="reading-feedback" role="status"></p>
+        <button
+          id="topics-save"
+          class="lesson-button lesson-button-primary"
+          type="submit"
+          data-i18n="rd.topicsSave"
+        >
+          Save topics
+        </button>
+      </form>
+    </dialog>
+    <script type="module" src="/js/reading.js"></script>
+  </body>
+</html>

@@ -1,0 +1,461 @@
+/* Reading module. Uses the shared Fleng tokens (--fleng-*, --dash-*) and lesson.css buttons/options. */
+.reading-filters {
+  display: grid;
+  gap: 14px;
+  margin: 6px 0 22px;
+  padding: 16px;
+  border: 1px solid var(--fleng-border);
+  border-radius: 14px;
+  background: linear-gradient(140deg, #19132c, #110e20);
+}
+.reading-filter-group {
+  display: grid;
+  gap: 7px;
+}
+.reading-filter-label {
+  color: var(--fleng-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.reading-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.reading-chips button {
+  border: 1px solid var(--fleng-border);
+  border-radius: 8px;
+  background: #171029;
+  padding: 8px 13px;
+  color: var(--fleng-muted);
+  font-size: 11px;
+  cursor: pointer;
+  min-height: 37px;
+}
+.reading-chips button:hover {
+  color: #fff;
+  border-color: #795091;
+}
+.reading-chips button[aria-pressed='true'] {
+  color: #fff;
+  background: #51206b;
+  border-color: #a448cc;
+}
+
+.reading-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 16px;
+}
+.reading-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--fleng-border);
+}
+.reading-card-body {
+  display: grid;
+  gap: 8px;
+  padding: 18px 18px 0;
+  flex: 1;
+  align-content: start;
+}
+.reading-card-body p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.reading-card-title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.reading-card-title a {
+  text-decoration: none;
+}
+.reading-card-title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.reading-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  background: #100c1e;
+}
+.reading-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  color: var(--fleng-muted);
+  font-size: 11px;
+}
+.reading-level {
+  display: inline-block;
+  border: 1px solid #583767;
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: #e3d9fc;
+  background: #2a1840;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.reading-status {
+  margin: 0;
+  color: #d99df4;
+  font-size: 12px;
+  min-height: 1em;
+}
+.reading-status.is-done {
+  color: #9ce1c7;
+}
+.reading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 18px 18px;
+}
+.reading-actions .lesson-button {
+  text-decoration: none;
+}
+.reading-bookmark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--fleng-border);
+  border-radius: 10px;
+  background: #241538;
+  color: #d99df4;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.reading-bookmark[aria-pressed='true'] {
+  color: #ffd76a;
+  border-color: #8a6b2a;
+}
+.reading-bookmark:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.reading-message {
+  padding: 28px;
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.reading-more {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 22px 0 6px;
+}
+.reading-feedback {
+  min-height: 1.2em;
+  margin: 8px 0;
+  color: #b6e5ca;
+  font-size: 12px;
+}
+.reading-feedback.is-error,
+.reading-save-state.is-error {
+  color: #ffc0cc;
+}
+
+.reading-dialog {
+  width: min(32rem, calc(100% - 2rem));
+  padding: 22px;
+  color: #f7f1ff;
+  border: 1px solid var(--fleng-border);
+  border-radius: 16px;
+  background: var(--fleng-surface, #151126);
+}
+.reading-dialog::backdrop {
+  background: rgba(4, 6, 7, 0.72);
+}
+.reading-dialog form {
+  display: grid;
+  gap: 14px;
+}
+.reading-topic-options {
+  display: grid;
+  gap: 8px;
+  max-height: 50vh;
+  overflow: auto;
+}
+.reading-close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--fleng-border);
+  border-radius: 8px;
+  color: var(--fleng-lilac);
+  background: #241538;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.reading-back {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--fleng-muted) !important;
+  font-size: 12px;
+  text-decoration: none;
+}
+.reading-back:hover {
+  color: #fff !important;
+}
+.reading-article {
+  display: grid;
+  gap: 18px;
+  max-width: 46rem;
+  margin-inline: auto;
+}
+.reading-progress {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(227, 217, 252, 0.12);
+  overflow: hidden;
+}
+.reading-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #4928c2, #bf40fa);
+  transition: width 0.25s;
+}
+.reading-article-head {
+  display: grid;
+  gap: 10px;
+}
+.reading-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.reading-title-row h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.reading-article-head .dashboard-subtitle {
+  margin: 0;
+}
+.reading-article-head .lesson-button {
+  justify-self: start;
+}
+.reading-hero-cover {
+  width: 100%;
+  max-height: 22rem;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--fleng-border);
+}
+.reading-text {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: #ece3fa;
+}
+.reading-text p {
+  margin: 0 0 1.2em;
+  overflow-wrap: anywhere;
+}
+
+.reading-quiz {
+  padding: 22px;
+  display: grid;
+  gap: 14px;
+}
+.reading-quiz-facts {
+  margin: 0;
+  color: #d99df4;
+  font-size: 12px;
+}
+.reading-quiz-intro {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+.reading-quiz-intro p {
+  margin: 0;
+}
+.reading-history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--fleng-muted);
+}
+.reading-history li.is-done {
+  color: #9ce1c7;
+}
+.reading-history-title {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+.reading-questions {
+  display: grid;
+  gap: 22px;
+}
+.reading-question {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+.reading-question legend {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  margin-bottom: 10px;
+}
+.reading-question-n {
+  color: var(--fleng-muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.reading-question-prompt {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.reading-quiz-footer {
+  display: grid;
+  gap: 8px;
+}
+.reading-counter,
+.reading-save-state {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fleng-muted);
+  min-height: 1.2em;
+}
+.reading-quiz-footer .lesson-button {
+  justify-self: start;
+}
+.reading-quiz-footer .lesson-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reading-result {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid var(--fleng-border);
+  border-radius: 12px;
+}
+.reading-result h3,
+.reading-result p {
+  margin: 0;
+}
+.reading-result.is-pass {
+  border-color: #346653;
+  background: rgba(50, 129, 99, 0.12);
+}
+.reading-result.is-fail {
+  border-color: #7a3b4a;
+  background: rgba(182, 52, 77, 0.1);
+}
+.reading-score {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.reading-xp {
+  color: #ffd76a;
+  font-weight: 700;
+}
+.reading-review {
+  display: grid;
+  gap: 18px;
+  margin-top: 8px;
+}
+.reading-review h3 {
+  margin: 0;
+}
+.reading-review-item {
+  display: grid;
+  gap: 8px;
+}
+.reading-review-item .reading-question-prompt {
+  margin: 0;
+}
+.reading-review-option {
+  cursor: default;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.reading-review-tag {
+  color: #cdbfe0;
+  font-size: 11px;
+}
+.reading-explanation {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid #bf40fa;
+  background: #100c18;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #e3d9fc;
+}
+
+@media (max-width: 600px) {
+  .reading-filters {
+    padding: 12px;
+  }
+  .reading-chips button {
+    min-height: 42px;
+    padding: 8px 11px;
+  }
+  .reading-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .reading-text {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+  .reading-quiz {
+    padding: 15px;
+  }
+  .reading-quiz-footer .lesson-button,
+  .reading-actions .lesson-button {
+    flex: 1 1 100%;
+    min-height: 46px;
+  }
+  .reading-dialog {
+    padding: 16px;
+  }
+  .reading-dialog .lesson-option {
+    min-height: 46px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reading-progress span {
+    transition: none;
+  }
+}
+.reading-quiz .reading-actions {
+  padding: 0;
+}

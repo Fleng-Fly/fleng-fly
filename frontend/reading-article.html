@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="rd.articleTitle">Article — Fleng</title>
+    <script src="/js/i18n-boot.js"></script>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/lesson.css" />
+    <link rel="stylesheet" href="/css/reading.css" />
+    <meta name="theme-color" content="#0b0917" />
+    <script defer src="/js/pwa.js"></script>
+    <link rel="stylesheet" href="/css/fleng-theme.css" />
+    <link rel="stylesheet" href="/css/motion.css" />
+  </head>
+  <body class="dashboard-page reading-page">
+    <main class="dashboard-main">
+      <a class="reading-back" href="/reading.html" data-i18n="rd.back">← All articles</a>
+
+      <section id="article-error" class="dashboard-alert" role="alert" hidden>
+        <span id="article-error-text"></span>
+        <button
+          id="article-retry"
+          class="dashboard-text-button"
+          type="button"
+          data-i18n="common.tryAgain"
+        >
+          Try again
+        </button>
+      </section>
+      <p id="article-loading" class="dashboard-muted" role="status" data-i18n="rd.loading">
+        Loading articles…
+      </p>
+      <div id="article-missing" class="dashboard-card reading-message" hidden>
+        <h1 data-i18n="rd.notFound">This article isn't available</h1>
+        <p class="dashboard-muted" data-i18n="rd.notFoundText">
+          It may have been removed or hasn't been published yet.
+        </p>
+        <a
+          class="lesson-button lesson-button-secondary"
+          href="/reading.html"
+          data-i18n="rd.backToList"
+          >Back to articles</a
+        >
+      </div>
+
+      <article id="article" class="reading-article" hidden>
+        <div
+          id="read-progress"
+          class="reading-progress"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          aria-label="Reading progress"
+          data-i18n-attr="aria-label:rd.readProgress"
+        >
+          <span id="read-progress-bar"></span>
+        </div>
+        <header class="reading-article-head">
+          <div id="article-meta" class="reading-meta"></div>
+          <div class="reading-title-row">
+            <h1 id="article-title"></h1>
+            <span id="article-bookmark"></span>
+          </div>
+          <p id="article-description" class="dashboard-subtitle"></p>
+          <p id="article-status" class="reading-status" role="status"></p>
+          <p id="article-feedback" class="reading-feedback is-error" role="alert"></p>
+          <button
+            id="article-resume"
+            class="lesson-button lesson-button-secondary"
+            type="button"
+            hidden
+          ></button>
+        </header>
+        <img id="article-cover" class="reading-hero-cover" alt="" hidden />
+        <div id="article-body" class="reading-text"></div>
+
+        <section id="quiz" class="reading-quiz dashboard-card" aria-labelledby="quiz-title" hidden>
+          <div class="section-heading">
+            <h2 id="quiz-title" data-i18n="rd.quizTitle">Check your understanding</h2>
+          </div>
+          <p id="quiz-error" class="alert alert-error" role="alert" hidden></p>
+          <div id="quiz-body" aria-live="polite"></div>
+        </section>
+      </article>
+    </main>
+    <script type="module" src="/js/reading-article.js"></script>
+  </body>
+</html>

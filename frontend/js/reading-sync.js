@@ -46,10 +46,13 @@ export function createWriter({
   function schedule(wait) {
     if (disposed) return;
     if (timer !== null) clearTimer(timer);
-    timer = setTimer(() => {
-      timer = null;
-      void run();
-    }, Math.max(0, wait));
+    timer = setTimer(
+      () => {
+        timer = null;
+        void run();
+      },
+      Math.max(0, wait),
+    );
   }
 
   function earliest(quiet) {
