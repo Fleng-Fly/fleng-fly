@@ -601,3 +601,30 @@ Table: `reading_articles`. Reading text. Learners see it only when `status` is `
 | updated_at | DATETIME | False | — |
 
 Constraints `reading_article_level` (A0, A1, A2, B1, B2), `reading_article_status` (draft, published, archived), `reading_article_minutes` (1-120). Index `ix_reading_articles_listing` on status, level, category_id. Category deletion is RESTRICTed.
+
+## ReadingStudyTotal
+
+Table: `reading_study_totals`. Measured reading seconds per learner plus the shared crediting cursor (`credited_until`). Separate from `progress.study_minutes`, which is a lesson estimate.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| user_id | CHAR(32) | False | PK, FK users.id |
+| total_seconds | INTEGER | False | — |
+| credited_until | DATETIME | True | — |
+| updated_at | DATETIME | False | — |
+
+`reading_study_total_seconds` (>= 0). User deletion cascades.
+
+## ReadingStudyDay
+
+Table: `reading_study_days`. Measured reading seconds per learner, article and local calendar day (the day is fixed when credited).
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| user_id | CHAR(32) | False | FK users.id |
+| article_id | CHAR(32) | False | FK reading_articles.id |
+| day | DATE | False | — |
+| seconds | INTEGER | False | — |
+
+Unique `(user_id, article_id, day)`; `reading_study_day_seconds` (>= 0). Index `ix_reading_study_days_user_day`. Cascades with user and article.
