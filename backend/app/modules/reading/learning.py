@@ -45,6 +45,9 @@ def grade(article: ReadingArticle, answers: Mapping[str, str]) -> dict[str, Any]
         items.append(
             {
                 "question_id": str(question.id),
+                # Text is snapshotted so a reviewed result never depends on later edits.
+                "prompt": question.prompt,
+                "answers": [{"id": str(a.id), "text": a.text} for a in question.answers],
                 "selected_answer_id": selected,
                 "correct_answer_id": str(correct.id),
                 "is_correct": is_correct,

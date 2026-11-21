@@ -14,9 +14,7 @@ _UNAUTHORIZED_HEADERS = {"WWW-Authenticate": "Bearer"}
 
 
 def _unauthorized() -> ApiError:
-    return ApiError(
-        401, "UNAUTHORIZED", "Authentication required", headers=_UNAUTHORIZED_HEADERS
-    )
+    return ApiError(401, "UNAUTHORIZED", "Authentication required", headers=_UNAUTHORIZED_HEADERS)
 
 
 async def get_current_user(

@@ -79,7 +79,7 @@ def _text(value: str, name: str, max_length: int) -> str:
     return value
 
 
-def _level(value: str) -> str:
+def validate_level(value: str) -> str:
     if value not in READING_LEVELS:
         raise _invalid(f"level must be one of {', '.join(READING_LEVELS)}")
     return value
@@ -225,7 +225,7 @@ async def create_article(
         title=_text(title, "title", 200),
         description=_text(description, "description", 500),
         content=content,
-        level=_level(level),
+        level=validate_level(level),
         reading_minutes=_minutes(reading_minutes, content),
         cover_image_url=_cover(cover_image_url),
         cover_alt=(cover_alt or "").strip()[:200] or None,
@@ -283,7 +283,7 @@ async def update_article(
         if reading_minutes is None:
             article.reading_minutes = estimate_reading_minutes(article.content)
     if level is not None:
-        article.level = _level(level)
+        article.level = validate_level(level)
     if reading_minutes is not None:
         article.reading_minutes = _minutes(reading_minutes, article.content)
     if cover_image_url is not None:
@@ -393,7 +393,7 @@ async def list_articles(
     """Articles newest-published first (drafts by creation), without loading quizzes."""
     f = filters or ArticleFilters()
     if f.level is not None:
-        _level(f.level)
+        validate_level(f.level)
     if not 1 <= f.limit <= 200 or f.offset < 0:
         raise _invalid("limit must be 1-200 and offset must not be negative")
     statement = select(ReadingArticle).options(selectinload(ReadingArticle.category))
