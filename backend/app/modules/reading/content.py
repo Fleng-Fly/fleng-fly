@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -299,14 +299,22 @@ async def replace_questions(
 ) -> ReadingArticle:
     """Replace the whole quiz. Past attempts keep their frozen result snapshots.
 
-    A published article's quiz is locked while any learner has an unfinished attempt, so no
-    attempt can be left pointing at questions that no longer exist.
+    A published article's quiz is locked while any learner has an unfinished attempt. For a
+    draft or archived article the unfinished attempts are discarded with the old quiz: they hold
+    only unsent draft answers (no result, no XP), and keeping them would leave an attempt that
+    points at questions that no longer exist once the article is published again.
     """
     validate_questions(questions)
     article = await _load(db, article.id)
     if article.status == "published" and await has_active_attempts(db, article.id):
         raise ApiError(
             409, "QUIZ_LOCKED", "Quiz cannot change while learners have unfinished attempts"
+        )
+    if article.status != "published":
+        await db.execute(
+            delete(ReadingAttempt).where(
+                ReadingAttempt.article_id == article.id, ReadingAttempt.status == "in_progress"
+            )
         )
     # Delete first: new rows reuse positions 1..n, so they must not coexist with the old ones.
     article.questions.clear()

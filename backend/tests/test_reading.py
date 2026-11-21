@@ -744,10 +744,33 @@ async def test_published_quiz_is_locked_while_attempts_are_unfinished(db_session
     assert [q.prompt for q in updated.questions] == ["New"]
 
 
-async def test_draft_quiz_stays_editable_with_unfinished_attempts(db_session):
+async def test_editing_a_draft_quiz_discards_unfinished_attempts_so_republish_is_safe(db_session):
     user = await make_user(db_session)
     article = await make_article(db_session, await make_category(db_session))
-    await learning.start_attempt(db_session, user.id, article.id)
+    stale = await learning.start_attempt(db_session, user.id, article.id)
+    stale_id = stale.id
     article = await content.set_status(db_session, article, "draft")
     updated = await content.replace_questions(db_session, article, [question("Draft edit")])
     assert [q.prompt for q in updated.questions] == ["Draft edit"]
+    assert await learning.get_active_attempt(db_session, user.id, article.id) is None
+
+    article = await content.set_status(db_session, updated, "published")
+    fresh = await learning.start_attempt(db_session, user.id, article.id)
+    assert fresh.id != stale_id and fresh.answers == {}
+    assert [q["prompt"] for q in (await _questions_of(db_session, article))] == ["Draft edit"]
+
+
+async def test_editing_a_draft_keeps_submitted_attempts(db_session):
+    user = await make_user(db_session)
+    article = await make_article(db_session, await make_category(db_session))
+    attempt = await learning.start_attempt(db_session, user.id, article.id)
+    await learning.submit_attempt(db_session, user.id, attempt.id, pick(article))
+    article = await content.set_status(db_session, article, "draft")
+    await content.replace_questions(db_session, article, [question("New")])
+    kept = await learning.get_attempt(db_session, user.id, attempt.id)
+    assert kept.status == "submitted" and kept.xp_awarded == 5
+
+
+async def _questions_of(db, article):
+    loaded = await content.get_article(db, article_id=article.id)
+    return [{"prompt": q.prompt} for q in loaded.questions]

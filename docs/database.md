@@ -397,7 +397,8 @@ valid for courses but not for reading). Verified upgrade, downgrade, upgrade and
 SQLite; PostgreSQL was not available here (the opt-in PostgreSQL tests were updated to the new head).
 
 Phase 2 additions (no schema change): `replace_questions` raises `409 QUIZ_LOCKED` while a *published*
-article has unfinished attempts. Known gap: an article moved to draft can still be edited, and
-republishing it may leave an old open attempt with answers that no longer match; saving then returns
-`422 INVALID_ANSWER` and the learner starts a new attempt. Submitted results store prompt and answer
-texts, so reviews are unaffected by later edits. Seed: `python -m app.db.reading_seed`.
+article has unfinished attempts. For a draft/archived article the unfinished attempts are deleted
+together with the old quiz (they hold only unsent answers, no result or XP), so unpublishing, editing
+and republishing can never leave an attempt pointing at removed questions; submitted attempts are kept.
+Submitted results store prompt and answer texts, so reviews are unaffected by later edits.
+Seed: `python -m app.db.reading_seed`.
