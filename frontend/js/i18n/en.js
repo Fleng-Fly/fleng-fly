@@ -780,4 +780,9 @@ export default {
   "rd.attemptPassed": "passed",
   "rd.attemptFailed": "not passed",
   "rd.attemptOpen": "in progress",
+  "rd.lessThanMinute": "less than a minute",
+  "rd.minutesShort": "{n} min",
+  "rd.timeSpent": "Time reading: {time}",
+  "progress.readingTime": "Reading time",
+  "progress.readingNote": "Today: {today}. Measured while you actively read.",
 };

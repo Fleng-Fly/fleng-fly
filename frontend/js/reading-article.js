@@ -2,6 +2,7 @@ import {
   getReadingArticle,
   listReadingAttempts,
   saveReadingAnswers,
+  sendReadingHeartbeat,
   startReadingAttempt,
   submitReadingAttempt,
   updateReadingProgress,
@@ -19,6 +20,7 @@ import {
   resultSummary,
   reviewOptionState,
 } from './reading-quiz.js';
+import { createHeartbeat, durationParts } from './reading-heartbeat.js';
 import { bookmarkButton, levelBadge, minutesText, progressText } from './reading-ui.js';
 import { createWriter, progressWorthSending, readPercent } from './reading-sync.js';
 import { requireSession } from './session.js';
@@ -36,6 +38,8 @@ const state = {
   localPercent: 0,
   dwell: 0,
   interacted: false,
+  activeSeconds: 0,
+  heartbeat: null,
   progressWriter: null,
   answersWriter: null,
   attemptRequest: 0,
@@ -116,6 +120,32 @@ function setupResume(article) {
   });
 }
 
+/* ── measured reading time (heartbeat) ─────────────────────────────────── */
+
+function paintTime() {
+  const { under, minutes } = durationParts(state.activeSeconds);
+  const hasTime = state.activeSeconds > 0;
+  $('article-time').textContent = hasTime
+    ? t('rd.timeSpent', {
+        time: under ? t('rd.lessThanMinute') : t('rd.minutesShort', { n: minutes }),
+      })
+    : '';
+}
+
+function setupHeartbeat(article) {
+  state.activeSeconds = article.progress?.activeSeconds ?? 0;
+  paintTime();
+  // The server measures time from its own clock; the page only says "still reading".
+  state.heartbeat = createHeartbeat({
+    send: () => sendReadingHeartbeat(article.slug),
+    onResult: (result) => {
+      state.activeSeconds = result.articleSeconds;
+      paintTime();
+    },
+  });
+  state.heartbeat.start();
+}
+
 /* ── reading progress (throttled) ──────────────────────────────────────── */
 
 function setupProgressTracking(article) {
@@ -129,11 +159,12 @@ function setupProgressTracking(article) {
     delayMs: 1500,
     minIntervalMs: 5000, // at most 12 writes a minute; the server allows 60
   });
-  for (const type of ['scroll', 'wheel', 'touchstart', 'keydown', 'pointerdown']) {
+  for (const type of ['scroll', 'wheel', 'touchstart', 'keydown', 'pointerdown', 'mousemove']) {
     window.addEventListener(
       type,
       () => {
         state.interacted = true;
+        state.heartbeat?.markInteraction();
       },
       { passive: true, once: false },
     );
@@ -342,6 +373,7 @@ async function submitQuiz(submit) {
   showQuizError();
   // The full answer set travels with the submit, so pending autosaves can be dropped safely.
   state.answersWriter.dispose();
+  state.heartbeat?.setPaused(true);
   try {
     const done = await submitReadingAttempt(attempt.id, answers);
     state.attempt = null;
@@ -356,6 +388,8 @@ async function submitQuiz(submit) {
     submit.disabled = false;
     submit.textContent = t('rd.submit');
     renderQuestions();
+  } finally {
+    state.heartbeat?.setPaused(false);
   }
 }
 
@@ -458,6 +492,7 @@ async function init() {
     state.article = article;
     renderArticle(article);
     setupProgressTracking(article);
+    setupHeartbeat(article);
     await setupQuiz(article);
   } catch (error) {
     if (error.status === 401) {

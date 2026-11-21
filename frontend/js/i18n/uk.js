@@ -780,4 +780,9 @@ export default {
   "rd.attemptPassed": "складено",
   "rd.attemptFailed": "не складено",
   "rd.attemptOpen": "у процесі",
+  "rd.lessThanMinute": "менше хвилини",
+  "rd.minutesShort": "{n} хв",
+  "rd.timeSpent": "Час читання: {time}",
+  "progress.readingTime": "Час читання",
+  "progress.readingNote": "Сьогодні: {today}. Рахується, поки ви активно читаєте.",
 };

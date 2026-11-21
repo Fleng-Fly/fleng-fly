@@ -140,3 +140,20 @@ test('session end discards an outstanding response and BFCache reloads', async (
   app.events.pagehide();
   assert.equal(app.target.all('progress').length, 0);
 });
+
+test('measured reading time appears as its own card only when there is some', async () => {
+  const none = await page();
+  assert.ok(!none.target.textContent.includes('Reading time'));
+
+  const zero = data();
+  zero.readingStudy = { totalSeconds: 0, totalMinutes: 0, todaySeconds: 0 };
+  assert.ok(!(await page({ data: zero })).target.textContent.includes('Reading time'));
+
+  const some = data();
+  some.readingStudy = { totalSeconds: 3725, totalMinutes: 62, todaySeconds: 40 };
+  const text = (await page({ data: some })).target.textContent;
+  assert.ok(text.includes('Reading time 62 min'), text);
+  assert.ok(text.includes('Today: less than a minute'), text);
+  // It never replaces or alters the existing lesson/XP metrics.
+  for (const value of ['Completed lessons 3', 'Total XP 47']) assert.ok(text.includes(value), value);
+});

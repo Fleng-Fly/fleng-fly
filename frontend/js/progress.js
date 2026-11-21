@@ -31,6 +31,21 @@ function metric(title, value, detail) {
   return card;
 }
 
+/** Measured reading time as "less than a minute" or whole minutes. */
+function readingTime(seconds) {
+  return seconds < 60 ? t('rd.lessThanMinute') : t('rd.minutesShort', { n: number.format(Math.floor(seconds / 60)) });
+}
+
+function readingMetric(study) {
+  const card = el('article', 'dashboard-card progress-metric');
+  card.append(
+    el('h2', undefined, t('progress.readingTime')),
+    el('strong', 'progress-value', readingTime(study.totalSeconds)),
+    el('p', undefined, t('progress.readingNote', { today: readingTime(study.todaySeconds) })),
+  );
+  return card;
+}
+
 function courseRow(course) {
   const item = el('li', 'progress-course');
   const heading = el('div', 'progress-course-heading');
@@ -57,6 +72,8 @@ function render(data) {
     metric(t('progress.totalXp'), data.xp, t('progress.xpNote')),
     metric(t('dashboard.mStreak'), data.streak.current, t('progress.streakNote', { days: tn('dashboard.days', data.streak.current), best: tn('dashboard.days', data.streak.longest) })),
   );
+  // Measured reading time is optional: older responses and a fresh account simply omit the card.
+  if (data.readingStudy?.totalSeconds > 0) metrics.append(readingMetric(data.readingStudy));
   const history = el('p', 'progress-note', data.xpHistory.last7Days == null || data.xpHistory.last30Days == null
     ? t('progress.historyUnavailable')
     : t('progress.historyNote'));

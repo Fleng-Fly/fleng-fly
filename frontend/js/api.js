@@ -347,6 +347,17 @@ export function submitReadingAttempt(attemptId, answers) {
   });
 }
 
+/** Report active reading. No time is sent: the server measures it. */
+export function sendReadingHeartbeat(slug) {
+  return apiFetch(`/reading/articles/${readingSlug(slug)}/heartbeat`, {
+    method: 'POST', body: JSON.stringify({ active: true }),
+  });
+}
+
+export function getReadingStudyTime(days = 30) {
+  return apiFetch(`/reading/study-time?days=${encodeURIComponent(days)}`);
+}
+
 export function getHealth() {
   return apiFetch('/health');
 }
