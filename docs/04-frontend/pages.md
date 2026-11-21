@@ -54,3 +54,14 @@ helpers), `reading-sync.js` (rate-safe writer). Interface strings are the `rd.*`
   checked at 360 px with no horizontal scroll.
 - **Topics.** Preferred categories are starred and listed first; "My topics" merges the
   newest articles of up to 10 preferred categories (the API filters by one category).
+
+### Reading time (heartbeat)
+
+`js/reading-heartbeat.js` sends `POST /reading/articles/{slug}/heartbeat` every 15 s, and only
+while the tab is visible, the window has focus and the learner interacted in the last 45 s
+(scroll, keys, pointer, touch). A page that is merely open sends nothing. There is no queue or
+retry: a missed beat is lost (the server credits nothing for the gap), a `429` pauses beats for a
+minute and `401`/`404` stop them. Beats pause while a quiz submit is running. The article page
+shows "Time reading" from the responses and Progress shows a "Reading time" card from
+`readingStudy` when there is any. The client never sends or computes time.
+

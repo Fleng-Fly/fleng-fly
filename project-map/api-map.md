@@ -267,3 +267,12 @@ No keys before completion, no XP/profile update. Details: docs/03-backend/placem
 
 Details: `docs/api.md` (Reading). Code: `backend/app/modules/reading/` (`router`, `schemas`, `library`,
 `content`, `learning`, `personal`); seed: `backend/app/db/reading_seed.py`.
+
+### Reading study time — 2026-11-22
+
+| Route | Auth | Status |
+| ----- | ---- | ------ |
+| POST `/reading/articles/{slug}/heartbeat` (20/min) | bearer | ✅ |
+| GET `/reading/study-time?days=` | bearer | ✅ |
+| GET `/progress/me` gains additive `readingStudy`; reading progress gains `activeSeconds` | bearer | ✅ |
+

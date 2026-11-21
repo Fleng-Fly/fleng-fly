@@ -402,3 +402,27 @@ together with the old quiz (they hold only unsent answers, no result or XP), so 
 and republishing can never leave an attempt pointing at removed questions; submitted attempts are kept.
 Submitted results store prompt and answer texts, so reviews are unaffected by later edits.
 Seed: `python -m app.db.reading_seed`.
+
+## Reading study time — 2026-11-22
+
+Revision `20261122_1200` (additive, reversible; two new tables, nothing existing is touched):
+`reading_study_totals` (one row per learner: `total_seconds` and the shared crediting cursor
+`credited_until`) and `reading_study_days` (seconds per learner, article and **local calendar
+day**, unique on that triple, cascades with user and article). Services: `modules/reading/study.py`.
+
+Measured time is kept apart from `progress.study_minutes` (still the lesson-estimate counter,
+unchanged) and from XP (never awarded for reading time). Rules:
+
+- Crediting uses the **server clock only**; the client sends no time. One cursor per learner is
+  shared by all tabs, devices and articles, so a stretch of time is credited at most once, to the
+  article of the heartbeat that is accepted (`lock_learner` serializes concurrent requests).
+- Heartbeat < 5 s after the cursor: nothing credited, cursor unchanged. First beat, or a gap
+  > 45 s: nothing credited, cursor restarts. Otherwise `min(gap, 20 s)` is credited.
+- Caps per local day: 4 hours per learner and `max(30 min, 3 x readingMinutes)` per article.
+- The day is the learner's local date (`profiles.timezone`, else the server learning timezone)
+  at credit time and is never recomputed, so changing the time zone does not move past seconds.
+- Reaching 60 credited seconds in a local day records learning activity once through
+  `gamification.record_activity` (streak, achievements).
+- Rows are deleted with the user or article. Verified on SQLite only; PostgreSQL was not
+  available here, so concurrent crediting on PostgreSQL is untested.
+
