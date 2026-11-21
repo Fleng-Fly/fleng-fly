@@ -213,3 +213,84 @@ async def test_study_time_never_touches_progress_study_minutes_or_xp(db_session)
     progress = await db_session.scalar(select(Progress).where(Progress.user_id == user.id))
     assert progress.study_minutes == 0
     assert await xp(db_session, user) == 0
+
+
+async def _set_zone(db, user, zone):
+    profile = await db.scalar(select(Profile).where(Profile.user_id == user.id))
+    profile.timezone = zone
+    await db.commit()
+
+
+async def _days(db):
+    rows = (await db.scalars(select(ReadingStudyDay).order_by(ReadingStudyDay.day))).all()
+    return [(r.day.isoformat(), r.seconds) for r in rows]
+
+
+async def test_gap_boundaries_are_exact_at_5_and_45_seconds(db_session):
+    user, article = await setup(db_session)
+    await beat(db_session, user, article, 0)
+    assert (await beat(db_session, user, article, 4.9)).credited_seconds == 0
+    assert (await beat(db_session, user, article, 5)).credited_seconds == 5  # gap 5 credited
+    assert (await beat(db_session, user, article, 50)).credited_seconds == 20  # gap 45 credited
+    assert (await beat(db_session, user, article, 95.5)).credited_seconds == 0  # gap > 45: reset
+    assert (await beat(db_session, user, article, 110.5)).credited_seconds == 15  # cursor reset
+
+
+async def test_utc_minus_12_and_utc_plus_14_local_days(db_session):
+    user, article = await setup(db_session)
+    await _set_zone(db_session, user, "Etc/GMT+12")  # UTC-12: 10:00 UTC is 22:00 the day before
+    await beat(db_session, user, article, 0)
+    await beat(db_session, user, article, 15)
+    await _set_zone(db_session, user, "Pacific/Kiritimati")  # UTC+14
+    await beat(db_session, user, article, 30)
+    assert await _days(db_session) == [("2026-11-21", 15), ("2026-11-23", 15)]
+
+
+async def test_local_midnight_splits_credit_by_accepted_heartbeat_time(db_session):
+    user, article = await setup(db_session)
+    await _set_zone(db_session, user, "Europe/Kyiv")  # UTC+2 in November
+    midnight = datetime(2026, 11, 21, 22, 0, tzinfo=UTC)  # 00:00 on the 22nd, local
+    await study.heartbeat(db_session, user.id, article.id, now=midnight - timedelta(seconds=30))
+    await study.heartbeat(db_session, user.id, article.id, now=midnight - timedelta(seconds=10))
+    # the interval ending after midnight belongs to the new local day
+    await study.heartbeat(db_session, user.id, article.id, now=midnight + timedelta(seconds=10))
+    assert await _days(db_session) == [("2026-11-21", 20), ("2026-11-22", 20)]
+
+
+async def test_dst_transitions_use_the_local_calendar_day(db_session):
+    user, article = await setup(db_session)
+    await _set_zone(db_session, user, "America/New_York")
+    # spring forward 2026-03-08 02:00 EST -> 03:00 EDT; 04:30 UTC is still 23:30 EST on the 7th
+    before = datetime(2026, 3, 8, 4, 59, 50, tzinfo=UTC)
+    after = datetime(2026, 3, 8, 5, 0, 10, tzinfo=UTC)  # 00:00:10 EST on the 8th
+    await study.heartbeat(db_session, user.id, article.id, now=before - timedelta(seconds=15))
+    await study.heartbeat(db_session, user.id, article.id, now=before)
+    await study.heartbeat(db_session, user.id, article.id, now=after)
+    # fall back 2026-11-01: 04:00 UTC is 00:00 EDT, 05:00 UTC is 00:00 EST (still the 1st)
+    t = datetime(2026, 11, 1, 6, 0, 0, tzinfo=UTC)  # 01:00 EST, the 1st
+    await study.heartbeat(db_session, user.id, article.id, now=t)
+    await study.heartbeat(db_session, user.id, article.id, now=t + timedelta(seconds=15))
+    days = await _days(db_session)
+    assert days == [("2026-03-07", 15), ("2026-03-08", 20), ("2026-11-01", 15)]
+
+
+async def test_concurrent_heartbeats_credit_an_interval_once(db_session):
+    import asyncio
+    import os
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    if not os.environ.get("TEST_DATABASE_URL"):
+        pytest.skip(
+            "true concurrency needs PostgreSQL (TEST_DATABASE_URL); SQLite shares one connection"
+        )
+    user, article = await setup(db_session)
+    await beat(db_session, user, article, 0)
+    factory = async_sessionmaker(db_session.bind, expire_on_commit=False)
+
+    async def one():
+        async with factory() as session:
+            return await study.heartbeat(session, user.id, article.id, now=at(15))
+
+    results = await asyncio.gather(*(one() for _ in range(5)))
+    assert sorted(r.credited_seconds for r in results) == [0, 0, 0, 0, 15]
