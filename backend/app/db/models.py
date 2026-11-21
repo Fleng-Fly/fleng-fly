@@ -25,7 +25,9 @@ from sqlalchemy import (
     Uuid,
     false,
     func,
+    true,
 )
+from sqlalchemy import text as sql_text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.levels import LearningLevel
@@ -33,6 +35,10 @@ from app.db.base import Base
 
 EXERCISE_TYPES = ("single_choice", "text", "self_check")
 LESSON_PROGRESS_STATUSES = ("in_progress", "completed")
+READING_LEVELS = ("A0", "A1", "A2", "B1", "B2")
+READING_ARTICLE_STATUSES = ("draft", "published", "archived")
+READING_ATTEMPT_STATUSES = ("in_progress", "submitted")
+READING_PROGRESS_STATUSES = ("in_progress", "completed")
 
 
 class User(Base):
@@ -632,3 +638,260 @@ class PlacementAttempt(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ReadingCategory(Base):
+    """A topic that groups reading articles. `is_active=False` hides it and its articles."""
+
+    __tablename__ = "reading_categories"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    slug: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str] = mapped_column(String(500), default="", server_default="")
+    position: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default=true(), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    articles: Mapped[list["ReadingArticle"]] = relationship(back_populates="category")
+
+
+class ReadingArticle(Base):
+    """A reading text with an optional comprehension quiz.
+
+    `level` is Fleng A0 (introductory) or CEFR A1-B2. A learner sees an article only when
+    `status == 'published'` and its category is active; `published_at` is set on first
+    publication. The category is `RESTRICT`ed so deleting a category never silently deletes
+    articles (deactivate it instead).
+    """
+
+    __tablename__ = "reading_articles"
+    __table_args__ = (
+        CheckConstraint("level IN ('A0', 'A1', 'A2', 'B1', 'B2')", name="reading_article_level"),
+        CheckConstraint(
+            "status IN ('draft', 'published', 'archived')", name="reading_article_status"
+        ),
+        CheckConstraint("reading_minutes BETWEEN 1 AND 120", name="reading_article_minutes"),
+        Index("ix_reading_articles_listing", "status", "level", "category_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    category_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reading_categories.id", ondelete="RESTRICT"), index=True, nullable=False
+    )
+    slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    level: Mapped[str] = mapped_column(String(2), nullable=False)
+    reading_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    cover_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    cover_alt: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(10), default="draft", server_default="draft", nullable=False
+    )
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    category: Mapped[ReadingCategory] = relationship(back_populates="articles")
+    questions: Mapped[list["ReadingQuestion"]] = relationship(
+        back_populates="article", cascade="all, delete-orphan", order_by="ReadingQuestion.position"
+    )
+
+
+class ReadingQuestion(Base):
+    """A single-choice comprehension question about one article."""
+
+    __tablename__ = "reading_questions"
+    __table_args__ = (
+        UniqueConstraint("article_id", "position", name="reading_question_position_key"),
+        CheckConstraint("points BETWEEN 1 AND 10", name="reading_question_points"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reading_articles.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    points: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
+
+    article: Mapped[ReadingArticle] = relationship(back_populates="questions")
+    answers: Mapped[list["ReadingAnswer"]] = relationship(
+        back_populates="question", cascade="all, delete-orphan", order_by="ReadingAnswer.position"
+    )
+
+
+class ReadingAnswer(Base):
+    """One answer option. The partial unique index allows at most one correct option."""
+
+    __tablename__ = "reading_answers"
+    __table_args__ = (
+        UniqueConstraint("question_id", "position", name="reading_answer_position_key"),
+        Index(
+            "reading_answer_one_correct",
+            "question_id",
+            unique=True,
+            sqlite_where=sql_text("is_correct"),
+            postgresql_where=sql_text("is_correct"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    question_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reading_questions.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    text: Mapped[str] = mapped_column(String(500), nullable=False)
+    is_correct: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+
+    question: Mapped[ReadingQuestion] = relationship(back_populates="answers")
+
+
+class ReadingAttempt(Base):
+    """One pass through an article's quiz.
+
+    `answers` maps question id -> answer id and is saved while `in_progress` (so a learner
+    can resume). Submitting freezes the graded `result` snapshot, so later edits of the
+    article never change history. At most one attempt per learner and article is in
+    progress; `attempt_number` is sequential per learner and article.
+    """
+
+    __tablename__ = "reading_attempts"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "article_id", "attempt_number", name="reading_attempt_number_key"
+        ),
+        CheckConstraint("status IN ('in_progress', 'submitted')", name="reading_attempt_status"),
+        Index(
+            "reading_attempt_one_active",
+            "user_id",
+            "article_id",
+            unique=True,
+            sqlite_where=sql_text("status = 'in_progress'"),
+            postgresql_where=sql_text("status = 'in_progress'"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reading_articles.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    attempt_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(12), default="in_progress", server_default="in_progress", nullable=False
+    )
+    answers: Mapped[dict[str, str]] = mapped_column(JSON, default=dict, nullable=False)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    points_earned: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    points_possible: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    score_percent: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    passed: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    xp_awarded: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ReadingUserProgress(Base):
+    """Per-learner state for one article. Unique per `(user_id, article_id)`.
+
+    `read_percent` only grows. `completed` happens once: on a passing quiz attempt, or on
+    reaching 100% for an article without questions. `xp_awarded` is the XP granted for this
+    article; it is claimed with a conditional UPDATE so it is paid at most once.
+    """
+
+    __tablename__ = "reading_user_progress"
+    __table_args__ = (
+        UniqueConstraint("user_id", "article_id", name="reading_progress_user_article_key"),
+        CheckConstraint("read_percent BETWEEN 0 AND 100", name="reading_progress_percent"),
+        CheckConstraint("status IN ('in_progress', 'completed')", name="reading_progress_status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reading_articles.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    status: Mapped[str] = mapped_column(
+        String(12), default="in_progress", server_default="in_progress", nullable=False
+    )
+    read_percent: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    best_score_percent: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    attempts_count: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    xp_awarded: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    last_read_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ReadingBookmark(Base):
+    """A learner's saved article. Unique per `(user_id, article_id)`."""
+
+    __tablename__ = "reading_bookmarks"
+    __table_args__ = (
+        UniqueConstraint("user_id", "article_id", name="reading_bookmark_user_article_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reading_articles.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class ReadingTopicPreference(Base):
+    """A category a learner wants to read about. Unique per `(user_id, category_id)`."""
+
+    __tablename__ = "reading_topic_preferences"
+    __table_args__ = (
+        UniqueConstraint("user_id", "category_id", name="reading_topic_user_category_key"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    category_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reading_categories.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

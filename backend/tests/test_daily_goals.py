@@ -227,7 +227,7 @@ def test_migration_adds_defaults_and_is_reversible(tmp_path) -> None:
             )
         )
         connection.commit()
-        command.upgrade(config, "20261120_1200")
+        command.upgrade(config, "head")
         row = connection.execute(
             text("SELECT daily_lessons_goal, daily_words_goal, timezone FROM profiles")
         ).one()
