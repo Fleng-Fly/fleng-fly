@@ -483,6 +483,7 @@ the SHA). Next: A1 lessons 11–15, then A2, B1, B2 per `docs/curriculum-expansi
 ## Reading module — 2026-11-21
 
 - Phase 1 (backend domain, migration `20261121_1200`, services, tests): ✅ completed.
-- Phase 2 (API endpoints and schemas, `docs/api.md` + `project-map/api-map.md`): ⬜ next, needs approval.
+- Phase 2 (API, schemas, quiz lock, draft seed command, docs): ✅ completed.
+- Next separate step: study-time accounting (heartbeat, `study_minutes`, daily activity) needs its own architecture approval.
 - Phase 3 (frontend): ⬜ not started.
-- Open: admin/authoring access control, seed content policy, PostgreSQL run of the new tests.
+- Open: author/admin role, reviewed content before publication, PostgreSQL run of the new tests.

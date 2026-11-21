@@ -395,3 +395,9 @@ achievements through the gamification service. Articles without questions give n
 snapshots are immutable, so editing a quiz never rewrites history. Levels are A0-B2 only (C1/C2 are
 valid for courses but not for reading). Verified upgrade, downgrade, upgrade and metadata drift on
 SQLite; PostgreSQL was not available here (the opt-in PostgreSQL tests were updated to the new head).
+
+Phase 2 additions (no schema change): `replace_questions` raises `409 QUIZ_LOCKED` while a *published*
+article has unfinished attempts. Known gap: an article moved to draft can still be edited, and
+republishing it may leave an old open attempt with answers that no longer match; saving then returns
+`422 INVALID_ANSWER` and the learner starts a new attempt. Submitted results store prompt and answer
+texts, so reviews are unaffected by later edits. Seed: `python -m app.db.reading_seed`.

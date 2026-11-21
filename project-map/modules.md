@@ -27,7 +27,7 @@ other modules import that service, not its internals.
 | `content`         | 🔴     | grammar/reading/listening materials                                                                       | catalog                       |
 | `exercises`       | 🟢     | exercises, submissions, grading; lesson start/submit/progress                                             | db, progress                  |
 | `vocabulary`      | 🟢     | personal words, due queue, review history, learned-word count                                             | db, auth, gamification        |
-| `reading`         | 🟡     | service layer only (Phase 1): articles/categories/quiz authoring, read progress, attempts, grading, XP-once, bookmarks, topic preferences; no routes/frontend yet | db, gamification (XP/streak/lock), core errors |
+| `reading`         | 🟡     | backend + API done (Phases 1–2): articles/quiz, read progress, attempts, grading, XP-once, bookmarks, preferences, `/reading/*` routes, draft seed; no authoring API, no frontend, no study-time tracking | db, gamification (XP/streak/lock), core errors/limits |
 | `gamification`    | 🟢     | daily activity, derived streaks, deterministic achievements                                               | db, config                    |
 | `challenges`      | 🔴     | challenge definitions, participation                                                                      | progress, gamification        |
 | `recommendations` | 🟢     | deterministic analytics in ai/context.py                                                                  | db, progress, vocabulary      |
