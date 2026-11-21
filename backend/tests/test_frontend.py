@@ -29,6 +29,8 @@ async def test_app_pages_are_served(client: AsyncClient) -> None:
         "/course.html",
         "/lesson.html",
         "/vocabulary.html",
+        "/reading.html",
+        "/reading-article.html",
         "/reset-password.html",
     ):
         response = await client.get(path)
