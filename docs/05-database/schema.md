@@ -462,3 +462,142 @@ Table: `oauth_identities`. Third-party (Google) identity linked to one user.
 Unique `oauth_identity_provider_subject_key` on provider, subject (the stable Google `sub`,
 never the email) and `oauth_identity_user_provider_key` on user_id, provider. User deletion
 cascades.
+
+## ReadingUserProgress
+
+Table: `reading_user_progress`. Per-learner reading state. `xp_awarded` is claimed once with a conditional UPDATE.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| user_id | CHAR(32) | False | FK users.id |
+| article_id | CHAR(32) | False | FK reading_articles.id |
+| status | VARCHAR(12) | False | — |
+| read_percent | INTEGER | False | — |
+| best_score_percent | INTEGER | True | — |
+| attempts_count | INTEGER | False | — |
+| xp_awarded | INTEGER | False | — |
+| started_at | DATETIME | False | — |
+| last_read_at | DATETIME | False | — |
+| completed_at | DATETIME | True | — |
+
+Unique `(user_id, article_id)`; `reading_progress_percent` (0-100), `reading_progress_status`. User deletion cascades.
+
+## ReadingQuestion
+
+Table: `reading_questions`. Single-choice comprehension question. Cascades with its article.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| article_id | CHAR(32) | False | FK reading_articles.id |
+| position | INTEGER | False | — |
+| prompt | TEXT | False | — |
+| explanation | TEXT | True | — |
+| points | INTEGER | False | — |
+
+Unique `(article_id, position)`; `reading_question_points` (1-10).
+
+## ReadingAnswer
+
+Table: `reading_answers`. Answer option of a question. Cascades with its question.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| question_id | CHAR(32) | False | FK reading_questions.id |
+| position | INTEGER | False | — |
+| text | VARCHAR(500) | False | — |
+| is_correct | BOOLEAN | False | — |
+
+Unique `(question_id, position)`. Partial unique index `reading_answer_one_correct` allows at most one correct answer per question.
+
+## ReadingBookmark
+
+Table: `reading_bookmarks`. A learner's saved article.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| user_id | CHAR(32) | False | FK users.id |
+| article_id | CHAR(32) | False | FK reading_articles.id |
+| created_at | DATETIME | False | — |
+
+Unique `(user_id, article_id)`. User deletion cascades.
+
+## ReadingCategory
+
+Table: `reading_categories`. Topic that groups reading articles. `is_active=false` hides the category and its articles.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| slug | VARCHAR(80) | False | — |
+| title | VARCHAR(120) | False | — |
+| description | VARCHAR(500) | False | — |
+| position | INTEGER | False | — |
+| is_active | BOOLEAN | False | — |
+| created_at | DATETIME | False | — |
+| updated_at | DATETIME | False | — |
+
+Unique `slug`.
+
+## ReadingAttempt
+
+Table: `reading_attempts`. One quiz attempt: saved answers while in progress, a frozen result snapshot once submitted.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| user_id | CHAR(32) | False | FK users.id |
+| article_id | CHAR(32) | False | FK reading_articles.id |
+| attempt_number | INTEGER | False | — |
+| status | VARCHAR(12) | False | — |
+| answers | JSON | False | — |
+| result | JSON | True | — |
+| points_earned | INTEGER | True | — |
+| points_possible | INTEGER | True | — |
+| score_percent | INTEGER | True | — |
+| passed | BOOLEAN | True | — |
+| xp_awarded | INTEGER | False | — |
+| started_at | DATETIME | False | — |
+| updated_at | DATETIME | False | — |
+| submitted_at | DATETIME | True | — |
+
+Unique `(user_id, article_id, attempt_number)`; `reading_attempt_status`. Partial unique index `reading_attempt_one_active` allows one in-progress attempt per learner and article. User deletion cascades.
+
+## ReadingTopicPreference
+
+Table: `reading_topic_preferences`. A category a learner wants to read about.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| user_id | CHAR(32) | False | FK users.id |
+| category_id | CHAR(32) | False | FK reading_categories.id |
+| created_at | DATETIME | False | — |
+
+Unique `(user_id, category_id)`. User deletion cascades.
+
+## ReadingArticle
+
+Table: `reading_articles`. Reading text. Learners see it only when `status` is `published` and its category is active.
+
+| Column | Type | Nullable | Key/reference |
+| --- | --- | --- | --- |
+| id | CHAR(32) | False | PK |
+| category_id | CHAR(32) | False | FK reading_categories.id |
+| slug | VARCHAR(120) | False | — |
+| title | VARCHAR(200) | False | — |
+| description | VARCHAR(500) | False | — |
+| content | TEXT | False | — |
+| level | VARCHAR(2) | False | — |
+| reading_minutes | INTEGER | False | — |
+| cover_image_url | VARCHAR(500) | True | — |
+| cover_alt | VARCHAR(200) | True | — |
+| status | VARCHAR(10) | False | — |
+| published_at | DATETIME | True | — |
+| created_at | DATETIME | False | — |
+| updated_at | DATETIME | False | — |
+
+Constraints `reading_article_level` (A0, A1, A2, B1, B2), `reading_article_status` (draft, published, archived), `reading_article_minutes` (1-120). Index `ix_reading_articles_listing` on status, level, category_id. Category deletion is RESTRICTed.
