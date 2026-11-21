@@ -728,3 +728,26 @@ async def test_topic_preferences_reject_unknown_and_inactive_without_changes(db_
     # Deactivating a category hides it from the learner's preferences without deleting them.
     await content.update_category(db_session, travel, is_active=False)
     assert await personal.get_topic_preferences(db_session, user.id) == []
+
+
+async def test_published_quiz_is_locked_while_attempts_are_unfinished(db_session):
+    user = await make_user(db_session)
+    article = await make_article(db_session, await make_category(db_session))
+    attempt = await learning.start_attempt(db_session, user.id, article.id)
+    with pytest.raises(ApiError) as error:
+        await content.replace_questions(db_session, article, [question("New")])
+    assert (error.value.status_code, error.value.code) == (409, "QUIZ_LOCKED")
+    assert len((await content.get_article(db_session, slug="a-trip")).questions) == 2
+
+    await learning.submit_attempt(db_session, user.id, attempt.id, pick(article, right=False))
+    updated = await content.replace_questions(db_session, article, [question("New")])
+    assert [q.prompt for q in updated.questions] == ["New"]
+
+
+async def test_draft_quiz_stays_editable_with_unfinished_attempts(db_session):
+    user = await make_user(db_session)
+    article = await make_article(db_session, await make_category(db_session))
+    await learning.start_attempt(db_session, user.id, article.id)
+    article = await content.set_status(db_session, article, "draft")
+    updated = await content.replace_questions(db_session, article, [question("Draft edit")])
+    assert [q.prompt for q in updated.questions] == ["Draft edit"]

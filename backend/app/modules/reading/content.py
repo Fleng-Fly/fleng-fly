@@ -20,6 +20,7 @@ from app.db.models import (
     READING_LEVELS,
     ReadingAnswer,
     ReadingArticle,
+    ReadingAttempt,
     ReadingCategory,
     ReadingQuestion,
 )
@@ -296,15 +297,33 @@ async def update_article(
 async def replace_questions(
     db: AsyncSession, article: ReadingArticle, questions: list[QuestionInput]
 ) -> ReadingArticle:
-    """Replace the whole quiz. Past attempts keep their frozen result snapshots."""
+    """Replace the whole quiz. Past attempts keep their frozen result snapshots.
+
+    A published article's quiz is locked while any learner has an unfinished attempt, so no
+    attempt can be left pointing at questions that no longer exist.
+    """
     validate_questions(questions)
     article = await _load(db, article.id)
+    if article.status == "published" and await has_active_attempts(db, article.id):
+        raise ApiError(
+            409, "QUIZ_LOCKED", "Quiz cannot change while learners have unfinished attempts"
+        )
     # Delete first: new rows reuse positions 1..n, so they must not coexist with the old ones.
     article.questions.clear()
     await db.flush()
     article.questions = _build_questions(questions)
     await db.commit()
     return await _load(db, article.id)
+
+
+async def has_active_attempts(db: AsyncSession, article_id: UUID) -> bool:
+    return (
+        await db.scalar(
+            select(ReadingAttempt.id)
+            .where(ReadingAttempt.article_id == article_id, ReadingAttempt.status == "in_progress")
+            .limit(1)
+        )
+    ) is not None
 
 
 async def set_status(db: AsyncSession, article: ReadingArticle, status: str) -> ReadingArticle:
