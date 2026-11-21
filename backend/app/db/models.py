@@ -895,3 +895,51 @@ class ReadingTopicPreference(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class ReadingStudyTotal(Base):
+    """Per-learner measured reading time (seconds) and the shared crediting cursor.
+
+    `credited_until` is the server time up to which reading seconds have been credited, across
+    all tabs, devices and articles, so one stretch of time can be credited at most once.
+    This is measured time; it is separate from `progress.study_minutes` (a lesson estimate).
+    """
+
+    __tablename__ = "reading_study_totals"
+    __table_args__ = (CheckConstraint("total_seconds >= 0", name="reading_study_total_seconds"),)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    total_seconds: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    credited_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+
+class ReadingStudyDay(Base):
+    """Measured reading seconds for one learner, article and local calendar day.
+
+    `day` is the learner's local date when the seconds were credited; it is never recomputed,
+    so a later time-zone change does not rewrite history.
+    """
+
+    __tablename__ = "reading_study_days"
+    __table_args__ = (
+        UniqueConstraint("user_id", "article_id", "day", name="reading_study_day_key"),
+        CheckConstraint("seconds >= 0", name="reading_study_day_seconds"),
+        Index("ix_reading_study_days_user_day", "user_id", "day"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reading_articles.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    day: Mapped[date] = mapped_column(Date, nullable=False)
+    seconds: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)

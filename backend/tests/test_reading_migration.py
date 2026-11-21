@@ -22,6 +22,7 @@ READING_TABLES = {
     "reading_bookmarks",
     "reading_topic_preferences",
 }
+STUDY_TABLES = {"reading_study_totals", "reading_study_days"}
 
 
 def test_reading_tables_are_added_without_touching_existing_data_then_rolled_back(tmp_path):
@@ -59,4 +60,36 @@ def test_reading_tables_are_added_without_touching_existing_data_then_rolled_bac
         connection.commit()
         command.upgrade(config, "head")
         assert connection.scalar(text("SELECT count(*) FROM users")) == 1
+    engine.dispose()
+
+
+def test_study_time_migration_is_additive_and_reversible(tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    config = Config(str(root / "alembic.ini"))
+    config.set_main_option("script_location", str(root / "alembic"))
+    engine = create_engine(f"sqlite:///{tmp_path / 'study.db'}")
+    with engine.connect() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "20261121_1200")
+        connection.execute(
+            text(
+                "INSERT INTO users (id, email, password_hash, created_at, updated_at) VALUES "
+                "('u1', 'a@example.com', 'x', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+            )
+        )
+        connection.commit()
+        names = lambda: {r[0] for r in connection.execute(text("SELECT name FROM sqlite_master"))}  # noqa: E731
+        assert not STUDY_TABLES & names()
+
+        command.upgrade(config, "head")
+        assert STUDY_TABLES <= names() and READING_TABLES <= names()
+        assert compare_metadata(MigrationContext.configure(connection), Base.metadata) == []
+        assert connection.scalar(text("SELECT count(*) FROM users")) == 1
+        connection.commit()
+
+        command.downgrade(config, "20261121_1200")
+        assert not STUDY_TABLES & names() and READING_TABLES <= names()
+        assert connection.scalar(text("SELECT count(*) FROM users")) == 1
+        connection.commit()
+        command.upgrade(config, "head")
     engine.dispose()
