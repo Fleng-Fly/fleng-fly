@@ -1,7 +1,7 @@
 # Milestones & Status
 
-Reading Phases 1–2 (2026-11-21): backend domain, migration, services and `/reading/*` API landed with
-tests; frontend and study-time accounting not started. See `plans/roadmap.md`.
+Reading Phases 1–3 (2026-11-21): backend domain, migration, services, `/reading/*` API and the
+frontend landed with unit and browser tests; study-time accounting (heartbeat) not started. See `plans/roadmap.md`.
 
 Integration (2026-11-14): `projectenglich` learning interactions, PWA and desktop
 sources merged with current curriculum/flashcards. Legacy desktop revision
