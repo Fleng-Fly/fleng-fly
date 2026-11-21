@@ -10,7 +10,7 @@ from app.core.errors import ApiError
 from app.core.limits import consume
 from app.db.models import ReadingArticle, ReadingAttempt, ReadingUserProgress, User
 from app.db.session import get_db
-from app.modules.reading import content, learning, library, personal
+from app.modules.reading import content, learning, library, personal, study
 from app.modules.reading.content import ArticleFilters
 from app.modules.reading.schemas import (
     ReadingAnswerPublic,
@@ -24,6 +24,8 @@ from app.modules.reading.schemas import (
     ReadingBookmarkResponse,
     ReadingCategoryRef,
     ReadingCategoryResponse,
+    ReadingHeartbeatRequest,
+    ReadingHeartbeatResponse,
     ReadingLevel,
     ReadingPreferencesResponse,
     ReadingPreferencesUpdate,
@@ -31,20 +33,25 @@ from app.modules.reading.schemas import (
     ReadingProgressUpdate,
     ReadingQuestionPublic,
     ReadingReviewItem,
+    ReadingStudyArticleResponse,
+    ReadingStudyDayResponse,
+    ReadingStudyTimeResponse,
     ReadingSubmitRequest,
 )
 
 router = APIRouter(prefix="/reading", tags=["reading"])
 
 PROGRESS_WRITES_PER_MINUTE = 60
+HEARTBEATS_PER_MINUTE = 20
 ATTEMPT_STARTS_PER_HOUR = 30
 ATTEMPT_WRITES_PER_MINUTE = 30
 
 
-def _progress(row: ReadingUserProgress | None) -> ReadingProgressResponse | None:
+def _progress(row: ReadingUserProgress | None, seconds: int = 0) -> ReadingProgressResponse | None:
     if row is None:
         return None
     return ReadingProgressResponse(
+        active_seconds=seconds,
         status=row.status,  # type: ignore[arg-type]
         read_percent=row.read_percent,
         best_score_percent=row.best_score_percent,
@@ -54,7 +61,10 @@ def _progress(row: ReadingUserProgress | None) -> ReadingProgressResponse | None
 
 
 def _summary(
-    article: ReadingArticle, progress: ReadingUserProgress | None, bookmarked: bool
+    article: ReadingArticle,
+    progress: ReadingUserProgress | None,
+    bookmarked: bool,
+    seconds: int = 0,
 ) -> ReadingArticleSummary:
     return ReadingArticleSummary(
         id=article.id,
@@ -69,7 +79,7 @@ def _summary(
             id=article.category.id, slug=article.category.slug, title=article.category.title
         ),
         published_at=article.published_at,
-        progress=_progress(progress),
+        progress=_progress(progress, seconds),
         bookmarked=bookmarked,
     )
 
@@ -115,8 +125,12 @@ async def list_articles(
     ids = [a.id for a in articles]
     progress_rows = await library.progress_by_article(db, user.id, ids)
     saved = await library.bookmarked_ids(db, user.id, ids)
+    seconds = await study.seconds_by_article(db, user.id, ids)
     return ReadingArticleList(
-        items=[_summary(a, progress_rows.get(a.id), a.id in saved) for a in articles],
+        items=[
+            _summary(a, progress_rows.get(a.id), a.id in saved, seconds.get(a.id, 0))
+            for a in articles
+        ],
         total=total,
         limit=limit,
         offset=offset,
@@ -132,6 +146,7 @@ async def get_article(
         article,
         await learning.get_progress(db, user.id, article.id),
         await personal.is_bookmarked(db, user.id, article.id),
+        (await study.seconds_by_article(db, user.id, [article.id])).get(article.id, 0),
     )
     return ReadingArticleDetail(
         **summary.model_dump(),
@@ -151,7 +166,8 @@ async def update_progress(
     await consume(db, f"reading:progress:{user.id}", PROGRESS_WRITES_PER_MINUTE, 60)
     article = await _article(db, slug)
     row = await learning.update_read_progress(db, user.id, article.id, body.percent)
-    response = _progress(row)
+    seconds = (await study.seconds_by_article(db, user.id, [article.id])).get(article.id, 0)
+    response = _progress(row, seconds)
     assert response is not None
     return response
 
@@ -181,8 +197,10 @@ async def list_bookmarks(
     user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ) -> list[ReadingArticleSummary]:
     articles = await personal.list_bookmarks(db, user.id)
-    progress_rows = await library.progress_by_article(db, user.id, [a.id for a in articles])
-    return [_summary(a, progress_rows.get(a.id), True) for a in articles]
+    ids = [a.id for a in articles]
+    progress_rows = await library.progress_by_article(db, user.id, ids)
+    seconds = await study.seconds_by_article(db, user.id, ids)
+    return [_summary(a, progress_rows.get(a.id), True, seconds.get(a.id, 0)) for a in articles]
 
 
 @router.get("/preferences", response_model=ReadingPreferencesResponse)
@@ -327,3 +345,45 @@ async def submit_attempt(
         db, user.id, attempt_id, body.answers if body is not None else None
     )
     return await _attempt_response(db, attempt, already_submitted=already)
+
+
+# --- measured reading time ---------------------------------------------------------------
+
+
+@router.post("/articles/{slug}/heartbeat", response_model=ReadingHeartbeatResponse)
+async def heartbeat(
+    slug: str,
+    _body: ReadingHeartbeatRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ReadingHeartbeatResponse:
+    """Report that the learner is actively reading. The server decides how much time to credit."""
+    await consume(db, f"reading:heartbeat:{user.id}", HEARTBEATS_PER_MINUTE, 60)
+    article = await _article(db, slug)
+    result = await study.heartbeat(db, user.id, article.id)
+    return ReadingHeartbeatResponse(
+        credited_seconds=result.credited_seconds,
+        article_seconds=result.article_seconds,
+        today_seconds=result.today_seconds,
+        total_seconds=result.total_seconds,
+        next_beat_in_seconds=study.BEAT_INTERVAL_SECONDS,
+        capped=result.capped,
+    )
+
+
+@router.get("/study-time", response_model=ReadingStudyTimeResponse)
+async def study_time(
+    days: int = Query(30, ge=1, le=365),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ReadingStudyTimeResponse:
+    summary = await study.summary(db, user.id, days=days)
+    return ReadingStudyTimeResponse(
+        total_seconds=summary.total_seconds,
+        today_seconds=summary.today_seconds,
+        days=[ReadingStudyDayResponse(date=day, seconds=seconds) for day, seconds in summary.days],
+        by_article=[
+            ReadingStudyArticleResponse(slug=a.slug, title=a.title, seconds=seconds)
+            for a, seconds in summary.by_article
+        ],
+    )

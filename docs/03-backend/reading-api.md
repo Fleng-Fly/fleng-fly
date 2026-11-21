@@ -6,7 +6,8 @@ is `published` and its category is active; anything else, and any other learner'
 404 NOT_FOUND. There are no authoring routes yet: demo content comes from
 `python -m app.db.reading_seed` (draft-only, idempotent). Pass mark is 70 %. XP is the existing
 `profiles.xp`, paid once per learner and article on the first passing attempt. Answer keys and
-explanations appear only in a submitted attempt's result, never before.
+explanations appear only in a submitted attempt's result, never before. Measured reading time
+(heartbeat) is described below and is separate from XP.
 
 ## `GET /api/v1/reading/categories`
 
@@ -37,7 +38,8 @@ curl -X PUT http://localhost:3001/api/v1/reading/articles/my-day/progress \
   --data '{"percent":60}'
 ```
 
-Returns 200 ReadingProgressResponse. 422 for a non-integer or a value outside 0-100.
+Returns 200 ReadingProgressResponse (including `activeSeconds`, the measured reading time on this
+article). 422 for a non-integer or a value outside 0-100.
 
 ## `PUT /api/v1/reading/articles/{slug}/bookmark`
 
@@ -104,6 +106,39 @@ belong to the article; 409 ATTEMPT_SUBMITTED for a submitted attempt.
 Optional body `{answers}` is merged first. Grades, freezes the result and, on the first pass of
 the article, awards XP once. Repeating the call returns the stored result with
 `alreadySubmitted: true` and pays nothing. Unanswered questions score zero.
+
+## `POST /api/v1/reading/articles/{slug}/heartbeat`
+
+Reports that the learner is actively reading (tab visible, recent interaction); the client sends
+one about every 15 seconds. The body carries no time: the server credits time only from its own
+clock. Measured reading time is separate from XP (none is awarded) and from
+`progress.study_minutes` (a lesson estimate). Limited to 20 requests per minute per learner
+(429 RATE_LIMITED with Retry-After). Example:
+
+```sh
+curl -X POST http://localhost:3001/api/v1/reading/articles/my-day/heartbeat \
+  -H "Authorization: Bearer $FLENG_ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  --data '{"active":true}'
+```
+
+Returns 200 ReadingHeartbeatResponse: `creditedSeconds`, `articleSeconds` (all days),
+`todaySeconds` (all articles, learner's local day), `totalSeconds`, `nextBeatInSeconds` and
+`capped`. Rules: one cursor per learner is shared by all tabs, devices and articles, so a
+stretch of time is credited once, to the article of the accepted heartbeat. A heartbeat less
+than 5 s after the cursor credits nothing; the first one after a pause longer than 45 s (or the
+very first) credits nothing and restarts the cursor; otherwise the elapsed time is credited up
+to 20 s. Daily caps: 4 hours per learner and `max(30 min, 3 x readingMinutes)` per article, per
+local calendar day (`capped: true` once reached). Seconds stay on the day they were credited,
+whatever the time zone becomes later. 60 credited seconds in a local day record learning
+activity (streak). 404 NOT_FOUND for an unavailable article; 422 unless the body is
+`{"active": true}`.
+
+## `GET /api/v1/reading/study-time`
+
+Query `days` (1-365, default 30). Returns 200 ReadingStudyTimeResponse: `totalSeconds`,
+`todaySeconds`, one `days[]` entry per local day (oldest first, zero days included) and
+`byArticle[]` (most time first, at most 20, within the window).
 
 Shared errors: 401 auth, 404 not available, 422 request validation, 429 rate limit and the
 standard error envelope. Editing a published article's quiz while attempts are open is rejected

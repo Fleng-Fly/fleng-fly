@@ -3206,6 +3206,69 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
+## ReadingHeartbeatRequest
+
+```json
+{
+  "properties": {
+    "active": {
+      "type": "boolean",
+      "const": true,
+      "title": "Active"
+    }
+  },
+  "type": "object",
+  "required": [
+    "active"
+  ],
+  "title": "ReadingHeartbeatRequest",
+  "description": "Sent only while the learner is actively reading (tab visible, recent interaction)."
+}
+```
+
+## ReadingHeartbeatResponse
+
+```json
+{
+  "properties": {
+    "creditedSeconds": {
+      "type": "integer",
+      "title": "Creditedseconds"
+    },
+    "articleSeconds": {
+      "type": "integer",
+      "title": "Articleseconds"
+    },
+    "todaySeconds": {
+      "type": "integer",
+      "title": "Todayseconds"
+    },
+    "totalSeconds": {
+      "type": "integer",
+      "title": "Totalseconds"
+    },
+    "nextBeatInSeconds": {
+      "type": "integer",
+      "title": "Nextbeatinseconds"
+    },
+    "capped": {
+      "type": "boolean",
+      "title": "Capped"
+    }
+  },
+  "type": "object",
+  "required": [
+    "creditedSeconds",
+    "articleSeconds",
+    "todaySeconds",
+    "totalSeconds",
+    "nextBeatInSeconds",
+    "capped"
+  ],
+  "title": "ReadingHeartbeatResponse"
+}
+```
+
 ## ReadingPreferencesResponse
 
 ```json
@@ -3285,6 +3348,11 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "xpAwarded": {
       "type": "integer",
       "title": "Xpawarded"
+    },
+    "activeSeconds": {
+      "type": "integer",
+      "title": "Activeseconds",
+      "default": 0
     }
   },
   "type": "object",
@@ -3426,6 +3494,97 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "explanation"
   ],
   "title": "ReadingReviewItem"
+}
+```
+
+## ReadingStudyArticleResponse
+
+```json
+{
+  "properties": {
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "seconds": {
+      "type": "integer",
+      "title": "Seconds"
+    }
+  },
+  "type": "object",
+  "required": [
+    "slug",
+    "title",
+    "seconds"
+  ],
+  "title": "ReadingStudyArticleResponse"
+}
+```
+
+## ReadingStudyDayResponse
+
+```json
+{
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "seconds": {
+      "type": "integer",
+      "title": "Seconds"
+    }
+  },
+  "type": "object",
+  "required": [
+    "date",
+    "seconds"
+  ],
+  "title": "ReadingStudyDayResponse"
+}
+```
+
+## ReadingStudyTimeResponse
+
+```json
+{
+  "properties": {
+    "totalSeconds": {
+      "type": "integer",
+      "title": "Totalseconds"
+    },
+    "todaySeconds": {
+      "type": "integer",
+      "title": "Todayseconds"
+    },
+    "days": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingStudyDayResponse"
+      },
+      "type": "array",
+      "title": "Days"
+    },
+    "byArticle": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingStudyArticleResponse"
+      },
+      "type": "array",
+      "title": "Byarticle"
+    }
+  },
+  "type": "object",
+  "required": [
+    "totalSeconds",
+    "todaySeconds",
+    "days",
+    "byArticle"
+  ],
+  "title": "ReadingStudyTimeResponse"
 }
 ```
 

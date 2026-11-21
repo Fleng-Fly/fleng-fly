@@ -130,6 +130,7 @@ async def test_progress_is_saved_monotonic_and_shown_in_list_and_filters(
         "bestScorePercent": None,
         "attemptsCount": 0,
         "xpAwarded": 0,
+        "activeSeconds": 0,
     }
     assert (await client.put(url, headers=auth, json={"percent": 10})).json()["readPercent"] == 40
 

@@ -4,7 +4,7 @@ Quiz questions are exposed in two shapes: `ReadingQuestionPublic` (no answer key
 attempt is open, and `ReadingReviewItem` (with the key and explanation) only after submit.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -32,6 +32,8 @@ class ReadingProgressResponse(CamelModel):
     best_score_percent: int | None
     attempts_count: int
     xp_awarded: int
+    # Measured active reading time on this article (all days), see /heartbeat.
+    active_seconds: int = 0
 
 
 class ReadingArticleSummary(CamelModel):
@@ -143,3 +145,36 @@ class ReadingAnswersUpdate(CamelModel):
 
 class ReadingSubmitRequest(CamelModel):
     answers: dict[UUID, UUID] | None = Field(default=None, max_length=100)
+
+
+class ReadingHeartbeatRequest(CamelModel):
+    """Sent only while the learner is actively reading (tab visible, recent interaction)."""
+
+    active: Literal[True]
+
+
+class ReadingHeartbeatResponse(CamelModel):
+    credited_seconds: int
+    article_seconds: int
+    today_seconds: int
+    total_seconds: int
+    next_beat_in_seconds: int
+    capped: bool
+
+
+class ReadingStudyDayResponse(CamelModel):
+    date: date
+    seconds: int
+
+
+class ReadingStudyArticleResponse(CamelModel):
+    slug: str
+    title: str
+    seconds: int
+
+
+class ReadingStudyTimeResponse(CamelModel):
+    total_seconds: int
+    today_seconds: int
+    days: list[ReadingStudyDayResponse]
+    by_article: list[ReadingStudyArticleResponse]

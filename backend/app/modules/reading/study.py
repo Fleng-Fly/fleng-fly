@@ -68,6 +68,11 @@ class StudySummary:
     by_article: list[tuple[ReadingArticle, int]]  # most time first
 
 
+def _now() -> datetime:
+    """The server clock (a single seam so tests can move time)."""
+    return datetime.now(UTC)
+
+
 def _aware(value: datetime | None) -> datetime | None:
     # SQLite returns naive datetimes; they are always UTC here.
     if value is not None and value.tzinfo is None:
@@ -87,7 +92,7 @@ async def heartbeat(
     db: AsyncSession, user_id: UUID, article_id: UUID, *, now: datetime | None = None
 ) -> HeartbeatResult:
     """Accept one client heartbeat for an available article and credit reading time."""
-    now = now or datetime.now(UTC)
+    now = now or _now()
     minutes = await db.scalar(
         select(ReadingArticle.reading_minutes).where(
             ReadingArticle.id == article_id, *available_clauses()
@@ -183,7 +188,7 @@ async def totals_summary(
     db: AsyncSession, user_id: UUID, *, now: datetime | None = None
 ) -> tuple[int, int]:
     """`(total_seconds, today_seconds)` for the learner's local day."""
-    now = now or datetime.now(UTC)
+    now = now or _now()
     today, _start, _end = local_day_window(_zone(await _profile(db, user_id)), now)
     total = await db.scalar(
         select(ReadingStudyTotal.total_seconds).where(ReadingStudyTotal.user_id == user_id)
@@ -202,7 +207,7 @@ async def summary(
     """Totals, one entry per local day for the last `days` days, and time per article."""
     if not 1 <= days <= 365:
         raise ApiError(422, "VALIDATION_FAILED", "days must be between 1 and 365")
-    now = now or datetime.now(UTC)
+    now = now or _now()
     today, _start, _end = local_day_window(_zone(await _profile(db, user_id)), now)
     first = today - timedelta(days=days - 1)
     per_day = dict(
