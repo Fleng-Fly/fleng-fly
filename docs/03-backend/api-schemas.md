@@ -2545,6 +2545,14 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     },
     "xpHistory": {
       "$ref": "#/components/schemas/XPHistoryResponse"
+    },
+    "readingStudy": {
+      "$ref": "#/components/schemas/ReadingStudyResponse",
+      "default": {
+        "totalSeconds": 0,
+        "totalMinutes": 0,
+        "todaySeconds": 0
+      }
     }
   },
   "type": "object",
@@ -3546,6 +3554,33 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "seconds"
   ],
   "title": "ReadingStudyDayResponse"
+}
+```
+
+## ReadingStudyResponse
+
+```json
+{
+  "properties": {
+    "totalSeconds": {
+      "type": "integer",
+      "title": "Totalseconds",
+      "default": 0
+    },
+    "totalMinutes": {
+      "type": "integer",
+      "title": "Totalminutes",
+      "default": 0
+    },
+    "todaySeconds": {
+      "type": "integer",
+      "title": "Todayseconds",
+      "default": 0
+    }
+  },
+  "type": "object",
+  "title": "ReadingStudyResponse",
+  "description": "Measured active reading time (heartbeat), in seconds.\n\nSeparate from `studyMinutes` (an estimate added when a lesson is completed) and from XP.\n`totalMinutes` is whole minutes, rounded down; `todaySeconds` is the learner's local day."
 }
 ```
 

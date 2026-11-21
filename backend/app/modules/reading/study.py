@@ -185,20 +185,32 @@ async def seconds_by_article(
 
 
 async def totals_summary(
-    db: AsyncSession, user_id: UUID, *, now: datetime | None = None
+    db: AsyncSession,
+    user_id: UUID,
+    *,
+    profile: Profile | None = None,
+    now: datetime | None = None,
 ) -> tuple[int, int]:
-    """`(total_seconds, today_seconds)` for the learner's local day."""
+    """`(total_seconds, today_seconds)` for the learner's local day, in one query.
+
+    Pass the already loaded `profile` to avoid reading it again.
+    """
     now = now or _now()
-    today, _start, _end = local_day_window(_zone(await _profile(db, user_id)), now)
-    total = await db.scalar(
-        select(ReadingStudyTotal.total_seconds).where(ReadingStudyTotal.user_id == user_id)
+    if profile is None:
+        profile = await _profile(db, user_id)
+    today, _start, _end = local_day_window(_zone(profile), now)
+    total = (
+        select(ReadingStudyTotal.total_seconds)
+        .where(ReadingStudyTotal.user_id == user_id)
+        .scalar_subquery()
     )
-    today_seconds = await db.scalar(
-        select(func.coalesce(func.sum(ReadingStudyDay.seconds), 0)).where(
-            ReadingStudyDay.user_id == user_id, ReadingStudyDay.day == today
-        )
+    today_seconds = (
+        select(func.sum(ReadingStudyDay.seconds))
+        .where(ReadingStudyDay.user_id == user_id, ReadingStudyDay.day == today)
+        .scalar_subquery()
     )
-    return int(total or 0), int(today_seconds or 0)
+    row = (await db.execute(select(func.coalesce(total, 0), func.coalesce(today_seconds, 0)))).one()
+    return int(row[0]), int(row[1])
 
 
 async def summary(

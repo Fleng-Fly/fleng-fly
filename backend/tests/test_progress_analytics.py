@@ -218,7 +218,8 @@ async def test_query_count_does_not_grow_with_catalog(
         statements.clear()
         response = await client.get(URL, headers=headers)
         assert len(response.json()["courses"]) == 12
-        assert len(statements) == len(initial) <= 7
+        # Constant, never per course: 7 progress queries + 1 for measured reading time.
+        assert len(statements) == len(initial) <= 8
         assert all(s.lstrip().upper().startswith("SELECT") for s in statements)
     finally:
         event.remove(engine, "before_cursor_execute", capture)

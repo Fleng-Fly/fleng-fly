@@ -154,3 +154,32 @@ async def test_reading_time_gives_no_xp_and_leaves_study_minutes_alone(
     assert progress["xp"] == 0 and progress["studyMinutes"] == 0
     streak = (await client.get("/api/v1/streaks/me", headers=auth)).json()
     assert streak["current"] >= 1  # 60+ seconds of reading counts as a learning day
+
+
+async def test_progress_me_exposes_reading_study_additively(client: AsyncClient, db_session, clock):
+    auth = await login(client)
+    before = (await client.get("/api/v1/progress/me", headers=auth)).json()
+    assert before["readingStudy"] == {"totalSeconds": 0, "totalMinutes": 0, "todaySeconds": 0}
+    await make(db_session)
+    await beat(client, auth)
+    for _ in range(5):
+        clock(15)
+        await beat(client, auth)
+    after = (await client.get("/api/v1/progress/me", headers=auth)).json()
+    assert after["readingStudy"] == {"totalSeconds": 75, "totalMinutes": 1, "todaySeconds": 75}
+    # existing fields keep their meaning and values
+    for key in ("studyMinutes", "xp", "lessonsCompleted", "exercisesCompleted", "streak"):
+        assert key in after
+    assert after["studyMinutes"] == before["studyMinutes"] == 0
+    assert after["xp"] == before["xp"]
+
+
+async def test_progress_me_reading_study_is_per_learner(client: AsyncClient, db_session, clock):
+    a, b = await login(client, "a@example.com"), await login(client, "b@example.com")
+    await make(db_session)
+    await beat(client, a)
+    clock(15)
+    await beat(client, a)
+    assert (await client.get("/api/v1/progress/me", headers=b)).json()["readingStudy"][
+        "totalSeconds"
+    ] == 0
