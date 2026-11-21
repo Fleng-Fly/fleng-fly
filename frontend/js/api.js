@@ -285,6 +285,68 @@ export function getLessonVocabulary(lessonId, offset = 0, limit = 30) {
   return apiFetch(`/vocabulary?${query}`);
 }
 
+/* ── Reading ────────────────────────────────────────────────────────── */
+
+const readingSlug = (slug) => encodeURIComponent(slug);
+
+export function listReadingCategories() {
+  return apiFetch('/reading/categories');
+}
+
+/** `params`: categoryId, level, progress (new|in_progress|completed), bookmarked, limit, offset. */
+export function listReadingArticles(params = {}) {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== '') query.set(key, String(value));
+  }
+  const suffix = query.size ? `?${query}` : '';
+  return apiFetch(`/reading/articles${suffix}`);
+}
+
+export function getReadingArticle(slug) {
+  return apiFetch(`/reading/articles/${readingSlug(slug)}`);
+}
+
+export function updateReadingProgress(slug, percent) {
+  return apiFetch(`/reading/articles/${readingSlug(slug)}/progress`, {
+    method: 'PUT', body: JSON.stringify({ percent }),
+  });
+}
+
+export function setReadingBookmark(slug, bookmarked) {
+  return apiFetch(`/reading/articles/${readingSlug(slug)}/bookmark`, {
+    method: bookmarked ? 'PUT' : 'DELETE',
+  });
+}
+
+export function getReadingPreferences() {
+  return apiFetch('/reading/preferences');
+}
+
+export function setReadingPreferences(categoryIds) {
+  return apiFetch('/reading/preferences', { method: 'PUT', body: JSON.stringify({ categoryIds }) });
+}
+
+export function startReadingAttempt(slug) {
+  return apiFetch(`/reading/articles/${readingSlug(slug)}/attempts`, { method: 'POST' });
+}
+
+export function listReadingAttempts(slug) {
+  return apiFetch(`/reading/articles/${readingSlug(slug)}/attempts`);
+}
+
+export function saveReadingAnswers(attemptId, answers) {
+  return apiFetch(`/reading/attempts/${encodeURIComponent(attemptId)}/answers`, {
+    method: 'PATCH', body: JSON.stringify({ answers }),
+  });
+}
+
+export function submitReadingAttempt(attemptId, answers) {
+  return apiFetch(`/reading/attempts/${encodeURIComponent(attemptId)}/submit`, {
+    method: 'POST', body: JSON.stringify(answers ? { answers } : {}),
+  });
+}
+
 export function getHealth() {
   return apiFetch('/health');
 }
