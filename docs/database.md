@@ -367,3 +367,31 @@ Revision `20261120_1200` (additive, reversible): `profiles.daily_lessons_goal` (
 `profiles.timezone` (nullable IANA name). No per-day table: progress is computed from
 `lesson_progress` and `vocabulary_reviews`. Verified upgrade → downgrade → upgrade on SQLite;
 PostgreSQL was not available in this environment.
+
+
+## Reading — 2026-11-21
+
+Revision `20261121_1200` (additive, reversible; only creates tables, no existing data touched).
+Services: `backend/app/modules/reading/` (`content`, `learning`, `personal`). No HTTP routes yet.
+
+| Table | Purpose / key constraints |
+| ----- | ------------------------- |
+| `reading_categories` | `slug` unique, `is_active`, `position` |
+| `reading_articles` | `category_id` (RESTRICT), `slug` unique, `level` in A0,A1,A2,B1,B2 (check), `reading_minutes` 1-120, `status` draft/published/archived, `published_at` (first publication), optional `cover_image_url`/`cover_alt` |
+| `reading_questions` | single-choice; `(article_id, position)` unique, `points` 1-10; cascade with article |
+| `reading_answers` | `(question_id, position)` unique; partial unique index `reading_answer_one_correct` allows at most one correct answer (the service also requires exactly one) |
+| `reading_attempts` | `answers` JSON `{question_id: answer_id}`, frozen `result` JSON on submit, `(user_id, article_id, attempt_number)` unique, partial unique index `reading_attempt_one_active` allows one `in_progress` attempt per learner and article |
+| `reading_user_progress` | `(user_id, article_id)` unique; `read_percent` 0-100 (monotonic), `status` in_progress/completed, `best_score_percent`, `attempts_count`, `xp_awarded` |
+| `reading_bookmarks` | `(user_id, article_id)` unique |
+| `reading_topic_preferences` | `(user_id, category_id)` unique |
+
+Rules. Available to learners = article `published` **and** category active. Pass mark is 70 %
+(`learning.PASS_PERCENT`, floored percent). Completion happens once: first passing attempt, or 100 %
+read for an article without questions. **XP** reuses `profiles.xp`: the first passing attempt pays the
+article's total question points once per learner and article, claimed by a conditional UPDATE on
+`reading_user_progress.xp_awarded = 0`; failed attempts, retries and re-submitting an attempt pay
+nothing (re-submit returns the stored result). Submitting records streak activity and runs
+achievements through the gamification service. Articles without questions give no XP. Result
+snapshots are immutable, so editing a quiz never rewrites history. Levels are A0-B2 only (C1/C2 are
+valid for courses but not for reading). Verified upgrade, downgrade, upgrade and metadata drift on
+SQLite; PostgreSQL was not available here (the opt-in PostgreSQL tests were updated to the new head).
