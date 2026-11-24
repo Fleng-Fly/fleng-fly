@@ -5,6 +5,7 @@ import { describeApiError } from './errors.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 import { letterTiles } from './letter-tiles.js';
+import { autoCheckText } from './auto-check.js';
 
 const $ = (id) => document.getElementById(id);
 const modes = ['list', 'flashcards', 'choice', 'write', 'letters'];
@@ -413,8 +414,9 @@ function renderPractice() {
     }
   } else {
     const form = el('form');
-    let readAnswer;
-    if (state.mode === 'write') {
+    const check = (answer) => grade(normalize(answer) === normalize(word.word));
+    const letters = [...word.word];
+    if (state.mode === 'write' || letters.length < 2) {
       const label = el('label', 'lesson-answer-label', t('vocab.typeEnglish'));
       const input = el('input', 'lesson-answer');
       input.required = true;
@@ -424,26 +426,18 @@ function renderPractice() {
       input.setAttribute('autocapitalize', 'none');
       label.append(input);
       form.append(label);
-      readAnswer = () => input.value;
+      form.append(el('p', 'dashboard-muted', t('lesson.autoCheckText')));
+      autoCheckText(form, input, check);
     } else {
-      const letters = [...word.word];
       const pattern = letters.map((letter, index) => index % 3 === 0 ? letter : '_').join('');
       const bank = shuffle(letters.filter((_, index) => index % 3 !== 0));
-      const tiles = letterTiles({ pattern, letters: bank }, '', null, () => { result.textContent = ''; });
+      const tiles = letterTiles({ pattern, letters: bank }, '', null, () => {
+        result.textContent = '';
+        const answer = tiles.readAnswer();
+        if (answer) check(answer);
+      });
       form.append(tiles.field);
-      readAnswer = tiles.readAnswer;
     }
-    const check = el('button', 'lesson-button lesson-button-primary', t('lesson.check'));
-    check.type = 'submit';
-    const formActions = el('div', 'word-practice-actions');
-    formActions.append(check);
-    form.append(formActions);
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const answer = readAnswer();
-      if (!answer.trim()) { result.classList.add('is-error'); result.textContent = t('vocab.completeFirst'); return; }
-      grade(normalize(answer) === normalize(word.word));
-    });
     card.append(form);
   }
   card.append(result, actions);

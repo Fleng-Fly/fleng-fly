@@ -368,7 +368,7 @@ async function lessonPage(search = '?slug=first', overrides = {}) {
     'workspace.js': { mountWorkspace() {}, setWorkspaceUser() {}, setWorkspaceAIContext(callback) { aiContexts.push(callback); }, askWorkspaceAI: (detail) => { aiAsks.push(detail); return overrides.aiMounted ?? true; } },
     'letter-tiles.js': { letterTiles() { throw new Error('Not used by this fixture'); } },
   };
-  const context = vm.createContext({ window, document, URL, URLSearchParams, console });
+  const context = vm.createContext({ window, document, URL, URLSearchParams, console, setTimeout, clearTimeout });
   const modules = new Map();
   async function module(file) {
     if (modules.has(file)) return modules.get(file);
@@ -476,7 +476,8 @@ test('wrong answer shows the localized explanation, wrong-answer note and the co
   const panel = p.get('panel-practice');
   const wrong = panel.querySelectorAll('input')[1];
   wrong.value = 'b'; wrong.checked = true;
-  await panel.querySelector('form').events.submit({ preventDefault() {} });
+  wrong.events.click();
+  wrong.events.change();
   await p.settle();
   assert.equal(calls, 1);
   const text = panel.textContent;

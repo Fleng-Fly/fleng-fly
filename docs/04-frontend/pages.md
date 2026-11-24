@@ -16,6 +16,10 @@
 
 Course/lesson URLs use ?slug=. Public metadata is distinct from authenticated learning/private state. Personal vocabulary and its practice modes share vocabulary.html. Course Words uses course-words.html. Progress, Challenges and a standalone AI Tutor remain deferred. The password-reset page is reset-password.html. The lesson Vocabulary tab contains personal saved words, not the shared course dictionary.
 
+Lesson and vocabulary practice check a selected answer or completed letter tiles
+immediately. Typed answers are checked after 1.5 seconds without input or when
+the learner presses Enter. Self-assessed exercises use the learner's rating.
+
 [Section index](README.md) · [Documentation home](../README.md)
 
 Placement Test MVP uses `/placement-test.html`, `js/placement-test.js` and

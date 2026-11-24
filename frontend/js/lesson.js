@@ -3,6 +3,7 @@ import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
 import { getLang, t } from './i18n.js';
 import { letterTiles } from './letter-tiles.js';
+import { autoCheckText } from './auto-check.js';
 import { requireSession } from './session.js';
 import { askWorkspaceAI, mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './workspace.js';
 
@@ -295,11 +296,7 @@ function markEdited(exercise) {
 async function submit(exercise, answer, assessment) {
   if (state.busy) return;
   if (!answer?.trim()) {
-    const message = {
-      single_choice: t('lesson.needChoice'),
-      letter_tiles: t('lesson.needTiles'),
-    }[exerciseType(exercise)] || t('lesson.needAnswer');
-    state.errors.set(exercise.id, message);
+    state.errors.set(exercise.id, t('lesson.needAnswer'));
     renderQuestions();
     return;
   }
@@ -454,7 +451,14 @@ function questionCard(exercise, index) {
       input.name = `answer-${exercise.id}`;
       input.value = option.id;
       input.checked = (state.drafts.has(exercise.id) ? state.drafts.get(exercise.id) : record?.answer) === option.id;
-      input.addEventListener('change', () => { state.drafts.set(exercise.id, input.value); markEdited(exercise); });
+      const checkChoice = () => {
+        if (state.busy || !input.checked) return;
+        state.drafts.set(exercise.id, input.value);
+        markEdited(exercise);
+        submit(exercise, input.value);
+      };
+      input.addEventListener('click', checkChoice);
+      input.addEventListener('change', checkChoice);
       label.append(input, el('span', 'lesson-option-key', String.fromCharCode(65 + optionIndex++)), el('span', 'lesson-option-text', option.text));
       if (result?.correctOptionId === option.id) label.classList.add('is-correct');
       else if (result && !result.isCorrect && input.checked) label.classList.add('is-incorrect');
@@ -470,6 +474,8 @@ function questionCard(exercise, index) {
       (positions) => {
         state.tileDrafts.set(exercise.id, positions);
         markEdited(exercise);
+        const answer = tiles.readAnswer();
+        if (answer) submit(exercise, answer);
       },
     );
     form.append(tiles.field);
@@ -488,6 +494,10 @@ function questionCard(exercise, index) {
     label.append(input);
     form.append(label);
     readAnswer = () => input.value;
+    if (exercise.type === 'text') {
+      form.append(el('p', 'lesson-muted', t('lesson.autoCheckText')));
+      autoCheckText(form, input, (answer) => submit(exercise, answer));
+    }
   } else {
     form.append(el('p', 'lesson-muted', t('lesson.unsupported')));
   }
@@ -499,13 +509,13 @@ function questionCard(exercise, index) {
       button.addEventListener('click', () => submit(exercise, readAnswer(), assessment));
       actions.append(button);
     }
-  } else if (readAnswer) {
-    const button = el('button', 'lesson-button lesson-button-primary', t('lesson.check'));
-    button.type = 'submit';
+  } else if (readAnswer && state.errors.has(exercise.id)) {
+    const button = el('button', 'lesson-button lesson-button-secondary', t('lesson.retryCheck'));
+    button.type = 'button';
+    button.addEventListener('click', () => submit(exercise, readAnswer()));
     actions.append(button);
-    form.addEventListener('submit', (event) => { event.preventDefault(); submit(exercise, readAnswer()); });
   }
-  form.append(actions);
+  if (actions.children.length) form.append(actions);
   state.readCurrent = readAnswer || null;
   card.append(form, feedback(exercise, record));
   const nav = el('div', 'lesson-question-navigation');
@@ -517,7 +527,7 @@ function questionCard(exercise, index) {
   next.type = 'button';
   next.disabled = index === state.lesson.exercises.length - 1;
   next.addEventListener('click', () => goQuestion(index + 1, state.tab));
-  nav.append(previous, el('span', undefined, t('lesson.savedWhenChecked')), next);
+  nav.append(previous, next);
   card.append(nav);
   return card;
 }

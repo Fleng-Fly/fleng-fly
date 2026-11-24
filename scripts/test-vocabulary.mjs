@@ -49,10 +49,17 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
     deleteVocabulary: async (id) => { writes.push({ remove: id }); words.splice(words.findIndex((w) => w.id === id), 1); },
     reviewVocabulary: async (id, remembered) => { writes.push({ review: id, remembered }); if (failReview) throw new Error('Offline'); const word = words.find((w) => w.id === id); word.learned = remembered; word.dueAt = new Date(Date.now() + 86400000).toISOString(); return { ...word }; },
   };
-  const context = vm.createContext({ document, location, history: { replaceState: (_a, _b, url) => { location.href = url.toString(); } }, window: { addEventListener: (name, action) => { events[name] = action; }, confirm: () => confirmRemoval }, URL, URLSearchParams, console, setTimeout });
+  const context = vm.createContext({ document, location, history: { replaceState: (_a, _b, url) => { location.href = url.toString(); } }, window: { addEventListener: (name, action) => { events[name] = action; }, confirm: () => confirmRemoval }, URL, URLSearchParams, console, setTimeout, clearTimeout });
   const modules = new Map();
   function mock(name, values) { const mod = new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context, identifier: name }); modules.set(name, mod); }
-  const el = (tag, cls, text) => { const n = new Element(tag, text); n.className = cls; return n; };
+  const el = (tag, cls, text) => {
+    const n = new Element(tag, text);
+    n.className = cls;
+    if (tag === 'form') Object.defineProperty(n, 'isConnected', {
+      get: () => node('word-practice').querySelectorAll('form').includes(n),
+    });
+    return n;
+  };
   mock('./api.js', helpers); mock('./layout.js', { el });
   mock('./errors.js', { describeApiError: (e) => e.message });
   mock('./i18n.js', i18nStub);
@@ -61,6 +68,9 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
   const tiles = new vm.SourceTextModule(await readFile('frontend/js/letter-tiles.js', 'utf8'), { context, identifier: './letter-tiles.js' });
   modules.set('./letter-tiles.js', tiles);
   await tiles.link((name) => modules.get(name));
+  const autoCheck = new vm.SourceTextModule(await readFile('frontend/js/auto-check.js', 'utf8'), { context, identifier: './auto-check.js' });
+  modules.set('./auto-check.js', autoCheck);
+  await autoCheck.link((name) => modules.get(name));
   const main = new vm.SourceTextModule(await readFile('frontend/js/vocabulary.js', 'utf8'), { context });
   await main.link((name) => modules.get(name)); await main.evaluate();
   const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve(); };
@@ -138,6 +148,18 @@ test('typed answers ignore casing and outer whitespace; wrong answers stay unlea
   assert.equal(app.writes[1].remembered, false);
 });
 
+test('typed answers are checked after a pause using the latest input', async () => {
+  const app = await page({ mode: 'write' });
+  const input = app.node('word-practice').querySelector('input');
+  input.value = 'res';
+  input.events.input();
+  input.value = 'resilience';
+  input.events.input();
+  assert.equal(app.writes.length, 0);
+  await new Promise((resolve) => setTimeout(resolve, 1600));
+  assert.deepEqual(app.writes, [{ review: 'one', remembered: true }]);
+});
+
 test('multiple choice submits the selected translation and handles insufficient words', async () => {
   const app = await page({ words: [makeWord('one', 'hello', 'привіт'), makeWord('two', 'bye', 'бувай')], mode: 'choice' });
   const current = app.node('word-practice').querySelector('h2').textContent;
@@ -154,7 +176,6 @@ test('missing-letter tiles are usable by clicking and submit the assembled word'
   const tile = buttons.find((n) => n.textContent === 'e');
   const slot = buttons.find((n) => n.className?.includes('lesson-tile-slot'));
   await app.click(tile); await app.click(slot);
-  app.node('word-practice').querySelector('form').events.submit({ preventDefault() {} }); await app.flush();
   assert.equal(app.writes[0].remembered, true);
 });
 

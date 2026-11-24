@@ -22,6 +22,7 @@
 - [x] Course catalogue page (`courses.html`) and course detail page
       (`course.html`) consuming `/courses` and `/courses/{slug}`.
 - [x] Lesson page (`lesson.html`) rendering theory from `/lessons/{slug}`.
+- [x] Automatic answer checking in lessons and vocabulary practice.
 - [x] Exercises + submission and results view: radios / short answer /
       self-check, inline correctness, `+XP`, revealed answer and explanation, and
       a live progress summary.

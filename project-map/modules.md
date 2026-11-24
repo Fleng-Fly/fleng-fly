@@ -136,6 +136,9 @@ the letter bank and slots for configured text exercises. The lesson page calls t
 `vocabulary` can filter owned words by `lessonId`. Migration `20261114_1200` adds
 optional letter-tile configuration to exercises.
 
+`frontend/js/auto-check.js` schedules text answer checks for `lesson.js` and
+`vocabulary.js`. Each practice page submits through its existing API.
+
 ## Windows local launcher (2026-11-11)
 
 `START-WINDOWS.cmd` runs the existing setup and dev scripts from its own folder.
