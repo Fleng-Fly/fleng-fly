@@ -88,7 +88,7 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 | Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Test/Vocabulary, grading, progress and saved words                                     |
 | Settings                                                 | `/settings.html`     | 🟢     | protected; profile/email editing, language preference, password change, logout                                    |
 | Lesson player (quiz)                                     | —                    | 🟢     | exercises, submission and grading via the exercises API                                                           |
-| Words | `/vocabulary.html`, `/course-words.html` | 🟢 | personal words/practice and published course vocabulary |
+| Words | `/vocabulary.html`, `/course-words.html` | 🟢 | personal words, Mixed Practice with FIFO and reload recovery, and published course vocabulary |
 | Progress | `/progress.html` | 🟢 | real progress analytics and streaks |
 | Challenges / AI Tutor | — | 🔴 |                                                                                                                   |
 

@@ -2,6 +2,7 @@ import './require-vm-modules.mjs';
 // Behaviour checks with the existing project's dependency-free VM/DOM approach.
 // These check state transitions/API writes; they do not verify browser rendering.
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
@@ -28,9 +29,9 @@ class Element {
 
 const makeWord = (id = 'one', word = 'resilience', translation = 'стійкість') => ({ id, word, translation, example: 'Keep going.', learned: false, dueAt: '2020-01-01T00:00:00Z' });
 
-async function page({ words = [makeWord()], mode = '', reviewError = false, groups = [] } = {}) {
-  const nodes = new Map(); const events = {}; const writes = [];
-  const modeButtons = ['list', 'flashcards', 'choice', 'write', 'letters'].map((mode) => { const n = new Element('button'); n.dataset.mode = mode; return n; });
+async function page({ words = [makeWord()], mode = '', reviewError = false, groups = [], storage = new Map() } = {}) {
+  const nodes = new Map(); const events = {}; const writes = [], attempts = [];
+  const modeButtons = ['list', 'mixed'].map((mode) => { const n = new Element('button'); n.dataset.mode = mode; return n; });
   const filters = ['all', 'learning', 'learned', 'due'].map((filter) => { const n = new Element('button'); n.dataset.filter = filter; return n; });
   const node = (id) => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
   const location = { href: `http://localhost/vocabulary.html${mode ? '?mode=' + mode : ''}`, search: mode ? '?mode=' + mode : '' };
@@ -47,9 +48,10 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
     addVocabulary: async (input) => { writes.push({ add: input }); const word = { ...makeWord('added'), ...input }; words.push(word); return word; },
     updateVocabulary: async (id, learned) => { writes.push({ update: id, learned }); const word = words.find((w) => w.id === id); word.learned = learned; return { ...word }; },
     deleteVocabulary: async (id) => { writes.push({ remove: id }); words.splice(words.findIndex((w) => w.id === id), 1); },
-    reviewVocabulary: async (id, remembered) => { writes.push({ review: id, remembered }); if (failReview) throw new Error('Offline'); const word = words.find((w) => w.id === id); word.learned = remembered; word.dueAt = new Date(Date.now() + 86400000).toISOString(); return { ...word }; },
+    reviewVocabulary: async (id, remembered, attemptId) => { attempts.push(attemptId); writes.push({ review: id, remembered }); if (failReview) throw new Error('Offline'); const word = words.find((w) => w.id === id); word.learned = remembered; word.dueAt = new Date(Date.now() + 86400000).toISOString(); return { ...word }; },
   };
-  const context = vm.createContext({ document, location, history: { replaceState: (_a, _b, url) => { location.href = url.toString(); } }, window: { addEventListener: (name, action) => { events[name] = action; }, confirm: () => confirmRemoval }, URL, URLSearchParams, console, setTimeout, clearTimeout });
+  const sessionStorage = { getItem: (key) => storage.get(key), setItem: (key, value) => storage.set(key, value) };
+  const context = vm.createContext({ document, location, history: { replaceState: (_a, _b, url) => { location.href = url.toString(); } }, window: { sessionStorage, addEventListener: (name, action) => { events[name] = action; }, confirm: () => confirmRemoval }, crypto: { randomUUID }, URL, URLSearchParams, console, setTimeout, clearTimeout });
   const modules = new Map();
   function mock(name, values) { const mod = new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context, identifier: name }); modules.set(name, mod); }
   const el = (tag, cls, text) => {
@@ -77,7 +79,8 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
   await flush();
   const click = async (element) => { assert.ok(element, 'control exists'); if (!element.disabled) await element.events.click?.({ preventDefault() {} }); await flush(); };
   const byText = (id, text) => node(id).querySelectorAll('button').find((n) => n.textContent.includes(text));
-  return { node, mode: async (value) => click(modeButtons.find((n) => n.dataset.mode === value)), filter: async (value) => click(filters.find((n) => n.dataset.filter === value)), click, byText, writes, words, flush, fail: (value) => { failReview = value; }, confirmRemoval: (value) => { confirmRemoval = value; } };
+  const session = () => JSON.parse(storage.get('fleng.mixed-practice.v1:user'));
+  return { node, mode: async (value) => click(modeButtons.find((n) => n.dataset.mode === value)), filter: async (value) => click(filters.find((n) => n.dataset.filter === value)), click, byText, writes, words, attempts, session, flush, fail: (value) => { failReview = value; }, confirmRemoval: (value) => { confirmRemoval = value; } };
 }
 
 test('loads every vocabulary page, searches translation and filters learned words', async () => {
@@ -114,113 +117,135 @@ test('removes a word from My Words only after confirmation', async () => {
   assert.match(app.node('word-count').textContent, /1 word/);
 });
 
-test('flashcards reveal before recording a review and persist remembered state', async () => {
-  const app = await page(); await app.mode('flashcards');
+
+const practiceWords = () => ['train', 'plant', 'stone', 'crown', 'place', 'share', 'flame', 'fruit']
+  .map((word, i) => makeWord(String(i), word, 'translation ' + i));
+
+async function answer(app, remembered, pause = false) {
+  const session = app.session();
+  const id = session.queue[0];
+  const { type } = session.tasks.find(({ wordId }) => wordId === id);
+  const word = app.words.find((item) => item.id === id);
+  const target = app.node('word-practice');
+  if (type === 'flashcards') {
+    await app.click(app.byText('word-practice', 'Reveal translation'));
+    await app.click(app.byText('word-practice', remembered ? 'I knew it' : 'I need practice'));
+  } else if (type === 'choice') {
+    const option = target.querySelectorAll('button').find((button) => button.className === 'word-choice'
+      && (button.textContent === word.translation) === remembered);
+    await app.click(option);
+  } else if (type === 'write') {
+    const input = target.querySelector('input');
+    const form = target.querySelector('form');
+    input.value = remembered ? `  ${word.word.toUpperCase()}  ` : 'wrong';
+    input.events.input();
+    if (pause) await new Promise((resolve) => setTimeout(resolve, 1600));
+    else {
+      form.events.submit({ preventDefault() {} });
+      form.events.submit({ preventDefault() {} });
+    }
+    await app.flush();
+  } else {
+    const letters = [...word.word].filter((_, index) => index % 3 !== 0);
+    if (!remembered) [letters[0], letters[1]] = [letters[1], letters[0]];
+    const buttons = target.querySelectorAll('button');
+    const slots = buttons.filter((button) => button.className?.includes('lesson-tile-slot'));
+    for (const [index, letter] of letters.entries()) {
+      await app.click(buttons.find((button) => !button.hidden && button.textContent === letter));
+      await app.click(slots[index]);
+    }
+  }
+}
+
+test('Mixed Practice balances every task type and rotates every wrong answer in FIFO order', async () => {
+  const words = practiceWords();
+  const storage = new Map();
+  let app = await page({ words, storage });
+  await app.mode('mixed');
+  const initial = app.session();
+  for (const type of ['flashcards', 'choice', 'write', 'letters']) {
+    assert.equal(initial.tasks.filter((task) => task.type === type).length, 2);
+  }
+  for (const [index, id] of initial.queue.entries()) {
+    assert.equal(app.session().queue[0], id);
+    await answer(app, false);
+    assert.equal(app.session().queue.at(-1), id);
+    assert.match(app.node('word-practice').textContent, /Correct answer:/);
+    assert.equal(app.session().incorrect, index + 1);
+  }
+  assert.deepEqual(app.session().queue, initial.queue);
+  await answer(app, false);
+  const rotated = [...initial.queue.slice(1), initial.queue[0]];
+  assert.deepEqual(app.session().queue, rotated);
+  app = await page({ words, storage, mode: 'mixed' });
+  assert.deepEqual(app.session().queue, rotated);
+  assert.equal(app.session().incorrect, 9);
   assert.equal(app.writes.length, 0);
-  await app.click(app.byText('word-practice', 'Reveal translation'));
-  await app.click(app.byText('word-practice', 'I knew it'));
-  assert.equal(app.writes[0].remembered, true); assert.equal(app.words[0].learned, true);
-  const progress = app.node('word-practice').querySelectorAll('div').find((n) => n.attributes.role === 'progressbar');
-  assert.equal(progress.attributes['aria-valuenow'], '1');
-  await app.click(app.byText('word-practice', 'See results'));
-  assert.match(app.node('word-practice').textContent, /1 remembered/);
+  let paused = false;
+  for (const id of rotated) {
+    assert.equal(app.session().queue[0], id);
+    const pause = !paused && initial.tasks.find(({ wordId }) => id === wordId).type === 'write';
+    paused ||= pause;
+    await answer(app, true, pause);
+  }
+  assert.equal(app.writes.length, 8);
+  assert.equal(new Set(app.attempts).size, 8);
+  assert.deepEqual(app.session().queue, []);
+  assert.match(app.node('word-practice').textContent, /Correct: 8 · Incorrect: 9/);
+  assert.match(app.node('word-practice').textContent, /47%/);
+  await app.click(app.byText('word-practice', 'Practise again'));
+  assert.equal(app.session().queue.length, 8);
+  assert.equal(app.session().incorrect, 0);
 });
 
-test('failed review does not advance or claim saved progress and allows retry', async () => {
-  const app = await page({ mode: 'flashcards', reviewError: true });
-  await app.click(app.byText('word-practice', 'Reveal translation'));
-  await app.click(app.byText('word-practice', 'I knew it'));
-  assert.match(app.node('word-practice').textContent, /not saved/);
-  assert.equal(app.words[0].learned, false);
-  assert.equal(app.byText('word-practice', 'See results'), undefined);
-  app.fail(false); await app.click(app.byText('word-practice', 'I knew it'));
-  assert.ok(app.byText('word-practice', 'See results'));
-});
-
-test('typed answers ignore casing and outer whitespace; wrong answers stay unlearned', async () => {
-  const app = await page({ mode: 'write' });
-  app.node('word-practice').querySelector('input').value = ' RESILIENCE ';
-  app.node('word-practice').querySelector('form').events.submit({ preventDefault() {} }); await app.flush();
-  assert.equal(app.writes[0].remembered, true);
-  await app.mode('write');
-  app.node('word-practice').querySelector('input').value = 'wrong';
-  app.node('word-practice').querySelector('form').events.submit({ preventDefault() {} }); await app.flush();
-  assert.equal(app.writes[1].remembered, false);
-});
-
-test('typed answers are checked after a pause using the latest input', async () => {
-  const app = await page({ mode: 'write' });
-  const input = app.node('word-practice').querySelector('input');
-  input.value = 'res';
-  input.events.input();
-  input.value = 'resilience';
-  input.events.input();
-  assert.equal(app.writes.length, 0);
-  await new Promise((resolve) => setTimeout(resolve, 1600));
-  assert.deepEqual(app.writes, [{ review: 'one', remembered: true }]);
-});
-
-test('multiple choice submits the selected translation and handles insufficient words', async () => {
-  const app = await page({ words: [makeWord('one', 'hello', 'привіт'), makeWord('two', 'bye', 'бувай')], mode: 'choice' });
-  const current = app.node('word-practice').querySelector('h2').textContent;
-  await app.click(app.byText('word-practice', current === 'hello' ? 'привіт' : 'бувай'));
-  assert.equal(app.writes[0].remembered, true);
-  const single = await page({ mode: 'choice' });
-  assert.match(single.node('word-practice').textContent, /at least two words/);
-  assert.equal(single.writes.length, 0);
-});
-
-test('missing-letter tiles are usable by clicking and submit the assembled word', async () => {
-  const app = await page({ words: [makeWord('one', 'be', 'бути')], mode: 'letters' });
-  const buttons = app.node('word-practice').querySelectorAll('button');
-  const tile = buttons.find((n) => n.textContent === 'e');
-  const slot = buttons.find((n) => n.className?.includes('lesson-tile-slot'));
-  await app.click(tile); await app.click(slot);
-  assert.equal(app.writes[0].remembered, true);
-});
-
-test('flashcard can turn both ways and hides assessment controls on its English face', async () => {
-  const app = await page({ mode: 'flashcards' });
+test('one word uses reveal and self-assessment, repeats errors, and replays even when no longer due', async () => {
+  const app = await page();
+  await app.filter('due');
+  await app.mode('mixed');
   const flip = app.node('word-practice').querySelectorAll('button').find((n) => n.className === 'flashcard-turn');
   assert.equal(flip.attributes['aria-pressed'], 'false');
   await app.click(flip);
   assert.equal(flip.attributes['aria-pressed'], 'true');
   assert.ok(app.byText('word-practice', 'I knew it'));
   await app.click(flip);
-  assert.equal(flip.attributes['aria-pressed'], 'false');
   assert.equal(app.byText('word-practice', 'I knew it'), undefined);
+  assert.equal(app.writes.length, 0);
+  await answer(app, false);
+  assert.deepEqual(app.session().queue, ['one']);
+  await answer(app, true);
+  assert.deepEqual(app.session().queue, []);
+  await app.click(app.byText('word-practice', 'Practise again'));
+  assert.deepEqual(app.session().queue, ['one']);
+});
+
+test('empty practice does not call the review API', async () => {
+  const app = await page({ words: [] });
+  await app.mode('mixed');
+  assert.match(app.node('word-practice').textContent, /No words for this activity/);
   assert.equal(app.writes.length, 0);
 });
 
-test('session summary records only saved answers and repeats only the mistakes', async () => {
-  const app = await page({ words: [makeWord('one', 'hello', 'привіт'), makeWord('two', 'bye', 'бувай')], mode: 'write' });
-  app.node('word-practice').querySelector('input').value = 'wrong';
-  app.node('word-practice').querySelector('form').events.submit({ preventDefault() {} }); await app.flush();
-  const failedId = app.writes[0].review;
-  await app.click(app.byText('word-practice', 'Next word'));
-  const translation = app.node('word-practice').querySelector('h2').textContent;
-  app.node('word-practice').querySelector('input').value = app.words.find((w) => w.translation === translation).word;
-  app.node('word-practice').querySelector('form').events.submit({ preventDefault() {} }); await app.flush();
-  await app.click(app.byText('word-practice', 'See results'));
-  assert.match(app.node('word-practice').textContent, /50%/);
-  assert.match(app.node('word-practice').textContent, /1 remembered · 1 to practise again/);
-  await app.click(app.byText('word-practice', 'Repeat mistakes'));
-  assert.match(app.node('word-practice').textContent, /1 \/ 1/);
-  app.node('word-practice').querySelector('input').value = app.words.find((w) => w.id === failedId).word;
-  app.node('word-practice').querySelector('form').events.submit({ preventDefault() {} }); await app.flush();
-  assert.equal(app.writes[2].review, failedId);
-  assert.equal(app.writes[2].remembered, true);
+test('phrases with identical translations balance the compatible formats', async () => {
+  const words = ['get back', 'come back', 'go back', 'turn back', 'head back']
+    .map((word, index) => makeWord(String(index), word, 'повернутися'));
+  const app = await page({ words, mode: 'mixed' });
+  const types = app.session().tasks.map((task) => task.type);
+  assert.ok(types.every((type) => ['flashcards', 'write'].includes(type)));
+  assert.ok(Math.abs(types.filter((type) => type === 'flashcards').length
+    - types.filter((type) => type === 'write').length) <= 1);
 });
 
-test('replaying a due-only session keeps its words after their review dates move forward', async () => {
-  const app = await page({ mode: 'write' });
-  await app.filter('due');
-  app.node('word-practice').querySelector('input').value = 'resilience';
-  app.node('word-practice').querySelector('form').events.submit({ preventDefault() {} }); await app.flush();
-  await app.click(app.byText('word-practice', 'See results'));
-  await app.click(app.byText('word-practice', 'Practise again'));
-  assert.ok(app.node('word-practice').querySelector('input'));
-  assert.doesNotMatch(app.node('word-practice').textContent, /No words for this activity/);
+test('an unsaved review remains pending and reload retries the same attempt ID', async () => {
+  const storage = new Map();
+  const app = await page({ mode: 'flashcards', reviewError: true, storage });
+  await answer(app, true);
+  assert.match(app.node('word-practice').textContent, /not saved/);
+  assert.equal(app.words[0].learned, false);
+  const attemptId = app.session().pending.attemptId;
+  const restored = await page({ words: app.words, mode: 'mixed', storage });
+  assert.deepEqual(restored.attempts, [attemptId]);
+  assert.deepEqual(restored.session().queue, []);
+  assert.match(restored.node('word-practice').textContent, /Correct: 1 · Incorrect: 0/);
 });
 
 test('filters the dictionary by course and lesson and shows where each word came from', async () => {

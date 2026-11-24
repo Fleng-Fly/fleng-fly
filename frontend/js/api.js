@@ -264,9 +264,9 @@ export function addVocabulary(input) {
   return apiFetch('/vocabulary', { method: 'POST', body: JSON.stringify(input) });
 }
 
-export function reviewVocabulary(id, remembered) {
+export function reviewVocabulary(id, remembered, attemptId) {
   return apiFetch(`/vocabulary/${encodeURIComponent(id)}/review`, {
-    method: 'POST', body: JSON.stringify({ remembered }),
+    method: 'POST', body: JSON.stringify({ remembered, attemptId }),
   });
 }
 

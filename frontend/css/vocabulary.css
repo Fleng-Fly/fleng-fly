@@ -38,6 +38,7 @@
 .word-details-toggle:focus-visible { outline: 2px solid var(--fleng-pink); outline-offset: 3px; }
 .word-details { margin-top: 10px; padding: 12px; border: 1px solid var(--fleng-border); border-radius: 9px; background: #100c1e; display: grid; gap: 6px; }
 .word-details[hidden] { display: none; }
+#word-toolbar[hidden] { display: none; }
 .word-details .word-detail-label { color: var(--fleng-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
 .word-details .word-example { color: var(--fleng-lilac); font-size: 13px; }
 .course-words-toolbar { margin-bottom: 22px; }

@@ -8,9 +8,13 @@ import { letterTiles } from './letter-tiles.js';
 import { autoCheckText } from './auto-check.js';
 
 const $ = (id) => document.getElementById(id);
-const modes = ['list', 'flashcards', 'choice', 'write', 'letters'];
+const taskTypes = ['flashcards', 'choice', 'write', 'letters'];
 const initialMode = new URLSearchParams(location.search).get('mode');
-const state = { words: [], groups: [], course: '', lesson: '', expanded: new Set(), filter: 'all', mode: modes.includes(initialMode) ? initialMode : 'list', loading: false, busy: false, queue: [], index: 0, remembered: new Set(), needsPractice: new Set(), reviewing: null, request: 0, startedAt: 0, finishedAt: null };
+const state = {
+  words: [], groups: [], course: '', lesson: '', expanded: new Set(), filter: 'all',
+  mode: initialMode === 'mixed' || taskTypes.includes(initialMode) ? 'mixed' : 'list',
+  loading: false, busy: false, request: 0, session: null, storageKey: null, reviewError: '',
+};
 const normalize = (value) => value.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('en');
 const isDue = (word) => new Date(word.dueAt).getTime() <= Date.now();
 
@@ -101,8 +105,7 @@ function onSourceChange(courseChanged) {
   state.course = $('word-course').value;
   state.lesson = courseChanged ? '' : $('word-lesson').value;
   renderSourceFilters();
-  if (state.mode === 'list') renderWords();
-  else startPractice();
+  renderWords();
 }
 
 function renderStats() {
@@ -191,6 +194,8 @@ function renderWords() {
       try {
         await deleteVocabulary(word.id);
         state.words = state.words.filter((item) => item.id !== word.id);
+        state.session = reconcilePractice(state.session);
+        savePractice();
         state.expanded.delete(word.id);
         renderStats();
         renderWords();
@@ -200,7 +205,7 @@ function renderWords() {
         remove.disabled = false;
       }
     }, 'lesson-button lesson-button-secondary word-remove');
-    actions.append(toggle, control(t('vocab.practise'), () => setMode('flashcards', word.id), 'lesson-button lesson-button-primary'), remove);
+    actions.append(toggle, control(t('vocab.practise'), () => setMode('mixed', word.id), 'lesson-button lesson-button-primary'), remove);
     row.append(speakButton(word.word), copy, status, actions);
     target.append(row);
   }
@@ -219,28 +224,76 @@ function shuffle(items) {
   return result;
 }
 
+function translations() {
+  return [...new Map(state.words.map((word) => [normalize(word.translation), word.translation])).values()];
+}
+
+function availableTypes(word, canChoose) {
+  return taskTypes.filter((type) => (type !== 'choice' || canChoose)
+    && (type !== 'letters' || /^[a-zA-Z]{2,24}$/.test(word.word)));
+}
+
+function practiceSelection() {
+  return JSON.stringify([state.filter, state.course, state.lesson, normalize($('word-search').value)]);
+}
+
+function savePractice() {
+  if (!state.storageKey) return;
+  try { window.sessionStorage.setItem(state.storageKey, JSON.stringify(state.session)); }
+  catch { /* Practice is still available in memory. */ }
+}
+
+function reconcilePractice(session) {
+  if (!Array.isArray(session?.tasks) || !Array.isArray(session.queue)
+      || !Array.isArray(session.mistakes)) return null;
+  const words = new Map(state.words.map((word) => [word.id, word]));
+  const canChoose = translations().length > 1;
+  const tasks = new Map(session.tasks.filter(({ wordId }) => words.has(wordId)).map((task) => {
+    const types = availableTypes(words.get(task.wordId), canChoose);
+    return [task.wordId, { ...task, type: types.includes(task.type) ? task.type : 'flashcards' }];
+  }));
+  if (!tasks.size) return null;
+  const queue = [...new Set(session.queue)].filter((id) => tasks.has(id));
+  const pending = session.pending && session.pending.wordId === queue[0] ? session.pending : null;
+  return { ...session, tasks: [...tasks.values()], queue, pending };
+}
+
+function restorePractice() {
+  try { return reconcilePractice(JSON.parse(window.sessionStorage.getItem(state.storageKey))); }
+  catch { return null; }
+}
+
 function startPractice(firstId, selectedIds) {
-  // Replay the completed session even when its words are no longer due.
-  let words = selectedIds ? state.words.filter((word) => selectedIds.includes(word.id)) : filteredWords();
-  if (state.mode === 'letters') words = words.filter((word) => /^[a-zA-Z]{2,24}$/.test(word.word));
-  state.queue = shuffle(words.map((word) => word.id));
-  if (firstId && state.queue.includes(firstId)) state.queue = [firstId, ...state.queue.filter((id) => id !== firstId)];
-  state.index = 0;
-  state.remembered.clear();
-  state.needsPractice.clear();
-  state.reviewing = null;
-  state.startedAt = Date.now();
-  state.finishedAt = null;
+  // Replay the same words even after review changes the due filter.
+  const selected = selectedIds ? state.words.filter((word) => selectedIds.includes(word.id)) : filteredWords();
+  const canChoose = translations().length > 1;
+  const counts = new Map(taskTypes.map((type) => [type, 0]));
+  const candidates = shuffle(selected).map((word) => ({ wordId: word.id, types: shuffle(availableTypes(word, canChoose)) }));
+  // Allocate constrained words first so their limited types do not crowd out the others.
+  candidates.sort((a, b) => a.types.length - b.types.length);
+  const tasks = shuffle(candidates.map(({ wordId, types }) => {
+    const type = selected.length === 1 ? 'flashcards'
+      : types.reduce((best, candidate) => counts.get(candidate) < counts.get(best) ? candidate : best);
+    counts.set(type, counts.get(type) + 1);
+    return { wordId, type };
+  }));
+  const queue = tasks.map(({ wordId }) => wordId);
+  if (firstId && queue.includes(firstId)) queue.unshift(...queue.splice(queue.indexOf(firstId), 1));
+  state.session = {
+    tasks, queue, selection: practiceSelection(), mistakes: [], incorrect: 0,
+    startedAt: Date.now(), finishedAt: null, pending: null, lastMistake: null,
+  };
+  state.reviewError = '';
+  savePractice();
   renderPractice();
 }
 
 function renderSummary(target) {
-  if (state.finishedAt === null) state.finishedAt = Date.now();
-  const ids = [...state.queue];
-  const mistakes = [...state.needsPractice];
-  const correct = state.remembered.size;
-  const accuracy = Math.round(correct / ids.length * 100);
-  const seconds = Math.max(0, Math.floor((state.finishedAt - state.startedAt) / 1000));
+  const { tasks, mistakes, incorrect, finishedAt, startedAt } = state.session;
+  const ids = tasks.map(({ wordId }) => wordId);
+  const correct = ids.length;
+  const accuracy = Math.round(correct / (correct + incorrect) * 100);
+  const seconds = Math.max(0, Math.floor(((finishedAt ?? Date.now()) - startedAt) / 1000));
   const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   const summary = el('section', 'practice-summary');
   summary.setAttribute('aria-labelledby', 'practice-summary-title');
@@ -252,15 +305,15 @@ function renderSummary(target) {
   const title = el('h2', undefined, t('vocab.complete'));
   title.id = 'practice-summary-title';
   title.tabIndex = -1;
-  summary.append(celebration, icon, el('span', 'lesson-chip', t('vocab.session')), title,
-    el('p', 'dashboard-muted', t('vocab.summary', { correct, mistakes: mistakes.length })));
+  summary.append(celebration, icon, el('span', 'lesson-chip', t('vocab.mixedTitle')), title,
+    el('p', 'dashboard-muted', t('vocab.mixedCounts', { correct, incorrect })));
   const ring = el('div', 'summary-score-ring');
   ring.style.background = `conic-gradient(var(--fleng-pink) ${accuracy}%, var(--fleng-raised) 0)`;
   const center = el('div', 'summary-score-center');
-  center.append(el('strong', undefined, `${accuracy}%`), el('span', undefined, state.mode === 'flashcards' ? t('vocab.selfRecall') : t('vocab.correctAnswers')));
+  center.append(el('strong', undefined, `${accuracy}%`), el('span', undefined, t('vocab.correctAnswers')));
   ring.append(center);
   const metrics = el('div', 'summary-metrics');
-  for (const [label, value] of [[t('vocab.reviewed'), ids.length], [t('vocab.remembered'), correct], [t('vocab.toPractise'), mistakes.length], [t('vocab.time'), time]]) {
+  for (const [label, value] of [[t('vocab.reviewed'), ids.length], [t('vocab.remembered'), correct], [t('vocab.mixedMistakes'), mistakes.length], [t('vocab.time'), time]]) {
     const metric = el('div', 'summary-metric');
     metric.append(el('strong', undefined, String(value)), el('span', undefined, label));
     metrics.append(metric);
@@ -270,7 +323,7 @@ function renderSummary(target) {
   for (const id of ids) {
     const word = state.words.find((item) => item.id === id);
     if (!word) continue;
-    const needsPractice = state.needsPractice.has(id);
+    const needsPractice = mistakes.includes(id);
     const row = el('li', needsPractice ? 'summary-word is-mistake' : 'summary-word');
     const copy = el('span');
     copy.append(el('strong', undefined, word.word), el('small', undefined, word.translation));
@@ -286,10 +339,11 @@ function renderSummary(target) {
   title.focus();
 }
 
-function setMode(mode, firstId) {
+function setMode(mode, firstId, startAgain = false) {
   if (state.busy) return;
   state.mode = mode;
   const url = new URL(location.href);
+  url.searchParams.delete('word');
   if (mode === 'list') url.searchParams.delete('mode');
   else url.searchParams.set('mode', mode);
   history.replaceState(null, '', url);
@@ -301,77 +355,120 @@ function setMode(mode, firstId) {
     else node.removeAttribute('aria-current');
   }
   $('word-list-panel').hidden = mode !== 'list';
+  $('word-toolbar').hidden = mode !== 'list';
   $('word-practice-panel').hidden = mode === 'list';
   feedback();
   if (mode === 'list') renderWords();
-  else startPractice(firstId);
+  else if (firstId || startAgain || !state.session?.tasks.length) startPractice(firstId);
+  else {
+    renderPractice();
+    if (state.session.pending) void saveReview();
+  }
 }
 
-function renderPractice() {
+async function saveReview() {
+  const session = state.session;
+  const pending = session?.pending;
+  if (!pending || state.busy) return;
+  state.busy = true;
+  state.reviewError = '';
+  setControlsDisabled(true);
+  renderPractice();
+  try {
+    const { wordId, remembered, attemptId } = pending;
+    const updated = await reviewVocabulary(wordId, remembered, attemptId);
+    if (state.session !== session) return;
+    updateWord(updated);
+    session.queue.shift();
+    session.lastMistake = remembered ? null : wordId;
+    if (!remembered) {
+      session.queue.push(wordId);
+      session.incorrect++;
+      if (!session.mistakes.includes(wordId)) session.mistakes.push(wordId);
+    }
+    session.pending = null;
+    if (!session.queue.length) session.finishedAt = Date.now();
+    savePractice();
+  } catch (error) {
+    if (state.session === session) state.reviewError = describeApiError(error);
+  } finally {
+    if (state.session === session) {
+      state.busy = false;
+      setControlsDisabled(false);
+      renderPractice(true);
+    }
+  }
+}
+
+function renderPractice(focus = false) {
   const target = $('word-practice');
   target.replaceChildren();
-  if (!state.queue.length) {
-    empty(target, t('vocab.noActivityWords'), state.mode === 'letters' ? t('vocab.lettersHint') : t('vocab.beginHint'));
+  const session = state.session;
+  if (!session?.tasks.length) {
+    empty(target, t('vocab.noActivityWords'), t('vocab.beginHint'));
     return;
   }
-  if (state.index >= state.queue.length) {
+  if (!session.queue.length) {
     renderSummary(target);
     return;
   }
-  const word = state.words.find((item) => item.id === state.queue[state.index]);
-  state.reviewing = word.id;
+  const task = session.tasks.find(({ wordId }) => wordId === session.queue[0]);
+  const word = state.words.find((item) => item.id === task.wordId);
+  const { type } = task;
+  const total = session.tasks.length;
+  const correct = total - session.queue.length;
+  const incorrect = session.incorrect;
   const modeLabels = { flashcards: t('vocab.modeFlash'), choice: t('vocab.modeChoice'), write: t('vocab.modeWrite'), letters: t('vocab.modeLetters') };
+  const title = el('h2', undefined, t('vocab.mixedTitle'));
+  title.tabIndex = -1;
   const meta = el('div', 'word-practice-meta');
-  meta.append(el('span', undefined, modeLabels[state.mode]), el('span', undefined, `${state.index + 1} / ${state.queue.length}`));
+  meta.append(el('span', undefined, modeLabels[type]), el('span', undefined, `${correct} / ${total}`));
   const track = el('div', 'word-run-track');
   track.setAttribute('role', 'progressbar');
   track.setAttribute('aria-label', t('vocab.runLabel'));
   track.setAttribute('aria-valuemin', '0');
-  track.setAttribute('aria-valuemax', String(state.queue.length));
-  track.setAttribute('aria-valuenow', String(state.index));
+  track.setAttribute('aria-valuemax', String(total));
+  track.setAttribute('aria-valuenow', String(correct));
   const fill = el('span');
-  fill.style.width = `${state.index / state.queue.length * 100}%`;
+  fill.style.width = `${correct / total * 100}%`;
   track.append(fill);
   const card = el('div', 'word-practice-card');
-  const heading = el('h2', undefined, state.mode === 'write' || state.mode === 'letters' ? word.translation : word.word);
-  card.append(el('span', 'lesson-chip', state.mode === 'flashcards' ? t('vocab.wordCard') : t('vocab.practiceChip')), heading);
+  card.dataset.taskType = type;
+  card.dataset.wordId = word.id;
+  const heading = el('h2', undefined, type === 'write' || type === 'letters' ? word.translation : word.word);
+  card.append(el('span', 'lesson-chip', type === 'flashcards' ? t('vocab.wordCard') : t('vocab.practiceChip')), heading);
   const result = el('p', 'word-practice-result');
   result.setAttribute('role', 'status');
   const actions = el('div', 'word-practice-actions');
-  target.append(meta, track, card);
+  target.append(title, meta, track, el('p', 'dashboard-muted', t('vocab.mixedCounts', { correct, incorrect })));
+  const mistake = state.words.find((item) => item.id === session.lastMistake);
+  if (mistake) {
+    const note = el('p', 'word-practice-result is-error', t('vocab.mixedCorrection', {
+      word: mistake.word, translation: mistake.translation,
+    }));
+    note.setAttribute('role', 'status');
+    target.append(note);
+  }
+  target.append(card);
+  if (focus) title.focus();
 
-  async function grade(remembered) {
-    if (state.busy) return;
-    state.busy = true;
-    setControlsDisabled(true);
-    const localControls = [...card.querySelectorAll('button, input')];
-    for (const node of localControls) node.disabled = true;
-    let saved = false;
-    try {
-      updateWord(await reviewVocabulary(word.id, remembered));
-      if (remembered) { state.remembered.add(word.id); state.needsPractice.delete(word.id); }
-      else { state.needsPractice.add(word.id); state.remembered.delete(word.id); }
-      saved = true;
-      track.setAttribute('aria-valuenow', String(state.index + 1));
-      fill.style.width = `${(state.index + 1) / state.queue.length * 100}%`;
-      card.classList.toggle('answer-success', remembered);
-      card.classList.toggle('answer-mistake', !remembered);
-      result.classList.toggle('is-error', !remembered);
-      result.textContent = `${remembered ? `✓ ${t('vocab.wellDone')}` : t('vocab.keepPractising')} ${word.word} — ${word.translation}`;
-      if (word.example) result.append(el('span', undefined, ` · ${word.example}`));
-      actions.replaceChildren(control(state.index + 1 === state.queue.length ? t('vocab.results') : t('vocab.nextWord'), () => { state.index++; renderPractice(); }, 'lesson-button lesson-button-primary'));
-      actions.querySelector('button').focus();
-    } catch (error) {
-      result.classList.add('is-error');
-      result.textContent = t('vocab.notSaved', { error: describeApiError(error) });
-    } finally {
-      state.busy = false;
-      setControlsDisabled(false);
-      if (!saved) for (const node of localControls) node.disabled = false;
-    }
+  if (session.pending) {
+    result.textContent = state.reviewError ? t('vocab.notSaved', { error: state.reviewError }) : t('vocab.mixedSaving');
+    if (state.reviewError) result.classList.add('is-error');
+    card.append(result);
+    if (!state.busy) card.append(control(t('common.tryAgain'), saveReview));
+    return;
   }
 
-  if (state.mode === 'flashcards') {
+  function grade(remembered) {
+    if (state.busy || state.loading || state.mode !== 'mixed' || state.session !== session
+        || session.queue[0] !== word.id || session.pending || incorrect !== session.incorrect) return;
+    session.pending = { wordId: word.id, remembered, attemptId: crypto.randomUUID() };
+    savePractice();
+    void saveReview();
+  }
+
+  if (type === 'flashcards') {
     heading.className = 'sr-only';
     const flip = control('', () => turnCard(!revealed), 'flashcard-turn');
     flip.setAttribute('aria-pressed', 'false');
@@ -401,22 +498,17 @@ function renderPractice() {
     }
     card.append(flip, speakButton(word.word), el('p', 'dashboard-muted', t('vocab.thinkFirst')));
     actions.append(control(t('vocab.reveal'), () => turnCard(true), 'lesson-button lesson-button-primary'));
-  } else if (state.mode === 'choice') {
+  } else if (type === 'choice') {
     card.append(speakButton(word.word), el('p', 'dashboard-muted', t('vocab.chooseTranslation')));
-    const alternatives = [...new Set(state.words.map((item) => item.translation))].filter((translation) => normalize(translation) !== normalize(word.translation));
-    if (!alternatives.length) {
-      card.append(el('p', 'dashboard-muted', t('vocab.needTwo')));
-      actions.append(control(t('vocab.tryFlash'), () => setMode('flashcards'), 'lesson-button lesson-button-primary'));
-    } else {
-      const choices = el('div', 'word-choice-list');
-      for (const choice of shuffle([word.translation, ...shuffle(alternatives).slice(0, 3)])) choices.append(control(choice, () => grade(normalize(choice) === normalize(word.translation)), 'word-choice'));
-      card.append(choices);
-    }
+    const alternatives = translations().filter((translation) => normalize(translation) !== normalize(word.translation));
+    const choices = el('div', 'word-choice-list');
+    for (const choice of shuffle([word.translation, ...shuffle(alternatives).slice(0, 3)])) choices.append(control(choice, () => grade(choice === word.translation), 'word-choice'));
+    card.append(choices);
   } else {
     const form = el('form');
     const check = (answer) => grade(normalize(answer) === normalize(word.word));
     const letters = [...word.word];
-    if (state.mode === 'write' || letters.length < 2) {
+    if (type === 'write') {
       const label = el('label', 'lesson-answer-label', t('vocab.typeEnglish'));
       const input = el('input', 'lesson-answer');
       input.required = true;
@@ -432,7 +524,6 @@ function renderPractice() {
       const pattern = letters.map((letter, index) => index % 3 === 0 ? letter : '_').join('');
       const bank = shuffle(letters.filter((_, index) => index % 3 !== 0));
       const tiles = letterTiles({ pattern, letters: bank }, '', null, () => {
-        result.textContent = '';
         const answer = tiles.readAnswer();
         if (answer) check(answer);
       });
@@ -440,7 +531,7 @@ function renderPractice() {
     }
     card.append(form);
   }
-  card.append(result, actions);
+  card.append(actions);
 }
 
 function openAddDialog() {
@@ -469,6 +560,10 @@ async function load() {
       if (page.length < 100) break;
     }
     state.words = words;
+    state.storageKey = `fleng.mixed-practice.v1:${user.id}`;
+    state.session = restorePractice();
+    state.busy = false;
+    setControlsDisabled(false);
     state.groups = await groups;
     if (request !== state.request) return;
     $('words-content').hidden = false;
@@ -489,17 +584,20 @@ mountWorkspace(state.mode === 'list' ? 'words' : 'practice');
 $('add-word').addEventListener('click', openAddDialog);
 $('word-dialog-close').addEventListener('click', () => $('word-dialog').close());
 $('words-retry').addEventListener('click', load);
-for (const button of document.querySelectorAll('[data-mode]')) button.addEventListener('click', () => setMode(button.dataset.mode));
+for (const button of document.querySelectorAll('[data-mode]')) button.addEventListener('click', () => {
+  const startAgain = state.mode === 'list' && state.session
+    && (state.session.finishedAt !== null || state.session.selection !== practiceSelection());
+  setMode(button.dataset.mode, undefined, startAgain);
+});
 for (const button of document.querySelectorAll('[data-filter]')) button.addEventListener('click', () => {
   if (state.busy) return;
   state.filter = button.dataset.filter;
   for (const node of document.querySelectorAll('[data-filter]')) node.setAttribute('aria-pressed', String(node === button));
-  if (state.mode === 'list') renderWords();
-  else startPractice();
+  renderWords();
 });
 $('word-course').addEventListener('change', () => onSourceChange(true));
 $('word-lesson').addEventListener('change', () => onSourceChange(false));
-$('word-search').addEventListener('input', () => { if (state.mode === 'list') renderWords(); else startPractice(); });
+$('word-search').addEventListener('input', renderWords);
 $('word-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!$('word-form').reportValidity()) return;
@@ -524,7 +622,10 @@ window.addEventListener('pagehide', () => { if ('speechSynthesis' in window) spe
 window.addEventListener('fleng:session-ended', () => {
   state.request++;
   state.words = [];
-  state.queue = [];
+  state.session = null;
+  state.storageKey = null;
+  state.busy = false;
+  state.loading = false;
   $('words-content').hidden = true;
   $('word-dialog').close();
   if ('speechSynthesis' in window) speechSynthesis.cancel();

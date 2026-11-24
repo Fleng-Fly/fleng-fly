@@ -166,6 +166,7 @@ All prefixed `/api/v1`; see docs/api.md for request/response contracts:
 - `GET|POST /vocabulary`, `PATCH|DELETE /vocabulary/{id}` (Bearer, own rows).
 - `GET /vocabulary?lessonId=<uuid>` filters the caller's words to one lesson.
 - `POST /vocabulary/{id}/review`, `GET /vocabulary/{id}/reviews` (Bearer).
+  Mixed Practice sends an optional `attemptId` to protect the review write on retry.
 - `GET /vocabulary/stats` (Bearer) returns the caller's learned-word count.
 - `GET /streaks/me`, `GET /achievements/me` (Bearer; no client award route).
 - `POST /auth/password-reset/request|confirm` (public, rate-limited).

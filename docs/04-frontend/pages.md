@@ -10,11 +10,11 @@
 | course.html | course.js | Course and lesson list by slug |
 | lesson.html | lesson.js | Theory, practice/test, progress, personal words |
 | settings.html | settings.js | Profile/email/language/password |
-| vocabulary.html | vocabulary.js | Personal words and four review/practice modes |
+| vocabulary.html | vocabulary.js | Personal words and Mixed Practice |
 | course-words.html | course-words.js | Published course vocabulary, course/search filters, save and practise |
 | leaderboard.html | leaderboard.js | All-time ranking and own position |
 
-Course/lesson URLs use ?slug=. Public metadata is distinct from authenticated learning/private state. Personal vocabulary and its practice modes share vocabulary.html. Course Words uses course-words.html. Progress, Challenges and a standalone AI Tutor remain deferred. The password-reset page is reset-password.html. The lesson Vocabulary tab contains personal saved words, not the shared course dictionary.
+Course/lesson URLs use ?slug=. Public metadata is distinct from authenticated learning/private state. Personal vocabulary and Mixed Practice share vocabulary.html. Course Words uses course-words.html. Progress, Challenges and a standalone AI Tutor remain deferred. The password-reset page is reset-password.html. The lesson Vocabulary tab contains personal saved words, not the shared course dictionary.
 
 Lesson and vocabulary practice check a selected answer or completed letter tiles
 immediately. Typed answers are checked after 1.5 seconds without input or when
@@ -37,3 +37,11 @@ Course Words searches English words and Ukrainian translations as the learner
 types, including separate translation variants and partial matches. Exact
 matches rank first across the paginated catalog. Clearing the search restores
 the initial order within the current course and lesson filters.
+
+Start Practice creates one task per selected personal word and balances four
+formats subject to word eligibility. Mistakes show the answer and rejoin the
+queue tail in the same format. Success removes the task and advances. The
+current tab stores queue, scores, and pending review ID per learner, so reload
+resumes the practice without resending a distinct review. Old practice URLs
+open Mixed Practice and retain their optional starting word. A review updates
+the existing schedule and contributes no XP.

@@ -225,6 +225,29 @@ async def test_review_updates_scheduling_state(
     assert (item.repetitions, item.interval_days, item.learned) == (0, 1, False)
 
 
+async def test_review_attempt_retries_do_not_duplicate_history_or_progress(
+    client: AsyncClient, db_session: AsyncSession
+) -> None:
+    auth = await _learner(client)
+    word = await client.post(WORDS, headers=auth, json={"word": "sun", "translation": "сонце"})
+    item_id = word.json()["id"]
+    path = f"{WORDS}/{item_id}/review"
+    attempt = {"remembered": True, "attemptId": str(uuid.uuid4())}
+    first = await client.post(path, headers=auth, json=attempt)
+    retry = await client.post(path, headers=auth, json=attempt)
+    assert first.status_code == retry.status_code == 200
+    assert first.json() == retry.json()
+    conflict = await client.post(path, headers=auth, json={**attempt, "remembered": False})
+    assert conflict.status_code == 409
+    assert conflict.json()["error"]["code"] == "REVIEW_ATTEMPT_CONFLICT"
+    history = await client.get(f"{WORDS}/{item_id}/reviews", headers=auth)
+    assert len(history.json()) == 1
+    item = await db_session.get(VocabularyItem, uuid.UUID(item_id))
+    assert item is not None
+    await db_session.refresh(item)
+    assert (item.repetitions, item.learned) == (1, True)
+
+
 async def test_curriculum_import_links_every_word_to_the_lesson_that_teaches_it(
     db_session: AsyncSession,
 ) -> None:

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -40,6 +40,7 @@ class VocabularyStatsResponse(CamelModel):
 
 class ReviewRequest(CamelModel):
     remembered: bool
+    attempt_id: UUID | None = None
 
 
 class VocabularyResponse(VocabularyCreate):
@@ -53,6 +54,12 @@ class VocabularyResponse(VocabularyCreate):
     course_title: str | None = None
     lesson_slug: str | None = None
     lesson_title: str | None = None
+
+    @field_validator("due_at")
+    @classmethod
+    def due_at_utc(cls, value: datetime) -> datetime:
+        # SQLite returns stored UTC timestamps without timezone information.
+        return value.replace(tzinfo=UTC) if value.tzinfo is None else value
 
 
 class DictionaryLesson(CamelModel):

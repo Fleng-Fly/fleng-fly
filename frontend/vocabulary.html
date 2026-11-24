@@ -24,7 +24,7 @@
     <p id="words-loading" class="dashboard-muted" role="status" data-i18n="vocab.loading">Loading your vocabulary…</p>
     <div id="words-content" hidden>
       <div id="words-stats" class="word-stats" aria-label="Vocabulary statistics" data-i18n-attr="aria-label:vocab.stats"></div>
-      <div class="word-toolbar">
+      <div id="word-toolbar" class="word-toolbar">
         <div class="word-filters" role="group" aria-label="Filter vocabulary" data-i18n-attr="aria-label:vocab.filter">
           <button type="button" data-filter="all" aria-pressed="true" data-i18n="vocab.fAll">All words</button>
           <button type="button" data-filter="learning" aria-pressed="false" data-i18n="vocab.learning">Learning</button>
@@ -39,10 +39,7 @@
       </div>
       <nav class="word-modes" aria-label="Vocabulary activity" data-i18n-attr="aria-label:vocab.activity">
         <button type="button" data-mode="list" aria-pressed="true" data-i18n="vocab.mList">☷ My words</button>
-        <button type="button" data-mode="flashcards" aria-pressed="false" data-i18n="vocab.mFlash">▱ Flashcards</button>
-        <button type="button" data-mode="choice" aria-pressed="false" data-i18n="vocab.mChoice">◉ Multiple choice</button>
-        <button type="button" data-mode="write" aria-pressed="false" data-i18n="vocab.mWrite">⌨ Write the word</button>
-        <button type="button" data-mode="letters" aria-pressed="false" data-i18n="vocab.mLetters">▦ Missing letters</button>
+        <button type="button" data-mode="mixed" aria-pressed="false" data-i18n="vocab.startMixed">Start Practice</button>
       </nav>
       <section id="word-list-panel" aria-labelledby="word-list-heading"><div class="section-heading"><h2 id="word-list-heading" data-i18n="vocab.yourWords">Your words</h2><span id="word-count" class="dashboard-muted" role="status"></span></div><div id="word-list" class="word-list"></div></section>
       <section id="word-practice-panel" class="word-practice-panel" aria-label="Vocabulary practice" data-i18n-attr="aria-label:vocab.practiceLabel" hidden><div id="word-practice" aria-live="polite"></div></section>

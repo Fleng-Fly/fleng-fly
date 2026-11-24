@@ -231,7 +231,7 @@ async def review_word(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await service.review(db, user, item_id, payload.remembered)
+    return await service.review(db, user, item_id, payload.remembered, payload.attempt_id)
 
 
 @router.get("/{item_id}/reviews", response_model=list[ReviewResponse])

@@ -240,6 +240,11 @@ No JSON body for 204; unmodeled/stream responses follow the transport notes.
 
 ## `POST /api/v1/vocabulary/{item_id}/review`
 
+Mixed Practice sends an optional UUID `attemptId`. Retrying the same word and
+assessment with that ID returns the current word without adding a second history
+entry or applying the schedule again. Reusing the ID with different review data
+returns 409 `REVIEW_ATTEMPT_CONFLICT`. Clients that omit the ID submit independent reviews.
+
 Review Word
 
 Authentication/permissions: Bearer JWT, owner scoped where applicable.

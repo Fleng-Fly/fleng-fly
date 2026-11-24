@@ -2680,6 +2680,18 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "remembered": {
       "type": "boolean",
       "title": "Remembered"
+    },
+    "attemptId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Attemptid"
     }
   },
   "type": "object",

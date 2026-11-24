@@ -75,9 +75,24 @@ async def add(db: AsyncSession, user: User, payload: VocabularyCreate) -> Vocabu
     return item
 
 
-async def review(db: AsyncSession, user: User, item_id: UUID, remembered: bool):
+async def review(
+    db: AsyncSession, user: User, item_id: UUID, remembered: bool, attempt_id: UUID | None = None
+):
     await lock_learner(db, user.id)
     item = await owned(db, user, item_id)
+    review_id = attempt_id or uuid4()
+    insert = pg_insert if db.get_bind().dialect.name == "postgresql" else sqlite_insert
+    saved = await db.scalar(
+        insert(VocabularyReview)
+        .values(id=review_id, item_id=item.id, remembered=remembered)
+        .on_conflict_do_nothing(index_elements=[VocabularyReview.id])
+        .returning(VocabularyReview.id)
+    )
+    if saved is None:
+        previous = await db.get(VocabularyReview, review_id)
+        if previous is None or previous.item_id != item.id or previous.remembered != remembered:
+            raise ApiError(409, "REVIEW_ATTEMPT_CONFLICT", "Review attempt already used")
+        return item
     item.learned = remembered
     # Basic two-step policy. The scheduling state is stored so a smarter scheduler can
     # replace these two lines without a schema change.
@@ -86,7 +101,6 @@ async def review(db: AsyncSession, user: User, item_id: UUID, remembered: bool):
     item.repetitions = item.repetitions + 1 if remembered else 0
     item.last_reviewed_at = now
     item.due_at = now + timedelta(days=item.interval_days)
-    db.add(VocabularyReview(item_id=item.id, remembered=remembered))
     await record_activity(db, user.id)
     await db.commit()
     return item
