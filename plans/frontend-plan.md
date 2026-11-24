@@ -32,15 +32,20 @@
   Exact Figma comparison remains pending.
   Notifications and dedicated word/topic search remain unavailable.
   Leaderboard is implemented (see 2026-11-04 update).
-- [x] Lessons visual phase: shared Dashboard workspace, lesson hero and four
+- [x] Lessons visual phase: shared Dashboard workspace, lesson hero and three
   keyboard-accessible tabs, three existing exercise types, server feedback,
-  Test navigation/preview, lesson-filtered saved vocabulary and responsive
-  360/768/desktop layout. Firefox local smoke passed (2026-10-22).
-  Exact Figma comparison remains pending; custom test generation, timer and
-  unimplemented exercise types are intentionally unavailable.
+  exercise mode chips, card action bar and preview, lesson-filtered saved
+  vocabulary and responsive 360/768/desktop layout. Firefox local smoke passed
+  (2026-10-22). Exact Figma comparison remains pending; custom test generation,
+  timer and unimplemented exercise types are intentionally unavailable.
 
-- [x] Practice and Test advance after grading and revisit unfinished attempts
-  after the unseen questions. Letter tiles support drag and drop, tap and keyboard.
+- [x] Practice advances after grading and revisits unfinished attempts after
+  the unseen questions. Letter tiles support drag and drop, tap and keyboard.
+
+- [x] Lesson practice UI alignment (2026-11-24): exercise-mode chips with an
+  active gradient state, contextual footer hint with Skip and gradient Check
+  Answer, number-key option selection, gradient progress fills and lesson
+  vocabulary metadata (level, part of speech, topic, transcription).
 
 ## Phase C — Progress & profile ⬜
 

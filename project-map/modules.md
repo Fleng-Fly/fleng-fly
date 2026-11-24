@@ -85,7 +85,7 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 | Dashboard                                                | `/dashboard.html`    | 🟢     | protected; sidebar, catalog search, current course, profile, progress, streak and learned-word count from the API |
 | Courses                                                  | `/courses.html`      | 🟢     | protected; catalog list (`GET /courses`)                                                                          |
 | Course                                                   | `/course.html?slug=` | 🟢     | protected; course detail + lesson list                                                                            |
-| Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Test/Vocabulary, grading, progress and saved words                                     |
+| Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Vocabulary, exercise modes, grading, progress and saved-word metadata                 |
 | My Words (vocabulary)                                    | `/vocabulary.html`   | 🟢     | protected; personal dictionary list, filters/search/pagination, add/toggle/delete, flashcards entry              |
 | Flashcards                                               | `/flashcards.html`   | 🟢     | protected; personal-word review deck with two rating controls                                                      |
 | Settings                                                 | `/settings.html`     | 🟢     | protected; profile/email editing, language preference, password change, logout                                    |
@@ -122,8 +122,10 @@ Runtime PostgreSQL/live AI verification remains blocked in this environment.
 
 `frontend/js/workspace.js` owns the shared Dashboard/Lessons sidebar, mobile
 drawer, catalog search and profile menu. `frontend/js/lesson.js` owns only the
-lesson tabs, questions, submission UI and preview. Practice and Test share
-the same automatic advance and retry order. `frontend/js/letter-tiles.js` renders
+lesson tabs, exercise-mode chips, question card, action bar and preview.
+Practice uses the existing automatic advance and retry order; number keys
+1–9 select single-choice options and Skip moves without a submission.
+`frontend/js/letter-tiles.js` renders
 the letter bank and slots for configured text exercises. The lesson page calls the existing
 `catalog`, `exercises` and `vocabulary` APIs through `frontend/js/api.js`.
 `exercises` now returns the caller's latest answer in lesson progress, and

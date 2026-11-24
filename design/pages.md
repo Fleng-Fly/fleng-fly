@@ -48,11 +48,16 @@ not verified because the file/screenshots were inaccessible in this run.
 - Completion screen: score, XP gained, streak update, next lesson.
 
 Current `/lesson.html?slug=...` implementation uses the Dashboard sidebar and
-header, a data-driven lesson hero, Theory/Practice/Test/Vocabulary tabs, a
-question card and a right-column current-test preview. “Use template” enters
-Test; custom template creation is unavailable. Completion is a status banner
-with a course link. The standalone score/next-lesson screen above remains a
-design idea. Exact Figma comparison is pending access to the target frame.
+header, a data-driven lesson hero, Theory/Practice/Vocabulary tabs, a
+question card and a right-column current-test preview. Practice adds
+exercise-mode chips (Multiple choice, Write the word, Missing letters), a
+card footer with a contextual hint, Skip and a gradient Check Answer, and
+number-key option selection. The Vocabulary tab lists saved words with the
+lesson level, part of speech, topic and transcription. Progress fills use a
+purple→pink gradient. “Use template” enters Practice; custom template
+creation is unavailable. Completion is a status banner with a course link.
+The standalone score/next-lesson screen above remains a design idea. Exact
+Figma comparison is pending access to the target frame.
 
 ### Vocabulary `/vocabulary`
 

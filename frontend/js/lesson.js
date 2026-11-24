@@ -8,7 +8,20 @@ import { mountWorkspace, setWorkspaceUser, setWorkspaceAIContext } from './works
 const $ = (id) => document.getElementById(id);
 const tabs = ['theory', 'practice', 'vocabulary'];
 const requestedTab = queryParam('tab');
-const labels = { letter_tiles: 'Letter tiles', single_choice: 'Multiple choice', text: 'Short answer', self_check: 'Self-check' };
+const labels = { letter_tiles: 'Missing letters', single_choice: 'Multiple choice', text: 'Write the word', self_check: 'Self-check' };
+const practiceModes = [
+  { id: 'choice', label: 'Multiple choice', icon: 'choice' },
+  { id: 'write', label: 'Write the word', icon: 'write' },
+  { id: 'spelling', label: 'Missing letters', icon: 'spelling' },
+];
+const iconPaths = {
+  choice: ['M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z', 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z'],
+  write: ['M4 6h16v12H4z', 'M7 10h.01M10 10h.01M13 10h.01M16 10h.01M7 14h7'],
+  spelling: ['M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z'],
+  cursor: ['M6 3l12 7-5 1.6L11 18 6 3Z'],
+  skip: ['M5 5l8 7-8 7V5Z', 'M17 5v14'],
+  check: ['M5 12l4 4 9-9'],
+};
 const state = {
   lesson: null, progress: null, tab: tabs.includes(requestedTab) ? requestedTab : 'theory', index: 0, busy: false,
   drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
@@ -39,6 +52,105 @@ function exerciseState(exercise) {
 
 function exerciseType(exercise) {
   return exercise.letterTiles ? 'letter_tiles' : exercise.type;
+}
+
+function exerciseMode(exercise) {
+  const type = exerciseType(exercise);
+  if (type === 'single_choice' || type === 'true_false') return 'choice';
+  if (type === 'letter_tiles') return 'spelling';
+  return 'write';
+}
+
+function svgIcon(name) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.8');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  for (const data of iconPaths[name] || []) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', data);
+    svg.append(path);
+  }
+  return svg;
+}
+
+function modeTabs() {
+  const group = el('div', 'lesson-modes');
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', 'Practice type');
+  const active = exerciseMode(state.lesson.exercises[state.index]);
+  for (const mode of practiceModes) {
+    const indices = state.lesson.exercises.flatMap((item, index) => exerciseMode(item) === mode.id ? [index] : []);
+    const button = el('button', 'lesson-mode', mode.label);
+    button.type = 'button';
+    button.dataset.mode = mode.id;
+    button.setAttribute('aria-pressed', String(mode.id === active));
+    button.prepend(svgIcon(mode.icon));
+    if (indices.length) button.addEventListener('click', () => goQuestion(indices[0]));
+    else {
+      button.disabled = true;
+      button.title = 'Not in this lesson';
+    }
+    group.append(button);
+  }
+  return group;
+}
+
+function actionHint(exercise) {
+  switch (exerciseType(exercise)) {
+    case 'single_choice': return ['Select an option above', 'Click or press number keys to lock your choice.'];
+    case 'letter_tiles': return ['Build the word', 'Tap the letters in order to fill every blank.'];
+    case 'self_check': return ['Assess your answer', 'Choose whether your answer matches the model.'];
+    default: return ['Write your answer', 'Type your answer, then check it.'];
+  }
+}
+
+function actionBar(exercise, index, readAnswer) {
+  const bar = el('div', 'lesson-action-bar');
+  const [title, hint] = actionHint(exercise);
+  const icon = el('span', 'lesson-action-icon');
+  icon.append(svgIcon('cursor'));
+  const copy = el('div', 'lesson-action-copy');
+  copy.append(el('strong', undefined, title), el('small', undefined, hint));
+  const info = el('div', 'lesson-action-info');
+  info.append(icon, copy);
+  const buttons = el('div', 'lesson-action-buttons');
+  const skip = el('button', 'lesson-button lesson-button-ghost', 'Skip');
+  skip.type = 'button';
+  skip.prepend(svgIcon('skip'));
+  skip.disabled = index >= state.lesson.exercises.length - 1;
+  skip.addEventListener('click', () => skipQuestion(index));
+  buttons.append(skip);
+  if (exercise.type === 'self_check') {
+    const wrong = el('button', 'lesson-button lesson-button-secondary', 'I need practice');
+    wrong.type = 'button';
+    wrong.addEventListener('click', () => submit(exercise, readAnswer(), 'incorrect'));
+    const right = el('button', 'lesson-button lesson-button-primary', 'I got it right');
+    right.type = 'button';
+    right.addEventListener('click', () => submit(exercise, readAnswer(), 'correct'));
+    buttons.append(wrong, right);
+  } else if (readAnswer) {
+    const check = el('button', 'lesson-button lesson-button-primary lesson-button-check');
+    check.type = 'button';
+    const mark = el('span', 'lesson-check-icon');
+    mark.append(svgIcon('check'));
+    mark.setAttribute('aria-hidden', 'true');
+    check.append(el('span', undefined, 'Check Answer'), mark);
+    check.addEventListener('click', () => submit(exercise, readAnswer()));
+    buttons.append(check);
+  }
+  bar.append(info, buttons);
+  return bar;
+}
+
+function skipQuestion(index) {
+  if (state.busy) return;
+  goQuestion(index + 1);
 }
 
 function nextUnfinished(after = -1) {
@@ -208,7 +320,7 @@ async function submit(exercise, answer, assessment) {
 }
 
 function setBusy(busy) {
-  document.querySelectorAll('.lesson-tabs button, #use-template, #template-preview button, #template-structure button, .lesson-answer-form button, .lesson-answer-form input, .lesson-answer-form textarea, .lesson-question-navigation button').forEach((button) => {
+  document.querySelectorAll('.lesson-tabs button, .lesson-modes button, .lesson-action-bar button, #use-template, #template-preview button, #template-structure button, .lesson-answer-form button, .lesson-answer-form input, .lesson-answer-form textarea').forEach((button) => {
     if (busy) {
       button.dataset.disabledBeforeSubmit = String(button.disabled);
       button.disabled = true;
@@ -287,33 +399,10 @@ function questionCard(exercise, index) {
   } else {
     form.append(el('p', 'lesson-muted', 'This activity type is not available in the current lesson player.'));
   }
-  const actions = el('div', 'lesson-answer-actions');
-  if (exercise.type === 'self_check') {
-    for (const [assessment, title] of [['correct', 'I got it right'], ['incorrect', 'I need practice']]) {
-      const button = el('button', 'lesson-button lesson-button-secondary', title);
-      button.type = 'button';
-      button.addEventListener('click', () => submit(exercise, readAnswer(), assessment));
-      actions.append(button);
-    }
-  } else if (readAnswer) {
-    const button = el('button', 'lesson-button lesson-button-primary', 'Check answer');
-    button.type = 'submit';
-    actions.append(button);
+  if (exercise.type !== 'self_check' && readAnswer) {
     form.addEventListener('submit', (event) => { event.preventDefault(); submit(exercise, readAnswer()); });
   }
-  form.append(actions);
-  card.append(form, feedback(exercise, record));
-  const nav = el('div', 'lesson-question-navigation');
-  const previous = el('button', 'lesson-button lesson-button-secondary', '← Previous');
-  previous.type = 'button';
-  previous.disabled = index === 0;
-  previous.addEventListener('click', () => goQuestion(index - 1, state.tab));
-  const next = el('button', 'lesson-button lesson-button-primary', 'Next →');
-  next.type = 'button';
-  next.disabled = index === state.lesson.exercises.length - 1;
-  next.addEventListener('click', () => goQuestion(index + 1, state.tab));
-  nav.append(previous, el('span', undefined, 'Your answers are saved when you check them.'), next);
-  card.append(nav);
+  card.append(form, feedback(exercise, record), actionBar(exercise, index, readAnswer));
   return card;
 }
 
@@ -329,7 +418,7 @@ function renderQuestions() {
     return;
   }
   if (state.tab === 'practice') {
-    practice.append(questionCard(exercises[state.index], state.index));
+    practice.append(modeTabs(), questionCard(exercises[state.index], state.index));
   }
 }
 
@@ -380,8 +469,8 @@ function renderStructure() {
   target.textContent = '';
   for (const [type, label] of [
     ['single_choice', 'Multiple choice'], ['true_false', 'True / False'],
-    ['letter_tiles', 'Letter tiles'], ['match_pairs', 'Match the pairs'],
-    ['text', 'Short answer'], ['self_check', 'Self-check'],
+    ['letter_tiles', 'Missing letters'], ['match_pairs', 'Match the pairs'],
+    ['text', 'Write the word'], ['self_check', 'Self-check'],
   ]) {
     const indices = state.lesson.exercises.flatMap((item, index) => exerciseType(item) === type ? [index] : []);
     const row = el('li');
@@ -428,7 +517,14 @@ function renderVocabulary() {
     const word = el('article', 'lesson-word');
     const heading = el('h3');
     heading.append(el('span', undefined, item.word), el('span', 'lesson-chip', item.learned ? 'Learned' : 'Learning'));
-    word.append(heading, el('p', undefined, item.translation));
+    word.append(heading);
+    const meta = el('p', 'lesson-word-meta');
+    for (const value of [state.lesson.level, item.partOfSpeech, item.topic]) {
+      if (value) meta.append(el('span', 'lesson-chip', value));
+    }
+    if (item.transcription) meta.append(el('span', 'lesson-word-transcription', item.transcription));
+    if (meta.childElementCount) word.append(meta);
+    word.append(el('p', undefined, item.translation));
     if (item.example) word.append(el('p', 'lesson-muted', item.example));
     list.append(word);
   }
@@ -506,6 +602,23 @@ async function loadLesson() {
     showError(error);
   }
 }
+
+document.addEventListener('keydown', (event) => {
+  if (state.tab !== 'practice' || state.busy || !state.lesson) return;
+  if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+  const target = event.target;
+  if (target instanceof HTMLElement && (target.isContentEditable || ['TEXTAREA', 'SELECT'].includes(target.tagName) || (target.tagName === 'INPUT' && target.type !== 'radio'))) return;
+  const exercise = state.lesson.exercises[state.index];
+  if (!exercise || exercise.type !== 'single_choice') return;
+  const position = Number(event.key);
+  if (!Number.isInteger(position) || position < 1) return;
+  const inputs = document.querySelectorAll(`[data-exercise-id="${exercise.id}"] .lesson-option input`);
+  const input = inputs[position - 1];
+  if (!input) return;
+  event.preventDefault();
+  input.checked = true;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+});
 
 mountWorkspace('lessons');
 for (const tab of tabs) {

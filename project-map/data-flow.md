@@ -116,8 +116,9 @@ GET /api/v1/progress/me
 
 XP is server-side only (never client-supplied) and cannot be farmed by retries.
 
-The Lessons workspace adds a Theory tab from `LessonDetail.theory`, Practice
-and Test views over the same exercises and submissions, and a Vocabulary tab.
+The Lessons workspace adds a Theory tab from `LessonDetail.theory`, a Practice
+view over the same exercises and submissions (exercise-mode chips and a card
+action bar), and a Vocabulary tab.
 The player reads `GET /lessons/{slug}/progress` before starting and resumes
 from the first incomplete question. Progress includes the caller's latest
 submitted answer for page reload; unsent drafts stay in memory. Vocabulary

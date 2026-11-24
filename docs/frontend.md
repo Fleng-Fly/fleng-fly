@@ -105,17 +105,23 @@ it with `layout.js` helpers, always via `textContent`:
 - `lesson.js` loads the published lesson and the caller's lesson progress, then
   starts the lesson only if it has not begun. Theory uses the existing safe text
   renderer. Theory is the default; Practice shows exercises one at a time with
-  Previous/Next and a current-lesson preview. Valid tab query parameters select
+  mode chips (Multiple choice, Write the word, Missing letters) that jump to the
+  first question of that type. The active chip follows the current question and
+  chips for absent types are disabled. Valid tab query parameters select
   Practice/Vocabulary; obsolete Test links fall back to Theory. Practice retains
   the same server submissions and progress. Radios (`single_choice`), short answers (`text`),
-  and self-assessment (`self_check`) are supported. The Vocabulary tab loads
-  only the caller's saved words filtered by this lesson ID; it shows an honest
-  empty state when there are none. Last submitted answers are restored from
+  and self-assessment (`self_check`) are supported; number keys 1–9 select a
+  radio option. The card footer shows a context hint, Skip (next question without
+  submitting) and a gradient Check Answer; self-check questions expose the two
+  assessment buttons there instead. The Vocabulary tab loads only the caller's
+  saved words filtered by this lesson ID; it shows an honest empty state when
+  there are none and each word card shows the lesson level, part of speech,
+  topic and transcription when present. Last submitted answers are restored from
   `GET /lessons/{slug}/progress`; unsent drafts exist only in page memory.
   Answer keys remain available only in the submission response. XP and
-  completion are computed by the backend. The custom template builder is
-  disabled because it has no API; “Use template” opens Practice.
-  All server text is inserted with `textContent`.
+  completion are computed by the backend. Progress fills use a purple→pink
+  gradient. The custom template builder is disabled because it has no API;
+  “Use template” opens Practice. All server text is inserted with `textContent`.
 
 `dashboard.html` and `lesson.html` use `js/workspace.js` for their sidebar and topbar. The mobile sidebar
 opens as a keyboard-accessible drawer; the profile menu links to Settings and

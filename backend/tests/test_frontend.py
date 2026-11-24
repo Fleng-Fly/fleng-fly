@@ -79,6 +79,11 @@ async def test_lesson_player_assets_are_served(client: AsyncClient) -> None:
     assert 'id="panel-test"' not in page.text
     assert 'id="panel-vocabulary"' in page.text
     assert "submitAnswer" in script.text
+    assert "lesson-modes" in script.text
+    assert "lesson-action-bar" in script.text
+    assert "lesson-word-meta" in script.text
+    assert "Check Answer" in script.text
+    assert "lesson-modes" in styles.text
     assert "prefers-reduced-motion" in styles.text
 
 
