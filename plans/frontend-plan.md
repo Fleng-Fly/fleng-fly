@@ -4,6 +4,9 @@
   (including Course Words Tests), and Placement Test.
   Verification and current data limits are recorded in
   [FLENG_TEST_COMPLETION_REPORT.md](../FLENG_TEST_COMPLETION_REPORT.md).
+- [x] Course-wide result navigation with catalog context, Next Lesson and
+  reopening from completed course rows. See
+  [FLENG_UNIVERSAL_COMPLETION_REPORT.md](../FLENG_UNIVERSAL_COMPLETION_REPORT.md).
 
 - Completed: My Words offers Mixed Practice with balanced formats, FIFO retries,
   reload recovery, and a replayable summary. Learner review uses the existing API.

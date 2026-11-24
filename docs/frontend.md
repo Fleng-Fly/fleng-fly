@@ -147,6 +147,11 @@ login/logout), the live backend-status badge from `GET /health` (polled every
 result screen for Course Lessons, My Words Mixed Practice (including the
 Course Words Tests entry point), and Placement Test. Each page supplies a
 confirmed result and binds its own review, retry, and navigation actions.
+The shared lesson player opens `TestCompletionScreen` from confirmed lesson
+progress, regardless of the final task format. New lessons on that player
+inherit this behavior. The course page links completed lessons to
+`lesson.html?slug=…&view=results`, which opens and focuses their saved result.
+Lesson title, course title and level come from the lesson catalog response.
 The renderer has no API calls. Lesson completion and XP come from lesson
 progress, Placement uses its completed attempt, and Mixed Practice finishes
 after the final vocabulary review is acknowledged and its FIFO queue is empty.

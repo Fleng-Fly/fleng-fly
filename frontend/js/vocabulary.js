@@ -1,4 +1,4 @@
-import { elapsedSeconds, renderTestCompletion } from './test-completion.js';
+import { elapsedSeconds, TestCompletionScreen } from './test-completion.js';
 import { addVocabulary, deleteVocabulary, getVocabularyGroups, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
 import { el } from './layout.js';
 import { t, tn } from './i18n.js';
@@ -309,7 +309,7 @@ function renderSummary(target) {
   const ids = tasks.map(({ wordId }) => wordId);
   const wrong = mistakes.filter((id) => ids.includes(id));
   const words = new Map(state.words.map((word) => [word.id, word]));
-  const heading = renderTestCompletion(target, {
+  const heading = TestCompletionScreen(target, {
     headingId: 'practice-summary-title',
     title: t('vocab.complete'),
     subtitle: t('vocab.mixedTitle'),
@@ -331,6 +331,7 @@ function renderSummary(target) {
     retryMistakes: wrong.length ? () => startPractice(undefined, wrong) : undefined,
     tryAgain: () => startPractice(undefined, ids),
     finish: () => setMode('list'),
+    backToCourses: true,
   });
   heading.focus();
 }

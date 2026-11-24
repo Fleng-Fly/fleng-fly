@@ -278,6 +278,11 @@
 .courses-page .catalog-status.is-complete {
   color: var(--success);
 }
+.courses-page .catalog-result-link {
+  color: var(--dash-lilac);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
 .courses-page .catalog-message {
   padding: 2rem 1.5rem;
 }

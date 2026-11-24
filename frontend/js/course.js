@@ -28,6 +28,12 @@ function lessonItem(lesson, progress, index) {
       complete ? t('catalog.completed') : started ? t('catalog.inProgress') : t('catalog.notStarted'),
     ),
   );
+  if (complete) {
+    const results = el('a', 'catalog-result-link', t('completion.viewResults'));
+    results.href = `/lesson.html?slug=${encodeURIComponent(lesson.slug)}&view=results`;
+    results.setAttribute('aria-label', `${results.textContent}: ${lesson.title}`);
+    meta.append(results);
+  }
   copy.append(meta);
   const link = el(
     'a',

@@ -18,6 +18,9 @@
 }
 .test-completion h2 { font-size: clamp(1.5rem, 4vw, 2.5rem); margin: 1rem 0 .35rem; line-height: 1.2; }
 .completion-subtitle { color: var(--fleng-muted); margin: .5rem 0 1.25rem; }
+.completion-context { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem .85rem; margin: -.5rem 0 1.25rem; }
+.completion-course { color: var(--fleng-lilac); font-weight: 600; }
+.completion-level { padding: .25rem .65rem; border: 1px solid var(--fleng-border); border-radius: 1rem; color: var(--fleng-lilac); font-size: .8rem; }
 .completion-award {
   display: grid;
   place-items: center;
@@ -34,6 +37,15 @@
 .test-completion.is-perfect .completion-award {
   background: radial-gradient(circle, #654126, var(--fleng-surface));
   box-shadow: 0 0 3.25rem #ffbb5066;
+}
+.is-perfect .completion-award::after {
+  position: absolute;
+  inset: -15%;
+  border-radius: inherit;
+  border: 1px solid #ffd77e;
+  content: '';
+  opacity: 0;
+  pointer-events: none;
 }
 .completion-perfect { color: #ffd77e; font-weight: 700; }
 .completion-score { display: flex; justify-content: space-between; gap: .75rem; text-align: start; }
@@ -104,6 +116,7 @@
   .is-animated .completion-award { animation: completion-award .5s .18s cubic-bezier(.2,.7,.35,1.25) both; }
   .is-animated .completion-particles i { animation: completion-burst .85s .42s ease-out both; }
   .is-perfect.is-animated .completion-particles i { animation-duration: 1.2s; }
+  .is-perfect.is-animated .completion-award::after { animation: completion-gold-glow .9s .42s ease-out both; }
   .is-animated .completion-bar span { animation: completion-fill .65s .36s ease-out both; }
   .is-animated .completion-metrics > div { animation: completion-rise .3s calc(.3s + .06s * var(--order)) both; }
   .is-animated .completion-review { animation: completion-rise .38s .68s both; }
@@ -116,6 +129,10 @@
   from { opacity: 0; transform: scale(.5) rotate(-12deg); }
 }
 @keyframes completion-fill { from { transform: scaleX(0); } }
+@keyframes completion-gold-glow {
+  20% { opacity: .8; }
+  to { opacity: 0; transform: scale(1.6); }
+}
 @keyframes completion-rise { from { opacity: 0; transform: translateY(.5rem); } }
 @keyframes completion-burst {
   20% { opacity: .9; }

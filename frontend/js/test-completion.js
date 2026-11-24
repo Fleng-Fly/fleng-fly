@@ -42,14 +42,14 @@ function reviewRow(item) {
 }
 
 /** Renders an already confirmed result. Actions belong to the owning test. */
-export function renderTestCompletion(target, {
-  headingId, title, subtitle, correct, total, firstTry, mistakes, retries, seconds, xp,
-  items = [], previousItems = [], retryMistakes, tryAgain, finish, continueLearning, extra, animate = true,
+export function TestCompletionScreen(target, {
+  headingId, title, subtitle, courseTitle, level, correct, total, firstTry, mistakes, retries, seconds, xp,
+  items = [], previousItems = [], retryMistakes, tryAgain, finish, backToCourses, continueLearning, extra, animate = true,
 }) {
   const perfect = total > 0 && firstTry === total;
   const section = el('section', `test-completion${perfect ? ' is-perfect' : ''}${animate ? ' is-animated' : ''}`);
   section.setAttribute('aria-labelledby', headingId);
-  const award = el('div', 'completion-award', perfect ? '🏅' : '🏆');
+  const award = el('div', 'completion-award', '🏆');
   award.setAttribute('aria-hidden', 'true');
   const particles = el('div', 'completion-particles');
   particles.setAttribute('aria-hidden', 'true');
@@ -67,6 +67,12 @@ export function renderTestCompletion(target, {
   section.append(particles, award, heading);
   if (perfect) section.append(el('p', 'completion-perfect', t('completion.perfect')));
   if (subtitle) section.append(el('p', 'completion-subtitle', subtitle));
+  if (courseTitle || level) {
+    const context = el('div', 'completion-context');
+    if (courseTitle) context.append(el('span', 'completion-course', courseTitle));
+    if (level) context.append(el('span', 'completion-level', t('completion.level', { level })));
+    section.append(context);
+  }
   const score = firstTry ?? correct;
   if (score != null && total > 0) {
     const percent = score === total ? 100 : Math.min(99, Math.round(100 * score / total));
@@ -125,12 +131,13 @@ export function renderTestCompletion(target, {
   }
   if (retryMistakes) actions.append(action(t('completion.retryMistakes'), retryMistakes, !continueLearning));
   if (tryAgain) actions.append(action(t('common.tryAgain'), tryAgain));
-  if (finish) actions.append(action(t('completion.finish'), finish, typeof continueLearning !== 'string' && !retryMistakes));
+  if (finish) actions.append(action(t('completion.finish'), finish, !continueLearning && !retryMistakes && !backToCourses));
+  if (backToCourses) actions.append(action(t('completion.backToCourses'), '/courses.html', !continueLearning && !retryMistakes));
   if (typeof continueLearning === 'string') {
     actions.append(action(t('completion.continue'), continueLearning, true));
   } else if (continueLearning) {
-    void continueLearning.then((href) => {
-      if (href && section.isConnected) actions.append(action(t('completion.continue'), href, true));
+    void continueLearning.then((next) => {
+      if (next && section.isConnected) actions.append(action(next.label, next.href, true));
     });
   }
   section.append(actions);

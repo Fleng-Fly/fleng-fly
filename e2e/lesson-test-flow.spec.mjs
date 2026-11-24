@@ -101,7 +101,8 @@ test('wrong answers rotate in FIFO order, including repeat failures, and survive
   await expect(page.locator('.completion-row details[open]')).toHaveCount(2);
   await expect(page.locator('.completion-review')).toContainText('Your answer:');
   await expect(page.locator('.completion-review')).toContainText('Correct answer:');
-  await expect(page.getByRole('link', { name: 'Continue Learning' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /^(Next Lesson|Continue Learning)$/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Back to Courses' })).toHaveAttribute('href', '/courses.html');
   expect(finished.pendingExerciseIds).toEqual([]);
   expect(finished.exercisesCompleted).toBe(3);
   await page.reload();

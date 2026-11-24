@@ -315,6 +315,7 @@ test('course details show three real statuses and lesson routes', async () => {
     body.querySelectorAll('a').map((link) => link.href),
     [
       '/courses.html',
+      '/lesson.html?slug=lesson-0&view=results',
       '/lesson.html?slug=lesson-0',
       '/lesson.html?slug=lesson-1',
       '/lesson.html?slug=lesson-2',

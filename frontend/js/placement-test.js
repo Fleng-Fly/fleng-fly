@@ -1,4 +1,4 @@
-import { elapsedSeconds, renderTestCompletion } from './test-completion.js';
+import { elapsedSeconds, TestCompletionScreen } from './test-completion.js';
 import { el } from './layout.js';
 import { getLang, t } from './i18n.js';
 import { requireSession } from './session.js';
@@ -134,10 +134,11 @@ function renderResult() {
     if (!review.isCorrect) errors.push({ answer, expected });
     return { title: question.prompt, mistake: errors.length > 0, answer, expected, errors, note: review.explanation };
   });
-  renderTestCompletion($('placement-result'), {
+  TestCompletionScreen($('placement-result'), {
     headingId: 'placement-completion-title',
     title: t('completion.placement'),
     subtitle: result.label,
+    level: result.estimatedLevel,
     correct: result.correct,
     total: result.total,
     firstTry,
@@ -145,7 +146,7 @@ function renderResult() {
     seconds: elapsedSeconds(attempt.startedAt, attempt.completedAt),
     items,
     tryAgain: startNewAttempt,
-    finish: '/courses.html',
+    backToCourses: true,
     continueLearning: attempt.recommendedCourses[0]
       ? `/course.html?slug=${encodeURIComponent(attempt.recommendedCourses[0].slug)}` : undefined,
     extra,

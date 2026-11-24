@@ -1,4 +1,4 @@
-import { elapsedSeconds, renderTestCompletion } from './test-completion.js';
+import { elapsedSeconds, TestCompletionScreen } from './test-completion.js';
 import { getCourse, getLesson, getLessonProgress, getLessonVocabulary, listCourses, previewSelfCheck, startLesson, submitAnswer } from './api.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
@@ -215,10 +215,12 @@ function renderCompleted() {
   const correct = records.filter((record) => record.isCorrect === true).length;
   const firstTry = records.filter((record) => record.isCorrect === true && record.attempts === 1).length;
   const retries = records.reduce((count, record) => count + Math.max(0, record.attempts - 1), 0);
-  const heading = renderTestCompletion(completed, {
+  const heading = TestCompletionScreen(completed, {
     headingId: 'lesson-completion-title',
     title: t('lesson.completedTitle'),
     subtitle: state.lesson.title,
+    courseTitle: state.lesson.courseTitle,
+    level: state.lesson.level,
     total, correct, firstTry, retries, xp: progress.xpEarned,
     mistakes: records.filter((record) => record.attempts > 1 || record.isCorrect === false).length,
     seconds: elapsedSeconds(progress.startedAt, progress.completedAt),
@@ -232,10 +234,10 @@ function renderCompleted() {
         errors: state.completionErrors[exercise.id],
       };
     }),
-    finish: $('lesson-course-link').href,
+    backToCourses: true,
     continueLearning: loadNextStep(state.lesson),
   });
-  if (state.busy) heading.focus();
+  if (state.busy || state.tab === 'practice' || queryParam('view') === 'results') heading.focus();
 }
 
 function optionText(exercise, answer) {
@@ -259,10 +261,16 @@ async function loadNextStep(lesson) {
     const course = await getCourse(lesson.courseSlug);
     const position = course.lessons.findIndex((item) => item.slug === lesson.slug);
     const nextLesson = position >= 0 ? course.lessons[position + 1] : null;
-    if (nextLesson) return `/lesson.html?slug=${encodeURIComponent(nextLesson.slug)}`;
+    if (nextLesson) return {
+      href: `/lesson.html?slug=${encodeURIComponent(nextLesson.slug)}`,
+      label: t('completion.nextLesson'),
+    };
     const all = await listCourses();
     const index = all.findIndex((item) => item.slug === lesson.courseSlug);
-    if (index >= 0 && all[index + 1]) return `/course.html?slug=${encodeURIComponent(all[index + 1].slug)}`;
+    if (index >= 0 && all[index + 1]) return {
+      href: `/course.html?slug=${encodeURIComponent(all[index + 1].slug)}`,
+      label: t('completion.continue'),
+    };
   } catch {
     // The course link remains available if recommendations cannot load.
   }
@@ -851,11 +859,11 @@ async function loadLesson() {
     if (lesson.guide) theory.prepend(guideCard(lesson.guide));
     if (lesson.theory?.trim()) renderTheory(body, `## Theory\n\n${lesson.theory}`);
     else body.append(el('p', undefined, t('lesson.noTheory')));
-    renderHero();
-    renderPreview();
     switchTab(state.tab);
     $('lesson-loading').hidden = true;
     $('lesson-content').hidden = false;
+    renderHero();
+    renderPreview();
     void restorePendingSubmission(slug);
   } catch (error) {
     if (error?.status === 401) { window.location.replace('/login.html'); return; }
