@@ -654,7 +654,7 @@ export default {
   "cw.pageTitle": "Course Words — Fleng",
   "cw.eyebrow": "LEARN IN CONTEXT",
   "cw.subtitle": "Words from the courses. Save useful ones and practise them in My Words.",
-  "cw.practiseMine": "Practise my words ↗",
+  "cw.tests": "Tests",
   "cw.courseLabel": "Course",
   "cw.allCourses": "All courses",
   "cw.searchLabel": "Search course words",

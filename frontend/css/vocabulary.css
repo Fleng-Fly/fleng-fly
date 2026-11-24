@@ -41,6 +41,8 @@
 #word-toolbar[hidden] { display: none; }
 .word-details .word-detail-label { color: var(--fleng-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
 .word-details .word-example { color: var(--fleng-lilac); font-size: 13px; }
+.course-words-actions { margin-bottom: 16px; }
+.course-words-actions .lesson-button { min-height: 44px; }
 .course-words-toolbar { margin-bottom: 22px; }
 .course-words-toolbar .word-search { max-width: 100%; }
 .course-words-toolbar .word-search input { flex: 1 1 210px; }

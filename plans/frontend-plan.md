@@ -2,6 +2,7 @@
 
 - Completed: My Words offers Mixed Practice with balanced formats, FIFO retries,
   reload recovery, and a replayable summary. Learner review uses the existing API.
+- Completed: Course Words links directly to Mixed Practice through Tests above its filters.
 
 > Stack: plain HTML5 + CSS3 + vanilla JavaScript, served statically by FastAPI
 > (same origin as `/api/v1`). No framework, no TypeScript, no build step.

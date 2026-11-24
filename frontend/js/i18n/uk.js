@@ -654,7 +654,7 @@ export default {
   "cw.pageTitle": "Слова курсів — Fleng",
   "cw.eyebrow": "ВЧІТЬ У КОНТЕКСТІ",
   "cw.subtitle": "Слова з курсів. Зберігайте корисні й тренуйте їх у розділі «Мої слова».",
-  "cw.practiseMine": "Тренувати мої слова ↗",
+  "cw.tests": "Тести",
   "cw.courseLabel": "Курс",
   "cw.allCourses": "Усі курси",
   "cw.searchLabel": "Пошук слів курсів",

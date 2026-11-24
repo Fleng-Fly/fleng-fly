@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 const reviewUrl = '**/api/v1/vocabulary/*/review';
 const card = (page) => page.locator('.word-practice-card');
 
-async function open(page, input = []) {
+async function seedWords(page, input) {
   await page.goto('/register.html');
   await page.locator('#displayName').fill('Mixed practice learner');
   await page.locator('#email').fill(`mixed-${randomUUID()}@example.com`);
@@ -12,11 +12,15 @@ async function open(page, input = []) {
   await page.locator('#submit-button').click();
   await expect(page).toHaveURL(/dashboard\.html$/);
   await expect(page.locator('#dashboard-level')).toContainText('XP');
-  const words = await page.evaluate(async (rows) => {
+  return page.evaluate(async (rows) => {
     const api = await import('/js/api.js');
     const saved = await Promise.all(rows.map(([word, translation]) => api.addVocabulary({ word, translation })));
     return Object.fromEntries(saved.map((word) => [word.id, word]));
   }, input);
+}
+
+async function open(page, input = []) {
+  const words = await seedWords(page, input);
   await page.goto('/vocabulary.html');
   await expect(page.locator('#words-content')).toBeVisible();
   await page.getByRole('button', { name: 'Start Practice', exact: true }).click();
@@ -26,6 +30,31 @@ async function open(page, input = []) {
 const snapshot = (page) => page.evaluate(() => {
   const key = Object.keys(sessionStorage).find((name) => name.startsWith('fleng.mixed-practice.v1:'));
   return JSON.parse(sessionStorage.getItem(key));
+});
+
+test('Course Words Tests opens Mixed Practice on desktop and mobile', async ({ page }) => {
+  await seedWords(page, [['train', 'поїзд'], ['plant', 'рослина'], ['stone', 'камінь'], ['crown', 'корона']]);
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/course-words.html');
+    const tests = page.getByRole('link', { name: 'Tests', exact: true });
+    await expect(tests).toBeVisible();
+    await expect(tests).toHaveCSS('background-image', /linear-gradient/);
+    await expect(tests.locator('svg')).toBeVisible();
+    const subtitle = await page.locator('.dashboard-subtitle').boundingBox();
+    const button = await tests.boundingBox();
+    const filters = await page.locator('.course-words-toolbar').boundingBox();
+    expect(button.y).toBeGreaterThanOrEqual(subtitle.y + subtitle.height);
+    expect(button.y + button.height).toBeLessThanOrEqual(filters.y);
+    expect(button.x).toBeCloseTo(subtitle.x);
+    expect(button.x + button.width).toBeLessThanOrEqual(viewport.width);
+    expect(button.height).toBeGreaterThanOrEqual(44);
+    await tests.click();
+    await expect(page).toHaveURL(/vocabulary\.html\?mode=mixed$/);
+    await expect(page.getByRole('heading', { name: 'Mixed Practice' })).toBeVisible();
+    await expect(card(page)).toBeVisible();
+    expect((await snapshot(page)).tasks.map((task) => task.type).sort()).toEqual(['choice', 'flashcards', 'letters', 'write']);
+  }
 });
 
 async function answer(page, words, remembered, pause = false) {

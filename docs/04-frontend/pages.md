@@ -37,6 +37,7 @@ Course Words searches English words and Ukrainian translations as the learner
 types, including separate translation variants and partial matches. Exact
 matches rank first across the paginated catalog. Clearing the search restores
 the initial order within the current course and lesson filters.
+The Tests button above the filters opens Mixed Practice in My Words.
 
 Start Practice creates one task per selected personal word and balances four
 formats subject to word eligibility. Mistakes show the answer and rejoin the

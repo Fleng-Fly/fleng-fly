@@ -18,7 +18,15 @@
   <main class="dashboard-main">
     <div class="dashboard-page-heading">
       <div><p class="dashboard-eyebrow" data-i18n="cw.eyebrow">LEARN IN CONTEXT</p><h1 data-i18n="ws.courseWords">Course Words</h1><p class="dashboard-subtitle" data-i18n="cw.subtitle">Words from the courses. Save useful ones and practise them in My Words.</p></div>
-      <a class="lesson-button lesson-button-secondary" href="/vocabulary.html?mode=flashcards" data-i18n="cw.practiseMine">Practise my words ↗</a>
+    </div>
+    <div class="course-words-actions">
+      <a class="lesson-button lesson-button-primary" href="/vocabulary.html?mode=mixed">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="8" y="3" width="8" height="4" rx="1" />
+          <path d="M16 5h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h3m0 9 3 3 5-5" />
+        </svg>
+        <span data-i18n="cw.tests">Tests</span>
+      </a>
     </div>
     <div class="word-toolbar course-words-toolbar">
       <label class="field" for="word-course"><span data-i18n="cw.courseLabel">Course</span><select id="word-course"><option value="" data-i18n="cw.allCourses">All courses</option></select></label>

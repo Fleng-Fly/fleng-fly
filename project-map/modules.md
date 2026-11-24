@@ -394,7 +394,7 @@ lives in the existing API client; no token is stored in shared browser storage.
   rank ahead of partial matches across all API pages. Results respect selected
   filters, and clearing the query restores the filtered catalog order.
   Uses the existing personal-word
-  save/practice flow. No API/schema/model change.
+  save/practice flow. The Tests link opens My Words in Mixed Practice mode. No API/schema/model change.
 - `js/markdown.js`: fixed DOM tag allowlist, bounded inline parsing, safe URL
   policy; used only for AI messages. User text remains literal.
 - `ai-assistant.js` / `css/ai-assistant.css`: compact panel, hidden refresh menu,
