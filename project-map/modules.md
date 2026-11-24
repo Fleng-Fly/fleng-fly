@@ -390,7 +390,9 @@ lives in the existing API client; no token is stored in shared browser storage.
 - `workspace.js`: native Words disclosure, My Words/Course Words child links,
   current section state; mobile focus trap ignores collapsed links.
 - `course-words.html` / `js/course-words.js`: existing `/vocabulary/course-words`
-  pagination, catalog course filtering, local search and existing personal-word
+  pagination, catalog course filtering and local search by word, translation,
+  example, lesson, course title or level. Results respect selected filters and
+  update as pages arrive. Uses the existing personal-word
   save/practice flow. No API/schema/model change.
 - `js/markdown.js`: fixed DOM tag allowlist, bounded inline parsing, safe URL
   policy; used only for AI messages. User text remains literal.

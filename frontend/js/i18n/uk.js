@@ -656,7 +656,7 @@ export default {
   "cw.courseLabel": "Курс",
   "cw.allCourses": "Усі курси",
   "cw.searchLabel": "Пошук слів курсів",
-  "cw.searchPlaceholder": "Знайдіть слово чи переклад…",
+  "cw.searchPlaceholder": "Знайдіть слово, переклад або курс…",
   "cw.loading": "Завантажуємо слова курсів…",
   "cw.course": "Слова курсу",
   "cw.noMatch": "Слів не знайдено. Спробуйте інший запит.",

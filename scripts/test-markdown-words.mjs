@@ -94,6 +94,7 @@ test('Course Words pages real API data, filters by course, saves and opens exist
   class Option extends Element { constructor(text, value) { super('option', text); this.value = value; } }
   const node = (id) => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
   const words = Array.from({ length: 101 }, (_, i) => ({ id: String(i), courseId: 'course', word: `word${i}`, translation: `translation${i}`, example: '' }));
+  Object.assign(words[100], { example: 'М’ЯЧ', lessonId: 'lesson', lessonTitle: 'Lesson title' });
   let fail = false;
   const api = {
     listCourses: async () => [{ id: 'course', title: 'Course title', level: 'A1' }],
@@ -118,8 +119,14 @@ test('Course Words pages real API data, filters by course, saves and opens exist
   for (let i = 0; i < 30; i++) await Promise.resolve();
   assert.equal(node('course-word-count').textContent, '101 words');
   assert.deepEqual(calls, [['', 0], ['', 100]]);
-  node('course-word-search').value = 'translation100'; node('course-word-search').events.input();
+  node('course-word-search').value = "  COURSE   м'яч  "; node('course-word-search').events.input();
   assert.equal(node('course-word-count').textContent, '1 word');
+  node('word-lesson').value = 'lesson';
+  node('word-lesson').events.change();
+  assert.equal(node('course-word-count').textContent, '1 word');
+  node('course-word-search').value = 'translation99'; node('course-word-search').events.input();
+  assert.equal(node('course-word-count').textContent, '0 words');
+  node('course-word-search').value = 'translation100'; node('course-word-search').events.input();
   const buttons = all(node('course-word-list'), 'button');
   await buttons[0].events.click();
   assert.equal(saves.length, 1);

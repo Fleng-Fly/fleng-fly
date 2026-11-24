@@ -6,25 +6,34 @@ import { describeApiError } from './errors.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 
 const $ = (id) => document.getElementById(id);
-let courses = [], words = [], request = 0, sessionReady = false;
+let courses = new Map(), words = [], request = 0, sessionReady = false;
 const saved = new Set();
+const normalizeSearch = (value) => value.normalize('NFKC').toLowerCase().replace(/[’‘ʼ]/g, "'");
 
 function render() {
-  const query = $('course-word-search').value.trim().toLocaleLowerCase();
+  const query = normalizeSearch($('course-word-search').value).trim();
+  const terms = query ? query.split(/\s+/) : [];
   const lessonId = $('word-lesson').value;
-  const visible = words.filter((word) => (!lessonId || word.lessonId === lessonId)
-    && `${word.word} ${word.translation} ${word.example} ${word.lessonTitle || ''}`.toLocaleLowerCase().includes(query));
+  const visible = words.filter((word) => {
+    if (lessonId && word.lessonId !== lessonId) return false;
+    if (!terms.length) return true;
+    const course = courses.get(word.courseId);
+    const searchable = normalizeSearch([word.word, word.translation, word.example,
+      word.lessonTitle, course?.title, course?.level].join(' '));
+    return terms.every((term) => searchable.includes(term));
+  });
   $('course-word-count').textContent = tn('vocab.count', visible.length);
   const target = $('course-word-list');
   target.replaceChildren();
   if (!visible.length) {
+    if (!$('course-words-loading').hidden || !$('course-words-error').hidden) return;
     target.append(el('p', 'word-empty', query ? t('cw.noMatch') : t('cw.none')));
     return;
   }
   for (const word of visible) {
     const row = el('article', 'word-row course-word-row');
     const copy = el('div', 'word-copy');
-    const course = courses.find((item) => item.id === word.courseId);
+    const course = courses.get(word.courseId);
     copy.append(el('small', undefined, [course ? `${course.level} · ${course.title}` : t('cw.course'), word.lessonTitle].filter(Boolean).join(' · ')), el('h3', undefined, word.word), el('p', undefined, word.translation));
     if (word.example) copy.append(el('small', undefined, word.example));
     if (word.lessonSlug) {
@@ -72,6 +81,7 @@ async function load() {
   const serial = ++request;
   words = [];
   $('word-lesson').value = '';
+  $('word-lesson').disabled = true;
   $('course-words-loading').hidden = false;
   $('course-words-error').hidden = true;
   $('course-word-count').textContent = '';
@@ -81,21 +91,22 @@ async function load() {
       const user = await requireSession({ throwOnUnavailable: true });
       if (!user || serial !== request) return;
       setWorkspaceUser(user);
-      courses = await listCourses();
+      const catalog = await listCourses();
       if (serial !== request) return;
-      $('word-course').replaceChildren(new Option(t('cw.allCourses'), ''), ...courses.map((course) => new Option(`${course.level} · ${course.title}`, course.id)));
+      courses = new Map(catalog.map((course) => [course.id, course]));
+      $('word-course').replaceChildren(new Option(t('cw.allCourses'), ''), ...catalog.map((course) => new Option(`${course.level} · ${course.title}`, course.id)));
       sessionReady = true;
     }
     const courseId = $('word-course').value;
-    const loaded = [];
     for (let offset = 0; ; offset += 100) {
       const page = await listCourseWords(courseId, offset);
       if (serial !== request) return;
-      loaded.push(...page);
+      words.push(...page);
       if (page.length < 100) break;
+      if ($('course-word-search').value.trim()) render();
     }
-    words = loaded;
     fillLessons();
+    $('course-words-loading').hidden = true;
     render();
   } catch (error) {
     if (serial !== request) return;
