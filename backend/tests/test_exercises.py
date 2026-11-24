@@ -65,6 +65,38 @@ async def _submit(
     )
 
 
+async def test_self_check_preview_requires_own_valid_lesson_and_does_not_grade(
+    client: AsyncClient, seeded: AsyncSession
+) -> None:
+    slug = "greetings-and-introductions"
+    token = await _register(client)
+    exercises = (await _lesson(client, slug))["exercises"]
+    model_id = exercises[2]["id"]
+    path = f"{LESSONS}/{slug}/self-check/preview"
+    payload = {"exerciseId": model_id, "answer": "Good morning!"}
+    headers = _auth(token)
+    progress_path = f"{LESSONS}/{slug}/progress"
+    before = (await client.get(progress_path, headers=headers)).json()
+
+    assert (await client.post(path, json=payload)).status_code == 401
+    empty = await client.post(path, json={**payload, "answer": " "}, headers=headers)
+    assert empty.status_code == 422
+    invalid_type = await client.post(
+        path, json={**payload, "exerciseId": exercises[0]["id"]}, headers=headers
+    )
+    assert invalid_type.status_code == 422
+    other_lesson = await client.post(
+        f"{LESSONS}/the-verb-to-be/self-check/preview", json=payload, headers=headers
+    )
+    assert other_lesson.status_code == 404
+
+    for _ in range(2):
+        response = await client.post(path, json=payload, headers=headers)
+        assert response.status_code == 200
+        assert response.json() == {"modelAnswer": "Good morning!"}
+    assert (await client.get(progress_path, headers=headers)).json() == before
+
+
 async def test_lesson_progress_restores_own_latest_answer(
     client: AsyncClient, seeded: AsyncSession
 ) -> None:

@@ -2,6 +2,8 @@
 
 Bearer caller only. Resolves published lesson/exercise within it. Start/resume is idempotent; submission upserts ExerciseSubmission, LessonProgress/Progress/Profile and gamification under learner write lock. Invalid choices/text/selfAssessment return 422 INVALID_ANSWER; unsupported type is 422; invisible/mismatched content is 404. XP once; self-check is learner assessment.
 
+Progress includes `pendingExerciseIds` in FIFO order. Untouched exercises follow lesson order. Attempted, unfinished exercises follow the time of their latest submission. Completed exercises are excluded.
+
 Shared runtime failures: 413 body overflow, 422 declared schema validation, 503 DATABASE_UNAVAILABLE and 500 unexpected error. Protected calls add 401 missing/invalid identity. See [error handling](error-handling.md) and [complete schemas](api-schemas.md). Module-specific rules above apply to each operation.
 
 ## `POST /api/v1/lessons/{slug}/start`
@@ -43,7 +45,8 @@ Synthetic response shape (not a seeded/live result):
   "exercisesTotal": 0,
   "exercisesCompleted": 0,
   "xpEarned": 0,
-  "exercises": []
+  "exercises": [],
+  "pendingExerciseIds": []
 }
 ```
 
@@ -86,9 +89,16 @@ Synthetic response shape (not a seeded/live result):
   "exercisesTotal": 0,
   "exercisesCompleted": 0,
   "xpEarned": 0,
-  "exercises": []
+  "exercises": [],
+  "pendingExerciseIds": []
 }
 ```
+
+## `POST /api/v1/lessons/{slug}/self-check/preview`
+
+Reveal the model answer after the learner confirms a nonblank answer. Requires a Bearer JWT and a published self-check exercise in the requested lesson. The preview performs no writes and leaves attempts, completion, activity and XP intact. Send the final self-assessment to the submit endpoint.
+
+Request body uses [SelfCheckPreviewRequest](api-schemas.md#selfcheckpreviewrequest). The 200 response uses [SelfCheckPreviewResponse](api-schemas.md#selfcheckpreviewresponse). An invalid answer or exercise type returns 422. A missing or unrelated exercise returns 404.
 
 ## `POST /api/v1/lessons/{slug}/submit`
 
@@ -101,6 +111,8 @@ Authentication/permissions: Bearer JWT, owner scoped where applicable.
 | slug | path | True | `{"type": "string", "title": "Slug"}` |
 
 Request body: JSON `SubmissionRequest` (required=True), defined in [schemas](api-schemas.md).
+
+The lesson player sends `expectedAttempts` from its progress snapshot. When the saved count differs, the service returns 409 `LESSON_ATTEMPT_CHANGED` under the learner lock and the caller should refresh progress. The field is optional for older clients.
 
 Declared responses:
 
@@ -143,6 +155,7 @@ Synthetic response shape (not a seeded/live result):
     "exercisesTotal": 1,
     "exercisesCompleted": 1,
     "xpEarned": 1,
+    "pendingExerciseIds": [],
     "exercises": [
       {
         "exerciseId": "00000000-0000-4000-8000-000000000001",

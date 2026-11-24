@@ -1597,6 +1597,14 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       },
       "type": "array",
       "title": "Exercises"
+    },
+    "pendingExerciseIds": {
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "type": "array",
+      "title": "Pendingexerciseids"
     }
   },
   "type": "object",
@@ -1610,7 +1618,8 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "exercisesTotal",
     "exercisesCompleted",
     "xpEarned",
-    "exercises"
+    "exercises",
+    "pendingExerciseIds"
   ],
   "title": "LessonProgressResponse",
   "description": "The caller's progress through a lesson."
@@ -3838,6 +3847,49 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
+## SelfCheckPreviewRequest
+
+```json
+{
+  "properties": {
+    "exerciseId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Exerciseid"
+    },
+    "answer": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Answer"
+    }
+  },
+  "type": "object",
+  "required": [
+    "exerciseId",
+    "answer"
+  ],
+  "title": "SelfCheckPreviewRequest"
+}
+```
+
+## SelfCheckPreviewResponse
+
+```json
+{
+  "properties": {
+    "modelAnswer": {
+      "type": "string",
+      "title": "Modelanswer"
+    }
+  },
+  "type": "object",
+  "required": [
+    "modelAnswer"
+  ],
+  "title": "SelfCheckPreviewResponse"
+}
+```
+
 ## SubmissionRequest
 
 ```json
@@ -3867,6 +3919,18 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Selfassessment"
+    },
+    "expectedAttempts": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0.0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Expectedattempts"
     }
   },
   "type": "object",
@@ -4002,7 +4066,7 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "lesson"
   ],
   "title": "SubmissionResultResponse",
-  "description": "The result of one graded submission.\n\nThe correct answer / model answer / explanation are revealed here (and only\nhere) so the learner can review the attempt."
+  "description": "The result of one graded submission.\n\nThe correct answer / model answer / explanation are available here so the\nlearner can review the attempt."
 }
 ```
 

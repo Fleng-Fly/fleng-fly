@@ -18,7 +18,7 @@ Rules (also documented in `docs/database.md`):
 """
 
 from collections import Counter
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 from uuid import UUID
 
@@ -200,6 +200,8 @@ async def build_lesson_progress(
     )
 
     states: list[LessonExerciseStateResponse] = []
+    unattempted: list[UUID] = []
+    retries: list[tuple[datetime, UUID]] = []
     completed_count = 0
     xp_earned = 0
     for exercise in exercises:
@@ -208,6 +210,10 @@ async def build_lesson_progress(
         if completed:
             completed_count += 1
             xp_earned += exercise.points
+        elif submission and submission.attempts:
+            retries.append((submission.submitted_at.replace(tzinfo=UTC), exercise.id))
+        else:
+            unattempted.append(exercise.id)
         states.append(
             LessonExerciseStateResponse(
                 exercise_id=exercise.id,
@@ -231,6 +237,7 @@ async def build_lesson_progress(
         exercises_completed=completed_count,
         xp_earned=xp_earned,
         exercises=states,
+        pending_exercise_ids=unattempted + [exercise_id for _, exercise_id in sorted(retries)],
     )
 
 
@@ -256,6 +263,14 @@ async def get_lesson_progress(
         )
     )
     return await build_lesson_progress(db, user.id, lesson, record)
+
+
+def preview_self_check(exercise: Exercise, answer: str) -> str:
+    if exercise.type != "self_check" or not exercise.model_answer:
+        raise _invalid("This exercise has no model answer for self-checking")
+    if not answer.strip():
+        raise _invalid("Write an answer before self-checking")
+    return exercise.model_answer
 
 
 def _validate_answer(exercise: Exercise, answer: str, self_assessment: str | None) -> None:
@@ -312,17 +327,33 @@ async def submit_answer(
     exercise: Exercise,
     answer: str,
     self_assessment: str | None,
+    expected_attempts: int | None = None,
 ) -> SubmissionResultResponse:
     """Grade and persist one submission, then recompute lesson progress."""
     _validate_answer(exercise, answer, self_assessment)
-    now = datetime.now(UTC)
-
     await lock_learner(db, user.id)
     if user.profile is not None:
         await db.refresh(user.profile)
     aggregate = await progress_service.get_or_create_progress(db, user.id)
     record = await _get_or_create_lesson_progress(db, user.id, lesson)
     submission = await _get_or_create_submission(db, user.id, exercise)
+    if expected_attempts is not None and submission.attempts != expected_attempts:
+        raise ApiError(409, "LESSON_ATTEMPT_CHANGED", "This exercise has a newer attempt")
+
+    # Keep the FIFO order monotonic even when two submissions share a clock tick.
+    latest = await db.scalar(
+        select(func.max(ExerciseSubmission.submitted_at))
+        .join(Exercise, ExerciseSubmission.exercise_id == Exercise.id)
+        .where(
+            Exercise.lesson_id == lesson.id,
+            ExerciseSubmission.user_id == user.id,
+            ExerciseSubmission.attempts > 0,
+        )
+    )
+    now = datetime.now(UTC)
+    submitted_at = now
+    if latest:
+        submitted_at = max(now, latest.replace(tzinfo=UTC) + timedelta(microseconds=1))
 
     if exercise.type == "self_check":
         is_correct: bool | None = self_assessment == "correct"
@@ -333,7 +364,7 @@ async def submit_answer(
     submission.answer = answer
     submission.is_correct = is_correct
     submission.attempts += 1
-    submission.submitted_at = now
+    submission.submitted_at = submitted_at
     if will_complete and not submission.completed:
         submission.completed = True
     await db.flush()
@@ -402,10 +433,9 @@ async def submit_answer(
 
     aggregate.last_activity_at = now
     await record_activity(db, user.id)
-    await db.commit()
-    await db.refresh(record)
-
+    await db.flush()
     lesson_progress = await build_lesson_progress(db, user.id, lesson, record)
+    await db.commit()
     return SubmissionResultResponse(
         exercise_id=exercise.id,
         type=exercise.type,

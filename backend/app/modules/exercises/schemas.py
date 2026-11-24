@@ -49,6 +49,16 @@ class SubmissionRequest(CamelModel):
     exercise_id: UUID
     answer: str = Field(max_length=MAX_ANSWER_LENGTH)
     self_assessment: Literal["correct", "incorrect"] | None = None
+    expected_attempts: int | None = Field(default=None, ge=0)
+
+
+class SelfCheckPreviewRequest(CamelModel):
+    exercise_id: UUID
+    answer: str = Field(max_length=MAX_ANSWER_LENGTH)
+
+
+class SelfCheckPreviewResponse(CamelModel):
+    model_answer: str
 
 
 class LessonExerciseStateResponse(CamelModel):
@@ -75,13 +85,14 @@ class LessonProgressResponse(CamelModel):
     exercises_completed: int
     xp_earned: int
     exercises: list[LessonExerciseStateResponse]
+    pending_exercise_ids: list[UUID]
 
 
 class SubmissionResultResponse(CamelModel):
     """The result of one graded submission.
 
-    The correct answer / model answer / explanation are revealed here (and only
-    here) so the learner can review the attempt.
+    The correct answer / model answer / explanation are available here so the
+    learner can review the attempt.
     """
 
     exercise_id: UUID

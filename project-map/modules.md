@@ -129,12 +129,17 @@ the hint toggle, explanations and the Explanation block.
 placement next-step card from the Placement API.
 `frontend/js/workspace.js` owns the shared Dashboard/Lessons sidebar, mobile
 drawer, catalog search and profile menu. `frontend/js/lesson.js` owns only the
-lesson tabs, questions, submission UI and preview. Practice and Test share
-the same automatic advance and retry order. `frontend/js/letter-tiles.js` renders
+lesson tabs, questions, submission UI and preview. All Practice formats share
+the same advance and retry order. `frontend/js/letter-tiles.js` renders
 the letter bank and slots for configured text exercises. The lesson page calls the existing
 `catalog`, `exercises` and `vocabulary` APIs through `frontend/js/api.js`.
-`exercises` now returns the caller's latest answer in lesson progress, and
-`vocabulary` can filter owned words by `lessonId`. Migration `20261114_1200` adds
+`exercises` returns the caller's latest answer and pending FIFO IDs in lesson
+progress. The lesson player keeps the active exercise in session storage scoped
+to user and lesson, and restores it only when it matches the server attempt counts.
+Self-check preview displays the model before the learner chooses an assessment.
+The optional submission attempt count protects current clients against concurrent
+or retried writes. The `vocabulary` module can filter owned words by `lessonId`.
+Migration `20261114_1200` adds
 optional letter-tile configuration to exercises.
 
 `frontend/js/auto-check.js` schedules text answer checks for `lesson.js` and

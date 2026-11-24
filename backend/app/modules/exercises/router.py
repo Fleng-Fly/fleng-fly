@@ -13,6 +13,8 @@ from app.db.session import get_db
 from app.modules.exercises import service
 from app.modules.exercises.schemas import (
     LessonProgressResponse,
+    SelfCheckPreviewRequest,
+    SelfCheckPreviewResponse,
     SubmissionRequest,
     SubmissionResultResponse,
 )
@@ -42,6 +44,19 @@ async def get_lesson_progress(
     return await service.get_lesson_progress(db, current_user, lesson)
 
 
+@router.post("/lessons/{slug}/self-check/preview", response_model=SelfCheckPreviewResponse)
+async def preview_self_check(
+    slug: str,
+    payload: SelfCheckPreviewRequest,
+    _current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SelfCheckPreviewResponse:
+    lesson, _course = await service.get_lesson_or_404(db, slug)
+    exercise = await service.get_exercise_or_404(db, lesson, payload.exercise_id)
+    model_answer = service.preview_self_check(exercise, payload.answer)
+    return SelfCheckPreviewResponse(model_answer=model_answer)
+
+
 @router.post("/lessons/{slug}/submit", response_model=SubmissionResultResponse)
 async def submit_answer(
     slug: str,
@@ -59,4 +74,5 @@ async def submit_answer(
         exercise=exercise,
         answer=payload.answer,
         self_assessment=payload.self_assessment,
+        expected_attempts=payload.expected_attempts,
     )

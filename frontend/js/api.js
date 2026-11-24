@@ -382,6 +382,13 @@ export function getLessonProgress(slug) {
   return apiFetch(`/lessons/${encodeURIComponent(slug)}/progress`);
 }
 
+export function previewSelfCheck(slug, payload) {
+  return apiFetch(`/lessons/${encodeURIComponent(slug)}/self-check/preview`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export function submitAnswer(slug, payload) {
   return apiFetch(`/lessons/${encodeURIComponent(slug)}/submit`, {
     method: 'POST',

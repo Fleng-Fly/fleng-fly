@@ -117,3 +117,11 @@ Live PostgreSQL is NOT VERIFIED. Results: `docs/backend-stabilization-report.md`
 [Commands and diagnostics](../docs/10-testing/ci-automation.md).
 
 [Local sprint evidence](../docs/qa/ci-automation-verification.md).
+
+## Lesson exercise flow
+
+- Completed: server-derived FIFO and tab-local cursor restoration, plus a
+  read-only preview before self-assessment.
+- Covered in Chromium regressions with temporary SQLite: repeat failures,
+  reload, answer timers, conflicting submissions and lost responses.
+- Next: verify the changed flow in live PostgreSQL CI.

@@ -411,6 +411,7 @@ export default {
   "lesson.correctAnswer": "Правильна відповідь",
   "lesson.acceptedAnswer": "Прийнятна відповідь",
   "lesson.modelAnswer": "Зразок відповіді",
+  "lesson.showModelAnswer": "Підтвердити відповідь і показати зразок",
   "lesson.explanation": "Пояснення",
   "lesson.statusDone": "Виконано",
   "lesson.statusSaved": "Попередню спробу збережено",

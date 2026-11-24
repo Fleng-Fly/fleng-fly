@@ -411,6 +411,7 @@ export default {
   "lesson.correctAnswer": "Correct answer",
   "lesson.acceptedAnswer": "Accepted answer",
   "lesson.modelAnswer": "Model answer",
+  "lesson.showModelAnswer": "Confirm answer and show example",
   "lesson.explanation": "Explanation",
   "lesson.statusDone": "Completed",
   "lesson.statusSaved": "Previous attempt saved",

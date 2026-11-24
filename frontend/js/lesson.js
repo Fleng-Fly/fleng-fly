@@ -1,4 +1,4 @@
-import { getCourse, getLesson, getLessonProgress, getLessonVocabulary, listCourses, startLesson, submitAnswer } from './api.js';
+import { getCourse, getLesson, getLessonProgress, getLessonVocabulary, listCourses, previewSelfCheck, startLesson, submitAnswer } from './api.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
 import { getLang, t } from './i18n.js';
@@ -14,6 +14,7 @@ const typeLabel = (type) => ['letter_tiles', 'single_choice', 'text', 'self_chec
 const state = {
   lesson: null, progress: null, tab: tabs.includes(requestedTab) ? requestedTab : 'theory', index: 0, busy: false,
   drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
+  selfChecks: new Map(), cursorKey: null, pendingSubmit: null,
   vocabulary: { items: [], loaded: false, loading: false, more: false, error: null },
   nextStep: null, nextStepFor: null, hints: new Set(),
   // Reads the visible exercise's current (unsent) answer for Fleng AI context.
@@ -114,13 +115,49 @@ function exerciseType(exercise) {
   return exercise.letterTiles ? 'letter_tiles' : exercise.type;
 }
 
-function nextUnfinished(after = -1) {
-  const exercises = state.lesson.exercises;
-  const records = new Map(state.progress.exercises.map((record) => [record.exerciseId, record]));
-  const indices = exercises.map((_, index) => (after + 1 + index) % exercises.length);
-  const unfinished = indices.filter((index) => !records.get(exercises[index].id)?.completed);
-  return unfinished.find((index) => !records.get(exercises[index].id)?.attempts)
-    ?? unfinished[0] ?? -1;
+function nextUnfinished() {
+  const [first] = state.progress.pendingExerciseIds ?? state.progress.exercises
+    .filter((record) => !record.completed).map((record) => record.exerciseId);
+  return state.lesson.exercises.findIndex((exercise) => exercise.id === first);
+}
+
+function progressRevision() {
+  return JSON.stringify(state.progress.exercises.map(({ exerciseId, attempts }) => [exerciseId, attempts]));
+}
+
+function saveCursor() {
+  if (!state.cursorKey) return;
+  try {
+    const exercise = state.lesson.exercises[state.index];
+    if (state.progress.completed || !exercise) {
+      window.sessionStorage.removeItem(state.cursorKey);
+    } else {
+      window.sessionStorage.setItem(state.cursorKey, JSON.stringify({
+        exerciseId: exercise.id, revision: progressRevision(), pending: state.pendingSubmit,
+      }));
+    }
+  } catch {
+    // The queue is still available from the server when browser storage is blocked.
+  }
+}
+
+function restoreCursor() {
+  state.pendingSubmit = null;
+  if (state.cursorKey && !state.progress.completed) {
+    try {
+      const cursor = JSON.parse(window.sessionStorage.getItem(state.cursorKey));
+      if (cursor?.revision === progressRevision()) {
+        const index = state.lesson.exercises.findIndex((exercise) => exercise.id === cursor.exerciseId);
+        if (index !== -1) {
+          state.pendingSubmit = cursor.pending ?? null;
+          return index;
+        }
+      }
+    } catch {
+      // Fall back to the head of the current server queue.
+    }
+  }
+  return Math.max(0, nextUnfinished());
 }
 
 function pct(done, total) {
@@ -265,7 +302,6 @@ function feedback(exercise, record) {
     if (exercise.type === 'text' && result.acceptedAnswers?.length) {
       box.append(labelled(t('lesson.acceptedAnswer'), result.acceptedAnswers[0]));
     }
-    if (result.modelAnswer) box.append(labelled(t('lesson.modelAnswer'), result.modelAnswer));
     // Authored explanation (EN/UK) is preferred; the legacy English text is the fallback.
     if (result.wrongAnswerNote && !ok) box.append(labelled(t('lesson.whyNot'), pick(result.wrongAnswerNote)));
     const explanation = pick(result.explanationLocalized) || result.explanation;
@@ -301,6 +337,9 @@ async function submit(exercise, answer, assessment) {
     return;
   }
   state.busy = true;
+  const expectedAttempts = exerciseState(exercise)?.attempts ?? 0;
+  state.pendingSubmit = { exerciseId: exercise.id, expectedAttempts };
+  saveCursor();
   let advanced = false;
   $('lesson-last-answer').replaceChildren();
   state.errors.delete(exercise.id);
@@ -309,14 +348,16 @@ async function submit(exercise, answer, assessment) {
   if (pending) pending.replaceChildren(el('strong', undefined, t('lesson.checking')));
   try {
     const result = await submitAnswer(state.lesson.slug, {
-      exerciseId: exercise.id, answer,
+      exerciseId: exercise.id, answer, expectedAttempts,
       ...(assessment ? { selfAssessment: assessment } : {}),
     });
     state.progress = result.lesson;
+    state.pendingSubmit = null;
     state.results.set(exercise.id, result);
     state.drafts.set(exercise.id, result.completed ? answer : '');
     state.tileDrafts.delete(exercise.id);
-    const next = nextUnfinished(state.index);
+    state.selfChecks.delete(exercise.id);
+    const next = nextUnfinished();
     if (next !== -1 && next !== state.index) {
       const review = feedback(exercise, null);
       review.prepend(el('p', 'lesson-muted', exercise.prompt));
@@ -324,6 +365,7 @@ async function submit(exercise, answer, assessment) {
       state.index = next;
       advanced = true;
     }
+    saveCursor();
     renderHero();
     renderPreview();
   } catch (error) {
@@ -332,6 +374,21 @@ async function submit(exercise, answer, assessment) {
       return;
     }
     state.errors.set(exercise.id, describeApiError(error));
+    if (!error?.status || error.code === 'INVALID_RESPONSE' || error.status === 409 || error.status >= 500) {
+      // A lost response can follow a successful commit. Read before retrying.
+      try {
+        const progress = await getLessonProgress(state.lesson.slug);
+        if (adoptSavedSubmission(progress, state.pendingSubmit)) {
+          advanced = state.lesson.exercises[state.index]?.id !== exercise.id;
+          if (advanced) $('lesson-last-answer').append(feedback(exercise, exerciseState(exercise)));
+        }
+      } catch {
+        // Preserve the error and draft so the learner can retry.
+      }
+    } else {
+      state.pendingSubmit = null;
+      saveCursor();
+    }
   } finally {
     state.busy = false;
     renderQuestions();
@@ -339,6 +396,75 @@ async function submit(exercise, answer, assessment) {
     const card = document.querySelector(`[data-exercise-id="${exercise.id}"]`);
     if (advanced) $(`panel-${state.tab}`).querySelector('h2')?.focus();
     else card?.querySelector('.lesson-feedback')?.focus();
+  }
+}
+
+function adoptSavedSubmission(progress, pending) {
+  const { exerciseId, expectedAttempts } = pending;
+  const attempt = progress.exercises.find((record) => record.exerciseId === exerciseId);
+  if (!attempt || attempt.attempts <= expectedAttempts) return false;
+  state.progress = progress;
+  state.pendingSubmit = null;
+  state.errors.delete(exerciseId);
+  state.results.delete(exerciseId);
+  state.drafts.set(exerciseId, attempt.completed ? attempt.answer || '' : '');
+  state.tileDrafts.delete(exerciseId);
+  state.selfChecks.delete(exerciseId);
+  if (state.lesson.exercises[state.index]?.id === exerciseId) {
+    const next = nextUnfinished();
+    if (next !== -1) state.index = next;
+  }
+  saveCursor();
+  renderHero();
+  renderPreview();
+  return true;
+}
+
+async function restorePendingSubmission(slug) {
+  const pending = state.pendingSubmit;
+  if (!pending) return;
+  // A reload can reach GET /progress while the previous document's POST is still committing.
+  for (const delay of [250, 750, 1500, 3000]) {
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    if (state.pendingSubmit !== pending || state.busy) return;
+    try {
+      const progress = await getLessonProgress(slug);
+      if (state.pendingSubmit !== pending || state.busy) return;
+      if (adoptSavedSubmission(progress, pending)) {
+        renderQuestions();
+        return;
+      }
+    } catch {
+      // A failed GET does not replay the answer or override the rendered progress.
+    }
+  }
+  if (state.pendingSubmit === pending) {
+    state.pendingSubmit = null;
+    saveCursor();
+  }
+}
+
+async function revealModelAnswer(exercise, answer) {
+  if (state.busy) return;
+  if (!answer.trim()) {
+    state.errors.set(exercise.id, t('lesson.needAnswer'));
+    renderQuestions();
+    return;
+  }
+  state.busy = true;
+  state.errors.delete(exercise.id);
+  setBusy(true);
+  try {
+    const { modelAnswer } = await previewSelfCheck(state.lesson.slug, { exerciseId: exercise.id, answer });
+    state.selfChecks.set(exercise.id, { answer, modelAnswer });
+  } catch (error) {
+    if (error?.status === 401) window.location.replace('/login.html');
+    else state.errors.set(exercise.id, describeApiError(error));
+  } finally {
+    state.busy = false;
+    renderQuestions();
+    setBusy(false);
+    document.querySelector('.lesson-model-answer, .lesson-feedback.is-error')?.focus();
   }
 }
 
@@ -406,6 +532,7 @@ function notClearButton(exercise, index) {
 }
 
 function questionCard(exercise, index) {
+  const selfCheck = state.selfChecks.get(exercise.id);
   const record = exerciseState(exercise);
   const result = state.results.get(exercise.id);
   const card = el('article', 'lesson-card lesson-question lesson-reveal');
@@ -488,8 +615,12 @@ function questionCard(exercise, index) {
     else input.rows = 4;
     input.maxLength = 2000;
     input.autocomplete = 'off';
-    input.value = state.drafts.has(exercise.id) ? state.drafts.get(exercise.id) : record?.answer || '';
-    input.addEventListener('input', () => { state.drafts.set(exercise.id, input.value); markEdited(exercise); });
+    input.value = selfCheck?.answer ?? (state.drafts.has(exercise.id) ? state.drafts.get(exercise.id) : record?.answer || '');
+    input.readOnly = Boolean(selfCheck);
+    input.addEventListener('input', () => {
+      state.drafts.set(exercise.id, input.value);
+      markEdited(exercise);
+    });
     if (result) input.classList.add(result.isCorrect ? 'is-correct' : 'is-incorrect');
     label.append(input);
     form.append(label);
@@ -503,11 +634,25 @@ function questionCard(exercise, index) {
   }
   const actions = el('div', 'lesson-answer-actions');
   if (exercise.type === 'self_check') {
-    for (const [assessment, title] of [['correct', t('lesson.gotRight')], ['incorrect', t('lesson.needPractice')]]) {
-      const button = el('button', 'lesson-button lesson-button-secondary', title);
-      button.type = 'button';
-      button.addEventListener('click', () => submit(exercise, readAnswer(), assessment));
-      actions.append(button);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!selfCheck) revealModelAnswer(exercise, readAnswer());
+    });
+    if (selfCheck) {
+      const model = labelled(t('lesson.modelAnswer'), selfCheck.modelAnswer);
+      model.classList.add('lesson-model-answer');
+      model.tabIndex = -1;
+      form.append(model);
+      for (const [assessment, title] of [['correct', t('lesson.gotRight')], ['incorrect', t('lesson.needPractice')]]) {
+        const button = el('button', 'lesson-button lesson-button-secondary', title);
+        button.type = 'button';
+        button.addEventListener('click', () => submit(exercise, selfCheck.answer, assessment));
+        actions.append(button);
+      }
+    } else {
+      const confirm = el('button', 'lesson-button lesson-button-secondary', t('lesson.showModelAnswer'));
+      confirm.type = 'submit';
+      actions.append(confirm);
     }
   } else if (readAnswer && state.errors.has(exercise.id)) {
     const button = el('button', 'lesson-button lesson-button-secondary', t('lesson.retryCheck'));
@@ -551,6 +696,7 @@ function renderQuestions() {
 function goQuestion(index, tab = 'practice') {
   if (state.busy || index < 0 || index >= state.lesson.exercises.length) return;
   state.index = index;
+  saveCursor();
   switchTab(tab);
   $(`panel-${tab}`).querySelector('h2')?.focus();
   renderPreview();
@@ -673,11 +819,14 @@ async function loadLesson() {
       currentAnswer: state.tab === 'practice' ? state.readCurrent?.() : undefined,
     }));
     state.progress = progress;
-    state.index = Math.max(0, nextUnfinished());
+    state.cursorKey = user.id ? `fleng.lesson.cursor:${user.id}:${lesson.id}` : null;
+    state.index = restoreCursor();
+    saveCursor();
     state.drafts.clear();
     state.tileDrafts.clear();
     state.results.clear();
     state.errors.clear();
+    state.selfChecks.clear();
     state.vocabulary = { items: [], loaded: false, loading: false, more: false, error: null };
     state.hints.clear();
     state.nextStep = null;
@@ -697,6 +846,7 @@ async function loadLesson() {
     switchTab(state.tab);
     $('lesson-loading').hidden = true;
     $('lesson-content').hidden = false;
+    void restorePendingSubmission(slug);
   } catch (error) {
     if (error?.status === 401) { window.location.replace('/login.html'); return; }
     showError(error);

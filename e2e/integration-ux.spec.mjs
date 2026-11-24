@@ -128,15 +128,14 @@ test('A0 sidecar guide, hint and Ukrainian wrong-answer explanation survive inte
   expect(
     await page.evaluate(async () => (await (await import('/js/api.js')).getMyProgress()).xp),
   ).toBe(0);
+  const submission = page.waitForResponse(
+    (response) => response.url().endsWith('/submit') && response.request().method() === 'POST',
+  );
   await page
     .locator('.lesson-option')
     .filter({ has: page.getByText('are', { exact: true }) })
     .getByRole('radio')
     .check();
-  const submission = page.waitForResponse(
-    (response) => response.url().endsWith('/submit') && response.request().method() === 'POST',
-  );
-  await page.locator('.lesson-answer-form button[type="submit"]').click();
   const graded = await (await submission).json();
   expect(graded.isCorrect).toBe(false);
   expect(graded.xpAwarded).toBe(0);

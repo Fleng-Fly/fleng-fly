@@ -399,6 +399,7 @@ async function lessonPage(search = '?slug=first', overrides = {}) {
       getLesson: async () => ({ id: 'lesson', slug: 'first', title: 'First', theory: overrides.theory ?? 'Study words.', guide: overrides.guide, exercises: [exercise] }),
       getLessonProgress: async () => overrides.progress ?? progress,
       startLesson: async () => overrides.progress ?? progress,
+      previewSelfCheck: async () => { throw new Error('Not used by this fixture'); },
       submitAnswer: overrides.submit ?? (async () => { throw new Error('Navigation must not submit answers'); }),
       getCourse: async () => ({ lessons: [] }),
       listCourses: async () => [],
