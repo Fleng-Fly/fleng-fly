@@ -25,6 +25,8 @@ from app.db.models import (
 # Columns added by revisions after the ones this test exercises.
 LATER = {
     ("exercises", "letter_tiles"),
+    ("exercise_submissions", "first_result"),
+    ("lesson_progress", "test_finished_at"),
     *(
         ("vocabulary_items", name)
         for name in (

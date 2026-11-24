@@ -34,7 +34,9 @@ function reviewRow(item) {
   if (item.note) details.append(el('p', undefined, item.note));
   if (details.children.length > 1) row.append(details);
   else row.append(el('span', undefined, item.title));
-  if (item.mistake != null) {
+  if (item.skipped) {
+    row.append(el('span', 'completion-mistake', t('completion.skipped')));
+  } else if (item.mistake != null) {
     row.append(el('span', item.mistake ? 'completion-mistake' : 'completion-correct',
       t(item.mistake ? 'completion.mistake' : 'completion.correct')));
   }
@@ -43,7 +45,7 @@ function reviewRow(item) {
 
 /** Renders an already confirmed result. Actions belong to the owning test. */
 export function TestCompletionScreen(target, {
-  headingId, title, subtitle, courseTitle, level, correct, total, firstTry, mistakes, retries, seconds, xp,
+  headingId, title, subtitle, courseTitle, level, correct, total, firstTry, mistakes, skipped, retries, seconds, xp,
   items = [], previousItems = [], retryMistakes, tryAgain, finish, backToCourses, continueLearning, extra, animate = true,
 }) {
   const perfect = total > 0 && firstTry === total;
@@ -94,9 +96,10 @@ export function TestCompletionScreen(target, {
   const metrics = el('dl', 'completion-metrics');
   const time = seconds == null ? undefined : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
   let xpCounter;
-  for (const [key, value] of Object.entries({ correct, total, mistakes, retries, time, xp })) {
+  for (const [key, value] of Object.entries({ correct, total, incorrect: mistakes, skipped, retries, time, xp })) {
     if (value == null) continue;
     const metric = el('div');
+    metric.dataset.metric = key;
     metric.style.setProperty('--order', metrics.children.length);
     const amount = el('dd', undefined, String(value));
     if (key === 'xp') {

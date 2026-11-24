@@ -153,6 +153,7 @@ Table: `exercise_submissions`.
 | user_id | CHAR(32) | False | FK users.id |
 | exercise_id | CHAR(32) | False | FK exercises.id |
 | answer | TEXT | True | — |
+| first_result | JSON | True | ? |
 | is_correct | BOOLEAN | True | — |
 | completed | BOOLEAN | False | — |
 | xp_awarded | BOOLEAN | False | — |
@@ -236,6 +237,7 @@ Table: `lesson_progress`.
 | status | VARCHAR(20) | False | — |
 | started_at | DATETIME | False | — |
 | completed_at | DATETIME | True | — |
+| test_finished_at | DATETIME | True | ? |
 | updated_at | DATETIME | False | — |
 
 Constraints/indexes beyond primary/foreign keys:

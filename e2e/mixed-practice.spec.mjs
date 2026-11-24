@@ -91,30 +91,19 @@ async function answer(page, words, remembered, pause = false) {
   expect((await response).ok()).toBe(true);
 }
 
-test('mixed practice runs all four types, restores FIFO and finishes only after correction', async ({ page }) => {
+test('mixed practice runs all four types, advances past all wrong answers and supports voluntary retry', async ({ page }) => {
   const words = await open(page, [['train', 'поїзд'], ['plant', 'рослина'], ['stone', 'камінь'], ['crown', 'корона']]);
   await expect(page.getByRole('heading', { name: 'Mixed Practice' })).toBeVisible();
   const initial = await snapshot(page);
   expect(initial.tasks.map((task) => task.type).sort()).toEqual(['choice', 'flashcards', 'letters', 'write']);
-  const rotations = [...initial.queue];
-  for (let index = 0; index < initial.queue.length; index++) {
-    const id = rotations.shift();
+  for (const [index, id] of initial.queue.entries()) {
     await expect(card(page)).toHaveAttribute('data-word-id', id);
     await answer(page, words, false);
-    rotations.push(id);
-    await expect(page.locator('#word-practice')).toContainText(`Correct answer: ${words[id].word}`);
-    await expect.poll(async () => (await snapshot(page)).queue).toEqual(rotations);
-    await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
+    await expect.poll(async () => (await snapshot(page)).queue).toEqual(initial.queue.slice(index + 1));
     if (index === 1) {
       await page.reload();
-      await expect(card(page)).toHaveAttribute('data-word-id', rotations[0]);
-      expect((await snapshot(page)).queue).toEqual(rotations);
+      await expect(card(page)).toHaveAttribute('data-word-id', initial.queue[index + 1]);
     }
-  }
-  for (const [index, id] of rotations.entries()) {
-    await expect(card(page)).toHaveAttribute('data-word-id', id);
-    await answer(page, words, true, true);
-    await expect.poll(async () => (await snapshot(page)).queue.length).toBe(3 - index);
   }
   await expect(page.locator('#practice-summary-title')).toBeVisible();
   await expect(page.getByRole('meter')).toHaveAttribute('aria-valuenow', '0');
@@ -148,6 +137,17 @@ test('empty dictionary shows guidance and creates no review', async ({ page }) =
   page.on('request', (request) => { if (request.url().endsWith('/review')) reviews++; });
   await open(page);
   await expect(page.locator('#word-practice')).toContainText('No words for this activity');
+  expect(reviews).toBe(0);
+});
+
+test('skipping the final word completes the run without a vocabulary review', async ({ page }) => {
+  let reviews = 0;
+  page.on('request', (request) => { if (request.url().endsWith('/review')) reviews++; });
+  await open(page, [['train', 'поїзд']]);
+  await card(page).getByRole('button', { name: 'Skip', exact: true }).click();
+  await page.reload();
+  await expect(page.locator('[data-metric="skipped"] dd')).toHaveText('1');
+  await expect(page.locator('[data-metric="correct"] dd')).toHaveText('0');
   expect(reviews).toBe(0);
 });
 

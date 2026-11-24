@@ -1,5 +1,9 @@
 # Frontend Plan
 
+- [x] Single-pass tests with explicit Skip, result statistics, reload recovery,
+  and voluntary mistake practice. See
+  [FLENG_TEST_NO_FORCED_RETRY_REPORT.md](../FLENG_TEST_NO_FORCED_RETRY_REPORT.md).
+
 - [x] Shared Test Completion Screen for Course Lessons, My Words Mixed Practice
   (including Course Words Tests), and Placement Test.
   Verification and current data limits are recorded in
@@ -8,7 +12,7 @@
   reopening from completed course rows. See
   [FLENG_UNIVERSAL_COMPLETION_REPORT.md](../FLENG_UNIVERSAL_COMPLETION_REPORT.md).
 
-- Completed: My Words offers Mixed Practice with balanced formats, FIFO retries,
+- Completed: My Words offers Mixed Practice with balanced formats, a single pass,
   reload recovery, and a replayable summary. Learner review uses the existing API.
 - Completed: Course Words links directly to Mixed Practice through Tests above its filters.
 

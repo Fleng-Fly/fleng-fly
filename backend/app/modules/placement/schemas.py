@@ -26,7 +26,7 @@ class PlacementQuestion(CamelModel):
 class PlacementAnswer(CamelModel):
     model_config = ConfigDict(extra="forbid")
     question_id: str = Field(min_length=1, max_length=40)
-    option_id: str = Field(min_length=1, max_length=40)
+    option_id: str | None = Field(min_length=1, max_length=40)
 
 
 class PlacementAnswers(CamelModel):
@@ -42,7 +42,7 @@ class PlacementBandScore(CamelModel):
 
 class PlacementReview(CamelModel):
     question_id: str
-    selected_option_id: str
+    selected_option_id: str | None
     correct_option_id: str
     is_correct: bool
     explanation: str
@@ -67,6 +67,7 @@ class PlacementSummary(CamelModel):
     status: Literal["in_progress", "completed"]
     bank_version: str
     scoring_version: str
+    practice: bool = False
     started_at: datetime
     completed_at: datetime | None
     answered: int
@@ -86,7 +87,7 @@ class PlacementSummary(CamelModel):
 
 class PlacementDetail(PlacementSummary):
     questions: list[PlacementQuestion]
-    answers: dict[str, str]
+    answers: dict[str, str | None]
     result: PlacementResult | None
     recommended_courses: list[CourseSummaryResponse]
     recommendation_note: str

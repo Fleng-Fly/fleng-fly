@@ -161,7 +161,7 @@ async function answer(app, remembered, pause = false) {
   }
 }
 
-test('Mixed Practice balances every task type and rotates every wrong answer in FIFO order', async () => {
+test('Mixed Practice balances formats and never requeues wrong answers', async () => {
   const words = practiceWords();
   const storage = new Map();
   let app = await page({ words, storage });
@@ -172,34 +172,15 @@ test('Mixed Practice balances every task type and rotates every wrong answer in 
   }
   for (const [index, id] of initial.queue.entries()) {
     assert.equal(app.session().queue[0], id);
-    await answer(app, false);
-    assert.equal(app.session().queue.at(-1), id);
-    assert.match(app.node('word-practice').textContent, /Correct answer:/);
-    assert.equal(app.session().incorrect, index + 1);
+    if (index === 2) await app.click(app.byText('word-practice', 'Skip'));
+    else await answer(app, false);
+    assert.deepEqual(app.session().queue, initial.queue.slice(index + 1));
+    if (index === 3) app = await page({ words, storage, mode: 'mixed' });
   }
-  assert.deepEqual(app.session().queue, initial.queue);
-  await answer(app, false);
-  const rotated = [...initial.queue.slice(1), initial.queue[0]];
-  assert.deepEqual(app.session().queue, rotated);
-  app = await page({ words, storage, mode: 'mixed' });
-  assert.deepEqual(app.session().queue, rotated);
-  assert.equal(app.session().incorrect, 9);
-  assert.equal(app.writes.length, 0);
-  let paused = false;
-  for (const id of rotated) {
-    assert.equal(app.session().queue[0], id);
-    const pause = !paused && initial.tasks.find(({ wordId }) => id === wordId).type === 'write';
-    paused ||= pause;
-    await answer(app, true, pause);
-  }
-  assert.equal(app.writes.length, 8);
-  assert.equal(new Set(app.attempts).size, 8);
-  assert.deepEqual(app.session().queue, []);
   assert.match(app.node('word-practice').textContent, /First-try accuracy 0%/);
-  assert.match(app.node('word-practice').textContent, /Retries 9/);
-  await app.click(app.byText('word-practice', 'Try again'));
-  assert.equal(app.session().queue.length, 8);
-  assert.equal(app.session().incorrect, 0);
+  assert.match(app.node('word-practice').textContent, /Incorrect 7 Skipped 1/);
+  await app.click(app.byText('word-practice', 'Retry Mistakes'));
+  assert.equal(app.session().queue.length, 7);
 });
 
 test('one word uses reveal and self-assessment, repeats errors, and replays even when no longer due', async () => {
@@ -215,8 +196,6 @@ test('one word uses reveal and self-assessment, repeats errors, and replays even
   assert.equal(app.byText('word-practice', 'I knew it'), undefined);
   assert.equal(app.writes.length, 0);
   await answer(app, false);
-  assert.deepEqual(app.session().queue, ['one']);
-  await answer(app, true);
   assert.deepEqual(app.session().queue, []);
   await app.click(app.byText('word-practice', 'Retry Mistakes'));
   assert.deepEqual(app.session().queue, ['one']);

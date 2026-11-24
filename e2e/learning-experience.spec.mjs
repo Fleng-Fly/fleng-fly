@@ -47,7 +47,7 @@ test('every exercise states its task and "I don\'t understand" keeps the draft a
   await expect(card.locator('.lesson-question-meta')).toContainText('/ 22');
 
   // Go to the typed gap-fill (question 9) and leave a draft answer.
-  for (let i = 0; i < 8; i++) await page.getByRole('button', { name: /Next/ }).click();
+  for (let i = 0; i < 8; i++) await page.getByRole('button', { name: 'Skip', exact: true }).click();
   await expect(card.locator('.lesson-instruction')).toContainText('Type only the missing word');
   await card.locator('input.lesson-answer').fill('ope');
   await card.getByRole('button', { name: "I don't understand" }).click();

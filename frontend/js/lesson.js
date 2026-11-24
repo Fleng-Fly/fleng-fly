@@ -17,7 +17,7 @@ const state = {
   drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
   selfChecks: new Map(), cursorKey: null, pendingSubmit: null,
   vocabulary: { items: [], loaded: false, loading: false, more: false, error: null },
-  completionErrors: {}, completionProgress: null,
+  completionErrors: {}, completionProgress: null, retryAttempts: null,
   hints: new Set(),
   // Reads the visible exercise's current (unsent) answer for Fleng AI context.
   readCurrent: null,
@@ -118,48 +118,57 @@ function exerciseType(exercise) {
 }
 
 function nextUnfinished() {
+  if (state.retryAttempts) {
+    return state.lesson.exercises.findIndex((exercise) =>
+      state.retryAttempts[exercise.id] === (exerciseState(exercise)?.attempts ?? 0));
+  }
   const [first] = state.progress.pendingExerciseIds ?? state.progress.exercises
-    .filter((record) => !record.completed).map((record) => record.exerciseId);
+    .filter((record) => !record.attempts).map((record) => record.exerciseId);
   return state.lesson.exercises.findIndex((exercise) => exercise.id === first);
-}
-
-function progressRevision() {
-  return JSON.stringify(state.progress.exercises.map(({ exerciseId, attempts }) => [exerciseId, attempts]));
 }
 
 function saveCursor() {
   if (!state.cursorKey) return;
   try {
-    const exercise = state.lesson.exercises[state.index];
-    if (state.progress.completed || !exercise) {
-      window.sessionStorage.removeItem(state.cursorKey);
-    } else {
-      window.sessionStorage.setItem(state.cursorKey, JSON.stringify({
-        exerciseId: exercise.id, revision: progressRevision(), pending: state.pendingSubmit,
-      }));
-    }
+    if (!state.retryAttempts && !state.pendingSubmit) window.sessionStorage.removeItem(state.cursorKey);
+    else window.sessionStorage.setItem(state.cursorKey, JSON.stringify({
+      pending: state.pendingSubmit, retryAttempts: state.retryAttempts,
+    }));
   } catch {
-    // The queue is still available from the server when browser storage is blocked.
+    // The server can still restore the main pass.
   }
 }
 
 function restoreCursor() {
   state.pendingSubmit = null;
-  if (state.cursorKey && !state.progress.completed) {
+  state.retryAttempts = null;
+  if (state.cursorKey) {
     try {
       const cursor = JSON.parse(window.sessionStorage.getItem(state.cursorKey));
-      if (cursor?.revision === progressRevision()) {
-        const index = state.lesson.exercises.findIndex((exercise) => exercise.id === cursor.exerciseId);
-        if (index !== -1) {
-          state.pendingSubmit = cursor.pending ?? null;
-          return index;
-        }
-      }
+      state.retryAttempts = cursor?.retryAttempts ?? null;
+      if (state.retryAttempts && nextUnfinished() === -1) state.retryAttempts = null;
+      const pending = cursor?.pending;
+      const record = state.progress.exercises.find(({ exerciseId }) => exerciseId === pending?.exerciseId);
+      if (record?.attempts === pending?.expectedAttempts) state.pendingSubmit = pending ?? null;
     } catch {
-      // Fall back to the head of the current server queue.
+      // Fall back to the first unvisited exercise from the server.
     }
   }
   return Math.max(0, nextUnfinished());
+}
+
+function startMistakeRetry(records) {
+  state.retryAttempts = Object.fromEntries(records.map((record) => [record.exerciseId, record.attempts]));
+  state.index = nextUnfinished();
+  saveCursor();
+  for (const { exerciseId } of records) {
+    state.drafts.set(exerciseId, '');
+    state.results.delete(exerciseId);
+  }
+  switchTab('practice');
+  renderHero();
+  renderPreview();
+  $('panel-practice').querySelector('h2')?.focus();
 }
 
 function pct(done, total) {
@@ -205,37 +214,48 @@ function renderHero() {
 function renderCompleted() {
   const { progress } = state;
   const completed = $('lesson-completed');
-  completed.hidden = !progress.completed;
-  if (!progress.completed) return;
+  const finished = Boolean(progress.testFinishedAt || progress.completed);
+  completed.hidden = !finished || Boolean(state.retryAttempts);
+  if (completed.hidden) return;
   if (state.completionProgress === progress) return;
   state.completionProgress = progress;
   const records = progress.exercises;
   const byId = new Map(state.lesson.exercises.map((exercise) => [exercise.id, exercise]));
   const total = progress.exercisesTotal;
-  const correct = records.filter((record) => record.isCorrect === true).length;
-  const firstTry = records.filter((record) => record.isCorrect === true && record.attempts === 1).length;
+  const known = records.every((record) => record.firstOutcome != null);
+  const correct = known ? records.filter((record) => record.firstOutcome === 'correct').length : undefined;
+  const mistakes = known ? records.filter((record) => record.firstOutcome === 'incorrect').length : undefined;
+  const skipped = known ? records.filter((record) => record.firstOutcome === 'skipped').length : undefined;
   const retries = records.reduce((count, record) => count + Math.max(0, record.attempts - 1), 0);
+  const retryable = records.filter((record) => !record.completed && byId.has(record.exerciseId));
   const heading = TestCompletionScreen(completed, {
     headingId: 'lesson-completion-title',
-    title: t('lesson.completedTitle'),
+    title: t(progress.completed ? 'lesson.completedTitle' : 'completion.lessonNotPassed'),
     subtitle: state.lesson.title,
     courseTitle: state.lesson.courseTitle,
     level: state.lesson.level,
-    total, correct, firstTry, retries, xp: progress.xpEarned,
-    mistakes: records.filter((record) => record.attempts > 1 || record.isCorrect === false).length,
-    seconds: elapsedSeconds(progress.startedAt, progress.completedAt),
+    total, correct, firstTry: correct, mistakes, skipped, retries, xp: progress.xpEarned,
+    seconds: elapsedSeconds(progress.startedAt, progress.testFinishedAt ?? progress.completedAt),
     items: records.filter((record) => record.attempts > 0 && byId.has(record.exerciseId)).map((record) => {
       const exercise = byId.get(record.exerciseId);
-      const mistake = record.attempts > 1 || record.isCorrect === false;
+      const answer = optionText(exercise, record.firstAnswer);
+      const errors = state.completionErrors[exercise.id] ?? [];
+      const firstError = record.firstOutcome === 'incorrect' && !errors.some((item) => item.answer === answer)
+        ? [{ answer, expected: record.expectedAnswer }]
+        : [];
       return {
         title: exercise.prompt,
-        mistake,
-        answer: mistake ? undefined : optionText(exercise, record.answer),
-        errors: state.completionErrors[exercise.id],
+        mistake: record.firstOutcome === 'incorrect' || errors.length > 0
+          || (!record.firstOutcome && record.isCorrect === false),
+        skipped: record.firstOutcome === 'skipped',
+        answer,
+        expected: record.expectedAnswer,
+        errors: [...firstError, ...errors],
       };
     }),
     backToCourses: true,
-    continueLearning: loadNextStep(state.lesson),
+    retryMistakes: retryable.length ? () => startMistakeRetry(retryable) : undefined,
+    continueLearning: progress.completed ? loadNextStep(state.lesson) : undefined,
   });
   if (state.busy || state.tab === 'practice' || queryParam('view') === 'results') heading.focus();
 }
@@ -297,16 +317,12 @@ function feedback(exercise, record) {
   if (result) {
     const ok = result.isCorrect;
     box.classList.add(ok ? 'is-correct' : 'is-incorrect');
-    let headline = exercise.type === 'self_check'
+    let headline = ok == null ? t('completion.skipped') : exercise.type === 'self_check'
       ? (ok ? t('lesson.selfCorrect') : t('lesson.selfIncorrect'))
       : (ok ? t('lesson.correct') : t('lesson.incorrect'));
     if (result.xpAwarded) headline += ` · +${result.xpAwarded} XP`;
     box.append(el('strong', undefined, headline));
-    if (!ok && exercise.type !== 'self_check') box.append(el('p', undefined, t('lesson.mistakeHint')));
-    if (!ok && !result.completed) {
-      const remaining = state.progress.exercisesTotal - state.progress.exercisesCompleted;
-      box.append(el('p', undefined, remaining > 1 ? t('lesson.returnsLater') : t('lesson.tryAgain')));
-    }
+    if (ok === false && exercise.type !== 'self_check') box.append(el('p', undefined, t('lesson.mistakeHint')));
     if (exercise.type === 'single_choice' && result.correctOptionId) {
       const option = exercise.options?.find((item) => item.id === result.correctOptionId);
       if (option) box.append(labelled(t('lesson.correctAnswer'), option.text));
@@ -325,7 +341,6 @@ function feedback(exercise, record) {
       const option = exercise.options?.find((item) => item.id === record.answer);
       box.append(labelled(t('lesson.latestAnswer'), option?.text || record.answer));
     }
-    if (!record.completed) box.append(el('p', undefined, t('lesson.submitAgain')));
   }
   return box;
 }
@@ -342,8 +357,8 @@ function markEdited(exercise) {
 }
 
 async function submit(exercise, answer, assessment) {
-  if (state.busy) return;
-  if (!answer?.trim()) {
+  if (state.busy || nextUnfinished() !== state.index || state.lesson.exercises[state.index]?.id !== exercise.id) return;
+  if (answer !== null && !answer?.trim()) {
     state.errors.set(exercise.id, t('lesson.needAnswer'));
     renderQuestions();
     return;
@@ -367,14 +382,13 @@ async function submit(exercise, answer, assessment) {
     state.progress = result.lesson;
     state.pendingSubmit = null;
     state.results.set(exercise.id, result);
-    state.drafts.set(exercise.id, result.completed ? answer : '');
+    state.drafts.set(exercise.id, '');
     state.tileDrafts.delete(exercise.id);
     state.selfChecks.delete(exercise.id);
     const next = nextUnfinished();
+    if (next === -1) state.retryAttempts = null;
     if (next !== -1 && next !== state.index) {
-      const review = feedback(exercise, null);
-      review.prepend(el('p', 'lesson-muted', exercise.prompt));
-      $('lesson-last-answer').append(review);
+      $('lesson-last-answer').append(feedback(exercise, null));
       state.index = next;
       advanced = true;
     }
@@ -408,7 +422,7 @@ async function submit(exercise, answer, assessment) {
     setBusy(false);
     const card = document.querySelector(`[data-exercise-id="${exercise.id}"]`);
     if (advanced) $(`panel-${state.tab}`).querySelector('h2')?.focus();
-    else if (!state.progress?.completed) card?.querySelector('.lesson-feedback')?.focus();
+    else if (nextUnfinished() !== -1) card?.querySelector('.lesson-feedback')?.focus();
   }
 }
 
@@ -425,10 +439,9 @@ function adoptSavedSubmission(progress, pending) {
   state.drafts.set(exerciseId, attempt.completed ? attempt.answer || '' : '');
   state.tileDrafts.delete(exerciseId);
   state.selfChecks.delete(exerciseId);
-  if (state.lesson.exercises[state.index]?.id === exerciseId) {
-    const next = nextUnfinished();
-    if (next !== -1) state.index = next;
-  }
+  const next = nextUnfinished();
+  if (next === -1) state.retryAttempts = null;
+  else state.index = next;
   saveCursor();
   renderHero();
   renderPreview();
@@ -562,7 +575,7 @@ function questionCard(exercise, index) {
   track.setAttribute('aria-valuemax', '100');
   track.append(el('span', 'lesson-fill'));
   card.append(track);
-  setProgressBar(track, state.progress.exercisesCompleted, state.progress.exercisesTotal);
+  setProgressBar(track, state.progress.exercises.filter((item) => item.attempts > 0).length, state.progress.exercisesTotal);
   // The task comes first, so the learner knows what to do before reading the prompt.
   const instructionKey = `lesson.instruction.${exerciseType(exercise)}`;
   const task = pick(exercise.instruction) || (t(instructionKey) !== instructionKey ? t(instructionKey) : '');
@@ -679,15 +692,10 @@ function questionCard(exercise, index) {
   state.readCurrent = readAnswer || null;
   card.append(form, feedback(exercise, record));
   const nav = el('div', 'lesson-question-navigation');
-  const previous = el('button', 'lesson-button lesson-button-secondary', `← ${t('lesson.previous')}`);
-  previous.type = 'button';
-  previous.disabled = index === 0;
-  previous.addEventListener('click', () => goQuestion(index - 1, state.tab));
-  const next = el('button', 'lesson-button lesson-button-primary', `${t('lesson.next')} →`);
-  next.type = 'button';
-  next.disabled = index === state.lesson.exercises.length - 1;
-  next.addEventListener('click', () => goQuestion(index + 1, state.tab));
-  nav.append(previous, next);
+  const skip = el('button', 'lesson-button lesson-button-secondary', t('completion.skip'));
+  skip.type = 'button';
+  skip.addEventListener('click', () => submit(exercise, null));
+  nav.append(skip);
   card.append(nav);
   return card;
 }
@@ -703,18 +711,9 @@ function renderQuestions() {
     practice.append(empty);
     return;
   }
-  if (state.tab === 'practice') {
+  if (state.tab === 'practice' && nextUnfinished() !== -1) {
     practice.append(questionCard(exercises[state.index], state.index));
   }
-}
-
-function goQuestion(index, tab = 'practice') {
-  if (state.busy || index < 0 || index >= state.lesson.exercises.length) return;
-  state.index = index;
-  saveCursor();
-  switchTab(tab);
-  $(`panel-${tab}`).querySelector('h2')?.focus();
-  renderPreview();
 }
 
 function renderPreview() {
@@ -725,6 +724,7 @@ function renderPreview() {
     target.append(el('p', 'lesson-muted', t('lesson.noActivities')));
     return;
   }
+  if (nextUnfinished() === -1) return;
   const mini = el('div', 'template-mini');
   const meta = el('div', 'template-mini-meta');
   meta.append(el('span', undefined, t('lesson.questionOf', { n: state.index + 1, total: lesson.exercises.length })), el('span', undefined, t('lesson.nComplete', { n: progress.exercisesCompleted })));
@@ -739,11 +739,11 @@ function renderPreview() {
   mini.append(bar);
   const questions = el('div', 'template-questions');
   for (let index = 0; index < lesson.exercises.length; index++) {
-    const button = el('button', exerciseState(lesson.exercises[index])?.completed ? 'is-done' : '', String(index + 1));
+    const button = el('button', exerciseState(lesson.exercises[index])?.attempts ? 'is-done' : '', String(index + 1));
     button.type = 'button';
     button.setAttribute('aria-label', t('lesson.openQuestion', { n: index + 1 }));
     if (index === state.index) button.setAttribute('aria-current', 'step');
-    button.addEventListener('click', () => goQuestion(index));
+    button.disabled = true;
     questions.append(button);
   }
   mini.append(questions);

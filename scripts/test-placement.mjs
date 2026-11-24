@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import { i18nStub } from './i18n-stub.mjs';
 
 class Element {
-  constructor(tag = 'div', text = '') { this.tag = tag; this.text = text; this.children = []; this.events = {}; this.disabled = false; this.hidden = false; this.value = ''; this.style = { setProperty() {} }; }
+  constructor(tag = 'div', text = '') { this.tag = tag; this.text = text; this.children = []; this.events = {}; this.dataset = {}; this.disabled = false; this.hidden = false; this.value = ''; this.style = { setProperty() {} }; }
   set innerHTML(_) { throw new Error('Raw HTML is forbidden'); }
   set textContent(value) { this.text = value; this.children = []; }
   get textContent() { return this.text + this.children.map((node) => node.textContent).join(' '); }
@@ -38,6 +38,7 @@ async function page({ resume = false, unavailable = false, history: rows = null 
       stored.answers[questionId] = optionId; stored.answered = Object.keys(stored.answers).length;
       return copy(stored);
     },
+    retryPlacementMistakes: async () => { throw new Error("Not used by this fixture"); },
     completePlacement: async () => {
       calls.push('complete'); assert.equal(stored.answered, 2);
       stored.status = 'completed';
@@ -80,14 +81,12 @@ test('start, autosave, server result, review and retake use only placement endpo
   const app = await page();
   await app.click('placement-start');
   assert.match(app.urls.at(-1), /attempt=new-id/);
-  assert.equal(app.node('placement-finish').disabled, true);
+  assert.equal(app.node('placement-skip').disabled, false);
   assert.doesNotMatch(app.node('placement-question').textContent, /Explanation/);
   assert.match(app.node('placement-question').textContent, /<img onerror=bad>/);
   await app.choose();
   assert.match(app.node('placement-saved').textContent, /1 of 2/);
-  await app.click('placement-next'); await app.choose(1);
-  assert.equal(app.node('placement-finish').disabled, false);
-  await app.submit();
+  await app.choose(1);
   assert.equal(app.node('placement-player').hidden, true);
   assert.equal(app.node('placement-result').hidden, false);
   assert.match(app.node('placement-result').textContent, /Not certified/);
@@ -95,7 +94,7 @@ test('start, autosave, server result, review and retake use only placement endpo
   assert.equal(app.node('placement-result').querySelectorAll('a')[0].href, '/course.html?slug=real-course');
   await app.click('placement-start');
   assert.equal(app.node('placement-result').hidden, true);
-  assert.equal(app.node('placement-finish').disabled, true);
+  assert.equal(app.node('placement-skip').disabled, false);
   assert.equal(app.calls.filter((call) => call === 'start').length, 2);
   assert.equal(app.calls.filter((call) => call === 'complete').length, 1);
 });
@@ -103,8 +102,7 @@ test('start, autosave, server result, review and retake use only placement endpo
 test('URL resume loads saved choices without starting a new attempt', async () => {
   const app = await page({ resume: true });
   assert.equal(app.calls.includes('start'), false);
-  assert.equal(app.node('placement-question').querySelectorAll('input')[1].checked, true);
-  await app.click('placement-unanswered');
+  assert.equal(app.node('placement-question').querySelectorAll('input')[1].checked, false);
   assert.match(app.node('placement-count').textContent, /Question 2/);
 });
 
@@ -115,7 +113,7 @@ test('failed save offers recovery without grading or advancing; session errors s
   assert.match(app.node('placement-error-text').textContent, /Offline/);
   assert.match(app.node('placement-count').textContent, /Question 1/);
   assert.equal(app.calls.includes('complete'), false);
-  assert.equal(app.node('placement-finish').disabled, true);
+  assert.equal(app.node('placement-skip').disabled, false);
   app.fail(false); await app.click('placement-retry');
   assert.equal(app.node('placement-error').hidden, true);
   const offline = await page({ unavailable: true });
@@ -130,7 +128,7 @@ test('the page lives in the Courses area and shows the intro only while not answ
   await app.click('placement-start');
   assert.equal(app.node('placement-intro').hidden, true);
   assert.equal(app.node('placement-levels').hidden, true);
-  await app.choose(); await app.click('placement-next'); await app.choose(1); await app.submit();
+  await app.choose(); await app.choose(1);
   assert.equal(app.node('placement-intro').hidden, false);
   assert.equal(app.node('placement-levels').hidden, false);
 });

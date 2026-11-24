@@ -192,8 +192,13 @@ async def test_autosave_resume_validation_and_no_early_feedback(client):
         response = await client.put(endpoint + "/answers", headers=auth, json=payload)
         assert response.status_code == 422, response.text
     assert (await client.get(endpoint, headers=auth)).json()["answers"] == answer
-    changed = {q["id"]: q["options"][1]["id"]}
-    assert (await fill(client, auth, attempt, changed))["answers"] == changed
+    changed = await client.put(
+        endpoint + "/answers",
+        headers=auth,
+        json={"answers": [{"questionId": q["id"], "optionId": q["options"][1]["id"]}]},
+    )
+    assert changed.status_code == 409
+    assert (await fill(client, auth, attempt, answer))["answers"] == answer
 
 
 async def learning_snapshot(db):
@@ -277,6 +282,17 @@ async def test_complete_retake_recommendations_and_zero_learning_writes(client, 
     history = (await client.get(BASE, headers=auth)).json()
     assert len(history) == 2 and all(row["status"] == "completed" for row in history)
     assert (await client.get(f"{BASE}/{first['id']}", headers=auth)).json() == result
+
+    retry = await client.post(f"{BASE}/{second['id']}/retry-mistakes", headers=auth)
+    assert retry.status_code == 201
+    practice = retry.json()
+    assert practice["practice"] is True and practice["total"] == 36
+    await fill(client, auth, practice, private_answers(private_second.questions))
+    reviewed = (await client.post(f"{BASE}/{practice['id']}/complete", headers=auth)).json()
+    assert reviewed["result"]["correct"] == 36
+    assert reviewed["result"]["estimatedLevel"] is None
+    assert reviewed["recommendedCourses"] == []
+    assert (await client.get(BASE, headers=auth)).json() == history
     assert before == await learning_snapshot(db_session)
 
 

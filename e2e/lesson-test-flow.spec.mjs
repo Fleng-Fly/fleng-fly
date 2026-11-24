@@ -11,7 +11,8 @@ const slots = (page) => card(page).locator('.lesson-tile-slot');
 const choice = (page, label) => card(page).getByRole('radio', { name: new RegExp(label) }).click();
 const question = (page, number) => expect(card(page).locator('.lesson-question-meta'))
   .toContainText(`Question ${number} /`, { timeout: 10000 });
-const jump = (page, number) => page.getByRole('button', { name: `Open question ${number}`, exact: true }).click();
+const skip = (page) => card(page).getByRole('button', { name: 'Skip', exact: true }).click();
+const metric = (page, name) => page.locator(`[data-metric="${name}"] dd`);
 
 async function register(page) {
   await page.goto('/register.html');
@@ -47,134 +48,99 @@ test.beforeEach(async ({ page }) => {
   await register(page);
 });
 
-test('wrong answers rotate in FIFO order, including repeat failures, and survive reload', async ({ page }) => {
-  await open(page);
-  const [first, second, third] = (await progress(page)).pendingExerciseIds;
-  await jump(page, 2);
-  await letter(page, 'a', 0);
-  await letter(page, 'o', 1);
-  await question(page, 1);
-  await choice(page, 'have');
-  await question(page, 3);
-  await expect(page.locator('#lesson-last-answer')).toContainText('Incorrect');
-  await textAnswer(page, 'never');
-  await question(page, 2);
-  const halfway = await progress(page);
-  expect(halfway.pendingExerciseIds).toEqual([second, first]);
-  expect(halfway.exercisesCompleted).toBe(1);
-  expect(halfway.xpEarned).toBeGreaterThan(0);
-  expect(halfway.pendingExerciseIds).not.toContain(third);
+for (const scenario of [
+  { name: 'all correct', outcomes: ['correct', 'correct', 'correct'] },
+  { name: 'all wrong', outcomes: ['incorrect', 'incorrect', 'incorrect'] },
+  { name: 'all skipped', outcomes: ['skipped', 'skipped', 'skipped'] },
+  { name: 'mixed with a final skip', outcomes: ['incorrect', 'correct', 'skipped'] },
+]) {
+  test(`one pass: ${scenario.name}`, async ({ page }) => {
+    await open(page);
+    for (const [index, outcome] of scenario.outcomes.entries()) {
+      await question(page, index + 1);
+      if (outcome === 'skipped') await skip(page);
+      else if (index === 0) await choice(page, outcome === 'correct' ? 'has' : 'have');
+      else if (index === 1) {
+        const letters = outcome === 'correct' ? ['e', 'e'] : ['a', 'o'];
+        await letter(page, letters[0], 0);
+        await letter(page, letters[1], 1);
+      } else await textAnswer(page, outcome === 'correct' ? 'never' : 'always');
+      if (index === 0) {
+        await question(page, 2);
+        await page.reload();
+        await question(page, 2);
+      }
+    }
+    await expect(page.locator('#lesson-completion-title')).toBeVisible();
+    await expect(card(page)).toHaveCount(0);
+    for (const outcome of ['correct', 'incorrect', 'skipped']) {
+      await expect(metric(page, outcome)).toHaveText(String(scenario.outcomes.filter((value) => value === outcome).length));
+    }
+    const saved = await progress(page);
+    expect(saved.pendingExerciseIds).toEqual([]);
+    expect(saved.exercises.map((record) => record.firstOutcome)).toEqual(scenario.outcomes);
+    expect(saved.exercises.every((record) => record.attempts === 1)).toBe(true);
+    const passed = scenario.outcomes.every((value) => value === 'correct');
+    expect(saved.completed).toBe(passed);
+    await expect(page.getByRole('link', { name: /^(Next Lesson|Continue Learning)$/ })).toHaveCount(Number(passed));
+    await page.reload();
+    await expect(page.locator('#lesson-completion-title')).toBeVisible();
+    expect(await progress(page)).toEqual(saved);
+    if (scenario.name.startsWith('mixed')) {
+      await page.getByRole('button', { name: 'Review Mistakes' }).click();
+      await expect(page.locator('.completion-row details[open]')).toHaveCount(1);
+      await page.getByRole('button', { name: 'Retry Mistakes' }).click();
+      await question(page, 1);
+      await choice(page, 'has');
+      await question(page, 3);
+      await page.reload();
+      await question(page, 3);
+      await textAnswer(page, 'never');
+      await expect(page.locator('#lesson-completion-title')).toBeVisible();
+      await expect(metric(page, 'incorrect')).toHaveText('1');
+      await expect(metric(page, 'skipped')).toHaveText('1');
+      expect((await progress(page)).completed).toBe(true);
+    }
+  });
+}
 
-  await jump(page, 1);
-  await page.reload();
-  await question(page, 1); // The cursor is intentionally away from the queue head.
-  expect(await progress(page)).toEqual(halfway);
-  await jump(page, 2);
-  await letter(page, 'a', 0);
-  await letter(page, 'o', 1);
-  await question(page, 1);
-  expect((await progress(page)).pendingExerciseIds).toEqual([first, second]);
-  await page.reload();
-  await question(page, 1);
-  await choice(page, 'has');
-  await question(page, 2);
-  const beforeLast = await progress(page);
-  expect(beforeLast.completed).toBe(false);
-  expect(beforeLast.pendingExerciseIds).toEqual([second]);
-
-  await jump(page, 1);
-  await choice(page, 'has');
-  await question(page, 2);
-  expect((await progress(page)).xpEarned).toBe(beforeLast.xpEarned);
-  await bank(page, 'a').dragTo(page.locator('#lesson-title'));
-  await expect(bank(page, 'a')).toBeVisible();
-  await letter(page, 'e', 0);
-  expect((await progress(page)).exercises[1].attempts).toBe(2);
-  await slots(page).first().dragTo(page.locator('#lesson-title'));
-  await expect(slots(page).first()).toHaveText('e');
-  await letter(page, 'e', 1);
-  await expect.poll(async () => (await progress(page)).completed).toBe(true);
-  const finished = await progress(page);
-  await expect(page.locator('#lesson-completion-title')).toBeVisible();
-  await expect(page.getByRole('meter')).toHaveAttribute('aria-valuenow', '33');
-  await page.getByRole('button', { name: 'Review Mistakes' }).click();
-  await expect(page.locator('.completion-row details[open]')).toHaveCount(2);
-  await expect(page.locator('.completion-review')).toContainText('Your answer:');
-  await expect(page.locator('.completion-review')).toContainText('Correct answer:');
-  await expect(page.getByRole('link', { name: /^(Next Lesson|Continue Learning)$/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Back to Courses' })).toHaveAttribute('href', '/courses.html');
-  expect(finished.pendingExerciseIds).toEqual([]);
-  expect(finished.exercisesCompleted).toBe(3);
-  await page.reload();
-  await question(page, 1);
-  expect(await progress(page)).toEqual(finished);
-});
-
-test('self-assessment reveals a model only after confirmation without grading the preview', async ({ page }) => {
+test('self-assessment reveals a model without grading until the learner confirms', async ({ page }) => {
   await open(page, GREETINGS);
-  await jump(page, 3);
+  await skip(page);
+  await question(page, 2);
+  await skip(page);
+  await question(page, 3);
   const before = await progress(page, GREETINGS);
   const answer = card(page).locator('textarea');
   const model = card(page).locator('.lesson-model-answer');
   const confirm = card(page).getByRole('button', { name: 'Confirm answer and show example' });
   await expect(model).toHaveCount(0);
-  await expect(card(page).getByRole('button', { name: 'I got it right' })).toHaveCount(0);
   await confirm.click();
   await expect(card(page).locator('.lesson-feedback')).toContainText('Write');
   await answer.fill('Good morning!');
-  const previewRequests = [];
-  page.on('request', (request) => {
-    if (request.url().endsWith('/self-check/preview')) previewRequests.push(request);
-  });
-  await confirm.dblclick();
-  await expect(model).toContainText('Good morning!');
-  await expect(answer).toHaveAttribute('readonly', '');
-  expect(previewRequests).toHaveLength(1);
-  expect(await progress(page, GREETINGS)).toEqual(before);
-
-  await card(page).getByRole('button', { name: 'I need practice' }).click();
-  await question(page, 1);
-  const failed = await progress(page, GREETINGS);
-  const id = before.exercises[2].exerciseId;
-  expect(failed.pendingExerciseIds.at(-1)).toBe(id);
-  expect(failed.exercises[2]).toMatchObject({ attempts: 1, completed: false });
-  await jump(page, 3);
-  await expect(model).toHaveCount(0);
-  await answer.fill('Good morning!');
   await confirm.click();
-  await expect(model).toBeVisible();
-  await card(page).getByRole('button', { name: 'I got it right' }).dblclick();
-  await question(page, 1);
-  const passed = await progress(page, GREETINGS);
-  expect(passed.exercises[2]).toMatchObject({ attempts: 2, completed: true });
-  expect(passed.pendingExerciseIds).not.toContain(id);
-  expect(passed.xpEarned).toBeGreaterThan(0);
+  await expect(model).toContainText('Good morning!');
+  expect(await progress(page, GREETINGS)).toEqual(before);
+  await card(page).getByRole('button', { name: 'I need practice' }).click();
+  await question(page, 4);
+  expect((await progress(page, GREETINGS)).exercises[2]).toMatchObject({
+    attempts: 1, completed: false, firstOutcome: 'incorrect',
+  });
 });
 
-test('text pause and Enter each submit once, including Enter during a pending check', async ({ page }) => {
+test('text auto-check and Enter produce only one submission', async ({ page }) => {
   await open(page);
-  await jump(page, 3);
+  await skip(page);
+  await question(page, 2);
+  await skip(page);
+  await question(page, 3);
   const input = card(page).locator('input.lesson-answer');
-  const submitTimes = [];
-  page.on('request', (request) => {
-    if (request.url().endsWith('/submit')) submitTimes.push(Date.now());
-  });
-  const start = Date.now();
+  let submits = 0;
+  page.on('request', (request) => { if (request.url().endsWith('/submit')) submits++; });
   await input.fill('always');
-  await expect.poll(() => submitTimes.length).toBe(1);
-  expect(submitTimes[0] - start).toBeGreaterThanOrEqual(1450);
-  await question(page, 1);
-  await jump(page, 3);
-  await page.route(answerRoute, async (route) => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    await route.continue();
-  });
-  await textAnswer(page, 'never');
+  await expect(page.locator('#lesson-completion-title')).toBeVisible();
   await page.keyboard.press('Enter');
-  await question(page, 1);
-  await expect.poll(async () => (await progress(page)).exercises[2].attempts).toBe(2);
-  await page.waitForTimeout(1600); // The canceled text timer would fire within this interval.
-  expect(submitTimes).toHaveLength(2);
+  expect(submits).toBe(1);
 });
 
 test('network failure permits retry and a lost committed response is reconciled', async ({ page }) => {
@@ -192,9 +158,10 @@ test('network failure permits retry and a lost committed response is reconciled'
   expect((await progress(page)).exercises[0]).toMatchObject({ attempts: 1, completed: true });
 });
 
-test('reload before a committed response arrives recovers the new queue and current exercise', async ({ page }) => {
+test('reload before a committed response arrives restores the next unvisited exercise', async ({ page }) => {
   await open(page);
-  await jump(page, 2);
+  await skip(page);
+  await question(page, 2);
   let committed;
   const serverCommitted = new Promise((resolve) => { committed = resolve; });
   let release;
@@ -210,10 +177,10 @@ test('reload before a committed response arrives recovers the new queue and curr
     await letter(page, 'o', 1);
     expect(await serverCommitted).toBe(true);
     await page.reload();
-    await question(page, 1);
+    await question(page, 3);
     const restored = await progress(page);
     expect(restored.exercises[1]).toMatchObject({ attempts: 1, completed: false });
-    expect(restored.pendingExerciseIds.at(-1)).toBe(restored.exercises[1].exerciseId);
+    expect(restored.pendingExerciseIds).toEqual([restored.exercises[2].exerciseId]);
   } finally {
     release();
   }
@@ -237,9 +204,10 @@ test('simultaneous requests using the same attempt count produce one saved attem
   expect((await progress(page)).exercises[0]).toMatchObject({ attempts: 1, completed: true });
 });
 
-test('a submission that commits after the replacement page loads updates the restored queue', async ({ page }) => {
+test('a submission that commits after the replacement page loads advances the restored pass', async ({ page }) => {
   await open(page);
-  await jump(page, 2);
+  await skip(page);
+  await question(page, 2);
   const dispatched = page.waitForRequest(answerRoute);
   await page.route(answerRoute, () => {}, { times: 1 });
   await letter(page, 'a', 0);
@@ -255,6 +223,6 @@ test('a submission that commits after the replacement page loads updates the res
     data: request.postDataJSON(), headers: { authorization },
   });
   expect(late.ok()).toBe(true);
-  await question(page, 1);
+  await question(page, 3);
   expect((await progress(page)).exercises[1].attempts).toBe(1);
 });

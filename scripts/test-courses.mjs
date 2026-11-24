@@ -398,7 +398,7 @@ async function lessonPage(search = '?slug=first', overrides = {}) {
   };
   const stubs = {
     'api.js': {
-      getLesson: async () => ({ id: 'lesson', slug: 'first', title: 'First', theory: overrides.theory ?? 'Study words.', guide: overrides.guide, exercises: [exercise] }),
+      getLesson: async () => ({ id: 'lesson', slug: 'first', title: 'First', theory: overrides.theory ?? 'Study words.', guide: overrides.guide, exercises: [exercise, ...(overrides.additionalExercises ?? [])] }),
       getLessonProgress: async () => overrides.progress ?? progress,
       startLesson: async () => overrides.progress ?? progress,
       previewSelfCheck: async () => { throw new Error('Not used by this fixture'); },
@@ -520,10 +520,10 @@ test('wrong answer shows the localized explanation, wrong-answer note and the co
       correctOptionId: 'a', explanation: 'Correct choice: Hello.',
       explanationLocalized: { en: 'Greet people with “Hello”.', uk: 'Вітайся словом “Hello”.' },
       wrongAnswerNote: { en: '“Bye” is for leaving.', uk: '“Bye” — для прощання.' },
-      lesson: { startedAt: '2026-01-01', completed: false, exercisesTotal: 1, exercisesCompleted: 0, xpEarned: 0, exercises: [{ exerciseId: 'exercise', attempts: 1, completed: false, isCorrect: false }] },
+      lesson: { startedAt: '2026-01-01', completed: false, exercisesTotal: 2, exercisesCompleted: 0, xpEarned: 0, exercises: [{ exerciseId: 'exercise', attempts: 1, completed: false, isCorrect: false }, { exerciseId: 'next', attempts: 0 }] },
     };
   };
-  const p = await lessonPage('?slug=first&tab=practice', { submit });
+  const p = await lessonPage('?slug=first&tab=practice', { submit, additionalExercises: [{ id: 'next', type: 'text', prompt: 'Next prompt', points: 1 }] });
   const panel = p.get('panel-practice');
   const wrong = panel.querySelectorAll('input')[1];
   wrong.value = 'b'; wrong.checked = true;
@@ -531,7 +531,7 @@ test('wrong answer shows the localized explanation, wrong-answer note and the co
   wrong.events.change();
   await p.settle();
   assert.equal(calls, 1);
-  const text = panel.textContent;
+  const text = p.get('lesson-last-answer').textContent;
   assert.match(text, /Why this does not fit:\s*“Bye” is for leaving\./);
   assert.match(text, /Explanation:\s*Greet people with “Hello”\./);
   assert.doesNotMatch(text, /Correct choice: Hello/);
@@ -552,15 +552,15 @@ test('completion screen shows only real counts from lesson progress', async () =
   const done = {
     startedAt: '2026-01-01', completed: true, exercisesTotal: 3, exercisesCompleted: 3, xpEarned: 3,
     exercises: [
-      { exerciseId: 'exercise', attempts: 1, completed: true, isCorrect: true },
-      { exerciseId: 'x2', attempts: 2, completed: true, isCorrect: true },
-      { exerciseId: 'x3', attempts: 1, completed: true, isCorrect: true },
+      { exerciseId: 'exercise', attempts: 1, completed: true, isCorrect: true, firstOutcome: 'correct' },
+      { exerciseId: 'x2', attempts: 2, completed: true, isCorrect: true, firstOutcome: 'incorrect' },
+      { exerciseId: 'x3', attempts: 1, completed: true, isCorrect: true, firstOutcome: 'correct' },
     ],
   };
   const p = await lessonPage('?slug=first', { progress: done });
   const text = p.get('lesson-completed').textContent;
   assert.match(text, /First-try accuracy 67%/);
-  assert.match(text, /Correct 3 Tasks 3 Mistakes 1 Retries 1/);
+  assert.match(text, /Correct 2 Tasks 3 Incorrect 1 Skipped 0 Retries 1/);
   assert.match(text, /XP earned 3/);
   assert.doesNotMatch(text, /Elapsed time/);
 });

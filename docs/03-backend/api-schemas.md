@@ -1493,6 +1493,44 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Answer"
+    },
+    "firstAnswer": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Firstanswer"
+    },
+    "firstOutcome": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "correct",
+            "incorrect",
+            "skipped"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Firstoutcome"
+    },
+    "expectedAnswer": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Expectedanswer"
     }
   },
   "type": "object",
@@ -1578,6 +1616,18 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Completedat"
+    },
+    "testFinishedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Testfinishedat"
     },
     "exercisesTotal": {
       "type": "integer",
@@ -1843,9 +1893,16 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "title": "Questionid"
     },
     "optionId": {
-      "type": "string",
-      "maxLength": 40,
-      "minLength": 1,
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 40,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
       "title": "Optionid"
     }
   },
@@ -1945,6 +2002,11 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "type": "string",
       "title": "Scoringversion"
     },
+    "practice": {
+      "type": "boolean",
+      "title": "Practice",
+      "default": false
+    },
     "startedAt": {
       "type": "string",
       "format": "date-time",
@@ -2018,7 +2080,14 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     },
     "answers": {
       "additionalProperties": {
-        "type": "string"
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "type": "object",
       "title": "Answers"
@@ -2240,7 +2309,14 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "title": "Questionid"
     },
     "selectedOptionId": {
-      "type": "string",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
       "title": "Selectedoptionid"
     },
     "correctOptionId": {
@@ -2293,6 +2369,11 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "scoringVersion": {
       "type": "string",
       "title": "Scoringversion"
+    },
+    "practice": {
+      "type": "boolean",
+      "title": "Practice",
+      "default": false
     },
     "startedAt": {
       "type": "string",
@@ -2827,8 +2908,15 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "title": "Exerciseid"
     },
     "answer": {
-      "type": "string",
-      "maxLength": 2000,
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 2000
+        },
+        {
+          "type": "null"
+        }
+      ],
       "title": "Answer"
     },
     "selfAssessment": {

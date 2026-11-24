@@ -2,7 +2,7 @@
 
 Bearer caller only. Resolves published lesson/exercise within it. Start/resume is idempotent; submission upserts ExerciseSubmission, LessonProgress/Progress/Profile and gamification under learner write lock. Invalid choices/text/selfAssessment return 422 INVALID_ANSWER; unsupported type is 422; invisible/mismatched content is 404. XP once; self-check is learner assessment.
 
-Progress includes `pendingExerciseIds` in FIFO order. Untouched exercises follow lesson order. Attempted, unfinished exercises follow the time of their latest submission. Completed exercises are excluded.
+Progress includes only unvisited exercises in `pendingExerciseIds`, in lesson order. The required `answer` field accepts JSON null for an explicit skip. Empty strings are still invalid. A skip records no correct answer and awards no XP. `testFinishedAt` is available once all exercises have a saved outcome. `completed` retains the separate course mastery requirement. First outcomes and answers remain available after voluntary correction.
 
 Shared runtime failures: 413 body overflow, 422 declared schema validation, 503 DATABASE_UNAVAILABLE and 500 unexpected error. Protected calls add 401 missing/invalid identity. See [error handling](error-handling.md) and [complete schemas](api-schemas.md). Module-specific rules above apply to each operation.
 
@@ -113,6 +113,9 @@ Authentication/permissions: Bearer JWT, owner scoped where applicable.
 Request body: JSON `SubmissionRequest` (required=True), defined in [schemas](api-schemas.md).
 
 The lesson player sends `expectedAttempts` from its progress snapshot. When the saved count differs, the service returns 409 `LESSON_ATTEMPT_CHANGED` under the learner lock and the caller should refresh progress. The field is optional for older clients.
+When a modern client submits a positive attempt count, the server requires the
+first pass to be finished before retrying and otherwise returns 409
+`LESSON_TEST_INCOMPLETE`.
 
 Declared responses:
 

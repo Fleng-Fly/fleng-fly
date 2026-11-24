@@ -8,3 +8,4 @@ export const savePlacementAnswer = (id, questionId, optionId) => apiFetch(`${bas
   method: 'PUT', body: JSON.stringify({ answers: [{ questionId, optionId }] }),
 });
 export const completePlacement = (id) => apiFetch(`${base}/${encodeURIComponent(id)}/complete`, { method: 'POST' });
+export const retryPlacementMistakes = (id) => apiFetch(`${base}/${encodeURIComponent(id)}/retry-mistakes`, { method: 'POST' });

@@ -254,10 +254,12 @@ function reconcilePractice(session) {
     return [task.wordId, { ...task, type: types.includes(task.type) ? task.type : 'flashcards' }];
   }));
   if (!tasks.size) return null;
-  const queue = [...new Set(session.queue)].filter((id) => tasks.has(id));
-  if (!queue.length && session.finishedAt == null) return null;
+  // v1 queued previously missed words again. Their first review is already saved.
+  const skipped = session.skipped ?? [];
+  const queue = [...new Set(session.queue)].filter((id) => tasks.has(id)
+    && (session.skipped || !session.mistakes.includes(id)));
   const pending = session.pending && session.pending.wordId === queue[0] ? session.pending : null;
-  return { ...session, tasks: [...tasks.values()], queue, pending };
+  return { ...session, tasks: [...tasks.values()], queue, pending, skipped };
 }
 
 function restorePractice() {
@@ -265,16 +267,18 @@ function restorePractice() {
   catch { return null; }
 }
 
-function startPractice(firstId, selectedIds) {
+function startPractice(firstId, selectedIds, retryTasks = []) {
   // Replay the same words even after review changes the due filter.
   const selected = selectedIds ? state.words.filter((word) => selectedIds.includes(word.id)) : filteredWords();
   const canChoose = translations().length > 1;
   const counts = new Map(taskTypes.map((type) => [type, 0]));
+  const priorTypes = new Map(retryTasks.map(({ wordId, type }) => [wordId, type]));
   const candidates = shuffle(selected).map((word) => ({ wordId: word.id, types: shuffle(availableTypes(word, canChoose)) }));
   // Allocate constrained words first so their limited types do not crowd out the others.
   candidates.sort((a, b) => a.types.length - b.types.length);
   const tasks = shuffle(candidates.map(({ wordId, types }) => {
-    const type = selected.length === 1 ? 'flashcards'
+    const prior = priorTypes.get(wordId);
+    const type = types.includes(prior) ? prior : selected.length === 1 ? 'flashcards'
       : types.reduce((best, candidate) => counts.get(candidate) < counts.get(best) ? candidate : best);
     counts.set(type, counts.get(type) + 1);
     return { wordId, type };
@@ -283,13 +287,13 @@ function startPractice(firstId, selectedIds) {
   if (firstId && queue.includes(firstId)) queue.unshift(...queue.splice(queue.indexOf(firstId), 1));
   const previous = state.session;
   const previousErrors = { ...previous?.previousErrors };
-  if (previous?.finishedAt != null) {
+  if (previous?.queue.length === 0) {
     for (const id of previous.mistakes) {
       previousErrors[id] = [...(previousErrors[id] ?? []), ...(previous.errors?.[id] ?? [])];
     }
   }
   state.session = {
-    tasks, queue, selection: practiceSelection(), mistakes: [], incorrect: 0,
+    tasks, queue, selection: practiceSelection(), mistakes: [], skipped: [],
     startedAt: Date.now(), finishedAt: null, pending: null, lastMistake: null,
     previousErrors,
   };
@@ -305,30 +309,33 @@ function reviewErrors(errors) {
 }
 
 function renderSummary(target) {
-  const { tasks, mistakes, incorrect, finishedAt, startedAt, errors = {}, previousErrors = {} } = state.session;
+  const { tasks, mistakes, skipped, finishedAt, startedAt, errors = {}, previousErrors = {} } = state.session;
   const ids = tasks.map(({ wordId }) => wordId);
   const wrong = mistakes.filter((id) => ids.includes(id));
+  const omitted = skipped.filter((id) => ids.includes(id));
+  const correct = ids.length - wrong.length - omitted.length;
   const words = new Map(state.words.map((word) => [word.id, word]));
   const heading = TestCompletionScreen(target, {
     headingId: 'practice-summary-title',
     title: t('vocab.complete'),
     subtitle: t('vocab.mixedTitle'),
-    correct: ids.length,
+    correct,
     total: ids.length,
-    firstTry: ids.length - wrong.length,
+    firstTry: correct,
     mistakes: wrong.length,
-    retries: mistakes.length === wrong.length ? incorrect : undefined,
+    skipped: omitted.length,
     seconds: elapsedSeconds(startedAt, finishedAt),
     items: tasks.map(({ wordId: id, type }) => ({
       title: words.get(id).word,
       expected: type === 'letters' || type === 'write' ? words.get(id).word : words.get(id).translation,
       mistake: wrong.includes(id),
+      skipped: omitted.includes(id),
       errors: reviewErrors(errors[id]),
     })),
     previousItems: Object.entries(previousErrors).filter(([id]) => words.has(id)).map(([id, history]) => ({
       title: words.get(id).word, mistake: true, errors: reviewErrors(history),
     })),
-    retryMistakes: wrong.length ? () => startPractice(undefined, wrong) : undefined,
+    retryMistakes: wrong.length ? () => startPractice(undefined, wrong, tasks) : undefined,
     tryAgain: () => startPractice(undefined, ids),
     finish: () => setMode('list'),
     backToCourses: true,
@@ -376,11 +383,8 @@ async function saveReview() {
     const updated = await reviewVocabulary(wordId, remembered, attemptId);
     if (state.session !== session) return;
     updateWord(updated);
-    session.queue.shift();
     session.lastMistake = remembered ? null : wordId;
     if (!remembered) {
-      session.queue.push(wordId);
-      session.incorrect++;
       session.errors ??= {};
       (session.errors[wordId] ??= []).push({
         answer: pending.answer,
@@ -389,9 +393,7 @@ async function saveReview() {
       });
       if (!session.mistakes.includes(wordId)) session.mistakes.push(wordId);
     }
-    session.pending = null;
-    if (!session.queue.length) session.finishedAt = Date.now();
-    savePractice();
+    advancePractice(session);
   } catch (error) {
     if (state.session === session) state.reviewError = describeApiError(error);
   } finally {
@@ -403,6 +405,13 @@ async function saveReview() {
   }
 }
 
+function advancePractice(session) {
+  session.queue.shift();
+  session.pending = null;
+  if (!session.queue.length) session.finishedAt = Date.now();
+  savePractice();
+}
+
 function renderPractice(focus = false) {
   const target = $('word-practice');
   target.replaceChildren();
@@ -411,33 +420,30 @@ function renderPractice(focus = false) {
     empty(target, t('vocab.noActivityWords'), t('vocab.beginHint'));
     return;
   }
-  if (!session.queue.length && session.finishedAt != null) {
-    renderSummary(target);
-    return;
-  }
   if (!session.queue.length) {
-    empty(target, t('vocab.noActivityWords'), t('vocab.beginHint'));
+    renderSummary(target);
     return;
   }
   const task = session.tasks.find(({ wordId }) => wordId === session.queue[0]);
   const word = state.words.find((item) => item.id === task.wordId);
   const { type } = task;
   const total = session.tasks.length;
-  const correct = total - session.queue.length;
-  const incorrect = session.incorrect;
+  const visited = total - session.queue.length;
+  const incorrect = session.mistakes.length;
+  const correct = visited - incorrect - session.skipped.length;
   const modeLabels = { flashcards: t('vocab.modeFlash'), choice: t('vocab.modeChoice'), write: t('vocab.modeWrite'), letters: t('vocab.modeLetters') };
   const title = el('h2', undefined, t('vocab.mixedTitle'));
   title.tabIndex = -1;
   const meta = el('div', 'word-practice-meta');
-  meta.append(el('span', undefined, modeLabels[type]), el('span', undefined, `${correct} / ${total}`));
+  meta.append(el('span', undefined, modeLabels[type]), el('span', undefined, `${visited} / ${total}`));
   const track = el('div', 'word-run-track');
   track.setAttribute('role', 'progressbar');
   track.setAttribute('aria-label', t('vocab.runLabel'));
   track.setAttribute('aria-valuemin', '0');
   track.setAttribute('aria-valuemax', String(total));
-  track.setAttribute('aria-valuenow', String(correct));
+  track.setAttribute('aria-valuenow', String(visited));
   const fill = el('span');
-  fill.style.width = `${correct / total * 100}%`;
+  fill.style.width = `${visited / total * 100}%`;
   track.append(fill);
   const card = el('div', 'word-practice-card');
   card.dataset.taskType = type;
@@ -467,9 +473,13 @@ function renderPractice(focus = false) {
     return;
   }
 
+  function isCurrent() {
+    return !state.busy && !state.loading && state.mode === 'mixed' && state.session === session
+      && session.queue[0] === word.id && !session.pending;
+  }
+
   function grade(remembered, answer, expected) {
-    if (state.busy || state.loading || state.mode !== 'mixed' || state.session !== session
-        || session.queue[0] !== word.id || session.pending || incorrect !== session.incorrect) return;
+    if (!isCurrent()) return;
     session.pending = { wordId: word.id, remembered, answer, expected, attemptId: crypto.randomUUID() };
     savePractice();
     void saveReview();
@@ -538,7 +548,14 @@ function renderPractice(focus = false) {
     }
     card.append(form);
   }
-  card.append(actions);
+  const skip = control(t('completion.skip'), () => {
+    if (!isCurrent()) return;
+    session.skipped.push(word.id);
+    session.lastMistake = null;
+    advancePractice(session);
+    renderPractice(true);
+  });
+  card.append(actions, skip);
 }
 
 function openAddDialog() {
@@ -593,7 +610,7 @@ $('word-dialog-close').addEventListener('click', () => $('word-dialog').close())
 $('words-retry').addEventListener('click', load);
 for (const button of document.querySelectorAll('[data-mode]')) button.addEventListener('click', () => {
   const startAgain = state.mode === 'list' && state.session
-    && (state.session.finishedAt !== null || state.session.selection !== practiceSelection());
+    && (!state.session.queue.length || state.session.selection !== practiceSelection());
   setMode(button.dataset.mode, undefined, startAgain);
 });
 for (const button of document.querySelectorAll('[data-filter]')) button.addEventListener('click', () => {

@@ -18,7 +18,7 @@ Rules (also documented in `docs/database.md`):
 """
 
 from collections import Counter
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID
 
@@ -201,7 +201,6 @@ async def build_lesson_progress(
 
     states: list[LessonExerciseStateResponse] = []
     unattempted: list[UUID] = []
-    retries: list[tuple[datetime, UUID]] = []
     completed_count = 0
     xp_earned = 0
     for exercise in exercises:
@@ -210,10 +209,9 @@ async def build_lesson_progress(
         if completed:
             completed_count += 1
             xp_earned += exercise.points
-        elif submission and submission.attempts:
-            retries.append((submission.submitted_at.replace(tzinfo=UTC), exercise.id))
-        else:
+        if not submission or not submission.attempts:
             unattempted.append(exercise.id)
+        first = first_result(submission)
         states.append(
             LessonExerciseStateResponse(
                 exercise_id=exercise.id,
@@ -222,10 +220,22 @@ async def build_lesson_progress(
                 attempts=submission.attempts if submission else 0,
                 points_awarded=exercise.points if completed else 0,
                 answer=submission.answer if submission else None,
+                first_answer=first.get("answer"),
+                first_outcome=first.get("outcome"),
+                expected_answer=(
+                    review_answer(exercise)
+                    if first.get("outcome") in {"incorrect", "skipped"}
+                    else None
+                ),
             )
         )
 
     status = record.status if record else "in_progress"
+    test_finished_at = None
+    if record and exercises and not unattempted:
+        test_finished_at = record.test_finished_at or max(
+            submission.submitted_at.replace(tzinfo=UTC) for submission in submissions.values()
+        )
     return LessonProgressResponse(
         lesson_slug=lesson.slug,
         lesson_title=lesson.title,
@@ -233,12 +243,39 @@ async def build_lesson_progress(
         completed=status == "completed",
         started_at=record.started_at if record else None,
         completed_at=record.completed_at if record else None,
+        test_finished_at=test_finished_at,
         exercises_total=len(exercises),
         exercises_completed=completed_count,
         xp_earned=xp_earned,
         exercises=states,
-        pending_exercise_ids=unattempted + [exercise_id for _, exercise_id in sorted(retries)],
+        pending_exercise_ids=unattempted,
     )
+
+
+def first_result(submission: ExerciseSubmission | None) -> dict[str, Any]:
+    if submission is None:
+        return {}
+    if submission.first_result is not None:
+        return submission.first_result
+    if submission.attempts == 1 and submission.is_correct is not None:
+        return {
+            "answer": submission.answer,
+            "outcome": "correct" if submission.is_correct else "incorrect",
+        }
+    return {}
+
+
+def review_answer(exercise: Exercise) -> str | None:
+    if exercise.type == "single_choice":
+        return next(
+            (
+                option["text"]
+                for option in exercise.options or []
+                if str(option["id"]) == exercise.correct_option_id
+            ),
+            None,
+        )
+    return exercise.accepted_answers[0] if exercise.accepted_answers else exercise.model_answer
 
 
 async def start_lesson(db: AsyncSession, user: User, lesson: Lesson) -> LessonProgressResponse:
@@ -325,12 +362,16 @@ async def submit_answer(
     user: User,
     lesson: Lesson,
     exercise: Exercise,
-    answer: str,
+    answer: str | None,
     self_assessment: str | None,
     expected_attempts: int | None = None,
 ) -> SubmissionResultResponse:
     """Grade and persist one submission, then recompute lesson progress."""
-    _validate_answer(exercise, answer, self_assessment)
+    if answer is None:
+        if self_assessment is not None:
+            raise _invalid("A skipped question cannot have a self-assessment")
+    else:
+        _validate_answer(exercise, answer, self_assessment)
     await lock_learner(db, user.id)
     if user.profile is not None:
         await db.refresh(user.profile)
@@ -339,32 +380,32 @@ async def submit_answer(
     submission = await _get_or_create_submission(db, user.id, exercise)
     if expected_attempts is not None and submission.attempts != expected_attempts:
         raise ApiError(409, "LESSON_ATTEMPT_CHANGED", "This exercise has a newer attempt")
+    if expected_attempts and record.test_finished_at is None:
+        progress = await build_lesson_progress(db, user.id, lesson, record)
+        if progress.test_finished_at is None:
+            raise ApiError(409, "LESSON_TEST_INCOMPLETE", "Finish the first pass before retrying")
+        record.test_finished_at = progress.test_finished_at
 
-    # Keep the FIFO order monotonic even when two submissions share a clock tick.
-    latest = await db.scalar(
-        select(func.max(ExerciseSubmission.submitted_at))
-        .join(Exercise, ExerciseSubmission.exercise_id == Exercise.id)
-        .where(
-            Exercise.lesson_id == lesson.id,
-            ExerciseSubmission.user_id == user.id,
-            ExerciseSubmission.attempts > 0,
-        )
-    )
     now = datetime.now(UTC)
-    submitted_at = now
-    if latest:
-        submitted_at = max(now, latest.replace(tzinfo=UTC) + timedelta(microseconds=1))
-
-    if exercise.type == "self_check":
-        is_correct: bool | None = self_assessment == "correct"
+    if answer is None:
+        is_correct: bool | None = None
+    elif exercise.type == "self_check":
+        is_correct = self_assessment == "correct"
     else:
         is_correct = grading.grade_objective(exercise, answer)
     will_complete = bool(is_correct)
 
+    if submission.attempts == 0:
+        submission.first_result = {
+            "answer": answer,
+            "outcome": "skipped" if answer is None else "correct" if is_correct else "incorrect",
+        }
+    elif submission.first_result is None:
+        submission.first_result = first_result(submission)
     submission.answer = answer
     submission.is_correct = is_correct
     submission.attempts += 1
-    submission.submitted_at = submitted_at
+    submission.submitted_at = now
     if will_complete and not submission.completed:
         submission.completed = True
     await db.flush()
@@ -372,7 +413,7 @@ async def submit_answer(
     # Award XP at most once per submission row. The conditional UPDATE makes the
     # claim atomic, so concurrent or repeated requests cannot double-award.
     xp_awarded = 0
-    if submission.completed:
+    if will_complete:
         claimed = cast(
             "CursorResult[Any]",
             await db.execute(
@@ -435,6 +476,8 @@ async def submit_answer(
     await record_activity(db, user.id)
     await db.flush()
     lesson_progress = await build_lesson_progress(db, user.id, lesson, record)
+    if record.test_finished_at is None and lesson_progress.test_finished_at is not None:
+        record.test_finished_at = lesson_progress.test_finished_at
     await db.commit()
     return SubmissionResultResponse(
         exercise_id=exercise.id,
@@ -443,7 +486,7 @@ async def submit_answer(
         completed=submission.completed,
         points=exercise.points,
         xp_awarded=xp_awarded,
-        feedback=_feedback(exercise, is_correct),
+        feedback=_feedback(exercise, is_correct) if answer is not None else "Skipped",
         correct_option_id=(
             exercise.correct_option_id if exercise.type == "single_choice" else None
         ),
@@ -455,6 +498,6 @@ async def submit_answer(
         model_answer=exercise.model_answer if exercise.type == "self_check" else None,
         explanation=exercise.explanation,
         explanation_localized=guidance.explanation_for(exercise.slug),
-        wrong_answer_note=_wrong_note(exercise, answer, is_correct),
+        wrong_answer_note=_wrong_note(exercise, answer, is_correct) if answer is not None else None,
         lesson=lesson_progress,
     )

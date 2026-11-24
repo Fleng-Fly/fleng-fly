@@ -5,6 +5,8 @@ from collections import Counter
 from app.modules.placement.bank import LEVELS
 
 SCORING_VERSION = "conservative-1"
+SINGLE_PASS_VERSION = "conservative-1-single-pass"
+PRACTICE_VERSION = "mistakes-practice-1"
 LIMITATIONS = [
     "This is approximate study guidance, not a CEFR certificate or a full proficiency assessment.",
     "Only grammar, vocabulary and short reading are sampled; "
@@ -17,7 +19,7 @@ LIMITATIONS = [
 ]
 
 
-def score(questions: list[dict], answers: dict[str, str]) -> dict:
+def score(questions: list[dict], answers: dict[str, str | None]) -> dict:
     totals = Counter(q["level"] for q in questions)
     correct = Counter(q["level"] for q in questions if answers[q["id"]] == q["correct_option_id"])
     # Only consecutive lower bands with at least six items can support an estimate.

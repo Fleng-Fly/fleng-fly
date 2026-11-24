@@ -71,7 +71,8 @@ its published lessons. Drafts and unpublished lessons are invisible (`404`).
 `GET /lessons/{slug}` returns theory + course context + public exercises (never
 answer keys). Lesson slugs are globally unique. `/start` is idempotent;
 `/submit` takes `{ exerciseId, answer, selfAssessment? }` and returns the grading
-result + lesson progress with the FIFO list `pendingExerciseIds`. The self-check
+result + lesson progress with ordered, unvisited `pendingExerciseIds` and
+`testFinishedAt` independent of course mastery. The self-check
 preview reveals a model after answer confirmation without recording an attempt.
 Optional `letterTiles` on a public `text` exercise
 provides a pattern and letter bank. `/submit` accepts the assembled word.

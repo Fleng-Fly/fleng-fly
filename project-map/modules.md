@@ -95,7 +95,7 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 | Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Test/Vocabulary, grading, progress and saved words                                     |
 | Settings                                                 | `/settings.html`     | 🟢     | protected; profile/email editing, language preference, password change, logout                                    |
 | Lesson player (quiz)                                     | —                    | 🟢     | exercises, submission and grading via the exercises API                                                           |
-| Words | `/vocabulary.html`, `/course-words.html` | 🟢 | personal words, Mixed Practice with FIFO and reload recovery, and published course vocabulary |
+| Words | `/vocabulary.html`, `/course-words.html` | 🟢 | personal words, Mixed Practice with single-pass traversal and reload recovery, and published course vocabulary |
 | Progress | `/progress.html` | 🟢 | real progress analytics and streaks |
 | Challenges / AI Tutor | — | 🔴 |                                                                                                                   |
 
@@ -139,7 +139,7 @@ lesson tabs, questions, submission UI and preview. All Practice formats share
 the same advance and retry order. `frontend/js/letter-tiles.js` renders
 the letter bank and slots for configured text exercises. The lesson page calls the existing
 `catalog`, `exercises` and `vocabulary` APIs through `frontend/js/api.js`.
-`exercises` returns the caller's latest answer and pending FIFO IDs in lesson
+`exercises` returns the caller's latest answer, first outcome and unvisited IDs in lesson
 progress. The lesson player keeps the active exercise in session storage scoped
 to user and lesson, and restores it only when it matches the server attempt counts.
 Self-check preview displays the model before the learner chooses an assessment.

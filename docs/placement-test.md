@@ -27,7 +27,10 @@ exam questions, and is not an endorsed or certified CEFR examination. The
 [Council of Europe examination-linking manual](https://www.coe.int/en/web/common-european-framework-reference-languages/relating-examinations-to-the-cefr)
 is a methodology reference, not proof that this bank is calibrated.
 
-Scoring version `conservative-1` is a transparent product heuristic:
+The `conservative-1-single-pass` diagnostic uses the same thresholds as
+`conservative-1`. Skips count toward the total without adding correct answers.
+Mistake practice uses a separate attempt and cannot estimate a diagnostic level.
+The diagnostic scoring rule is a transparent product heuristic:
 
 1. Every saved answer earns one raw point only if it matches the private key.
 2. For a study starting-point estimate, consecutive A1, A2, B1 and B2 bands must

@@ -66,7 +66,6 @@ async function openPractice(page) {
 }
 
 async function openQuestion(page, number) {
-  await page.getByRole('button', { name: `Open question ${number}`, exact: true }).click();
   await expect(page.locator('.lesson-question-meta .lesson-chip')).toContainText(
     `Question ${number} /`,
   );
@@ -176,17 +175,10 @@ test.describe('exercise, progress and XP', () => {
     await expect(page.locator('#lesson-activity-count')).toHaveText('1 / 10 activities');
     await expect(page.locator('#lesson-xp')).toHaveText('1 XP earned');
     await openPractice(page);
-    await openQuestion(page, 1);
-    const saved = page.locator('.lesson-question .lesson-feedback');
-    await expect(saved).toContainText('Completed');
-    await expect(saved).toContainText('Your latest answer: Hello');
-
-    // Answering the same exercise correctly again must not pay XP again.
-    await answerChoice(page, 'Hello');
-    await expect(page.locator('#lesson-last-answer .lesson-feedback strong').first()).toHaveText(
-      'Correct',
-    );
-    await expect(page.locator('#lesson-xp')).toHaveText('1 XP earned');
+    await openQuestion(page, 2);
+    const saved = await page.evaluate(async (slug) =>
+      (await import('/js/api.js')).getLessonProgress(slug), 'greetings-and-introductions');
+    expect(saved.exercises[0]).toMatchObject({ firstOutcome: 'correct', attempts: 1 });
     expect((await myProgress(page)).xp).toBe(1);
 
     // The same total is visible on the dashboard and the course page.
@@ -208,6 +200,12 @@ test.describe('exercise, progress and XP', () => {
     await expect(page.locator('#lesson-activity-count')).toHaveText('0 / 10 activities');
     expect((await myProgress(page)).xp).toBe(0);
 
+    await openQuestion(page, 2);
+    for (let index = 2; index <= 10; index++) {
+      await openQuestion(page, index);
+      await page.getByRole('button', { name: 'Skip', exact: true }).click();
+    }
+    await page.getByRole('button', { name: 'Retry Mistakes' }).click();
     await openQuestion(page, 1);
     await answerChoice(page, 'Hello');
     await expect(page.locator('#lesson-xp')).toHaveText('1 XP earned');

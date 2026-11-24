@@ -19,7 +19,12 @@ from app.modules.placement.schemas import (
     PlacementResult,
     PlacementSummary,
 )
-from app.modules.placement.scoring import SCORING_VERSION, score
+from app.modules.placement.scoring import (
+    PRACTICE_VERSION,
+    SCORING_VERSION,
+    SINGLE_PASS_VERSION,
+    score,
+)
 
 
 async def owned(db: AsyncSession, user_id: UUID, attempt_id: UUID, *, lock: bool = False):
@@ -48,6 +53,7 @@ def summary(attempt: PlacementAttempt) -> PlacementSummary:
         status=cast(Literal["in_progress", "completed"], attempt.status),
         bank_version=attempt.bank_version,
         scoring_version=attempt.scoring_version,
+        practice=attempt.scoring_version == PRACTICE_VERSION,
         started_at=attempt.started_at,
         completed_at=attempt.completed_at,
         answered=len(attempt.answers),
@@ -94,8 +100,34 @@ async def start(db: AsyncSession, user_id: UUID) -> PlacementDetail:
     attempt = PlacementAttempt(
         user_id=user_id,
         bank_version=bank["version"],
-        scoring_version=SCORING_VERSION,
+        scoring_version=SINGLE_PASS_VERSION,
         questions=questions,
+        answers={},
+        status="in_progress",
+    )
+    db.add(attempt)
+    await db.commit()
+    await db.refresh(attempt)
+    return await detail(db, attempt)
+
+
+async def retry_mistakes(db: AsyncSession, user_id: UUID, attempt_id: UUID) -> PlacementDetail:
+    source = await owned(db, user_id, attempt_id)
+    if source.status != "completed" or source.result is None:
+        raise ApiError(409, "PLACEMENT_INCOMPLETE", "Finish the attempt before retrying mistakes")
+    missed = {
+        row["question_id"]
+        for row in source.result["review"]
+        if not row["is_correct"] and row["selected_option_id"] is not None
+    }
+    if not missed:
+        raise ApiError(409, "PLACEMENT_NO_MISTAKES", "This attempt has no wrong answers to retry")
+    await consume(db, f"placement:start:{user_id}", 20, 86400)
+    attempt = PlacementAttempt(
+        user_id=user_id,
+        bank_version=source.bank_version,
+        scoring_version=PRACTICE_VERSION,
+        questions=[question for question in source.questions if question["id"] in missed],
         answers={},
         status="in_progress",
     )
@@ -117,9 +149,16 @@ async def save_answers(
         if answer.question_id in incoming:
             raise ApiError(422, "INVALID_PLACEMENT_ANSWER", "Duplicate question in answer batch")
         q = questions.get(answer.question_id)
-        if q is None or answer.option_id not in {o["id"] for o in q["options"]}:
+        if q is None or (
+            answer.option_id is not None and answer.option_id not in {o["id"] for o in q["options"]}
+        ):
             raise ApiError(422, "INVALID_PLACEMENT_ANSWER", "Choose an option from this attempt")
         incoming[answer.question_id] = answer.option_id
+    if any(
+        question_id in attempt.answers and attempt.answers[question_id] != option_id
+        for question_id, option_id in incoming.items()
+    ):
+        raise ApiError(409, "PLACEMENT_ANSWER_SAVED", "This question already has a saved outcome")
     attempt.answers = {**attempt.answers, **incoming}
     await db.commit()
     return await detail(db, attempt)
@@ -132,12 +171,21 @@ async def complete(db: AsyncSession, user_id: UUID, attempt_id: UUID) -> Placeme
         await db.commit()
         return await detail(db, attempt)
     if len(attempt.answers) != len(attempt.questions):
-        raise ApiError(409, "PLACEMENT_INCOMPLETE", "Answer every question before finishing")
-    if attempt.scoring_version != SCORING_VERSION:
+        raise ApiError(
+            409, "PLACEMENT_INCOMPLETE", "Answer or skip every question before finishing"
+        )
+    if attempt.scoring_version not in {SCORING_VERSION, SINGLE_PASS_VERSION, PRACTICE_VERSION}:
         raise ApiError(
             409, "PLACEMENT_VERSION_UNAVAILABLE", "Start a new attempt for this test version"
         )
     attempt.result = score(attempt.questions, attempt.answers)
+    if attempt.scoring_version == PRACTICE_VERSION:
+        attempt.result.update(
+            estimated_level=None,
+            insufficient_evidence=True,
+            ceiling_reached=False,
+            label="Placement mistake practice complete",
+        )
     attempt.status = "completed"
     attempt.completed_at = datetime.now(UTC)
     await db.commit()

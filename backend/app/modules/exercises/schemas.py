@@ -1,10 +1,10 @@
 """Schemas for exercises, submissions and lesson progress."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from app.core.schemas import CamelModel
 from app.modules.exercises.guidance import LocalizedText
@@ -47,7 +47,7 @@ class ExercisePublicResponse(CamelModel):
 
 class SubmissionRequest(CamelModel):
     exercise_id: UUID
-    answer: str = Field(max_length=MAX_ANSWER_LENGTH)
+    answer: str | None = Field(max_length=MAX_ANSWER_LENGTH)
     self_assessment: Literal["correct", "incorrect"] | None = None
     expected_attempts: int | None = Field(default=None, ge=0)
 
@@ -70,6 +70,9 @@ class LessonExerciseStateResponse(CamelModel):
     attempts: int
     points_awarded: int
     answer: str | None = None
+    first_answer: str | None = None
+    first_outcome: Literal["correct", "incorrect", "skipped"] | None = None
+    expected_answer: str | None = None
 
 
 class LessonProgressResponse(CamelModel):
@@ -81,11 +84,19 @@ class LessonProgressResponse(CamelModel):
     completed: bool
     started_at: datetime | None
     completed_at: datetime | None
+    test_finished_at: datetime | None = None
     exercises_total: int
     exercises_completed: int
     xp_earned: int
     exercises: list[LessonExerciseStateResponse]
     pending_exercise_ids: list[UUID]
+
+    @field_validator("started_at", "completed_at", "test_finished_at")
+    @classmethod
+    def utc_timestamps(cls, value: datetime | None) -> datetime | None:
+        if value is None:
+            return None
+        return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
 
 
 class SubmissionResultResponse(CamelModel):

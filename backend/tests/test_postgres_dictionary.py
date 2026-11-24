@@ -38,7 +38,7 @@ pytestmark = pytest.mark.skipif(
 
 BEFORE_OAUTH = "20261117_1200"
 BEFORE_DICTIONARY = "20261118_1200"
-HEAD = "20261122_1200"
+HEAD = "20261124_1200"
 TABLES = "SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema()"
 
 

@@ -22,10 +22,8 @@ test('confirmed Placement result survives reload and supports review and retake 
   await expect(result).toBeHidden();
   for (let answered = 1; answered <= 36; answered++) {
     await page.locator('#placement-question input').first().check();
-    await expect(page.locator('#placement-saved')).toContainText(`${answered} of 36`);
-    if (answered < 36) await page.locator('#placement-next').click();
+    if (answered < 36) await expect(page.locator('#placement-saved')).toContainText(`${answered} of 36`);
   }
-  await page.locator('#placement-finish').click();
   await expect(result).toBeVisible();
   await expect(result.getByRole('meter', { name: 'First-try accuracy' })).toBeVisible();
   await expect(result.locator('.completion-row')).toHaveCount(36);
@@ -36,9 +34,30 @@ test('confirmed Placement result survives reload and supports review and retake 
   await expect(result.locator('.completion-row details[open]').first()).toBeVisible();
   const fitsViewport = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
   expect(fitsViewport).toBe(true);
-  await result.getByRole('button', { name: 'Try again' }).click();
+  await result.getByRole('button', { name: 'Retry Mistakes' }).click();
   await expect(page.locator('#placement-player')).toBeVisible();
   await expect(page).not.toHaveURL(recordedUrl);
+  await expect(page.locator('#placement-count')).not.toContainText('of 36');
+});
+
+test('skipped Placement questions survive reload and the last skip completes the diagnostic', async ({ page }) => {
+  test.setTimeout(90_000);
+  await register(page);
+  await page.goto('/placement-test.html');
+  await page.getByRole('button', { name: 'Start placement test' }).click();
+  for (let index = 1; index <= 36; index++) {
+    await expect(page.locator('#placement-count')).toContainText(`Question ${index} of 36`);
+    await page.getByRole('button', { name: 'Skip', exact: true }).click();
+    if (index === 18) {
+      await expect(page.locator('#placement-count')).toContainText('Question 19 of 36');
+      await page.reload();
+    }
+  }
+  const result = page.locator('#placement-result');
+  await expect(result.locator('[data-metric="skipped"] dd')).toHaveText('36');
+  await expect(result.locator('[data-metric="correct"] dd')).toHaveText('0');
+  await expect(result.locator('[data-metric="incorrect"] dd')).toHaveText('0');
+  await expect(result.getByRole('button', { name: 'Retry Mistakes' })).toHaveCount(0);
 });
 
 test('Placement Test is reached from Courses, not from the sidebar', async ({ page }) => {
@@ -72,14 +91,14 @@ test('start, resume an unfinished attempt and see it in the history', async ({ p
   await expect(page.locator('#placement-saved')).toContainText('1 of 36');
   const url = page.url();
   expect(url).toMatch(/attempt=/);
-  // Resume by URL: the saved answer is restored without starting another attempt.
+  // Resume by URL: the next question is restored without starting another attempt.
   await page.goto(url);
-  await expect(page.locator('#placement-question input:checked')).toHaveCount(1);
+  await expect(page.locator('#placement-count')).toContainText('Question 2');
   await page.goto('/placement-test.html');
   await expect(page.locator('.pt-attempt')).toHaveCount(1);
   await expect(page.locator('.pt-attempt')).toContainText('Resume · 1/36');
   await page.locator('.pt-attempt .pt-link').click();
-  await expect(page.locator('#placement-question input:checked')).toHaveCount(1);
+  await expect(page.locator('#placement-count')).toContainText('Question 2');
 });
 
 test('the page is available in Ukrainian and fits a phone screen', async ({ page }) => {

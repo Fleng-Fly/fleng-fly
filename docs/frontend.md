@@ -154,15 +154,20 @@ inherit this behavior. The course page links completed lessons to
 Lesson title, course title and level come from the lesson catalog response.
 The renderer has no API calls. Lesson completion and XP come from lesson
 progress, Placement uses its completed attempt, and Mixed Practice finishes
-after the final vocabulary review is acknowledged and its FIFO queue is empty.
+when each word has an acknowledged review or a locally saved skip.
+
+The main pass advances after every saved answer or skip. Lessons and Placement
+resume the first unvisited question from server state. Lesson course mastery
+still requires every exercise to be correct. Optional Retry Mistakes begins
+a separate round from the result screen. Placement mistake practice is
+server-graded and excluded from the diagnostic history.
 
 First-try accuracy counts unique tasks answered correctly on their first
 attempt. Lesson and Mixed Practice mistake counts are unique tasks that needed
 correction, while retries count repeated attempts. Placement can show first-try
-accuracy when all initial choices are available in the browser tab session.
-Saved attempts still provide the final score. Answer-level history collected
-by the frontend is tab-session data. Available metrics and mistake details
-vary with the data supplied by each test.
+accuracy from immutable saved outcomes. Lesson first outcomes are saved
+server-side. Mixed Practice and additional lesson retry details are tab-session
+data. Available metrics and mistake details vary with the data supplied by each test.
 
 Design tokens from `design/colors.md` and `design/typography.md` live in
 `:root` in `css/app.css` (dark `ink-*` palette, violet/cyan accents, semantic

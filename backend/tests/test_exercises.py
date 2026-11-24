@@ -141,6 +141,47 @@ async def _complete_greetings(client: AsyncClient, token: str) -> None:
     ).status_code == 200
 
 
+async def test_test_pass_tracks_skips_and_keeps_first_result_after_retry(
+    client: AsyncClient, seeded: AsyncSession
+) -> None:
+    slug = "greetings-and-introductions"
+    auth = _auth(await _register(client))
+    exercises = (await _lesson(client, slug))["exercises"]
+    url = f"{LESSONS}/{slug}/submit"
+
+    async def save(index: int, answer: str | None, attempts: int = 0):
+        return await client.post(
+            url,
+            json={
+                "exerciseId": exercises[index]["id"],
+                "answer": answer,
+                "expectedAttempts": attempts,
+            },
+            headers=auth,
+        )
+
+    assert (await save(0, " ")).status_code == 422
+    wrong = (await save(0, "b")).json()
+    assert wrong["isCorrect"] is False and wrong["xpAwarded"] == 0
+    assert (await save(0, "a", 1)).status_code == 409
+    assert (await save(1, "Nice to meet you too")).json()["xpAwarded"] == 1
+    last = (await save(2, None)).json()
+    assert last["isCorrect"] is None and last["xpAwarded"] == 0
+    initial = last["lesson"]
+    assert initial["testFinishedAt"] and not initial["completed"]
+    assert initial["pendingExerciseIds"] == []
+    assert [row["firstOutcome"] for row in initial["exercises"]] == [
+        "incorrect",
+        "correct",
+        "skipped",
+    ]
+    corrected = (await save(0, "a", 1)).json()
+    assert corrected["xpAwarded"] == 1
+    assert corrected["lesson"]["exercises"][0]["firstAnswer"] == "b"
+    assert (await save(0, "a", 1)).status_code == 409
+    assert (await client.get(f"{LESSONS}/{slug}/progress", headers=auth)).json()["xpEarned"] == 2
+
+
 # ── Serialization safety ────────────────────────────────────────────────────
 
 

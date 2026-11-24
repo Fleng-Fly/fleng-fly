@@ -25,7 +25,10 @@ review and current published-course recommendations.
 
 ## `PUT /api/v1/placement-test/attempts/{attempt_id}/answers`
 
-Save or change selections until completion. Returns 200 PlacementDetail without
+Save immutable selections or skips until completion. Send `optionId: null` for a skip.
+Repeating the same saved selection or skip is idempotent. A different outcome
+for an already saved question returns 409 `PLACEMENT_ANSWER_SAVED`.
+Returns 200 PlacementDetail without
 correctness. Nonempty answers array has at most 100 entries. Example:
 
 ```sh
@@ -41,12 +44,20 @@ PLACEMENT_COMPLETED prevents changing a completed attempt.
 
 ## `POST /api/v1/placement-test/attempts/{attempt_id}/complete`
 
-No request body. Requires all questions answered. Returns 200 PlacementDetail
+No request body. Requires every question to be answered or explicitly skipped. Returns 200 PlacementDetail
 with deterministic result and post-test review. Completion is idempotent: the
 stored score is not recomputed. 409 PLACEMENT_INCOMPLETE for missing answers;
 409 PLACEMENT_VERSION_UNAVAILABLE for an unsupported unfinished scoring version.
 Result never certifies C1/C2; reliability is limited and the current maximum
 assessment range is A1–B2. No XP/profile/progress/streak/achievement write.
+
+## `POST /api/v1/placement-test/attempts/{attempt_id}/retry-mistakes`
+
+Creates an owner-scoped 201 PlacementDetail containing only the source
+attempt's wrong answers. Requires a completed source with at least one wrong
+answer. It shares the normal start quota and persists under a new attempt ID.
+Practice is excluded from diagnostic history and cannot estimate a level or
+produce course recommendations.
 
 Shared errors: 401 auth, 413 body size, 422 request/path/query validation,
 503 database unavailable and the standard error envelope.

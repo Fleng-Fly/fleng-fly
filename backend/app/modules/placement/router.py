@@ -9,6 +9,7 @@ from app.db.models import PlacementAttempt, User
 from app.db.session import get_db
 from app.modules.placement import service
 from app.modules.placement.schemas import PlacementAnswers, PlacementDetail, PlacementSummary
+from app.modules.placement.scoring import PRACTICE_VERSION
 
 router = APIRouter(prefix="/placement-test", tags=["placement"])
 
@@ -28,7 +29,10 @@ async def history(
     attempts = (
         await db.scalars(
             select(PlacementAttempt)
-            .where(PlacementAttempt.user_id == user.id)
+            .where(
+                PlacementAttempt.user_id == user.id,
+                PlacementAttempt.scoring_version != PRACTICE_VERSION,
+            )
             .order_by(PlacementAttempt.started_at.desc(), PlacementAttempt.id.desc())
             .limit(limit)
             .offset(offset)
@@ -63,3 +67,14 @@ async def complete_attempt(
     db: AsyncSession = Depends(get_db),
 ):
     return await service.complete(db, user.id, attempt_id)
+
+
+@router.post(
+    "/attempts/{attempt_id}/retry-mistakes", response_model=PlacementDetail, status_code=201
+)
+async def retry_mistakes(
+    attempt_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await service.retry_mistakes(db, user.id, attempt_id)

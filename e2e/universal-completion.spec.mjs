@@ -49,10 +49,11 @@ for (const [index, course] of courses.entries()) {
         await submitAnswer(slug, { exerciseId: first.id, answer: wrong.id, expectedAttempts: 0 });
       }
       for (const [position, exercise] of current.exercises.slice(0, -1).entries()) {
+        if (makeMistake && position === 0) continue;
         const saved = await submitAnswer(slug, {
           exerciseId: exercise.id,
           answer: answerFor(exercise),
-          expectedAttempts: Number(makeMistake && position === 0),
+          expectedAttempts: 0,
           ...(exercise.type === 'self_check' ? { selfAssessment: 'correct' } : {}),
         });
         if (!saved.completed || saved.lesson.completed) throw new Error(`Unexpected progress for ${exercise.slug}`);

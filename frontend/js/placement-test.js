@@ -4,16 +4,13 @@ import { getLang, t } from './i18n.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 import { describeApiError } from './errors.js';
-import { completePlacement, getPlacement, listPlacements, savePlacementAnswer, startPlacement } from './placement-api.js';
+import { completePlacement, getPlacement, listPlacements, retryPlacementMistakes, savePlacementAnswer, startPlacement } from './placement-api.js';
 
 const $ = (id) => document.getElementById(id);
 let attempt = null, index = 0, busy = false, ready = false, historyBusy = false, historyOffset = 0;
 let retryAction = main;
 let latestLevel = null; // estimated level of the newest completed attempt (history is newest first)
-let firstAnswers = {};
 mountWorkspace('placement');
-
-function firstAnswersKey(id) { return `fleng.placement.first-answers:${id}`; }
 
 /** Highlights the learner's latest completed estimate in the CEFR row. */
 function markCurrentLevel() {
@@ -32,20 +29,12 @@ function showError(error, retry) {
 }
 function controls() {
   $('placement-start').disabled = busy || !ready;
-  $('placement-previous').disabled = busy || index === 0;
-  $('placement-next').disabled = busy || !attempt || index >= attempt.questions.length - 1;
-  $('placement-unanswered').disabled = busy || !attempt || attempt.answered === attempt.total;
-  $('placement-finish').disabled = busy || !attempt || attempt.answered !== attempt.total;
+  $('placement-skip').disabled = busy || !attempt || index === -1;
   for (const node of $('placement-question').querySelectorAll('input')) node.disabled = busy;
 }
 function adopt(value) {
-  if (value.id !== attempt?.id) {
-    firstAnswers = {};
-    try { firstAnswers = JSON.parse(sessionStorage.getItem(firstAnswersKey(value.id))) ?? {}; }
-    catch { /* Older attempts can still show their final score. */ }
-  }
   attempt = value;
-  index = Math.min(index, attempt.questions.length - 1);
+  index = attempt.questions.findIndex((question) => !Object.hasOwn(attempt.answers, question.id));
   const url = new URL(location.href); url.searchParams.set('attempt', attempt.id);
   history.replaceState(null, '', url);
   $('placement-error').hidden = true;
@@ -56,7 +45,8 @@ function adopt(value) {
   $('placement-levels').hidden = answering;
   $('placement-result').hidden = attempt.status !== 'completed';
   if (attempt.status === 'completed') renderResult();
-  else renderQuestion();
+  else if (index !== -1) renderQuestion(true);
+  else $('placement-question').replaceChildren();
 }
 function renderQuestion(focus = false) {
   const question = attempt.questions[index];
@@ -71,30 +61,7 @@ function renderQuestion(focus = false) {
     const label = el('label', 'placement-option');
     const radio = el('input'); radio.type = 'radio'; radio.name = 'placement-answer';
     radio.value = option.id; radio.checked = attempt.answers[question.id] === option.id;
-    radio.addEventListener('change', async () => {
-      if (busy) return;
-      busy = true; controls(); status(t('pt.saving'));
-      try {
-        const saved = await savePlacementAnswer(attempt.id, question.id, option.id);
-        if (attempt.answers[question.id] == null && !Object.hasOwn(firstAnswers, question.id)
-            && saved.answers[question.id] === option.id) {
-          firstAnswers[question.id] = option.id;
-          try { sessionStorage.setItem(firstAnswersKey(attempt.id), JSON.stringify(firstAnswers)); }
-          catch { /* First choices are still available in this document. */ }
-        }
-        adopt(saved); status(t('pt.saved'));
-      } catch (error) {
-        if (attempt.answers[question.id] == null && !Object.hasOwn(firstAnswers, question.id)) {
-          // A failed response can follow a committed answer. Its order is now uncertain.
-          firstAnswers[question.id] = null;
-          try { sessionStorage.setItem(firstAnswersKey(attempt.id), JSON.stringify(firstAnswers)); }
-          catch { /* The final score remains available from the server. */ }
-        }
-        renderQuestion();
-        showError(error, () => openAttempt(attempt.id));
-        status(t('pt.saveFailed'));
-      } finally { busy = false; controls(); $('placement-question').querySelector('input:checked')?.focus(); }
-    });
+    radio.addEventListener('change', () => saveOutcome(question, option.id));
     label.append(radio, el('span', undefined, option.text)); field.append(label);
   }
   $('placement-question').replaceChildren(field);
@@ -118,45 +85,68 @@ function renderResult() {
   }
   extra.append(courses);
   const questions = new Map(attempt.questions.map((question) => [question.id, question]));
-  const hasFirstAnswers = result.review.length === result.total
-    && result.review.every(({ questionId }) => firstAnswers[questionId] != null);
-  const firstTry = hasFirstAnswers
-    ? result.review.filter(({ questionId, correctOptionId }) => firstAnswers[questionId] === correctOptionId).length
-    : undefined;
+  // Older attempts allowed editing an answer before completion.
+  const legacy = attempt.scoringVersion === 'conservative-1';
+  let firstChoices = {};
+  if (legacy) {
+    try { firstChoices = JSON.parse(sessionStorage.getItem(`fleng.placement.first-answers:${attempt.id}`)) ?? {}; }
+    catch { /* The final score and saved review are still available. */ }
+  }
+  const firstTry = !legacy ? result.correct
+    : result.review.every(({ questionId }) => firstChoices[questionId] != null)
+      ? result.review.filter(({ questionId, correctOptionId }) => firstChoices[questionId] === correctOptionId).length
+      : undefined;
+  const previousItems = [];
   const items = result.review.map((review) => {
     const question = questions.get(review.questionId);
-    const answer = question.options.find((option) => option.id === review.selectedOptionId)?.text;
+    const skipped = review.selectedOptionId == null;
     const expected = question.options.find((option) => option.id === review.correctOptionId)?.text;
-    const original = firstAnswers[review.questionId];
-    const changedWrongAnswer = original != null && original !== review.selectedOptionId && original !== review.correctOptionId;
-    const errors = [];
-    if (changedWrongAnswer) errors.push({ answer: question.options.find((option) => option.id === original)?.text, expected });
-    if (!review.isCorrect) errors.push({ answer, expected });
-    return { title: question.prompt, mistake: errors.length > 0, answer, expected, errors, note: review.explanation };
+    const first = firstChoices[question.id];
+    if (first && first !== review.correctOptionId && first !== review.selectedOptionId) {
+      previousItems.push({
+        title: question.prompt, mistake: true,
+        answer: question.options.find((option) => option.id === first)?.text, expected,
+      });
+    }
+    return {
+      title: question.prompt, skipped, mistake: !review.isCorrect && !skipped,
+      answer: question.options.find((option) => option.id === review.selectedOptionId)?.text,
+      expected,
+      note: review.explanation,
+    };
   });
   TestCompletionScreen($('placement-result'), {
     headingId: 'placement-completion-title',
-    title: t('completion.placement'),
-    subtitle: result.label,
+    title: t(attempt.practice ? 'vocab.complete' : 'completion.placement'),
+    subtitle: attempt.practice ? t('completion.placementPractice') : result.label,
     level: result.estimatedLevel,
     correct: result.correct,
     total: result.total,
     firstTry,
+    skipped: items.filter((item) => item.skipped).length,
     mistakes: items.filter((item) => item.mistake).length,
     seconds: elapsedSeconds(attempt.startedAt, attempt.completedAt),
     items,
-    tryAgain: startNewAttempt,
+    previousItems,
+    tryAgain: () => startNewAttempt(),
+    retryMistakes: items.some((item) => item.mistake)
+      ? () => startNewAttempt(() => retryPlacementMistakes(attempt.id))
+      : undefined,
     backToCourses: true,
     continueLearning: attempt.recommendedCourses[0]
       ? `/course.html?slug=${encodeURIComponent(attempt.recommendedCourses[0].slug)}` : undefined,
-    extra,
+    extra: attempt.practice ? undefined : extra,
   }).focus();
 }
 
 async function openAttempt(id) {
   if (busy) return;
   busy = true; controls(); status(t('pt.loadingAttempt'));
-  try { index = 0; adopt(await getPlacement(id)); status(t('pt.loaded')); }
+  try {
+    adopt(await getPlacement(id));
+    if (attempt.status === 'in_progress' && index === -1) await finishAttempt();
+    else status(t('pt.loaded'));
+  }
   catch (error) { showError(error, () => openAttempt(id)); status(''); }
   finally { busy = false; controls(); }
 }
@@ -190,28 +180,38 @@ async function loadHistory(reset = true) {
   } catch (error) { $('placement-history-status').textContent = describeApiError(error); }
   finally { historyBusy = false; $('placement-history-refresh').disabled = false; $('placement-history-more').disabled = false; }
 }
-async function startNewAttempt() {
+async function startNewAttempt(start = startPlacement) {
   if (busy || !ready) return;
   busy = true; controls(); status(t('pt.starting'));
-  try { index = 0; adopt(await startPlacement()); status(t('pt.chooseOne')); await loadHistory(); }
-  catch (error) { showError(error, () => loadHistory()); status(t('pt.startLost')); }
+  try { adopt(await start()); status(t('pt.chooseOne')); await loadHistory(); }
+  catch (error) { showError(error, () => startNewAttempt(start)); status(t('pt.startLost')); }
   finally { busy = false; controls(); }
 }
-$('placement-start').addEventListener('click', startNewAttempt);
-$('placement-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  if (busy || !attempt || attempt.answered !== attempt.total) return;
-  busy = true; controls(); status(t('pt.checkingAnswers'));
-  try { adopt(await completePlacement(attempt.id)); status(t('pt.resultSaved')); await loadHistory(); }
-  catch (error) { showError(error, () => openAttempt(attempt.id)); status(t('pt.finishFailed')); }
-  finally { busy = false; controls(); }
-});
-$('placement-previous').addEventListener('click', () => { if (!busy && index > 0) { index--; renderQuestion(true); } });
-$('placement-next').addEventListener('click', () => { if (!busy && index < attempt.questions.length - 1) { index++; renderQuestion(true); } });
-$('placement-unanswered').addEventListener('click', () => {
-  if (busy || !attempt) return;
-  const next = attempt.questions.findIndex((q) => !attempt.answers[q.id]);
-  if (next >= 0) { index = next; renderQuestion(true); }
+$('placement-start').addEventListener('click', () => startNewAttempt());
+async function finishAttempt() {
+  status(t('pt.checkingAnswers'));
+  adopt(await completePlacement(attempt.id));
+  status(t('pt.resultSaved'));
+  await loadHistory();
+}
+
+async function saveOutcome(question, optionId) {
+  if (busy || attempt?.questions[index]?.id !== question.id) return;
+  busy = true; controls(); status(t('pt.saving'));
+  try {
+    adopt(await savePlacementAnswer(attempt.id, question.id, optionId));
+    if (index === -1) await finishAttempt();
+    else status(t('pt.saved'));
+  } catch (error) {
+    if (index !== -1) renderQuestion();
+    showError(error, () => openAttempt(attempt.id));
+    status(t(index === -1 ? 'pt.finishFailed' : 'pt.saveFailed'));
+  } finally { busy = false; controls(); }
+}
+
+$('placement-form').addEventListener('submit', (event) => event.preventDefault());
+$('placement-skip').addEventListener('click', () => {
+  if (attempt?.questions[index]) void saveOutcome(attempt.questions[index], null);
 });
 $('placement-history-refresh').addEventListener('click', () => loadHistory());
 $('placement-history-more').addEventListener('click', () => loadHistory(false));
