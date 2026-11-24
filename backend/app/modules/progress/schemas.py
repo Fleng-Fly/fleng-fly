@@ -28,18 +28,6 @@ class XPHistoryResponse(CamelModel):
     last_30_days: None = None
 
 
-class ReadingStudyResponse(CamelModel):
-    """Measured active reading time (heartbeat), in seconds.
-
-    Separate from `studyMinutes` (an estimate added when a lesson is completed) and from XP.
-    `totalMinutes` is whole minutes, rounded down; `todaySeconds` is the learner's local day.
-    """
-
-    total_seconds: int = 0
-    total_minutes: int = 0
-    today_seconds: int = 0
-
-
 class ProgressResponse(CamelModel):
     """Aggregate progress plus a per-course breakdown.
 
@@ -60,7 +48,6 @@ class ProgressResponse(CamelModel):
     active_courses: int
     streak: StreakResponse
     xp_history: XPHistoryResponse
-    reading_study: ReadingStudyResponse = ReadingStudyResponse()
 
 
 class DailyGoalResponse(CamelModel):

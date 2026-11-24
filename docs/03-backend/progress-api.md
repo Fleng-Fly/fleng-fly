@@ -27,10 +27,6 @@ curl -i -X GET http://localhost:3001/api/v1/progress/me \
   -H "Authorization: Bearer $FLENG_ACCESS_TOKEN"
 ```
 
-`readingStudy` is measured active reading time from the Reading heartbeat (whole `totalMinutes`,
-`todaySeconds` in the learner's local day). It is separate from `studyMinutes`, which stays the
-lesson-estimate counter, and from XP.
-
 Synthetic response shape (not a seeded/live result):
 
 ```json
@@ -46,8 +42,7 @@ Synthetic response shape (not a seeded/live result):
   "courses": [],
   "activeCourses": 0,
   "streak": {"current": 0, "longest": 0, "lastActivityDate": null, "timezone": "UTC"},
-  "xpHistory": {"available": false, "reason": "XP_AWARD_HISTORY_NOT_RECORDED", "last7Days": null, "last30Days": null},
-  "readingStudy": {"totalSeconds": 0, "totalMinutes": 0, "todaySeconds": 0}
+  "xpHistory": {"available": false, "reason": "XP_AWARD_HISTORY_NOT_RECORDED", "last7Days": null, "last30Days": null}
 }
 ```
 

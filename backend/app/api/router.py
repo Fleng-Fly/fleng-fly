@@ -9,7 +9,6 @@ from app.modules.health.router import router as health_router
 from app.modules.password_reset.router import router as password_reset_router
 from app.modules.placement.router import router as placement_router
 from app.modules.progress.router import router as progress_router
-from app.modules.reading.router import router as reading_router
 from app.modules.users.email_change import router as email_change_router
 from app.modules.users.router import router as users_router
 from app.modules.vocabulary.router import router as vocabulary_router
@@ -28,4 +27,3 @@ api_router.include_router(password_reset_router)
 api_router.include_router(ai_router)
 
 api_router.include_router(placement_router)
-api_router.include_router(reading_router)

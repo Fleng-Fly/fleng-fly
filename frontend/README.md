@@ -18,8 +18,6 @@ frontend/
 ├── login.html          # sign in
 ├── register.html       # create account
 ├── dashboard.html      # protected: profile + progress
-├── reading.html        # protected: Reading library
-├── reading-article.html # protected: article + quiz (?slug=...)
 ├── courses.html        # protected: course catalog
 ├── course.html         # protected: course detail (?slug=...)
 ├── lesson.html         # protected: lesson theory (?slug=...)

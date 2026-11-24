@@ -24,4 +24,3 @@ Ten included routers, 42 ordinary API operations, exact schemas and runtime beha
 [Documentation home](../README.md)
 
 - [Placement test API](placement-api.md)
-- [Reading API](reading-api.md)

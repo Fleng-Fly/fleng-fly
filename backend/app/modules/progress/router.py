@@ -4,13 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user
 from app.db.models import User
 from app.db.session import get_db
-from app.modules.progress.schemas import (
-    DailyGoalsResponse,
-    ProgressResponse,
-    ReadingStudyResponse,
-)
+from app.modules.progress.schemas import DailyGoalsResponse, ProgressResponse
 from app.modules.progress.service import daily_goals, get_progress, to_progress_response
-from app.modules.reading.study import totals_summary
 
 router = APIRouter(prefix="/progress", tags=["progress"])
 
@@ -22,12 +17,7 @@ async def get_my_progress(
 ) -> ProgressResponse:
     progress = await get_progress(db, current_user.id)
     xp = current_user.profile.xp if current_user.profile else 0
-    response = await to_progress_response(db, user_id=current_user.id, progress=progress, xp=xp)
-    total, today = await totals_summary(db, current_user.id, profile=current_user.profile)
-    response.reading_study = ReadingStudyResponse(
-        total_seconds=total, total_minutes=total // 60, today_seconds=today
-    )
-    return response
+    return await to_progress_response(db, user_id=current_user.id, progress=progress, xp=xp)
 
 
 @router.get("/daily", response_model=DailyGoalsResponse)

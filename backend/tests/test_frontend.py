@@ -29,8 +29,6 @@ async def test_app_pages_are_served(client: AsyncClient) -> None:
         "/course.html",
         "/lesson.html",
         "/vocabulary.html",
-        "/reading.html",
-        "/reading-article.html",
         "/reset-password.html",
     ):
         response = await client.get(path)
@@ -78,6 +76,20 @@ async def test_api_is_reachable_alongside_the_frontend(client: AsyncClient) -> N
 async def test_removed_team_page_is_not_served(client: AsyncClient) -> None:
     for path in ("/team.html", "/js/team.js", "/css/team.css"):
         assert (await client.get(path)).status_code == 404, path
+
+
+async def test_retired_reading_has_no_pages_api_or_navigation(client: AsyncClient) -> None:
+    for path in (
+        "/reading.html",
+        "/reading-article.html",
+        "/js/reading.js",
+        "/css/reading.css",
+        "/api/v1/reading/articles",
+        "/api/v1/reading/study-time",
+    ):
+        assert (await client.get(path)).status_code == 404, path
+    workspace = await client.get("/js/workspace.js")
+    assert "/reading.html" not in workspace.text
 
 
 async def test_unknown_api_path_keeps_the_error_envelope(client: AsyncClient) -> None:

@@ -480,11 +480,6 @@ the SHA). Next: A1 lessons 11–15, then A2, B1, B2 per `docs/curriculum-expansi
   questions across the five courses.
 - Next: human linguistic review of the new vocabulary and answer choices.
 
-## Reading module — 2026-11-21
+## Reading retired
 
-- Phase 1 (backend domain, migration `20261121_1200`, services, tests): ✅ completed.
-- Phase 2 (API, schemas, quiz lock, draft seed command, docs): ✅ completed.
-- Study time (heartbeat, measured seconds, daily caps, streak at 60 s, `readingStudy`, UI): ✅ completed 2026-11-22. `progress.study_minutes` is intentionally unchanged.
-- Open: PostgreSQL run of the Reading and study-time tests; showing reading time on the Dashboard.
-- Phase 3 (frontend: library, article, quiz, throttled progress/autosave, bookmarks, topics, EN/UK, e2e): ✅ completed.
-- Open: author/admin role, reviewed content before publication, PostgreSQL run of the new tests.
+- Completed: removed the standalone library, articles, quiz, and reading-time UI and API. Existing tables and historical migrations are retained.
