@@ -32,3 +32,8 @@ opens on vocabulary/practice pages and marks the current child with aria-current
 Practice stays inside My Words; Course Words saves through the existing vocabulary
 API and can open the saved word in that same practice engine. No sidebar counters
 or client-invented learning totals are shown.
+
+Course Words searches English words and Ukrainian translations as the learner
+types, including separate translation variants and partial matches. Exact
+matches rank first across the paginated catalog. Clearing the search restores
+the initial order within the current course and lesson filters.

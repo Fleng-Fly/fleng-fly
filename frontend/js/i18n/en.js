@@ -656,6 +656,7 @@ export default {
   "cw.courseLabel": "Course",
   "cw.allCourses": "All courses",
   "cw.searchLabel": "Search course words",
+  "cw.clearSearch": "Clear search",
   "cw.searchPlaceholder": "Find a word, translation or course…",
   "cw.loading": "Loading course words…",
   "cw.course": "Course vocabulary",

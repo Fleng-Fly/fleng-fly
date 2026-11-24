@@ -23,7 +23,11 @@
     <div class="word-toolbar course-words-toolbar">
       <label class="field" for="word-course"><span data-i18n="cw.courseLabel">Course</span><select id="word-course"><option value="" data-i18n="cw.allCourses">All courses</option></select></label>
       <label class="field" for="word-lesson"><span data-i18n="cw.lessonLabel">Lesson</span><select id="word-lesson" disabled><option value="" data-i18n="cw.allLessons">All lessons</option></select></label>
-      <label class="word-search"><span class="sr-only" data-i18n="cw.searchLabel">Search course words</span><input id="course-word-search" type="search" placeholder="Find a word, translation or course…" data-i18n-attr="placeholder:cw.searchPlaceholder" /></label>
+      <div class="word-search">
+        <label class="sr-only" for="course-word-search" data-i18n="cw.searchLabel">Search course words</label>
+        <input id="course-word-search" type="search" placeholder="Find a word, translation or course…" data-i18n-attr="placeholder:cw.searchPlaceholder" />
+        <button id="course-word-clear" class="dashboard-text-button" type="button" aria-controls="course-word-search" data-i18n="cw.clearSearch" hidden>Clear search</button>
+      </div>
     </div>
     <p id="course-words-loading" class="dashboard-muted" role="status" data-i18n="cw.loading">Loading course words…</p>
     <div id="course-words-error" class="dashboard-alert" role="alert" hidden><span id="course-words-error-text"></span> <button id="course-words-retry" class="dashboard-text-button" type="button" data-i18n="common.tryAgain">Try again</button></div>

@@ -390,8 +390,10 @@ lives in the existing API client; no token is stored in shared browser storage.
   current section state; mobile focus trap ignores collapsed links.
 - `course-words.html` / `js/course-words.js`: existing `/vocabulary/course-words`
   pagination, catalog course filtering and local search by word, translation,
-  example, lesson, course title or level. Results respect selected filters and
-  update as pages arrive. Uses the existing personal-word
+  example, lesson, course title or level. Exact English and Ukrainian matches
+  rank ahead of partial matches across all API pages. Results respect selected
+  filters, and clearing the query restores the filtered catalog order.
+  Uses the existing personal-word
   save/practice flow. No API/schema/model change.
 - `js/markdown.js`: fixed DOM tag allowlist, bounded inline parsing, safe URL
   policy; used only for AI messages. User text remains literal.

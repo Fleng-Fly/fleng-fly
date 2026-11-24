@@ -41,6 +41,11 @@
 .word-details .word-detail-label { color: var(--fleng-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
 .word-details .word-example { color: var(--fleng-lilac); font-size: 13px; }
 .course-words-toolbar { margin-bottom: 22px; }
+.course-words-toolbar .word-search { max-width: 100%; }
+.course-words-toolbar .word-search input { flex: 1 1 210px; }
+.course-words-toolbar .word-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.course-words-toolbar .word-search button { flex: 0 0 auto; min-height: 36px; font-size: 12px; }
+.course-words-toolbar .word-search button[hidden] { display: none; }
 .course-words-toolbar .field { margin: 0; min-width: 0; flex: 1 1 260px; max-width: 480px; font-size: 12px; }
 .course-words-toolbar select { width: 100%; min-width: 0; min-height: 44px; margin-top: 6px; padding: 9px 12px; color: var(--fleng-lilac); background: #100c1e; border: 1px solid var(--fleng-border); border-radius: 8px; font: inherit; }
 .course-word-row { grid-template-columns: minmax(0,1fr) auto; }

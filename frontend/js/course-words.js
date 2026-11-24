@@ -8,7 +8,8 @@ import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 const $ = (id) => document.getElementById(id);
 let courses = new Map(), words = [], request = 0, sessionReady = false;
 const saved = new Set();
-const normalizeSearch = (value) => value.normalize('NFKC').toLowerCase().replace(/[’‘ʼ]/g, "'");
+const normalizeSearch = (value) => value.normalize('NFKC').toLowerCase()
+  .replace(/[’‘ʼ]/g, "'").trim().replace(/\s+/g, ' ');
 const englishKeys = "qwertyuiop[]asdfghjkl;'zxcvbnm,.";
 const ukrainianKeys = 'йцукенгшщзхїфівапролджєячсмитьбю';
 
@@ -19,25 +20,38 @@ function alternateLayout(query) {
   return [...query].map((key) => target[source.indexOf(key)] ?? key).join('');
 }
 
+function searchWords(scoped, query) {
+  const terms = query.split(' ');
+  const exact = [], prefix = [], partial = [], context = [];
+  for (const word of scoped) {
+    const course = courses.get(word.courseId);
+    const entries = [word.word, word.translation,
+      ...word.translation.split(/[,;\/|\n](?![^()]*\))/u)].map(normalizeSearch).filter(Boolean);
+    const lexical = entries.join(' ');
+    const searchable = normalizeSearch([lexical, word.example, word.lessonTitle,
+      course?.title, course?.level].join(' '));
+    if (!terms.every((term) => searchable.includes(term))) continue;
+    if (entries.includes(query)) exact.push(word);
+    else if (entries.some((entry) => entry.startsWith(query))) prefix.push(word);
+    else if (terms.every((term) => lexical.includes(term))) partial.push(word);
+    else context.push(word);
+  }
+  return [...exact, ...prefix, ...partial, ...context];
+}
+
 function render() {
-  const query = normalizeSearch($('course-word-search').value).trim();
+  const input = $('course-word-search');
+  const query = normalizeSearch(input.value);
+  $('course-word-clear').hidden = !input.value;
   const lessonId = $('word-lesson').value;
   const scoped = lessonId ? words.filter((word) => word.lessonId === lessonId) : words;
-  const matches = (text) => {
-    const terms = text.split(/\s+/);
-    return scoped.filter((word) => {
-      const course = courses.get(word.courseId);
-      const searchable = normalizeSearch([word.word, word.translation, word.example,
-        word.lessonTitle, course?.title, course?.level].join(' '));
-      return terms.every((term) => searchable.includes(term));
-    });
-  };
-  let visible = query ? matches(query) : scoped;
+  let visible = query ? searchWords(scoped, query) : scoped;
   if (!visible.length && query) {
     const alternate = alternateLayout(query);
-    if (alternate) visible = matches(alternate);
+    if (alternate) visible = searchWords(scoped, alternate);
   }
-  $('course-word-count').textContent = tn('vocab.count', visible.length);
+  const loading = !$('course-words-loading').hidden;
+  $('course-word-count').textContent = !visible.length && loading ? '' : tn('vocab.count', visible.length);
   const target = $('course-word-list');
   target.replaceChildren();
   if (!visible.length) {
@@ -137,5 +151,11 @@ mountWorkspace('course-words');
 $('word-course').addEventListener('change', load);
 $('word-lesson').addEventListener('change', render);
 $('course-word-search').addEventListener('input', render);
+$('course-word-clear').addEventListener('click', () => {
+  const input = $('course-word-search');
+  input.value = '';
+  render();
+  input.focus();
+});
 $('course-words-retry').addEventListener('click', load);
 load();
