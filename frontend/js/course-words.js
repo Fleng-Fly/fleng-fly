@@ -9,19 +9,34 @@ const $ = (id) => document.getElementById(id);
 let courses = new Map(), words = [], request = 0, sessionReady = false;
 const saved = new Set();
 const normalizeSearch = (value) => value.normalize('NFKC').toLowerCase().replace(/[’‘ʼ]/g, "'");
+const englishKeys = "qwertyuiop[]asdfghjkl;'zxcvbnm,.";
+const ukrainianKeys = 'йцукенгшщзхїфівапролджєячсмитьбю';
+
+function alternateLayout(query) {
+  const ukrainian = /[а-яіїєґ]/u.test(query);
+  if (ukrainian === /[a-z]/.test(query)) return '';
+  const [source, target] = ukrainian ? [ukrainianKeys, englishKeys] : [englishKeys, ukrainianKeys];
+  return [...query].map((key) => target[source.indexOf(key)] ?? key).join('');
+}
 
 function render() {
   const query = normalizeSearch($('course-word-search').value).trim();
-  const terms = query ? query.split(/\s+/) : [];
   const lessonId = $('word-lesson').value;
-  const visible = words.filter((word) => {
-    if (lessonId && word.lessonId !== lessonId) return false;
-    if (!terms.length) return true;
-    const course = courses.get(word.courseId);
-    const searchable = normalizeSearch([word.word, word.translation, word.example,
-      word.lessonTitle, course?.title, course?.level].join(' '));
-    return terms.every((term) => searchable.includes(term));
-  });
+  const scoped = lessonId ? words.filter((word) => word.lessonId === lessonId) : words;
+  const matches = (text) => {
+    const terms = text.split(/\s+/);
+    return scoped.filter((word) => {
+      const course = courses.get(word.courseId);
+      const searchable = normalizeSearch([word.word, word.translation, word.example,
+        word.lessonTitle, course?.title, course?.level].join(' '));
+      return terms.every((term) => searchable.includes(term));
+    });
+  };
+  let visible = query ? matches(query) : scoped;
+  if (!visible.length && query) {
+    const alternate = alternateLayout(query);
+    if (alternate) visible = matches(alternate);
+  }
   $('course-word-count').textContent = tn('vocab.count', visible.length);
   const target = $('course-word-list');
   target.replaceChildren();
