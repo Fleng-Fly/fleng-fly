@@ -141,6 +141,24 @@ login/logout), the live backend-status badge from `GET /health` (polled every
 
 ## 5. Design system
 
+### Test completion
+
+`js/test-completion.js` and `css/test-completion.css` provide the shared
+result screen for Course Lessons, My Words Mixed Practice (including the
+Course Words Tests entry point), and Placement Test. Each page supplies a
+confirmed result and binds its own review, retry, and navigation actions.
+The renderer has no API calls. Lesson completion and XP come from lesson
+progress, Placement uses its completed attempt, and Mixed Practice finishes
+after the final vocabulary review is acknowledged and its FIFO queue is empty.
+
+First-try accuracy counts unique tasks answered correctly on their first
+attempt. Lesson and Mixed Practice mistake counts are unique tasks that needed
+correction, while retries count repeated attempts. Placement can show first-try
+accuracy when all initial choices are available in the browser tab session.
+Saved attempts still provide the final score. Answer-level history collected
+by the frontend is tab-session data. Available metrics and mistake details
+vary with the data supplied by each test.
+
 Design tokens from `design/colors.md` and `design/typography.md` live in
 `:root` in `css/app.css` (dark `ink-*` palette, violet/cyan accents, semantic
 colors, radius, focus ring). Shared patterns: `.card`, `.btn`, `.field`,

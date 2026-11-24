@@ -117,13 +117,30 @@ test('mixed practice runs all four types, restores FIFO and finishes only after 
     await expect.poll(async () => (await snapshot(page)).queue.length).toBe(3 - index);
   }
   await expect(page.locator('#practice-summary-title')).toBeVisible();
-  await expect(page.locator('#word-practice')).toContainText('Correct: 4 · Incorrect: 4');
-  await expect(page.locator('#word-practice')).toContainText('50%');
+  await expect(page.getByRole('meter')).toHaveAttribute('aria-valuenow', '0');
+  await page.reload();
+  await expect(page.getByRole('meter')).toHaveAttribute('aria-valuenow', '0');
+  await page.getByRole('button', { name: 'Review Mistakes' }).click();
+  await expect(page.locator('.completion-row details[open]')).toHaveCount(4);
+  await expect(page.locator('.completion-review')).toContainText('Your answer:');
+  await expect(page.locator('.completion-review')).toContainText('Correct answer:');
   const xp = await page.evaluate(async () => (await (await import('/js/api.js')).getMyProgress()).xp);
   expect(xp).toBe(0);
-  await page.getByRole('button', { name: 'Practise again', exact: true }).click();
+  await page.getByRole('button', { name: 'Retry Mistakes', exact: true }).click();
   await expect(card(page)).toBeVisible();
   expect((await snapshot(page)).queue).toHaveLength(4);
+  for (let remaining = 4; remaining > 0; remaining--) {
+    await answer(page, words, true);
+    await expect.poll(async () => (await snapshot(page)).queue.length).toBe(remaining - 1);
+  }
+  await page.reload();
+  await page.setViewportSize({ width: 360, height: 780 });
+  await expect(page.getByText('Perfect Score')).toBeVisible();
+  await page.getByText('Mistakes from earlier rounds').click();
+  await expect(page.locator('.completion-previous .completion-row')).toHaveCount(4);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Finish & Return' }).click();
+  await expect(page.locator('#word-list-panel')).toBeVisible();
 });
 
 test('empty dictionary shows guidance and creates no review', async ({ page }) => {
@@ -158,6 +175,7 @@ test('one word and reload after a committed review produce a single saved attemp
     expect(await committedToDatabase).toBe(true);
     await page.reload();
     await expect(page.locator('#practice-summary-title')).toBeVisible();
+    await expect(page.getByText('Perfect Score')).toBeVisible();
     expect(attempts).toHaveLength(2);
     expect(attempts[0]).toBe(attempts[1]);
     const history = await page.evaluate(async (wordId) => {

@@ -1,3 +1,4 @@
+import { elapsedSeconds, renderTestCompletion } from './test-completion.js';
 import { getCourse, getLesson, getLessonProgress, getLessonVocabulary, listCourses, previewSelfCheck, startLesson, submitAnswer } from './api.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
@@ -16,7 +17,8 @@ const state = {
   drafts: new Map(), tileDrafts: new Map(), results: new Map(), errors: new Map(),
   selfChecks: new Map(), cursorKey: null, pendingSubmit: null,
   vocabulary: { items: [], loaded: false, loading: false, more: false, error: null },
-  nextStep: null, nextStepFor: null, hints: new Set(),
+  completionErrors: {}, completionProgress: null,
+  hints: new Set(),
   // Reads the visible exercise's current (unsent) answer for Fleng AI context.
   readCurrent: null,
 };
@@ -205,63 +207,65 @@ function renderCompleted() {
   const completed = $('lesson-completed');
   completed.hidden = !progress.completed;
   if (!progress.completed) return;
+  if (state.completionProgress === progress) return;
+  state.completionProgress = progress;
   const records = progress.exercises;
+  const byId = new Map(state.lesson.exercises.map((exercise) => [exercise.id, exercise]));
   const total = progress.exercisesTotal;
-  // Real data only: first-try correct answers come from the stored attempt counts.
-  const firstTry = records.filter((record) => record.completed && record.isCorrect && record.attempts === 1).length;
-  const percent = total ? Math.round((firstTry / total) * 100) : 0;
-  const metrics = el('div', 'lesson-finish-metrics');
-  metrics.append(
-    el('span', undefined, t('lesson.activities', { done: progress.exercisesCompleted, total })),
-    el('span', undefined, t('lesson.firstTry', { n: firstTry, total })),
-    el('span', undefined, t('lesson.resultPercent', { pct: percent })),
-    el('span', undefined, t('lesson.xpEarned', { xp: progress.xpEarned })),
-  );
-  const actions = el('div', 'lesson-finish-actions');
-  const next = state.nextStep;
-  if (next?.href) {
-    const go = el('a', 'lesson-button lesson-button-primary', next.label);
-    go.href = next.href;
-    actions.append(go);
-  }
-  const course = el('a', 'lesson-button lesson-button-secondary', t('lesson.backToCourse'));
-  course.href = $('lesson-course-link').href;
-  const words = el('button', 'lesson-button lesson-button-secondary', t('lesson.reviewWords'));
-  words.type = 'button';
-  words.addEventListener('click', () => switchTab('vocabulary'));
-  actions.append(course, words);
-  completed.replaceChildren(
-    el('strong', undefined, `✦ ${t('lesson.completedTitle')}`),
-    el('p', undefined, t('lesson.completedText')),
-    metrics,
-    actions,
-  );
-  loadNextStep();
+  const correct = records.filter((record) => record.isCorrect === true).length;
+  const firstTry = records.filter((record) => record.isCorrect === true && record.attempts === 1).length;
+  const retries = records.reduce((count, record) => count + Math.max(0, record.attempts - 1), 0);
+  const heading = renderTestCompletion(completed, {
+    headingId: 'lesson-completion-title',
+    title: t('lesson.completedTitle'),
+    subtitle: state.lesson.title,
+    total, correct, firstTry, retries, xp: progress.xpEarned,
+    mistakes: records.filter((record) => record.attempts > 1 || record.isCorrect === false).length,
+    seconds: elapsedSeconds(progress.startedAt, progress.completedAt),
+    items: records.filter((record) => record.attempts > 0 && byId.has(record.exerciseId)).map((record) => {
+      const exercise = byId.get(record.exerciseId);
+      const mistake = record.attempts > 1 || record.isCorrect === false;
+      return {
+        title: exercise.prompt,
+        mistake,
+        answer: mistake ? undefined : optionText(exercise, record.answer),
+        errors: state.completionErrors[exercise.id],
+      };
+    }),
+    finish: $('lesson-course-link').href,
+    continueLearning: loadNextStep(state.lesson),
+  });
+  if (state.busy) heading.focus();
+}
+
+function optionText(exercise, answer) {
+  return exercise.options?.find(({ id }) => id === answer)?.text ?? answer;
+}
+
+function rememberMistake(exercise, answer, result) {
+  if (result.isCorrect !== false) return;
+  const expected = result.correctOptionId
+    ? optionText(exercise, result.correctOptionId)
+    : result.acceptedAnswers?.[0] ?? result.modelAnswer;
+  (state.completionErrors[exercise.id] ??= []).push({ answer: optionText(exercise, answer), expected });
+  if (!state.cursorKey) return;
+  try { sessionStorage.setItem(`${state.cursorKey}:completion-errors`, JSON.stringify(state.completionErrors)); }
+  catch { /* Review remains available in this document. */ }
 }
 
 /** Real catalog data only: the next lesson of this course, else the next course. */
-async function loadNextStep() {
-  const { lesson } = state;
-  if (!lesson || state.nextStepFor === lesson.slug) return;
-  state.nextStepFor = lesson.slug;
+async function loadNextStep(lesson) {
   try {
     const course = await getCourse(lesson.courseSlug);
     const position = course.lessons.findIndex((item) => item.slug === lesson.slug);
     const nextLesson = position >= 0 ? course.lessons[position + 1] : null;
-    if (nextLesson) {
-      state.nextStep = { href: `/lesson.html?slug=${encodeURIComponent(nextLesson.slug)}`, label: t('lesson.nextLesson') };
-    } else {
-      const all = await listCourses();
-      const index = all.findIndex((item) => item.slug === lesson.courseSlug);
-      const nextCourse = index >= 0 ? all[index + 1] : null;
-      state.nextStep = nextCourse
-        ? { href: `/course.html?slug=${encodeURIComponent(nextCourse.slug)}`, label: t('lesson.nextCourse', { title: nextCourse.title }) }
-        : null;
-    }
+    if (nextLesson) return `/lesson.html?slug=${encodeURIComponent(nextLesson.slug)}`;
+    const all = await listCourses();
+    const index = all.findIndex((item) => item.slug === lesson.courseSlug);
+    if (index >= 0 && all[index + 1]) return `/course.html?slug=${encodeURIComponent(all[index + 1].slug)}`;
   } catch {
-    state.nextStep = null; // The completion card still offers the way back to the course.
+    // The course link remains available if recommendations cannot load.
   }
-  if (state.progress?.completed && state.lesson === lesson) renderCompleted();
 }
 
 function labelled(label, text) {
@@ -351,6 +355,7 @@ async function submit(exercise, answer, assessment) {
       exerciseId: exercise.id, answer, expectedAttempts,
       ...(assessment ? { selfAssessment: assessment } : {}),
     });
+    rememberMistake(exercise, answer, result);
     state.progress = result.lesson;
     state.pendingSubmit = null;
     state.results.set(exercise.id, result);
@@ -395,7 +400,7 @@ async function submit(exercise, answer, assessment) {
     setBusy(false);
     const card = document.querySelector(`[data-exercise-id="${exercise.id}"]`);
     if (advanced) $(`panel-${state.tab}`).querySelector('h2')?.focus();
-    else card?.querySelector('.lesson-feedback')?.focus();
+    else if (!state.progress?.completed) card?.querySelector('.lesson-feedback')?.focus();
   }
 }
 
@@ -403,6 +408,8 @@ function adoptSavedSubmission(progress, pending) {
   const { exerciseId, expectedAttempts } = pending;
   const attempt = progress.exercises.find((record) => record.exerciseId === exerciseId);
   if (!attempt || attempt.attempts <= expectedAttempts) return false;
+  const exercise = state.lesson.exercises.find((item) => item.id === exerciseId);
+  if (exercise && attempt.answer != null) rememberMistake(exercise, attempt.answer, attempt);
   state.progress = progress;
   state.pendingSubmit = null;
   state.errors.delete(exerciseId);
@@ -820,6 +827,11 @@ async function loadLesson() {
     }));
     state.progress = progress;
     state.cursorKey = user.id ? `fleng.lesson.cursor:${user.id}:${lesson.id}` : null;
+    state.completionErrors = {};
+    if (state.cursorKey) {
+      try { state.completionErrors = JSON.parse(sessionStorage.getItem(`${state.cursorKey}:completion-errors`)) ?? {}; }
+      catch { /* The server still supplies attempt counts. */ }
+    }
     state.index = restoreCursor();
     saveCursor();
     state.drafts.clear();
@@ -829,8 +841,6 @@ async function loadLesson() {
     state.selfChecks.clear();
     state.vocabulary = { items: [], loaded: false, loading: false, more: false, error: null };
     state.hints.clear();
-    state.nextStep = null;
-    state.nextStepFor = null;
     for (const entry of progress.exercises) {
       if (entry.attempts) state.drafts.set(entry.exerciseId, entry.completed ? entry.answer || '' : '');
     }

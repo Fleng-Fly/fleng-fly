@@ -14,7 +14,7 @@ class Node {
     this.attributes = {};
     this.dataset = {};
     this.classList = { add() {}, remove() {}, toggle() {}, contains: () => false };
-    this.style = {};
+    this.style = { setProperty(name, value) { this[name] = value; } };
     this.events = {};
     this.value = '';
     this.textContent = text ?? '';
@@ -379,6 +379,7 @@ async function lessonPage(search = '?slug=first', overrides = {}) {
   const window = {
     location: new URL('http://localhost/lesson.html' + search),
     history: { state: null, replaceState(_state, _title, url) { window.location = new URL(url); } },
+    matchMedia: () => ({ matches: false }),
   };
   const document = {
     getElementById: (id) => nodes.get(id) ?? null,
@@ -557,10 +558,10 @@ test('completion screen shows only real counts from lesson progress', async () =
   };
   const p = await lessonPage('?slug=first', { progress: done });
   const text = p.get('lesson-completed').textContent;
-  assert.match(text, /3 \/ 3 activities/);
-  assert.match(text, /Correct on the first try: 2 \/ 3/);
-  assert.match(text, /Result: 67%/);
-  assert.match(text, /3 XP earned/);
+  assert.match(text, /First-try accuracy 67%/);
+  assert.match(text, /Correct 3 Tasks 3 Mistakes 1 Retries 1/);
+  assert.match(text, /XP earned 3/);
+  assert.doesNotMatch(text, /Elapsed time/);
 });
 
 test('every exercise shows its task before the prompt, linked for screen readers', async () => {

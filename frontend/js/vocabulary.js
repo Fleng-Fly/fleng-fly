@@ -1,3 +1,4 @@
+import { elapsedSeconds, renderTestCompletion } from './test-completion.js';
 import { addVocabulary, deleteVocabulary, getVocabularyGroups, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
 import { el } from './layout.js';
 import { t, tn } from './i18n.js';
@@ -254,6 +255,7 @@ function reconcilePractice(session) {
   }));
   if (!tasks.size) return null;
   const queue = [...new Set(session.queue)].filter((id) => tasks.has(id));
+  if (!queue.length && session.finishedAt == null) return null;
   const pending = session.pending && session.pending.wordId === queue[0] ? session.pending : null;
   return { ...session, tasks: [...tasks.values()], queue, pending };
 }
@@ -279,64 +281,58 @@ function startPractice(firstId, selectedIds) {
   }));
   const queue = tasks.map(({ wordId }) => wordId);
   if (firstId && queue.includes(firstId)) queue.unshift(...queue.splice(queue.indexOf(firstId), 1));
+  const previous = state.session;
+  const previousErrors = { ...previous?.previousErrors };
+  if (previous?.finishedAt != null) {
+    for (const id of previous.mistakes) {
+      previousErrors[id] = [...(previousErrors[id] ?? []), ...(previous.errors?.[id] ?? [])];
+    }
+  }
   state.session = {
     tasks, queue, selection: practiceSelection(), mistakes: [], incorrect: 0,
     startedAt: Date.now(), finishedAt: null, pending: null, lastMistake: null,
+    previousErrors,
   };
   state.reviewError = '';
   savePractice();
   renderPractice();
 }
 
+function reviewErrors(errors) {
+  return errors?.map((error) => ({
+    ...error, answer: error.selfRated ? t('vocab.needPractice') : error.answer,
+  })).filter((error) => error.answer != null || error.expected != null);
+}
+
 function renderSummary(target) {
-  const { tasks, mistakes, incorrect, finishedAt, startedAt } = state.session;
+  const { tasks, mistakes, incorrect, finishedAt, startedAt, errors = {}, previousErrors = {} } = state.session;
   const ids = tasks.map(({ wordId }) => wordId);
-  const correct = ids.length;
-  const accuracy = Math.round(correct / (correct + incorrect) * 100);
-  const seconds = Math.max(0, Math.floor(((finishedAt ?? Date.now()) - startedAt) / 1000));
-  const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-  const summary = el('section', 'practice-summary');
-  summary.setAttribute('aria-labelledby', 'practice-summary-title');
-  const celebration = el('div', 'summary-celebration');
-  celebration.setAttribute('aria-hidden', 'true');
-  for (let i = 0; i < 12; i++) celebration.append(el('i'));
-  const icon = el('span', 'summary-icon', accuracy === 100 ? '✦' : '✓');
-  icon.setAttribute('aria-hidden', 'true');
-  const title = el('h2', undefined, t('vocab.complete'));
-  title.id = 'practice-summary-title';
-  title.tabIndex = -1;
-  summary.append(celebration, icon, el('span', 'lesson-chip', t('vocab.mixedTitle')), title,
-    el('p', 'dashboard-muted', t('vocab.mixedCounts', { correct, incorrect })));
-  const ring = el('div', 'summary-score-ring');
-  ring.style.background = `conic-gradient(var(--fleng-pink) ${accuracy}%, var(--fleng-raised) 0)`;
-  const center = el('div', 'summary-score-center');
-  center.append(el('strong', undefined, `${accuracy}%`), el('span', undefined, t('vocab.correctAnswers')));
-  ring.append(center);
-  const metrics = el('div', 'summary-metrics');
-  for (const [label, value] of [[t('vocab.reviewed'), ids.length], [t('vocab.remembered'), correct], [t('vocab.mixedMistakes'), mistakes.length], [t('vocab.time'), time]]) {
-    const metric = el('div', 'summary-metric');
-    metric.append(el('strong', undefined, String(value)), el('span', undefined, label));
-    metrics.append(metric);
-  }
-  summary.append(ring, metrics);
-  const list = el('ul', 'summary-word-list');
-  for (const id of ids) {
-    const word = state.words.find((item) => item.id === id);
-    if (!word) continue;
-    const needsPractice = mistakes.includes(id);
-    const row = el('li', needsPractice ? 'summary-word is-mistake' : 'summary-word');
-    const copy = el('span');
-    copy.append(el('strong', undefined, word.word), el('small', undefined, word.translation));
-    row.append(copy, el('span', 'word-status', needsPractice ? t('vocab.practiseAgain') : `✓ ${t('vocab.remembered')}`));
-    list.append(row);
-  }
-  summary.append(el('h3', undefined, t('vocab.sessionWords')), list);
-  const actions = el('div', 'word-practice-actions');
-  if (mistakes.length) actions.append(control(t('vocab.repeat'), () => startPractice(undefined, mistakes), 'lesson-button lesson-button-primary'));
-  actions.append(control(t('vocab.practiseAgain'), () => startPractice(undefined, ids), mistakes.length ? 'lesson-button lesson-button-secondary' : 'lesson-button lesson-button-primary'), control(t('vocab.back'), () => setMode('list')));
-  summary.append(actions);
-  target.replaceChildren(summary);
-  title.focus();
+  const wrong = mistakes.filter((id) => ids.includes(id));
+  const words = new Map(state.words.map((word) => [word.id, word]));
+  const heading = renderTestCompletion(target, {
+    headingId: 'practice-summary-title',
+    title: t('vocab.complete'),
+    subtitle: t('vocab.mixedTitle'),
+    correct: ids.length,
+    total: ids.length,
+    firstTry: ids.length - wrong.length,
+    mistakes: wrong.length,
+    retries: mistakes.length === wrong.length ? incorrect : undefined,
+    seconds: elapsedSeconds(startedAt, finishedAt),
+    items: tasks.map(({ wordId: id, type }) => ({
+      title: words.get(id).word,
+      expected: type === 'letters' || type === 'write' ? words.get(id).word : words.get(id).translation,
+      mistake: wrong.includes(id),
+      errors: reviewErrors(errors[id]),
+    })),
+    previousItems: Object.entries(previousErrors).filter(([id]) => words.has(id)).map(([id, history]) => ({
+      title: words.get(id).word, mistake: true, errors: reviewErrors(history),
+    })),
+    retryMistakes: wrong.length ? () => startPractice(undefined, wrong) : undefined,
+    tryAgain: () => startPractice(undefined, ids),
+    finish: () => setMode('list'),
+  });
+  heading.focus();
 }
 
 function setMode(mode, firstId, startAgain = false) {
@@ -384,6 +380,12 @@ async function saveReview() {
     if (!remembered) {
       session.queue.push(wordId);
       session.incorrect++;
+      session.errors ??= {};
+      (session.errors[wordId] ??= []).push({
+        answer: pending.answer,
+        selfRated: pending.answer == null && pending.expected != null,
+        expected: pending.expected,
+      });
       if (!session.mistakes.includes(wordId)) session.mistakes.push(wordId);
     }
     session.pending = null;
@@ -408,8 +410,12 @@ function renderPractice(focus = false) {
     empty(target, t('vocab.noActivityWords'), t('vocab.beginHint'));
     return;
   }
-  if (!session.queue.length) {
+  if (!session.queue.length && session.finishedAt != null) {
     renderSummary(target);
+    return;
+  }
+  if (!session.queue.length) {
+    empty(target, t('vocab.noActivityWords'), t('vocab.beginHint'));
     return;
   }
   const task = session.tasks.find(({ wordId }) => wordId === session.queue[0]);
@@ -460,10 +466,10 @@ function renderPractice(focus = false) {
     return;
   }
 
-  function grade(remembered) {
+  function grade(remembered, answer, expected) {
     if (state.busy || state.loading || state.mode !== 'mixed' || state.session !== session
         || session.queue[0] !== word.id || session.pending || incorrect !== session.incorrect) return;
-    session.pending = { wordId: word.id, remembered, attemptId: crypto.randomUUID() };
+    session.pending = { wordId: word.id, remembered, answer, expected, attemptId: crypto.randomUUID() };
     savePractice();
     void saveReview();
   }
@@ -492,7 +498,7 @@ function renderPractice(focus = false) {
       front.setAttribute('aria-hidden', String(show));
       back.setAttribute('aria-hidden', String(!show));
       if (show) {
-        actions.replaceChildren(control(t('vocab.needPractice'), () => grade(false)), control(t('vocab.knewIt'), () => grade(true), 'lesson-button lesson-button-primary'));
+        actions.replaceChildren(control(t('vocab.needPractice'), () => grade(false, undefined, word.translation)), control(t('vocab.knewIt'), () => grade(true), 'lesson-button lesson-button-primary'));
         actions.querySelector('button').focus();
       } else actions.replaceChildren(control(t('vocab.reveal'), () => turnCard(true), 'lesson-button lesson-button-primary'));
     }
@@ -502,11 +508,11 @@ function renderPractice(focus = false) {
     card.append(speakButton(word.word), el('p', 'dashboard-muted', t('vocab.chooseTranslation')));
     const alternatives = translations().filter((translation) => normalize(translation) !== normalize(word.translation));
     const choices = el('div', 'word-choice-list');
-    for (const choice of shuffle([word.translation, ...shuffle(alternatives).slice(0, 3)])) choices.append(control(choice, () => grade(choice === word.translation), 'word-choice'));
+    for (const choice of shuffle([word.translation, ...shuffle(alternatives).slice(0, 3)])) choices.append(control(choice, () => grade(choice === word.translation, choice, word.translation), 'word-choice'));
     card.append(choices);
   } else {
     const form = el('form');
-    const check = (answer) => grade(normalize(answer) === normalize(word.word));
+    const check = (answer) => grade(normalize(answer) === normalize(word.word), answer, word.word);
     const letters = [...word.word];
     if (type === 'write') {
       const label = el('label', 'lesson-answer-label', t('vocab.typeEnglish'));

@@ -11,6 +11,36 @@ async function register(page) {
   await expect(page).toHaveURL(/\/dashboard\.html$/);
 }
 
+test('confirmed Placement result survives reload and supports review and retake on mobile', async ({ page }) => {
+  test.setTimeout(90_000);
+  await register(page);
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/placement-test.html');
+  await page.getByRole('button', { name: 'Start placement test' }).click();
+  const result = page.locator('#placement-result');
+  await expect(result).toBeHidden();
+  for (let answered = 1; answered <= 36; answered++) {
+    await page.locator('#placement-question input').first().check();
+    await expect(page.locator('#placement-saved')).toContainText(`${answered} of 36`);
+    if (answered < 36) await page.locator('#placement-next').click();
+  }
+  await page.locator('#placement-finish').click();
+  await expect(result).toBeVisible();
+  await expect(result.getByRole('meter', { name: 'First-try accuracy' })).toBeVisible();
+  await expect(result.locator('.completion-row')).toHaveCount(36);
+  await expect(result.getByText('XP earned')).toHaveCount(0);
+  const recordedUrl = page.url();
+  await page.reload();
+  await result.getByRole('button', { name: 'Review Mistakes' }).click();
+  await expect(result.locator('.completion-row details[open]').first()).toBeVisible();
+  const fitsViewport = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
+  expect(fitsViewport).toBe(true);
+  await result.getByRole('button', { name: 'Try again' }).click();
+  await expect(page.locator('#placement-player')).toBeVisible();
+  await expect(page).not.toHaveURL(recordedUrl);
+});
+
 test('Placement Test is reached from Courses, not from the sidebar', async ({ page }) => {
   await register(page);
   const sidebar = page.locator('#dashboard-sidebar');

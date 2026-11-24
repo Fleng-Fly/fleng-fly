@@ -1,5 +1,10 @@
 # Frontend Plan
 
+- [x] Shared Test Completion Screen for Course Lessons, My Words Mixed Practice
+  (including Course Words Tests), and Placement Test.
+  Verification and current data limits are recorded in
+  [FLENG_TEST_COMPLETION_REPORT.md](../FLENG_TEST_COMPLETION_REPORT.md).
+
 - Completed: My Words offers Mixed Practice with balanced formats, FIFO retries,
   reload recovery, and a replayable summary. Learner review uses the existing API.
 - Completed: Course Words links directly to Mixed Practice through Tests above its filters.

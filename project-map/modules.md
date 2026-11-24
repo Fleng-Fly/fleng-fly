@@ -1,5 +1,11 @@
 # Project Map — Modules
 
+Test completion: `frontend/js/test-completion.js` and
+`frontend/css/test-completion.css` render confirmed lesson, Mixed Practice
+and Placement results. The lesson, vocabulary and placement page modules adapt
+their existing progress and review data and own the actions.
+See [Test completion](../docs/frontend.md#test-completion).
+
 Demo preparation: `backend/app/db/demo.py` runs only when explicitly selected in
 development/demo with local SQLite. It reuses auth registration and graded lesson
 submission services, stores credentials in ignored `backend/data/`, and is invoked

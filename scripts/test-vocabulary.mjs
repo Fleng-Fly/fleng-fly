@@ -11,7 +11,7 @@ import { i18nStub } from './i18n-stub.mjs';
 class Element {
   constructor(tag = 'div', text = '') {
     this.tagName = tag; this.children = []; this.attributes = {}; this.events = {};
-    this.dataset = {}; this.style = {}; this.value = ''; this.hidden = false;
+    this.dataset = {}; this.style = { setProperty(name, value) { this[name] = value; } }; this.value = ''; this.hidden = false;
     this.disabled = false; this._text = text;
     this.classList = { add: (name) => { this.className = `${this.className || ''} ${name}`; }, toggle: (name, on) => { const set = new Set((this.className || '').split(' ')); if (on) set.add(name); else set.delete(name); this.className = [...set].join(' '); } };
   }
@@ -20,6 +20,7 @@ class Element {
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this._text = ''; this.children = children; }
   setAttribute(name, value) { this.attributes[name] = value; }
+  getAttribute(name) { return this.attributes[name]; }
   removeAttribute(name) { delete this.attributes[name]; }
   addEventListener(name, action) { this.events[name] = action; }
   querySelectorAll(selector) { const tags = selector.split(',').map((s) => s.trim()); return this.children.flatMap((node) => [...(tags.includes(node.tagName) ? [node] : []), ...node.querySelectorAll(selector)]); }
@@ -73,6 +74,9 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
   const autoCheck = new vm.SourceTextModule(await readFile('frontend/js/auto-check.js', 'utf8'), { context, identifier: './auto-check.js' });
   modules.set('./auto-check.js', autoCheck);
   await autoCheck.link((name) => modules.get(name));
+  const completion = new vm.SourceTextModule(await readFile('frontend/js/test-completion.js', 'utf8'), { context });
+  modules.set('./test-completion.js', completion);
+  await completion.link((name) => modules.get(name));
   const main = new vm.SourceTextModule(await readFile('frontend/js/vocabulary.js', 'utf8'), { context });
   await main.link((name) => modules.get(name)); await main.evaluate();
   const flush = async () => { for (let i = 0; i < 10; i++) await Promise.resolve(); };
@@ -191,9 +195,9 @@ test('Mixed Practice balances every task type and rotates every wrong answer in 
   assert.equal(app.writes.length, 8);
   assert.equal(new Set(app.attempts).size, 8);
   assert.deepEqual(app.session().queue, []);
-  assert.match(app.node('word-practice').textContent, /Correct: 8 · Incorrect: 9/);
-  assert.match(app.node('word-practice').textContent, /47%/);
-  await app.click(app.byText('word-practice', 'Practise again'));
+  assert.match(app.node('word-practice').textContent, /First-try accuracy 0%/);
+  assert.match(app.node('word-practice').textContent, /Retries 9/);
+  await app.click(app.byText('word-practice', 'Try again'));
   assert.equal(app.session().queue.length, 8);
   assert.equal(app.session().incorrect, 0);
 });
@@ -214,8 +218,11 @@ test('one word uses reveal and self-assessment, repeats errors, and replays even
   assert.deepEqual(app.session().queue, ['one']);
   await answer(app, true);
   assert.deepEqual(app.session().queue, []);
-  await app.click(app.byText('word-practice', 'Practise again'));
+  await app.click(app.byText('word-practice', 'Retry Mistakes'));
   assert.deepEqual(app.session().queue, ['one']);
+  await answer(app, true);
+  assert.match(app.node('word-practice').textContent, /Perfect Score/);
+  assert.match(app.node('word-practice').textContent, /Mistakes from earlier rounds.*Your answer: I need practice/);
 });
 
 test('empty practice does not call the review API', async () => {
@@ -245,7 +252,7 @@ test('an unsaved review remains pending and reload retries the same attempt ID',
   const restored = await page({ words: app.words, mode: 'mixed', storage });
   assert.deepEqual(restored.attempts, [attemptId]);
   assert.deepEqual(restored.session().queue, []);
-  assert.match(restored.node('word-practice').textContent, /Correct: 1 · Incorrect: 0/);
+  assert.match(restored.node('word-practice').textContent, /Perfect Score/);
 });
 
 test('filters the dictionary by course and lesson and shows where each word came from', async () => {

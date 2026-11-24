@@ -95,6 +95,13 @@ test('wrong answers rotate in FIFO order, including repeat failures, and survive
   await letter(page, 'e', 1);
   await expect.poll(async () => (await progress(page)).completed).toBe(true);
   const finished = await progress(page);
+  await expect(page.locator('#lesson-completion-title')).toBeVisible();
+  await expect(page.getByRole('meter')).toHaveAttribute('aria-valuenow', '33');
+  await page.getByRole('button', { name: 'Review Mistakes' }).click();
+  await expect(page.locator('.completion-row details[open]')).toHaveCount(2);
+  await expect(page.locator('.completion-review')).toContainText('Your answer:');
+  await expect(page.locator('.completion-review')).toContainText('Correct answer:');
+  await expect(page.getByRole('link', { name: 'Continue Learning' })).toBeVisible();
   expect(finished.pendingExerciseIds).toEqual([]);
   expect(finished.exercisesCompleted).toBe(3);
   await page.reload();

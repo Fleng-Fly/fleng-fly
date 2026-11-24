@@ -6,13 +6,14 @@ import vm from 'node:vm';
 import { i18nStub } from './i18n-stub.mjs';
 
 class Element {
-  constructor(tag = 'div', text = '') { this.tag = tag; this.text = text; this.children = []; this.events = {}; this.disabled = false; this.hidden = false; this.value = ''; }
+  constructor(tag = 'div', text = '') { this.tag = tag; this.text = text; this.children = []; this.events = {}; this.disabled = false; this.hidden = false; this.value = ''; this.style = { setProperty() {} }; }
   set innerHTML(_) { throw new Error('Raw HTML is forbidden'); }
   set textContent(value) { this.text = value; this.children = []; }
   get textContent() { return this.text + this.children.map((node) => node.textContent).join(' '); }
   append(...nodes) { this.children.push(...nodes); }
   replaceChildren(...nodes) { this.text = ''; this.children = nodes; }
   addEventListener(name, fn) { this.events[name] = fn; }
+  setAttribute() {}
   querySelectorAll(selector) { return this.children.flatMap((node) => [...(node.tag === selector ? [node] : []), ...node.querySelectorAll(selector)]); }
   querySelector(selector) { return this.querySelectorAll('input').find((node) => selector === 'input:checked' && node.checked); }
   focus() { this.focused = true; }
@@ -50,15 +51,23 @@ async function page({ resume = false, unavailable = false, history: rows = null 
     history: { replaceState: (_a, _b, url) => urls.push(String(url)) },
   });
   const module = new vm.SourceTextModule(await readFile('frontend/js/placement-test.js', 'utf8'), { context });
-  await module.link((name) => {
+  const imports = new Map();
+  const link = (name) => {
+    if (imports.has(name)) return imports.get(name);
     const values = name === './placement-api.js' ? api
       : name === './layout.js' ? { el: (tag, cls, text) => { const n = new Element(tag, text || ''); n.className = cls; return n; } }
       : name === './workspace.js' ? { mountWorkspace: (active) => { workspace.push(active); }, setWorkspaceUser() {} }
       : name === './i18n.js' ? i18nStub
       : name === './session.js' ? { requireSession: async () => { if (unavailable) throw new Error('Backend unavailable'); return { id: 'user' }; } }
       : { describeApiError: (error) => error.message };
-    return new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context });
-  });
+    const dependency = new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context });
+    imports.set(name, dependency);
+    return dependency;
+  };
+  const completion = new vm.SourceTextModule(await readFile('frontend/js/test-completion.js', 'utf8'), { context });
+  imports.set('./test-completion.js', completion);
+  await completion.link(link);
+  await module.link(link);
   await module.evaluate();
   const flush = async () => { for (let i = 0; i < 30; i++) await Promise.resolve(); };
   await flush();
