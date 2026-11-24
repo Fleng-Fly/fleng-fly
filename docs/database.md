@@ -359,3 +359,70 @@ See [placement methodology and data flow](placement-test.md) and the
 - Curated words are linked to the first lesson that lists them by the curriculum importer
   (`link_lesson_vocabulary`, idempotent). Practice supplement rows are added by
   `db/practice.py` with stable IDs; existing exercise rows are never changed.
+
+## Daily goals — 2026-11-20
+
+Revision `20261120_1200` (additive, reversible): `profiles.daily_lessons_goal` (1–10, default
+1), `profiles.daily_words_goal` (1–100, default 10), both check-constrained, and
+`profiles.timezone` (nullable IANA name). No per-day table: progress is computed from
+`lesson_progress` and `vocabulary_reviews`. Verified upgrade → downgrade → upgrade on SQLite;
+PostgreSQL was not available in this environment.
+
+
+## Reading — 2026-11-21
+
+Revision `20261121_1200` (additive, reversible; only creates tables, no existing data touched).
+Services: `backend/app/modules/reading/` (`content`, `learning`, `personal`). No HTTP routes yet.
+
+| Table | Purpose / key constraints |
+| ----- | ------------------------- |
+| `reading_categories` | `slug` unique, `is_active`, `position` |
+| `reading_articles` | `category_id` (RESTRICT), `slug` unique, `level` in A0,A1,A2,B1,B2 (check), `reading_minutes` 1-120, `status` draft/published/archived, `published_at` (first publication), optional `cover_image_url`/`cover_alt` |
+| `reading_questions` | single-choice; `(article_id, position)` unique, `points` 1-10; cascade with article |
+| `reading_answers` | `(question_id, position)` unique; partial unique index `reading_answer_one_correct` allows at most one correct answer (the service also requires exactly one) |
+| `reading_attempts` | `answers` JSON `{question_id: answer_id}`, frozen `result` JSON on submit, `(user_id, article_id, attempt_number)` unique, partial unique index `reading_attempt_one_active` allows one `in_progress` attempt per learner and article |
+| `reading_user_progress` | `(user_id, article_id)` unique; `read_percent` 0-100 (monotonic), `status` in_progress/completed, `best_score_percent`, `attempts_count`, `xp_awarded` |
+| `reading_bookmarks` | `(user_id, article_id)` unique |
+| `reading_topic_preferences` | `(user_id, category_id)` unique |
+
+Rules. Available to learners = article `published` **and** category active. Pass mark is 70 %
+(`learning.PASS_PERCENT`, floored percent). Completion happens once: first passing attempt, or 100 %
+read for an article without questions. **XP** reuses `profiles.xp`: the first passing attempt pays the
+article's total question points once per learner and article, claimed by a conditional UPDATE on
+`reading_user_progress.xp_awarded = 0`; failed attempts, retries and re-submitting an attempt pay
+nothing (re-submit returns the stored result). Submitting records streak activity and runs
+achievements through the gamification service. Articles without questions give no XP. Result
+snapshots are immutable, so editing a quiz never rewrites history. Levels are A0-B2 only (C1/C2 are
+valid for courses but not for reading). Verified upgrade, downgrade, upgrade and metadata drift on
+SQLite; PostgreSQL was not available here (the opt-in PostgreSQL tests were updated to the new head).
+
+Phase 2 additions (no schema change): `replace_questions` raises `409 QUIZ_LOCKED` while a *published*
+article has unfinished attempts. For a draft/archived article the unfinished attempts are deleted
+together with the old quiz (they hold only unsent answers, no result or XP), so unpublishing, editing
+and republishing can never leave an attempt pointing at removed questions; submitted attempts are kept.
+Submitted results store prompt and answer texts, so reviews are unaffected by later edits.
+Seed: `python -m app.db.reading_seed`.
+
+## Reading study time — 2026-11-22
+
+Revision `20261122_1200` (additive, reversible; two new tables, nothing existing is touched):
+`reading_study_totals` (one row per learner: `total_seconds` and the shared crediting cursor
+`credited_until`) and `reading_study_days` (seconds per learner, article and **local calendar
+day**, unique on that triple, cascades with user and article). Services: `modules/reading/study.py`.
+
+Measured time is kept apart from `progress.study_minutes` (still the lesson-estimate counter,
+unchanged) and from XP (never awarded for reading time). Rules:
+
+- Crediting uses the **server clock only**; the client sends no time. One cursor per learner is
+  shared by all tabs, devices and articles, so a stretch of time is credited at most once, to the
+  article of the heartbeat that is accepted (`lock_learner` serializes concurrent requests).
+- Heartbeat < 5 s after the cursor: nothing credited, cursor unchanged. First beat, or a gap
+  > 45 s: nothing credited, cursor restarts. Otherwise `min(gap, 20 s)` is credited.
+- Caps per local day: 4 hours per learner and `max(30 min, 3 x readingMinutes)` per article.
+- The day is the learner's local date (`profiles.timezone`, else the server learning timezone)
+  at credit time and is never recomputed, so changing the time zone does not move past seconds.
+- Reaching 60 credited seconds in a local day records learning activity once through
+  `gamification.record_activity` (streak, achievements).
+- Rows are deleted with the user or article. Verified on SQLite only; PostgreSQL was not
+  available here, so concurrent crediting on PostgreSQL is untested.
+

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -28,6 +28,18 @@ class XPHistoryResponse(CamelModel):
     last_30_days: None = None
 
 
+class ReadingStudyResponse(CamelModel):
+    """Measured active reading time (heartbeat), in seconds.
+
+    Separate from `studyMinutes` (an estimate added when a lesson is completed) and from XP.
+    `totalMinutes` is whole minutes, rounded down; `todaySeconds` is the learner's local day.
+    """
+
+    total_seconds: int = 0
+    total_minutes: int = 0
+    today_seconds: int = 0
+
+
 class ProgressResponse(CamelModel):
     """Aggregate progress plus a per-course breakdown.
 
@@ -48,3 +60,21 @@ class ProgressResponse(CamelModel):
     active_courses: int
     streak: StreakResponse
     xp_history: XPHistoryResponse
+    reading_study: ReadingStudyResponse = ReadingStudyResponse()
+
+
+class DailyGoalResponse(CamelModel):
+    goal: int
+    done: int
+
+
+class DailyGoalsResponse(CamelModel):
+    """Today's goals and real activity in the learner's own calendar day.
+
+    `done` may exceed `goal`; clients cap the bar, not the number.
+    """
+
+    date: date
+    timezone: str
+    lessons: DailyGoalResponse
+    vocabulary: DailyGoalResponse

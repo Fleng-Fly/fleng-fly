@@ -43,6 +43,9 @@ class Node {
     this.events[key] = callback;
   }
   focus() {}
+  querySelector() {
+    return new Node('circle'); // only used to animate the progress ring
+  }
   querySelectorAll(tag) {
     return this.children.flatMap((node) => [
       ...(node.tagName === tag ? [node] : []),
@@ -72,6 +75,12 @@ const catalog = [
     lessonCount: 2,
   },
 ];
+const defaultGoals = {
+  date: '2026-11-20',
+  timezone: 'Europe/Kyiv',
+  lessons: { goal: 3, done: 2 },
+  vocabulary: { goal: 20, done: 14 },
+};
 const freshProgress = () => ({
   courses: catalog.map((course) => ({
     courseId: course.id,
@@ -88,9 +97,11 @@ async function page(name, options = {}) {
   let progress = options.progress ?? freshProgress();
   let failure = options.failure;
   const reads = [];
+  const updates = [];
   const document = {
     hidden: false,
     createElement: (tag) => new Node(tag),
+    createElementNS: (_ns, tag) => new Node(tag),
     getElementById(id) {
       if (!nodes.has(id)) nodes.set(id, new Node());
       return nodes.get(id);
@@ -101,11 +112,12 @@ async function page(name, options = {}) {
   };
   const window = {
     location: {
-      search: '?slug=foundations',
+      search: options.search ?? '?slug=foundations',
       replace: (url) => {
         window.redirect = url;
       },
     },
+    matchMedia: () => ({ matches: true }),
     addEventListener: (key, callback) => {
       windowEvents[key] = callback;
     },
@@ -117,7 +129,7 @@ async function page(name, options = {}) {
     filters.append(button);
   }
   const detail = {
-    ...catalog[0],
+    ...(options.catalog?.[0] ?? catalog[0]),
     lessons: ['First', 'Second', 'Third'].map((title, index) => ({
       title,
       slug: `lesson-${index}`,
@@ -137,12 +149,23 @@ async function page(name, options = {}) {
       if (options.notFound) throw { status: 404 };
       return options.noLessons ? { ...detail, lessons: [] } : detail;
     },
+    getMyStreak: async () => ({ current: 2 }),
+    getVocabularyStats: async () => ({ wordsLearned: 5 }),
+    getDailyGoals: async () => {
+      if (options.goalsFailure) throw options.goalsFailure;
+      return options.goals ?? defaultGoals;
+    },
+    updateCurrentUser: async (input) => {
+      updates.push(input);
+      if (options.updateFailure) throw options.updateFailure;
+      return { timezone: input.timezone };
+    },
     getLessonProgress: async (slug) => ({
       startedAt: slug === 'lesson-1' ? '2026-01-01' : null,
       completed: slug === 'lesson-0',
     }),
   };
-  const context = vm.createContext({ document, window, URLSearchParams, Error, console });
+  const context = vm.createContext({ document, window, URLSearchParams, Error, console, Intl });
   const modules = new Map();
   const stubs = {
     'api.js': api,
@@ -152,12 +175,12 @@ async function page(name, options = {}) {
           window.location.replace('/login.html');
           return null;
         }
-        return { displayName: 'Learner' };
+        return options.user ?? { displayName: 'Learner', xp: 0, timezone: null };
       },
     },
     'workspace.js': {
       mountWorkspace: (active) => {
-        assert.equal(active, 'courses');
+        assert.equal(active, options.active ?? 'courses');
       },
       setWorkspaceUser() {},
     },
@@ -202,6 +225,7 @@ async function page(name, options = {}) {
     get: (id) => document.getElementById(id),
     window,
     reads,
+    updates,
     settle,
     async refresh(nextProgress, nextFailure) {
       progress = nextProgress ?? progress;
@@ -249,6 +273,24 @@ test('catalog Start/Continue/Review and completion use API counts; return refres
     p.get('courses-body').querySelectorAll('a')[0].href,
     '/course.html?slug=foundations',
   );
+});
+
+test('finished course offers the next main-line course; unfinished shows none', async () => {
+  const mainLine = catalog.map((course) => ({ ...course, slug: `fleng-${course.level.toLowerCase()}` }));
+  const done = freshProgress();
+  done.courses[0].lessonsStarted = 3;
+  done.courses[0].lessonsCompleted = 3;
+  const options = { catalog: mainLine, search: '?slug=fleng-a1' };
+  const p = await page('course', { ...options, progress: done });
+  assert.match(p.get('course-body').textContent, /Course completed/);
+  assert.match(p.get('course-body').textContent, /Everyday Conversations/);
+  assert.ok(p.get('course-body').querySelectorAll('a').some((a) => a.href === '/course.html?slug=fleng-b1'));
+  const open = await page('course', options);
+  assert.doesNotMatch(open.get('course-body').textContent, /Course completed/);
+  // A finished demo/side course never produces a "next course" banner.
+  const demo = await page('course', { progress: done });
+  assert.match(demo.get('course-body').textContent, /Course completed/);
+  assert.doesNotMatch(demo.get('course-body').textContent, /Next course/);
 });
 
 test('empty catalog and service failure never render fake courses; retry recovers', async () => {
@@ -431,12 +473,18 @@ test('lesson valid links and click/keyboard navigation use the three tabs', asyn
   assert.match(linked.get('panel-vocabulary').textContent, /hello/);
 });
 
-test('Dashboard shows continue-learning, next-step and progress sections without duplicate navigation cards', async () => {
+test('Dashboard shows hero, quick access, current course, goals and progress, each shortcut a real page', async () => {
   const html = await readFile(new URL('../frontend/dashboard.html', import.meta.url), 'utf8');
   for (const id of ['current-course-body', 'placement-guidance', 'progress-body', 'your-progress']) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
-  assert.doesNotMatch(html, /quick-grid|quick-card|welcome-card|quick-course-link/);
+  for (const id of ['hero-cta', 'daily-goals', 'next-course']) assert.match(html, new RegExp(`id="${id}"`));
+  const quick = [...html.matchAll(/<a class="dashboard-card quick-card" href="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(quick, ['/courses.html', '/vocabulary.html', '/progress.html', '/leaderboard.html']);
+  for (const href of quick) {
+    const file = new URL(`../frontend${href}`, import.meta.url);
+    await readFile(file, 'utf8'); // throws when the shortcut target does not exist
+  }
 });
 
 test('hint stays hidden until requested and uses the interface language', async () => {
@@ -571,4 +619,113 @@ test('"I don\'t understand" explains when the assistant is not mounted', async (
   button.events.click();
   assert.equal(button.disabled, true);
   assert.match(button.textContent, /not available/);
+});
+
+const dashboardOptions = (extra = {}) => ({
+  active: 'dashboard',
+  user: { displayName: 'Learner', xp: 0, timezone: 'Europe/Kyiv' },
+  ...extra,
+});
+// The dashboard chains several awaits (session → data → recommendation); drain them all.
+const dashboardPage = async (options) => {
+  const p = await page('dashboard', options);
+  for (let i = 0; i < 12; i++) await p.settle();
+  return p;
+};
+const withBrowserZone = (zone) => {
+  const original = Intl.DateTimeFormat;
+  Intl.DateTimeFormat = function () {
+    return { resolvedOptions: () => ({ timeZone: zone }) };
+  };
+  return () => { Intl.DateTimeFormat = original; };
+};
+
+test('dashboard shows real daily goal progress and does not resend an unchanged time zone', async () => {
+  const restore = withBrowserZone('Europe/Kyiv');
+  try {
+    const p = await dashboardPage(dashboardOptions());
+    const text = p.get('daily-goals').textContent;
+    assert.match(text, /Daily goals/);
+    assert.match(text, /Lessons\s*2 \/ 3/);
+    assert.match(text, /Words\s*14 \/ 20/);
+    const bars = p.get('daily-goals').querySelectorAll('div').filter((n) => n.attributes.role === 'progressbar');
+    assert.equal(bars.map((n) => n.attributes['aria-valuenow']).join(), '67,70');
+    assert.equal(p.updates.length, 0);
+  } finally { restore(); }
+});
+
+test('dashboard sends the browser time zone once when the profile differs', async () => {
+  const restore = withBrowserZone('Asia/Tokyo');
+  try {
+    const p = await dashboardPage(dashboardOptions());
+    assert.equal(JSON.stringify(p.updates), JSON.stringify([{ timezone: 'Asia/Tokyo' }]));
+    assert.match(p.get('daily-goals').textContent, /2 \/ 3/);
+  } finally { restore(); }
+});
+
+test('a failed time zone save or goals load never breaks the rest of the dashboard', async () => {
+  const restore = withBrowserZone('Asia/Tokyo');
+  try {
+    const saveFailed = await dashboardPage(dashboardOptions({ updateFailure: new Error('nope') }));
+    assert.match(saveFailed.get('daily-goals').textContent, /2 \/ 3/);
+    const loadFailed = await dashboardPage(dashboardOptions({ goalsFailure: new Error('Offline') }));
+    assert.match(loadFailed.get('daily-goals').textContent, /Daily goals could not be loaded/);
+    assert.match(loadFailed.get('daily-goals').textContent, /Offline/);
+    assert.match(loadFailed.get('progress-body').textContent, /Completed lessons/);
+  } finally { restore(); }
+});
+
+test('goals above the target stay capped at 100% and show the reached note', async () => {
+  const restore = withBrowserZone('Europe/Kyiv');
+  try {
+    const goals = { ...defaultGoals, lessons: { goal: 1, done: 4 } };
+    const p = await dashboardPage(dashboardOptions({ goals }));
+    const text = p.get('daily-goals').textContent;
+    assert.match(text, /4 \/ 1/);
+    assert.match(text, /Goal reached/);
+    const bar = p.get('daily-goals').querySelectorAll('div').find((n) => n.attributes.role === 'progressbar');
+    assert.equal(bar.attributes['aria-valuenow'], '100');
+  } finally { restore(); }
+});
+
+test('Placement prompt is hidden once the whole main line is complete, but not before', async () => {
+  const levels = ['A0', 'A1', 'A2', 'B1', 'B2'];
+  const catalogAll = levels.map((level) => ({
+    id: level, slug: `fleng-${level.toLowerCase()}`, title: level, description: '', level, lessonCount: 2,
+  }));
+  const progressFor = (done) => ({
+    courses: catalogAll.map((c) => ({
+      courseId: c.id, slug: c.slug, title: c.title, level: c.level, lessonsTotal: 2,
+      lessonsStarted: done ? 2 : 0, lessonsCompleted: done ? 2 : 0,
+    })),
+    lessonsCompleted: done ? 10 : 0, xp: 0,
+  });
+  const restore = withBrowserZone('Europe/Kyiv');
+  try {
+    const finished = await dashboardPage(dashboardOptions({ catalog: catalogAll, progress: progressFor(true) }));
+    assert.equal(finished.get('placement-guidance').hidden, true);
+    assert.match(finished.get('next-course').textContent, /Main course line complete/);
+    const fresh = await dashboardPage(dashboardOptions({ catalog: catalogAll, progress: progressFor(false) }));
+    assert.notEqual(fresh.get('placement-guidance').hidden, true);
+  } finally { restore(); }
+});
+
+test('dashboard current course is the furthest unfinished one, not an old finished course', async () => {
+  const catalogTwo = [
+    { id: 'a0', slug: 'fleng-a0', title: 'Old finished A0', description: '', level: 'A0', lessonCount: 2 },
+    { id: 'a1', slug: 'fleng-a1', title: 'Active A1', description: '', level: 'A1', lessonCount: 4 },
+  ];
+  const progress = {
+    courses: [
+      { courseId: 'a0', slug: 'a0', title: 'Old finished A0', level: 'A0', lessonsTotal: 2, lessonsStarted: 2, lessonsCompleted: 2 },
+      { courseId: 'a1', slug: 'a1', title: 'Active A1', level: 'A1', lessonsTotal: 4, lessonsStarted: 1, lessonsCompleted: 1 },
+    ],
+    lessonsCompleted: 3, xp: 0,
+  };
+  const restore = withBrowserZone('Europe/Kyiv');
+  try {
+    const p = await dashboardPage(dashboardOptions({ catalog: catalogTwo, progress }));
+    assert.match(p.get('current-course-body').textContent, /Active A1/);
+    assert.doesNotMatch(p.get('current-course-body').textContent, /Old finished A0/);
+  } finally { restore(); }
 });

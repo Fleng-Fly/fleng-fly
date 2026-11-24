@@ -24,6 +24,8 @@ async def test_install_and_offline_routes(client: AsyncClient) -> None:
         "/courses.html",
         "/course.html",
         "/leaderboard.html",
+        "/reading.html",
+        "/reading-article.html",
         "/settings.html",
         "/install.html",
     ):

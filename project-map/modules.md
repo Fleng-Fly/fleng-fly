@@ -27,6 +27,7 @@ other modules import that service, not its internals.
 | `content`         | 🔴     | grammar/reading/listening materials                                                                       | catalog                       |
 | `exercises`       | 🟢     | exercises, submissions, grading; lesson start/submit/progress                                             | db, progress                  |
 | `vocabulary`      | 🟢     | personal words, due queue, review history, learned-word count                                             | db, auth, gamification        |
+| `reading`         | 🟢     | backend, API and frontend done (Phases 1–3): articles/quiz, read progress, attempts, grading, XP-once, bookmarks, preferences, `/reading/*` routes, draft seed; no authoring API; measured study time via heartbeat (`reading/study.py`, tables `reading_study_*`); frontend `reading.html` / `reading-article.html` | db, gamification (XP/streak/lock), core errors/limits |
 | `gamification`    | 🟢     | daily activity, derived streaks, deterministic achievements                                               | db, config                    |
 | `challenges`      | 🔴     | challenge definitions, participation                                                                      | progress, gamification        |
 | `recommendations` | 🟢     | deterministic analytics in ai/context.py                                                                  | db, progress, vocabulary      |
@@ -82,7 +83,7 @@ through `frontend/js/api.js`; protected pages use `requireSession()`.
 | Landing                                                  | `/index.html`        | 🟢     | hero + live backend status                                                                                        |
 | Login                                                    | `/login.html`        | 🟢     | real session                                                                                                      |
 | Register                                                 | `/register.html`     | 🟢     | account creation                                                                                                  |
-| Dashboard                                                | `/dashboard.html`    | 🟢     | protected; sidebar, catalog search, current course, profile, progress, streak and learned-word count from the API |
+| Dashboard                                                | `/dashboard.html`    | 🟢     | protected; sidebar, catalog search, welcome hero, quick access, current course, daily goals, profile, progress, streak and learned-word count from the API |
 | Courses                                                  | `/courses.html`      | 🟢     | protected; catalog list (`GET /courses`)                                                                          |
 | Course                                                   | `/course.html?slug=` | 🟢     | protected; course detail + lesson list                                                                            |
 | Lesson                                                   | `/lesson.html?slug=` | 🟢     | protected; Theory/Practice/Test/Vocabulary, grading, progress and saved words                                     |
@@ -215,6 +216,14 @@ after password change. Live PostgreSQL/OpenRouter/SMTP remain unverified here.
   published lesson list; individual statuses from `/lessons/{slug}/progress`.
 - Both reuse `js/workspace.js`, `css/dashboard.css`, shared `js/catalog-ui.js`
   state/progress rendering and scoped `css/courses.css`. No new backend module.
+- Next-course recommendation: `js/next-course.js` (pure logic) and
+  `js/next-course-ui.js` (data loading + card), used by `dashboard.js` and `course.js`;
+  frontend-only, reads `/courses`, `/progress/me` and placement summaries.
+- Curriculum extensions: `backend/app/db/extension.py` + `content/curriculum-extension-*.json`
+  (additive lessons for the pinned A0–B2 release, SHA-gated publication in `db/prepare.py`);
+  plan in `docs/curriculum-expansion-plan.md`.
+- Daily goals card: `js/daily-goals.js` + `js/daily-goals-ui.js` on the dashboard, reads
+  `GET /progress/daily`, writes goals/time zone through `PATCH /users/me`.
 - `scripts/test-courses.mjs`: DOM regression coverage; real HTTP coverage in
   `scripts/backend-stabilization-smoke.py`. Browser/Stitch QA remains pending.
 

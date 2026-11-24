@@ -44,7 +44,7 @@ test('every exercise states its task and "I don\'t understand" keeps the draft a
   await page.goto(`/lesson.html?slug=${LESSON}&tab=practice`);
   const card = page.locator('.lesson-question');
   await expect(card.locator('.lesson-instruction')).toContainText('Task:');
-  await expect(card.locator('.lesson-question-meta')).toContainText('/ 12');
+  await expect(card.locator('.lesson-question-meta')).toContainText('/ 22');
 
   // Go to the typed gap-fill (question 9) and leave a draft answer.
   for (let i = 0; i < 8; i++) await page.getByRole('button', { name: /Next/ }).click();
@@ -81,15 +81,15 @@ test('finishing a lesson fills the personal dictionary once, with course and les
     return last.lesson;
   }, LESSON);
   expect(completed.completed).toBe(true);
-  expect(completed.exercisesTotal).toBe(12);
+  expect(completed.exercisesTotal).toBe(22);
 
   await page.goto('/vocabulary.html');
-  await expect(page.locator('#word-count')).toHaveText('10 words');
+  await expect(page.locator('#word-count')).toHaveText('20 words');
   await expect(page.locator('#word-list')).toContainText('repeat');
   await expect(page.locator('#word-list')).toContainText('A0');
   await page.locator('#word-course').selectOption({ index: 1 });
   await page.locator('#word-lesson').selectOption({ index: 1 });
-  await expect(page.locator('#word-count')).toHaveText('10 words');
+  await expect(page.locator('#word-count')).toHaveText('20 words');
   await page.locator('#word-search').fill('слухати');
   await expect(page.locator('#word-count')).toHaveText('1 word');
   await expect(page.locator('#word-list')).toContainText('listen');
@@ -100,5 +100,5 @@ test('finishing a lesson fills the personal dictionary once, with course and les
     const api = await import('/js/api.js');
     return (await api.getVocabularyStats()).totalWords;
   });
-  expect(total).toBe(10);
+  expect(total).toBe(20);
 });

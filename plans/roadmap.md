@@ -455,8 +455,36 @@ the new theory steps (pre-existing draft guidance).
 - Open: the approved reference screenshot was not visible to the implementer; the layout follows
   the written specification and needs a visual comparison.
 
+## Next-course recommendation — 2026-11-20
+
+Completed: deterministic frontend recommendation (A0→A1→A2→B1→B2, placement-aware,
+never offers completed courses, reports main-line completion) on the dashboard and
+on finished course pages; EN/UK; unit tests. Next: daily-goals design proposal
+(no migration yet), then curriculum quality review and A0–B2 expansion plan.
+
+## Daily goals (backend) — 2026-11-20
+
+Completed: profile goal settings + timezone, `GET /progress/daily`, derived progress, tests.
+Frontend integration completed on the existing dashboard styles (card with two bars, inline
+goal editor, browser time zone sync); the full Dashboard redesign still waits for a reference.
+
+## Curriculum expansion — 2026-11-20
+
+Completed: audit of the 50 lessons, additive extension pipeline (validator, importer, SHA gate),
+A0 lessons 11–15 authored as unpublished draft, tests. Blocked on review: publication (owner adds
+the SHA). Next: A1 lessons 11–15, then A2, B1, B2 per `docs/curriculum-expansion-plan.md`.
+
 ## A0–B2 vocabulary expansion
 
 - Completed: 200 curated words per curriculum course and 500 new graded translation
   questions across the five courses.
 - Next: human linguistic review of the new vocabulary and answer choices.
+
+## Reading module — 2026-11-21
+
+- Phase 1 (backend domain, migration `20261121_1200`, services, tests): ✅ completed.
+- Phase 2 (API, schemas, quiz lock, draft seed command, docs): ✅ completed.
+- Study time (heartbeat, measured seconds, daily caps, streak at 60 s, `readingStudy`, UI): ✅ completed 2026-11-22. `progress.study_minutes` is intentionally unchanged.
+- Open: PostgreSQL run of the Reading and study-time tests; showing reading time on the Dashboard.
+- Phase 3 (frontend: library, article, quiz, throttled progress/autosave, bookmarks, topics, EN/UK, e2e): ✅ completed.
+- Open: author/admin role, reviewed content before publication, PostgreSQL run of the new tests.

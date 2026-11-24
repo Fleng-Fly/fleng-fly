@@ -82,6 +82,30 @@ if (prepared.status !== 0) {
   process.exit(prepared.status ?? 1);
 }
 
+// Reading demo articles are seeded as drafts (the product never auto-publishes them). The
+// browser suite needs readable articles, so this private test database publishes them here.
+const publishDemoReading = `
+import asyncio
+from sqlalchemy import select
+from app.db.models import ReadingArticle
+from app.db.reading_seed import import_reading
+from app.db.session import SessionLocal
+from app.modules.reading import content
+
+async def main():
+    async with SessionLocal() as db:
+        await import_reading(db)
+        for article in (await db.scalars(select(ReadingArticle))).all():
+            await content.set_status(db, article, "published")
+
+asyncio.run(main())
+`;
+const seeded = spawnSync(python, ['-c', publishDemoReading], { cwd: backendDir, env, stdio: 'inherit' });
+if (seeded.status !== 0) {
+  cleanup();
+  process.exit(seeded.status ?? 1);
+}
+
 child = spawn(
   python,
   [

@@ -373,3 +373,49 @@ See [authentication](authentication.md#fleng-10-securitystability--2026-11-16).
 JWT-owned `/placement-test/attempts` start/history/resume, PUT answers and POST
 complete are implemented independently of lesson grading and XP. See the
 [placement API](03-backend/placement-api.md) and [assessment limits](placement-test.md).
+
+## Daily goals — 2026-11-20
+
+- `GET /api/v1/progress/daily` (Bearer, read-only) → `{ date, timezone, lessons: {goal, done},
+  vocabulary: {goal, done} }`. The day is the learner's own calendar day (`profiles.timezone`,
+  falling back to the server `learning_timezone`); DST days are 23/25 hours. `done` can exceed
+  `goal`.
+- `PATCH /api/v1/users/me` additionally accepts `dailyLessonsGoal` (1–10, default 1),
+  `dailyWordsGoal` (1–100, default 10) and `timezone` (validated IANA name). `GET /users/me`
+  returns the same three fields.
+- Progress is derived, never stored per day. Lessons: `lesson_progress.completed_at` (written
+  once per lesson) inside the day window. Words: distinct words with a `remembered` review
+  (`vocabulary_reviews`) inside the window, so repeating a word counts once. Manual "learned"
+  toggles, auto-collected lesson words and wrong answers do not count. Deleting a word removes
+  its reviews and therefore today's credit for it. XP and streaks are unchanged; the streak
+  keeps using the server `learning_timezone`.
+
+## Reading — 2026-11-21
+
+All routes are under `/api/v1/reading`, require a bearer session, use camelCase JSON and the
+standard error envelope. Articles are visible only when `published` and their category is active;
+anything else is `404 NOT_FOUND`. No authoring routes exist yet: content comes from
+`python -m app.db.reading_seed` (draft-only, idempotent) and the service layer.
+
+| Method | Path | Notes |
+| ------ | ---- | ----- |
+| GET | `/categories` | active categories with `articleCount` |
+| GET | `/articles?categoryId&level&bookmarked&progress&limit&offset` | `{items,total,limit,offset}`; `level` A0–B2; `progress` is `new`/`in_progress`/`completed`; limit 1–100 (default 20); items have no text |
+| GET | `/articles/{slug}` | adds `content`, `questionCount`, `pointsPossible`; never includes the answer key |
+| PUT | `/articles/{slug}/progress` | `{percent: 0..100}` (integer); only grows; 60 writes/min/user (`429 RATE_LIMITED`) |
+| PUT / DELETE | `/articles/{slug}/bookmark` | idempotent; DELETE is `204` even for a hidden or unknown slug |
+| GET | `/bookmarks` | available bookmarked articles |
+| GET / PUT | `/preferences` | PUT `{categoryIds}` replaces the list (max 50); unknown/inactive → `422` |
+| POST | `/articles/{slug}/attempts` | `201` new attempt or `200` resumed open one; `409 NO_QUESTIONS`; 30 new attempts/hour |
+| GET | `/articles/{slug}/attempts` | history, newest first |
+| GET | `/attempts/{id}` | open attempt: `questions` (no key) and saved `answers`; submitted: `result` |
+| PATCH | `/attempts/{id}/answers` | `{answers:{questionId:answerId}}` merge; `422 INVALID_ANSWER`, `409 ATTEMPT_SUBMITTED` |
+| POST | `/attempts/{id}/submit` | optional `{answers}`; grades and freezes; repeat returns the same result with `alreadySubmitted: true` |
+
+Result: `scorePercent`, `pointsEarned/Possible`, `passed` (pass mark 70 %), `passMark`, `xpAwarded`
+and per question `selectedAnswerId`, `correctAnswerId`, `isCorrect`, `explanation`, prompt and answer
+texts (snapshotted at submit). XP is `profiles.xp` (visible in `/progress/me`), paid once per
+learner and article on the first passing attempt. Attempts of other learners are `404`.
+Attempt writes share a 30/min limit. Clients must throttle progress updates.
+Editing the quiz of a published article is rejected (`409 QUIZ_LOCKED`) while attempts are open.
+Study-time (`study_minutes`) accounting is not implemented.

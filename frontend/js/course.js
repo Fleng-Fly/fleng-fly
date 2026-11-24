@@ -1,8 +1,9 @@
-import { getCourse, getLessonProgress, getMyProgress, listCourses } from './api.js';
+import { getCourse, getLessonProgress, getMyProgress } from './api.js';
 import { t } from './i18n.js';
 import { catalogMessage, courseProgress } from './catalog-ui.js';
 import { describeApiError } from './errors.js';
 import { el, queryParam } from './layout.js';
+import { loadNextCourse, nextCourseCard } from './next-course-ui.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 
@@ -39,22 +40,19 @@ function lessonItem(lesson, progress, index) {
   return item;
 }
 
-function nextCourseBanner(next) {
-  const box = el('aside', 'catalog-panel catalog-next');
-  box.setAttribute('aria-label', t('catalog.nextCourse'));
-  box.append(el('h2', undefined, t('catalog.courseDone')));
-  if (next) {
-    box.append(el('p', 'catalog-description', t('catalog.nextCourseText', { title: next.title, level: next.level })));
-    const link = el('a', 'catalog-button', t('catalog.startNext'));
-    link.href = `/course.html?slug=${encodeURIComponent(next.slug)}`;
-    box.append(link);
-  } else {
-    box.append(el('p', 'catalog-description', t('catalog.allDone')));
+function nextCourseBanner(result) {
+  const box = nextCourseCard(result, 'catalog-panel catalog-next');
+  if (!box) {
+    // A finished side/demo course still earns the congratulation, just without a suggestion.
+    const plain = el('aside', 'catalog-panel catalog-next');
+    plain.append(el('h2', undefined, t('catalog.courseDone')));
+    return plain;
   }
+  if (result.status === 'next') box.prepend(el('h2', undefined, t('catalog.courseDone')));
   return box;
 }
 
-function renderCourse(course, current, lessonsProgress, next, finished) {
+function renderCourse(course, current, lessonsProgress, recommendation) {
   const breadcrumb = el('nav', 'breadcrumb catalog-breadcrumb');
   breadcrumb.setAttribute('aria-label', t('catalog.breadcrumb'));
   const back = el('a', undefined, t('nav.courses'));
@@ -84,7 +82,7 @@ function renderCourse(course, current, lessonsProgress, next, finished) {
     );
     section.append(list);
   }
-  container.replaceChildren(breadcrumb, hero, ...(finished ? [nextCourseBanner(next)] : []), section);
+  container.replaceChildren(breadcrumb, hero, ...(recommendation ? [recommendation] : []), section);
   document.title = `${course.title} — Fleng`;
 }
 
@@ -112,15 +110,10 @@ async function load() {
       course.lessons.map((lesson) => getLessonProgress(lesson.slug)),
     );
     const finished = current.lessonsTotal > 0 && current.lessonsCompleted >= current.lessonsTotal;
-    let next = null;
-    if (finished) {
-      try {
-        const all = await listCourses();
-        const position = all.findIndex((item) => item.slug === course.slug);
-        next = position >= 0 ? all[position + 1] || null : null;
-      } catch { /* The banner still congratulates; it just offers no next course. */ }
-    }
-    renderCourse(course, current, lessonsProgress, next, finished);
+    const recommendation = finished
+      ? nextCourseBanner(await loadNextCourse(progress.courses, course.slug))
+      : null;
+    renderCourse(course, current, lessonsProgress, recommendation);
   } catch (error) {
     if (error.status === 401) {
       window.location.replace('/login.html');

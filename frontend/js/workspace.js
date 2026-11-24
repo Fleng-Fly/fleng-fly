@@ -49,6 +49,9 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
         />
         <circle cx="12" cy="11" r="2.5" />
       </symbol>
+      <symbol id="icon-reading" viewBox="0 0 24 24">
+        <path d="M5 3h10l4 4v14H5V3Zm9 0v5h5M8 12h8M8 16h8M8 8h3" />
+      </symbol>
       <symbol id="icon-search" viewBox="0 0 24 24">
         <circle cx="10.8" cy="10.8" r="6.8" />
         <path d="m16 16 5 5" />
@@ -86,6 +89,9 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           >
           <a class="sidebar-link" href="/courses.html"
             ><svg><use href="#icon-book" /></svg><span data-i18n="nav.courses">Courses</span></a
+          >
+          <a class="sidebar-link" href="/reading.html"
+            ><svg><use href="#icon-reading" /></svg><span data-i18n="ws.reading">Reading</span></a
           >
           <details id="words-navigation" class="sidebar-words">
             <summary class="sidebar-link"><svg><use href="#icon-layers" /></svg><span data-i18n="ws.words">Words</span><span class="words-chevron" aria-hidden="true">⌄</span></summary>
@@ -185,7 +191,7 @@ export function markWorkspaceNavigation(content, active) {
   for (const link of content.querySelectorAll('.sidebar-link[href]')) {
     const destination = {
       dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
-      settings: '/settings.html', lessons: '/courses.html', courses: '/courses.html', progress: '/progress.html', placement: '/courses.html',
+      settings: '/settings.html', lessons: '/courses.html', courses: '/courses.html', reading: '/reading.html', progress: '/progress.html', placement: '/courses.html',
       words: '/vocabulary.html', practice: '/vocabulary.html', 'course-words': '/course-words.html',
     }[active];
     const selected = link.getAttribute('href') === destination;

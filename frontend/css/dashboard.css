@@ -390,12 +390,38 @@
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(18rem, 0.85fr);
+  grid-template-areas:
+    'hero progress'
+    'quick progress'
+    'course goals'
+    'extras extras'
+    'benefits benefits';
   align-items: start;
   gap: 1.5rem;
 }
-.dashboard-primary,
-.dashboard-secondary {
+.dashboard-grid > * {
   min-width: 0;
+}
+.welcome-card {
+  grid-area: hero;
+}
+.dashboard-progress {
+  grid-area: progress;
+}
+.dashboard-quick {
+  grid-area: quick;
+}
+.dashboard-course {
+  grid-area: course;
+}
+.dashboard-goals {
+  grid-area: goals;
+}
+.dashboard-extras {
+  grid-area: extras;
+}
+.dashboard-benefits {
+  grid-area: benefits;
 }
 .dashboard-section {
   margin-top: 1.75rem;
@@ -651,7 +677,7 @@ a.quick-card:focus-visible {
   transition: width 0.8s ease-out;
 }
 
-.dashboard-secondary {
+.dashboard-progress {
   scroll-margin-top: 2rem;
 }
 .progress-panel {
@@ -771,11 +797,13 @@ a.quick-card:focus-visible {
 .dashboard-reveal {
   animation: dashboard-enter 0.55s both;
 }
-.dashboard-primary > .dashboard-section:nth-child(2) {
+.dashboard-quick,
+.dashboard-course {
   animation-delay: 0.08s;
 }
-.dashboard-primary > .dashboard-section:nth-child(3),
-.dashboard-secondary {
+.dashboard-progress,
+.dashboard-goals,
+.dashboard-benefits {
   animation-delay: 0.15s;
 }
 @keyframes dashboard-enter {
@@ -792,9 +820,6 @@ a.quick-card:focus-visible {
 @media (max-width: 1100px) {
   .dashboard-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .dashboard-secondary {
-    grid-row: 2;
   }
 }
 @media (max-width: 900px) {
@@ -951,5 +976,118 @@ a.quick-card:focus-visible {
   .section-heading {
     flex-wrap: wrap;
     gap: 0.4rem;
+  }
+}
+
+/* Next-course recommendation (dashboard card and finished-course banner) */
+.next-course { padding: 1.25rem; margin: 1rem 0 1.5rem; }
+.next-course .next-course-body { display: grid; gap: 0.5rem; justify-items: start; }
+.next-course h3, .catalog-next h3 { margin: 0; font-size: 1.1rem; }
+.next-course p, .catalog-next p { margin: 0; }
+.next-course-head { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.catalog-next { margin-top: 1rem !important; display: grid; gap: 0.5rem; justify-items: start; }
+
+/* Daily goals */
+.daily-goals { padding: 1.25rem; margin: 1rem 0 0; }
+.daily-goals .goal-row { margin-top: 0.9rem; }
+.daily-goals .goal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.daily-goals .goal-track { margin: 0.45rem 0 0.2rem; }
+.daily-goals .goal-row.is-met .dashboard-progress-fill { background: linear-gradient(90deg, #36c98a, #7be3b4); }
+.daily-goals .goal-form { display: grid; gap: 0.8rem; margin-top: 1rem; justify-items: start; }
+.daily-goals .goal-field { display: grid; gap: 0.3rem; font-size: 0.85rem; }
+.daily-goals .goal-input { width: 7rem; padding: 0.5rem 0.7rem; border: 1px solid var(--dash-border); border-radius: 0.6rem; background: #0e0b13; color: inherit; font: inherit; }
+.daily-goals .goal-error { margin: 0; color: #ffb4c4; }
+.daily-goals .goal-actions { display: flex; align-items: center; gap: 0.8rem; }
+.placement-guidance { margin-top: 1rem; }
+
+/* Dashboard redesign: welcome hero, quick access, benefits strip */
+.welcome-card {
+  align-items: center;
+  min-height: 15rem;
+}
+.welcome-card h1 {
+  margin: 0.55rem 0 0.5rem;
+  color: white;
+  font-size: clamp(1.75rem, 3vw, 2.55rem);
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+.welcome-card .dashboard-subtitle {
+  margin: 0 0 1.4rem;
+}
+.welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+.welcome-card .dashboard-level {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.dashboard-quick .quick-card {
+  text-decoration: none;
+}
+.dashboard-extras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.5rem;
+}
+.dashboard-extras:not(:has(> :not([hidden]))) {
+  display: none;
+}
+.dashboard-extras > .dashboard-card,
+.dashboard-goals {
+  margin: 0;
+}
+.dashboard-goals {
+  align-self: stretch;
+}
+.dashboard-course {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+.dashboard-course .current-course-card {
+  flex: 1;
+}
+.dashboard-benefits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.5rem;
+  border-top: 1px solid var(--dash-border);
+  padding-top: 1.5rem;
+}
+.benefit {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+.benefit strong {
+  display: block;
+  font-size: 0.85rem;
+}
+.benefit p {
+  margin: 0.25rem 0 0;
+  color: var(--dash-muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.quick-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+@media (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-areas: 'hero' 'quick' 'progress' 'course' 'goals' 'extras' 'benefits';
+  }
+}
+@media (max-width: 600px) {
+  .welcome-card .welcome-copy {
+    max-width: none;
+  }
+  .welcome-card .dashboard-cta {
+    width: 100%;
   }
 }

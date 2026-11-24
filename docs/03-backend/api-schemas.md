@@ -445,6 +445,185 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
+## DailyGoalResponse
+
+```json
+{
+  "properties": {
+    "goal": {
+      "type": "integer",
+      "title": "Goal"
+    },
+    "done": {
+      "type": "integer",
+      "title": "Done"
+    }
+  },
+  "type": "object",
+  "required": [
+    "goal",
+    "done"
+  ],
+  "title": "DailyGoalResponse"
+}
+```
+
+## DailyGoalsResponse
+
+```json
+{
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "timezone": {
+      "type": "string",
+      "title": "Timezone"
+    },
+    "lessons": {
+      "$ref": "#/components/schemas/DailyGoalResponse"
+    },
+    "vocabulary": {
+      "$ref": "#/components/schemas/DailyGoalResponse"
+    }
+  },
+  "type": "object",
+  "required": [
+    "date",
+    "timezone",
+    "lessons",
+    "vocabulary"
+  ],
+  "title": "DailyGoalsResponse",
+  "description": "Today's goals and real activity in the learner's own calendar day.\n\n`done` may exceed `goal`; clients cap the bar, not the number."
+}
+```
+
+## DictionaryCourse
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "level": {
+      "type": "string",
+      "title": "Level"
+    },
+    "position": {
+      "type": "integer",
+      "title": "Position"
+    },
+    "count": {
+      "type": "integer",
+      "title": "Count"
+    },
+    "lessons": {
+      "items": {
+        "$ref": "#/components/schemas/DictionaryLesson"
+      },
+      "type": "array",
+      "title": "Lessons"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "slug",
+    "title",
+    "level",
+    "position",
+    "count",
+    "lessons"
+  ],
+  "title": "DictionaryCourse"
+}
+```
+
+## DictionaryGroupsResponse
+
+```json
+{
+  "properties": {
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    },
+    "courses": {
+      "items": {
+        "$ref": "#/components/schemas/DictionaryCourse"
+      },
+      "type": "array",
+      "title": "Courses"
+    },
+    "other": {
+      "type": "integer",
+      "title": "Other"
+    }
+  },
+  "type": "object",
+  "required": [
+    "total",
+    "courses",
+    "other"
+  ],
+  "title": "DictionaryGroupsResponse",
+  "description": "Where the learner's words come from, for the dictionary filters."
+}
+```
+
+## DictionaryLesson
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "position": {
+      "type": "integer",
+      "title": "Position"
+    },
+    "count": {
+      "type": "integer",
+      "title": "Count"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "slug",
+    "title",
+    "position",
+    "count"
+  ],
+  "title": "DictionaryLesson"
+}
+```
+
 ## EmailChangeConfirm
 
 ```json
@@ -984,6 +1163,45 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
 }
 ```
 
+## GoogleLinkRequest
+
+```json
+{
+  "properties": {
+    "password": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Password"
+    }
+  },
+  "type": "object",
+  "required": [
+    "password"
+  ],
+  "title": "GoogleLinkRequest",
+  "description": "Re-authentication for connecting Google to the signed-in account."
+}
+```
+
+## GoogleLinkResponse
+
+```json
+{
+  "properties": {
+    "url": {
+      "type": "string",
+      "title": "Url"
+    }
+  },
+  "type": "object",
+  "required": [
+    "url"
+  ],
+  "title": "GoogleLinkResponse"
+}
+```
+
 ## HTTPValidationError
 
 ```json
@@ -1039,6 +1257,24 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "database"
   ],
   "title": "HealthResponse"
+}
+```
+
+## IdentitiesResponse
+
+```json
+{
+  "properties": {
+    "googleLinked": {
+      "type": "boolean",
+      "title": "Googlelinked"
+    }
+  },
+  "type": "object",
+  "required": [
+    "googleLinked"
+  ],
+  "title": "IdentitiesResponse"
 }
 ```
 
@@ -2193,6 +2429,45 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
         }
       ],
       "title": "Preferredlanguage"
+    },
+    "dailyLessonsGoal": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "maximum": 10.0,
+          "minimum": 1.0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Dailylessonsgoal"
+    },
+    "dailyWordsGoal": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "maximum": 100.0,
+          "minimum": 1.0
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Dailywordsgoal"
+    },
+    "timezone": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 64,
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Timezone"
     }
   },
   "type": "object",
@@ -2270,6 +2545,14 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     },
     "xpHistory": {
       "$ref": "#/components/schemas/XPHistoryResponse"
+    },
+    "readingStudy": {
+      "$ref": "#/components/schemas/ReadingStudyResponse",
+      "default": {
+        "totalSeconds": 0,
+        "totalMinutes": 0,
+        "todaySeconds": 0
+      }
     }
   },
   "type": "object",
@@ -2289,6 +2572,1084 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
   ],
   "title": "ProgressResponse",
   "description": "Aggregate progress plus a per-course breakdown.\n\nNew fields are additive: existing clients that read only `lessonsStarted`,\n`lessonsCompleted`, `studyMinutes`, `lastActivityAt`, `updatedAt` and\n`userId` keep working."
+}
+```
+
+## ReadingAnswerPublic
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "text": {
+      "type": "string",
+      "title": "Text"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "text"
+  ],
+  "title": "ReadingAnswerPublic"
+}
+```
+
+## ReadingAnswersUpdate
+
+```json
+{
+  "properties": {
+    "answers": {
+      "additionalProperties": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "type": "object",
+      "maxProperties": 100,
+      "title": "Answers"
+    }
+  },
+  "type": "object",
+  "required": [
+    "answers"
+  ],
+  "title": "ReadingAnswersUpdate"
+}
+```
+
+## ReadingArticleDetail
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "A0",
+        "A1",
+        "A2",
+        "B1",
+        "B2"
+      ],
+      "title": "Level"
+    },
+    "readingMinutes": {
+      "type": "integer",
+      "title": "Readingminutes"
+    },
+    "coverImageUrl": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Coverimageurl"
+    },
+    "coverAlt": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Coveralt"
+    },
+    "category": {
+      "$ref": "#/components/schemas/ReadingCategoryRef"
+    },
+    "publishedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Publishedat"
+    },
+    "progress": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/ReadingProgressResponse"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "bookmarked": {
+      "type": "boolean",
+      "title": "Bookmarked"
+    },
+    "content": {
+      "type": "string",
+      "title": "Content"
+    },
+    "questionCount": {
+      "type": "integer",
+      "title": "Questioncount"
+    },
+    "pointsPossible": {
+      "type": "integer",
+      "title": "Pointspossible"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "slug",
+    "title",
+    "description",
+    "level",
+    "readingMinutes",
+    "coverImageUrl",
+    "coverAlt",
+    "category",
+    "publishedAt",
+    "progress",
+    "bookmarked",
+    "content",
+    "questionCount",
+    "pointsPossible"
+  ],
+  "title": "ReadingArticleDetail"
+}
+```
+
+## ReadingArticleList
+
+```json
+{
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingArticleSummary"
+      },
+      "type": "array",
+      "title": "Items"
+    },
+    "total": {
+      "type": "integer",
+      "title": "Total"
+    },
+    "limit": {
+      "type": "integer",
+      "title": "Limit"
+    },
+    "offset": {
+      "type": "integer",
+      "title": "Offset"
+    }
+  },
+  "type": "object",
+  "required": [
+    "items",
+    "total",
+    "limit",
+    "offset"
+  ],
+  "title": "ReadingArticleList"
+}
+```
+
+## ReadingArticleSummary
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "A0",
+        "A1",
+        "A2",
+        "B1",
+        "B2"
+      ],
+      "title": "Level"
+    },
+    "readingMinutes": {
+      "type": "integer",
+      "title": "Readingminutes"
+    },
+    "coverImageUrl": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Coverimageurl"
+    },
+    "coverAlt": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Coveralt"
+    },
+    "category": {
+      "$ref": "#/components/schemas/ReadingCategoryRef"
+    },
+    "publishedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Publishedat"
+    },
+    "progress": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/ReadingProgressResponse"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "bookmarked": {
+      "type": "boolean",
+      "title": "Bookmarked"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "slug",
+    "title",
+    "description",
+    "level",
+    "readingMinutes",
+    "coverImageUrl",
+    "coverAlt",
+    "category",
+    "publishedAt",
+    "progress",
+    "bookmarked"
+  ],
+  "title": "ReadingArticleSummary"
+}
+```
+
+## ReadingAttemptResponse
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "articleSlug": {
+      "type": "string",
+      "title": "Articleslug"
+    },
+    "attemptNumber": {
+      "type": "integer",
+      "title": "Attemptnumber"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "submitted"
+      ],
+      "title": "Status"
+    },
+    "answers": {
+      "additionalProperties": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "propertyNames": {
+        "format": "uuid"
+      },
+      "type": "object",
+      "title": "Answers"
+    },
+    "questions": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/components/schemas/ReadingQuestionPublic"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Questions"
+    },
+    "result": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/ReadingAttemptResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "alreadySubmitted": {
+      "type": "boolean",
+      "title": "Alreadysubmitted",
+      "default": false
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Startedat"
+    },
+    "submittedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Submittedat"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "articleSlug",
+    "attemptNumber",
+    "status",
+    "answers",
+    "startedAt",
+    "submittedAt"
+  ],
+  "title": "ReadingAttemptResponse"
+}
+```
+
+## ReadingAttemptResult
+
+```json
+{
+  "properties": {
+    "scorePercent": {
+      "type": "integer",
+      "title": "Scorepercent"
+    },
+    "pointsEarned": {
+      "type": "integer",
+      "title": "Pointsearned"
+    },
+    "pointsPossible": {
+      "type": "integer",
+      "title": "Pointspossible"
+    },
+    "passed": {
+      "type": "boolean",
+      "title": "Passed"
+    },
+    "passMark": {
+      "type": "integer",
+      "title": "Passmark"
+    },
+    "xpAwarded": {
+      "type": "integer",
+      "title": "Xpawarded"
+    },
+    "questions": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingReviewItem"
+      },
+      "type": "array",
+      "title": "Questions"
+    }
+  },
+  "type": "object",
+  "required": [
+    "scorePercent",
+    "pointsEarned",
+    "pointsPossible",
+    "passed",
+    "passMark",
+    "xpAwarded",
+    "questions"
+  ],
+  "title": "ReadingAttemptResult"
+}
+```
+
+## ReadingAttemptSummary
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "attemptNumber": {
+      "type": "integer",
+      "title": "Attemptnumber"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "submitted"
+      ],
+      "title": "Status"
+    },
+    "scorePercent": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Scorepercent"
+    },
+    "passed": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Passed"
+    },
+    "xpAwarded": {
+      "type": "integer",
+      "title": "Xpawarded"
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Startedat"
+    },
+    "submittedAt": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Submittedat"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "attemptNumber",
+    "status",
+    "scorePercent",
+    "passed",
+    "xpAwarded",
+    "startedAt",
+    "submittedAt"
+  ],
+  "title": "ReadingAttemptSummary"
+}
+```
+
+## ReadingBookmarkResponse
+
+```json
+{
+  "properties": {
+    "articleId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Articleid"
+    },
+    "bookmarked": {
+      "type": "boolean",
+      "title": "Bookmarked"
+    }
+  },
+  "type": "object",
+  "required": [
+    "articleId",
+    "bookmarked"
+  ],
+  "title": "ReadingBookmarkResponse"
+}
+```
+
+## ReadingCategoryRef
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "slug",
+    "title"
+  ],
+  "title": "ReadingCategoryRef"
+}
+```
+
+## ReadingCategoryResponse
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "articleCount": {
+      "type": "integer",
+      "title": "Articlecount"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "slug",
+    "title",
+    "description",
+    "articleCount"
+  ],
+  "title": "ReadingCategoryResponse"
+}
+```
+
+## ReadingHeartbeatRequest
+
+```json
+{
+  "properties": {
+    "active": {
+      "type": "boolean",
+      "const": true,
+      "title": "Active"
+    }
+  },
+  "type": "object",
+  "required": [
+    "active"
+  ],
+  "title": "ReadingHeartbeatRequest",
+  "description": "Sent only while the learner is actively reading (tab visible, recent interaction)."
+}
+```
+
+## ReadingHeartbeatResponse
+
+```json
+{
+  "properties": {
+    "creditedSeconds": {
+      "type": "integer",
+      "title": "Creditedseconds"
+    },
+    "articleSeconds": {
+      "type": "integer",
+      "title": "Articleseconds"
+    },
+    "todaySeconds": {
+      "type": "integer",
+      "title": "Todayseconds"
+    },
+    "totalSeconds": {
+      "type": "integer",
+      "title": "Totalseconds"
+    },
+    "nextBeatInSeconds": {
+      "type": "integer",
+      "title": "Nextbeatinseconds"
+    },
+    "capped": {
+      "type": "boolean",
+      "title": "Capped"
+    }
+  },
+  "type": "object",
+  "required": [
+    "creditedSeconds",
+    "articleSeconds",
+    "todaySeconds",
+    "totalSeconds",
+    "nextBeatInSeconds",
+    "capped"
+  ],
+  "title": "ReadingHeartbeatResponse"
+}
+```
+
+## ReadingPreferencesResponse
+
+```json
+{
+  "properties": {
+    "categories": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingCategoryRef"
+      },
+      "type": "array",
+      "title": "Categories"
+    }
+  },
+  "type": "object",
+  "required": [
+    "categories"
+  ],
+  "title": "ReadingPreferencesResponse"
+}
+```
+
+## ReadingPreferencesUpdate
+
+```json
+{
+  "properties": {
+    "categoryIds": {
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "type": "array",
+      "maxItems": 50,
+      "title": "Categoryids"
+    }
+  },
+  "type": "object",
+  "required": [
+    "categoryIds"
+  ],
+  "title": "ReadingPreferencesUpdate"
+}
+```
+
+## ReadingProgressResponse
+
+```json
+{
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed"
+      ],
+      "title": "Status"
+    },
+    "readPercent": {
+      "type": "integer",
+      "title": "Readpercent"
+    },
+    "bestScorePercent": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Bestscorepercent"
+    },
+    "attemptsCount": {
+      "type": "integer",
+      "title": "Attemptscount"
+    },
+    "xpAwarded": {
+      "type": "integer",
+      "title": "Xpawarded"
+    },
+    "activeSeconds": {
+      "type": "integer",
+      "title": "Activeseconds",
+      "default": 0
+    }
+  },
+  "type": "object",
+  "required": [
+    "status",
+    "readPercent",
+    "bestScorePercent",
+    "attemptsCount",
+    "xpAwarded"
+  ],
+  "title": "ReadingProgressResponse"
+}
+```
+
+## ReadingProgressUpdate
+
+```json
+{
+  "properties": {
+    "percent": {
+      "type": "integer",
+      "maximum": 100.0,
+      "minimum": 0.0,
+      "title": "Percent"
+    }
+  },
+  "type": "object",
+  "required": [
+    "percent"
+  ],
+  "title": "ReadingProgressUpdate"
+}
+```
+
+## ReadingQuestionPublic
+
+```json
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Id"
+    },
+    "prompt": {
+      "type": "string",
+      "title": "Prompt"
+    },
+    "points": {
+      "type": "integer",
+      "title": "Points"
+    },
+    "answers": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingAnswerPublic"
+      },
+      "type": "array",
+      "title": "Answers"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "prompt",
+    "points",
+    "answers"
+  ],
+  "title": "ReadingQuestionPublic"
+}
+```
+
+## ReadingReviewItem
+
+```json
+{
+  "properties": {
+    "questionId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Questionid"
+    },
+    "prompt": {
+      "type": "string",
+      "title": "Prompt"
+    },
+    "answers": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingAnswerPublic"
+      },
+      "type": "array",
+      "title": "Answers"
+    },
+    "selectedAnswerId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Selectedanswerid"
+    },
+    "correctAnswerId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Correctanswerid"
+    },
+    "isCorrect": {
+      "type": "boolean",
+      "title": "Iscorrect"
+    },
+    "points": {
+      "type": "integer",
+      "title": "Points"
+    },
+    "explanation": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Explanation"
+    }
+  },
+  "type": "object",
+  "required": [
+    "questionId",
+    "prompt",
+    "answers",
+    "selectedAnswerId",
+    "correctAnswerId",
+    "isCorrect",
+    "points",
+    "explanation"
+  ],
+  "title": "ReadingReviewItem"
+}
+```
+
+## ReadingStudyArticleResponse
+
+```json
+{
+  "properties": {
+    "slug": {
+      "type": "string",
+      "title": "Slug"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "seconds": {
+      "type": "integer",
+      "title": "Seconds"
+    }
+  },
+  "type": "object",
+  "required": [
+    "slug",
+    "title",
+    "seconds"
+  ],
+  "title": "ReadingStudyArticleResponse"
+}
+```
+
+## ReadingStudyDayResponse
+
+```json
+{
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+    },
+    "seconds": {
+      "type": "integer",
+      "title": "Seconds"
+    }
+  },
+  "type": "object",
+  "required": [
+    "date",
+    "seconds"
+  ],
+  "title": "ReadingStudyDayResponse"
+}
+```
+
+## ReadingStudyResponse
+
+```json
+{
+  "properties": {
+    "totalSeconds": {
+      "type": "integer",
+      "title": "Totalseconds",
+      "default": 0
+    },
+    "totalMinutes": {
+      "type": "integer",
+      "title": "Totalminutes",
+      "default": 0
+    },
+    "todaySeconds": {
+      "type": "integer",
+      "title": "Todayseconds",
+      "default": 0
+    }
+  },
+  "type": "object",
+  "title": "ReadingStudyResponse",
+  "description": "Measured active reading time (heartbeat), in seconds.\n\nSeparate from `studyMinutes` (an estimate added when a lesson is completed) and from XP.\n`totalMinutes` is whole minutes, rounded down; `todaySeconds` is the learner's local day."
+}
+```
+
+## ReadingStudyTimeResponse
+
+```json
+{
+  "properties": {
+    "totalSeconds": {
+      "type": "integer",
+      "title": "Totalseconds"
+    },
+    "todaySeconds": {
+      "type": "integer",
+      "title": "Todayseconds"
+    },
+    "days": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingStudyDayResponse"
+      },
+      "type": "array",
+      "title": "Days"
+    },
+    "byArticle": {
+      "items": {
+        "$ref": "#/components/schemas/ReadingStudyArticleResponse"
+      },
+      "type": "array",
+      "title": "Byarticle"
+    }
+  },
+  "type": "object",
+  "required": [
+    "totalSeconds",
+    "todaySeconds",
+    "days",
+    "byArticle"
+  ],
+  "title": "ReadingStudyTimeResponse"
+}
+```
+
+## ReadingSubmitRequest
+
+```json
+{
+  "properties": {
+    "answers": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyNames": {
+            "format": "uuid"
+          },
+          "type": "object",
+          "maxProperties": 100
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Answers"
+    }
+  },
+  "type": "object",
+  "title": "ReadingSubmitRequest"
 }
 ```
 
@@ -2713,6 +4074,27 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
       "title": "Preferredlanguage",
       "default": "English"
     },
+    "dailyLessonsGoal": {
+      "type": "integer",
+      "title": "Dailylessonsgoal",
+      "default": 1
+    },
+    "dailyWordsGoal": {
+      "type": "integer",
+      "title": "Dailywordsgoal",
+      "default": 10
+    },
+    "timezone": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Timezone"
+    },
     "createdAt": {
       "type": "string",
       "format": "date-time",
@@ -3030,185 +4412,5 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
   "type": "object",
   "title": "XPHistoryResponse",
   "description": "The current schema has no immutable XP award amounts/timestamps."
-}
-```
-
-## DictionaryCourse
-
-```json
-{
-  "properties": {
-    "id": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Id"
-    },
-    "slug": {
-      "type": "string",
-      "title": "Slug"
-    },
-    "title": {
-      "type": "string",
-      "title": "Title"
-    },
-    "level": {
-      "type": "string",
-      "title": "Level"
-    },
-    "position": {
-      "type": "integer",
-      "title": "Position"
-    },
-    "count": {
-      "type": "integer",
-      "title": "Count"
-    },
-    "lessons": {
-      "items": {
-        "$ref": "#/components/schemas/DictionaryLesson"
-      },
-      "type": "array",
-      "title": "Lessons"
-    }
-  },
-  "type": "object",
-  "required": [
-    "id",
-    "slug",
-    "title",
-    "level",
-    "position",
-    "count",
-    "lessons"
-  ],
-  "title": "DictionaryCourse"
-}
-```
-
-## DictionaryGroupsResponse
-
-```json
-{
-  "properties": {
-    "total": {
-      "type": "integer",
-      "title": "Total"
-    },
-    "courses": {
-      "items": {
-        "$ref": "#/components/schemas/DictionaryCourse"
-      },
-      "type": "array",
-      "title": "Courses"
-    },
-    "other": {
-      "type": "integer",
-      "title": "Other"
-    }
-  },
-  "type": "object",
-  "required": [
-    "total",
-    "courses",
-    "other"
-  ],
-  "title": "DictionaryGroupsResponse",
-  "description": "Where the learner's words come from, for the dictionary filters."
-}
-```
-
-## DictionaryLesson
-
-```json
-{
-  "properties": {
-    "id": {
-      "type": "string",
-      "format": "uuid",
-      "title": "Id"
-    },
-    "slug": {
-      "type": "string",
-      "title": "Slug"
-    },
-    "title": {
-      "type": "string",
-      "title": "Title"
-    },
-    "position": {
-      "type": "integer",
-      "title": "Position"
-    },
-    "count": {
-      "type": "integer",
-      "title": "Count"
-    }
-  },
-  "type": "object",
-  "required": [
-    "id",
-    "slug",
-    "title",
-    "position",
-    "count"
-  ],
-  "title": "DictionaryLesson"
-}
-```
-
-## GoogleLinkRequest
-
-```json
-{
-  "properties": {
-    "password": {
-      "type": "string",
-      "maxLength": 128,
-      "minLength": 1,
-      "title": "Password"
-    }
-  },
-  "type": "object",
-  "required": [
-    "password"
-  ],
-  "title": "GoogleLinkRequest",
-  "description": "Re-authentication for connecting Google to the signed-in account."
-}
-```
-
-## GoogleLinkResponse
-
-```json
-{
-  "properties": {
-    "url": {
-      "type": "string",
-      "title": "Url"
-    }
-  },
-  "type": "object",
-  "required": [
-    "url"
-  ],
-  "title": "GoogleLinkResponse"
-}
-```
-
-## IdentitiesResponse
-
-```json
-{
-  "properties": {
-    "googleLinked": {
-      "type": "boolean",
-      "title": "Googlelinked"
-    }
-  },
-  "type": "object",
-  "required": [
-    "googleLinked"
-  ],
-  "title": "IdentitiesResponse"
 }
 ```

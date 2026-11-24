@@ -100,6 +100,7 @@ authenticated caller; no answer keys are exposed by this read endpoint.
 | Method | Path | Auth | Status |
 | ------ | ---- | ---- | ------ |
 | GET | `/progress/me` | bearer | ✅ |
+| GET | `/progress/daily` | bearer | ✅ |
 | GET | `/progress/summary` | bearer | ⬜ |
 | GET | `/progress/courses/:courseId` | bearer | ⬜ |
 | GET | `/progress/skills` | bearer | ⬜ |
@@ -107,6 +108,10 @@ authenticated caller; no answer keys are exposed by this read endpoint.
 
 `/progress/me` also returns `exercisesCompleted`, `xp` and a `courses[]`
 breakdown with `lessonsStarted` and `lessonsCompleted` per course (additive).
+
+`/progress/daily` returns the learner's daily goals and today's real activity:
+`{date, timezone, lessons:{goal,done}, vocabulary:{goal,done}}`. `PATCH /users/me` also
+accepts `dailyLessonsGoal` (1–10), `dailyWordsGoal` (1–100) and `timezone` (IANA).
 
 ## Challenges
 
@@ -250,3 +255,24 @@ No keys before completion, no XP/profile update. Details: docs/03-backend/placem
 | GET | `/vocabulary/groups` | bearer | ✅ |
 | POST | `/ai/chat`, `/ai/chat/stream` (`currentAnswer`) | bearer | ✅ |
 | GET | `/lessons/{slug}` exercises carry `instruction` | public | ✅ |
+
+## Reading — 2026-11-21
+
+| Route | Auth | Status |
+| ----- | ---- | ------ |
+| GET `/reading/categories`, `/reading/articles`, `/reading/articles/{slug}`, `/reading/bookmarks`, `/reading/preferences` | bearer | ✅ |
+| PUT `/reading/articles/{slug}/progress` (60/min), `/reading/articles/{slug}/bookmark`, `/reading/preferences` | bearer | ✅ |
+| DELETE `/reading/articles/{slug}/bookmark` | bearer | ✅ |
+| POST/GET `/reading/articles/{slug}/attempts`, GET `/reading/attempts/{id}`, PATCH `.../answers`, POST `.../submit` | bearer | ✅ |
+
+Details: `docs/api.md` (Reading). Code: `backend/app/modules/reading/` (`router`, `schemas`, `library`,
+`content`, `learning`, `personal`); seed: `backend/app/db/reading_seed.py`.
+
+### Reading study time — 2026-11-22
+
+| Route | Auth | Status |
+| ----- | ---- | ------ |
+| POST `/reading/articles/{slug}/heartbeat` (20/min) | bearer | ✅ |
+| GET `/reading/study-time?days=` | bearer | ✅ |
+| GET `/progress/me` gains additive `readingStudy`; reading progress gains `activeSeconds` | bearer | ✅ |
+

@@ -11,9 +11,13 @@ import os
 import uuid
 from collections.abc import AsyncGenerator
 
-# Settings also read <repo>/.env and backend/.env. A developer's local .env (e.g. real Google
-# OAuth values) must not leak into the suite, so optional integrations are blanked before the
-# app is imported; process environment variables take precedence over dotenv files.
+# Settings also read <repo>/.env and backend/.env. A developer's local .env (real Google OAuth
+# values, AI_ENABLED, AI_ALLOW_AUTO_ROUTER, provider keys, prices...) must never change test
+# outcomes, so dotenv files are not read at all. Explicit process environment variables (as CI
+# sets them) and per-test overrides still apply.
+from app.core.config import Settings  # noqa: E402
+
+Settings.model_config["env_file"] = None
 for _name in ("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI"):
     os.environ[_name] = ""
 

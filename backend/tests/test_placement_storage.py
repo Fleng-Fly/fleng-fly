@@ -2,6 +2,7 @@
 
 import asyncio
 from pathlib import Path
+from uuid import uuid4
 
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
@@ -40,14 +41,23 @@ async def test_placement_upgrade_downgrade_preserves_existing_data(tmp_path):
             await connection.run_sync(migrate_old)
             await connection.commit()
         factory = async_sessionmaker(engine, expire_on_commit=False)
-        async with factory() as db:
-            user = await register_user(
-                db, email="preserve@example.com", password="test-password", display_name="Keep"
+        # The ORM models already know later columns, so the old schema gets plain SQL.
+        user_id = uuid4()
+        async with engine.begin() as connection:
+            await connection.execute(
+                text(
+                    "INSERT INTO users (id, email, password_hash, created_at, updated_at) "
+                    "VALUES (:id, 'preserve@example.com', 'x', now(), now())"
+                ),
+                {"id": user_id.hex},
             )
-            user.profile.xp = 175
-            user.profile.english_level = "B1"
-            await db.commit()
-            user_id = user.id
+            await connection.execute(
+                text(
+                    "INSERT INTO profiles (id, user_id, display_name, english_level, xp) "
+                    "VALUES (:id, :user, 'Keep', 'B1', 175)"
+                ),
+                {"id": uuid4().hex, "user": user_id.hex},
+            )
         async with engine.begin() as connection:
 
             def upgrade_and_check(sync):

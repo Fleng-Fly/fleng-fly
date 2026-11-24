@@ -10,4 +10,10 @@ Verified code issue: Settings with explicit sqlite+aiosqlite:///:memory: duplica
 
 Security gaps: no MFA/email verification, old JWTs valid until expiry, duplicate-email enumeration, no refresh-specific quota, extras not globally forbidden and no complete CSP/edge policy. Strict refresh reuse interacts with browser concurrency. Dependency ranges are not a frozen Python lock; historical warnings/plans are not universal compatibility guarantees.
 
+Reading time is *measured active time while an article is open*, not proof of reading: the server
+caps and de-duplicates it (one clock per learner, per-day limits) but cannot tell a person from a
+script that sends heartbeats. A closed tab or lost connection loses up to ~15 s, and the first
+heartbeat after a pause credits nothing (deliberately conservative). Concurrent crediting on
+PostgreSQL is untested here.
+
 [Section index](README.md) · [Documentation home](../README.md)

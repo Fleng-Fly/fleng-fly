@@ -1,0 +1,1823 @@
+{
+  "version": 1,
+  "status": "draft",
+  "courses": [
+    {
+      "slug": "fleng-a0",
+      "lessons": [
+        {
+          "slug": "fleng-a0-origins",
+          "title": "Where are you from?",
+          "summary": "Say which country you are from and ask a new classmate.",
+          "goals": [
+            "Ask and answer where a person is from.",
+            "Use country names and nationality words with a capital letter.",
+            "Choose is or are with I, you, he, she, we and they."
+          ],
+          "grammar": "Where + be + from; country and nationality words",
+          "prerequisites": [
+            "fleng-a0-first-day"
+          ],
+          "estimated_minutes": 15,
+          "position": 11,
+          "theory": "Ask about a place with Where ... from? Use are with you, we and they, and is with he, she and it: Where are you from? Where is she from? Answer with I am from and a place: I am from Ukraine. A country and its nationality word are two different words: Ukraine and Ukrainian, Poland and Polish. Both always start with a capital letter in English. Use a nationality word after be to describe a person: He is Spanish. Use from before a country or a city: I am from Lviv.",
+          "reading": "Hello! My name is Marta. I am from Poland, so I am Polish. My friend Ivan is from Ukraine. He is Ukrainian. Our class is small, but it is a happy class. Our teacher is German. She is from a big city in Germany. Her name is Anna. Today a new student is in our class. Her name is Lucia. She is from Spain. We ask her: Where are you from? She says: I am from Spain, and I am Spanish.",
+          "examples": [
+            "Where are you from? I am from Ukraine.",
+            "Where is she from? She is from Poland.",
+            "He is Spanish. He is from Spain.",
+            "We are German. We are from Germany."
+          ],
+          "vocabulary": [
+            {
+              "word": "country",
+              "translation": "країна",
+              "example": "Ukraine is my country."
+            },
+            {
+              "word": "city",
+              "translation": "місто",
+              "example": "Kyiv is a big city."
+            },
+            {
+              "word": "from",
+              "translation": "з, родом із",
+              "example": "I am from Lviv."
+            },
+            {
+              "word": "Ukraine",
+              "translation": "Україна",
+              "example": "My friend is from Ukraine."
+            },
+            {
+              "word": "Ukrainian",
+              "translation": "український; українець",
+              "example": "He is Ukrainian."
+            },
+            {
+              "word": "Poland",
+              "translation": "Польща",
+              "example": "Marta is from Poland."
+            },
+            {
+              "word": "Polish",
+              "translation": "польський; поляк",
+              "example": "She is Polish."
+            },
+            {
+              "word": "Germany",
+              "translation": "Німеччина",
+              "example": "Our teacher is from Germany."
+            },
+            {
+              "word": "German",
+              "translation": "німецький; німець",
+              "example": "Anna is German."
+            },
+            {
+              "word": "Spain",
+              "translation": "Іспанія",
+              "example": "Lucia is from Spain."
+            },
+            {
+              "word": "Spanish",
+              "translation": "іспанський; іспанець",
+              "example": "Lucia is Spanish."
+            },
+            {
+              "word": "American",
+              "translation": "американський; американець",
+              "example": "Tom is American."
+            }
+          ],
+          "exercises": [
+            {
+              "slug": "fleng-a0-origins-practice-1",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Where ___ you from?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "is"
+                },
+                {
+                  "id": "2",
+                  "text": "am"
+                },
+                {
+                  "id": "3",
+                  "text": "are"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "With you we use are: Where are you from?",
+              "position": 1,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-practice-2",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "She ___ from Poland.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "is"
+                },
+                {
+                  "id": "2",
+                  "text": "are"
+                },
+                {
+                  "id": "3",
+                  "text": "am"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "She is one person, so we use is: She is from Poland.",
+              "position": 2,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-practice-3",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "I am from Spain. I am ___.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "Spain"
+                },
+                {
+                  "id": "2",
+                  "text": "Spanish"
+                },
+                {
+                  "id": "3",
+                  "text": "from Spain"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "After I am we describe the person with a nationality word: Spanish. Spain is the country.",
+              "position": 3,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-practice-4",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Choose the correct sentence.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "He from Germany."
+                },
+                {
+                  "id": "2",
+                  "text": "He are from Germany."
+                },
+                {
+                  "id": "3",
+                  "text": "He is from Germany."
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "Every sentence needs a form of be. With he we use is.",
+              "position": 4,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-practice-5",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Ukraine is a ___.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "country"
+                },
+                {
+                  "id": "2",
+                  "text": "city"
+                },
+                {
+                  "id": "3",
+                  "text": "Ukrainian"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "Ukraine is the name of a country. Kyiv is a city, and Ukrainian describes a person.",
+              "position": 5,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-practice-6",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Marta is Polish. Where is Marta from?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "Polish"
+                },
+                {
+                  "id": "2",
+                  "text": "Poland"
+                },
+                {
+                  "id": "3",
+                  "text": "German"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "Polish describes the person. The place is Poland.",
+              "position": 6,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-check-1",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the Ukrainian meaning of \"country\".",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "місто"
+                },
+                {
+                  "id": "2",
+                  "text": "з, родом із"
+                },
+                {
+                  "id": "3",
+                  "text": "країна"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "In this lesson \"country\" means країна.",
+              "position": 7,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-check-2",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the English word for «місто».",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "city"
+                },
+                {
+                  "id": "2",
+                  "text": "country"
+                },
+                {
+                  "id": "3",
+                  "text": "from"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "The English word for «місто» is city.",
+              "position": 8,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-check-3",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Which word describes a person?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "Poland"
+                },
+                {
+                  "id": "2",
+                  "text": "Polish"
+                },
+                {
+                  "id": "3",
+                  "text": "country"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "Polish is a nationality word, so it describes a person. Poland is a place. English writes both with a capital letter.",
+              "position": 9,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-origins-check-4",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "A: Where are you from? B: ___",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "I am Ukraine."
+                },
+                {
+                  "id": "2",
+                  "text": "I from Ukrainian."
+                },
+                {
+                  "id": "3",
+                  "text": "I am from Ukraine."
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "Answer with I am from and a place. Ukraine is a place, so it needs from.",
+              "position": 10,
+              "points": 1
+            }
+          ],
+          "practice": [
+            {
+              "kind": "fill_gap",
+              "prompt": "Where ___ they from? (is or are)",
+              "accepted_answers": [
+                "are"
+              ],
+              "explanation": "With they we use are: Where are they from?"
+            },
+            {
+              "kind": "word_order",
+              "prompt": "Put the words in order to make a sentence: from / is / She / Germany",
+              "accepted_answers": [
+                "She is from Germany"
+              ],
+              "explanation": "The sentence starts with the person, then be, then from and the place."
+            },
+            {
+              "kind": "translate",
+              "prompt": "Translate into English: «Я з України»",
+              "accepted_answers": [
+                "I am from Ukraine",
+                "I'm from Ukraine"
+              ],
+              "explanation": "«Я з України» is I am from Ukraine. You can also say I'm."
+            },
+            {
+              "kind": "write",
+              "prompt": "Write two sentences: where you are from and where a friend is from.",
+              "model_answer": "I am from Ukraine. My friend is from Poland.",
+              "explanation": "Compare your answer with the example. Different correct answers are fine."
+            }
+          ]
+        },
+        {
+          "slug": "fleng-a0-this-that",
+          "title": "This, that, these, those",
+          "summary": "Point to things that are near and far, one or many.",
+          "goals": [
+            "Use this and these for near things, that and those for far things.",
+            "Match this/that with one thing and these/those with more than one.",
+            "Write regular and -es plurals such as phones and watches."
+          ],
+          "grammar": "This / that / these / those with be",
+          "prerequisites": [
+            "fleng-a0-origins"
+          ],
+          "estimated_minutes": 15,
+          "position": 12,
+          "theory": "Use this and these for things that are near you. Use that and those for things that are far from you. This and that go with one thing: This is a phone. That is a lamp. These and those go with more than one thing: These are phones. Those are lamps. Remember the pairs: this is, these are; that is, those are. Never say this are. Add -es to a noun that ends in ch, sh or s: one watch, two watches.",
+          "reading": "Welcome to my room. This is my bed, and that is my desk by the window. This is a small lamp. Those are my shoes by the door. These are my glasses on the table. That is a big picture on the wall. Is that your jacket? No, it is not my jacket. It is a big jacket for my brother. Please do not move my things. They are all new.",
+          "examples": [
+            "This is my phone.",
+            "That is a clock on the wall.",
+            "These are my shoes.",
+            "Those are your glasses."
+          ],
+          "vocabulary": [
+            {
+              "word": "phone",
+              "translation": "телефон",
+              "example": "This is my phone."
+            },
+            {
+              "word": "laptop",
+              "translation": "ноутбук",
+              "example": "The laptop is on the desk."
+            },
+            {
+              "word": "shoe",
+              "translation": "черевик, взуття",
+              "example": "This shoe is new."
+            },
+            {
+              "word": "watch",
+              "translation": "наручний годинник",
+              "example": "That is a nice watch."
+            },
+            {
+              "word": "picture",
+              "translation": "картина, малюнок",
+              "example": "That picture is big."
+            },
+            {
+              "word": "clock",
+              "translation": "настінний годинник",
+              "example": "The clock is on the wall."
+            },
+            {
+              "word": "lamp",
+              "translation": "лампа",
+              "example": "This lamp is small."
+            },
+            {
+              "word": "plate",
+              "translation": "тарілка",
+              "example": "That plate is white."
+            },
+            {
+              "word": "towel",
+              "translation": "рушник",
+              "example": "The towel is blue."
+            },
+            {
+              "word": "bed",
+              "translation": "ліжко",
+              "example": "My bed is big."
+            },
+            {
+              "word": "jacket",
+              "translation": "куртка",
+              "example": "Is that your jacket?"
+            },
+            {
+              "word": "glasses",
+              "translation": "окуляри",
+              "example": "These are my glasses."
+            }
+          ],
+          "exercises": [
+            {
+              "slug": "fleng-a0-this-that-practice-1",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "___ is my laptop. (It is near me.)",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "These"
+                },
+                {
+                  "id": "2",
+                  "text": "Those"
+                },
+                {
+                  "id": "3",
+                  "text": "This"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "One thing that is near: this. These is for more than one thing.",
+              "position": 1,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-practice-2",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "___ are my shoes. (They are near me.)",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "These"
+                },
+                {
+                  "id": "2",
+                  "text": "This"
+                },
+                {
+                  "id": "3",
+                  "text": "That"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "Shoes are more than one thing and they are near: these.",
+              "position": 2,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-practice-3",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "___ is a lamp on the wall. (It is far from me.)",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "This"
+                },
+                {
+                  "id": "2",
+                  "text": "That"
+                },
+                {
+                  "id": "3",
+                  "text": "Those"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "One thing that is far: that.",
+              "position": 3,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-practice-4",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Look at ___ pictures on the wall over there.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "this"
+                },
+                {
+                  "id": "2",
+                  "text": "that"
+                },
+                {
+                  "id": "3",
+                  "text": "those"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "Pictures are more than one thing and they are far: those.",
+              "position": 4,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-practice-5",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Choose the correct sentence.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "These are my shoes."
+                },
+                {
+                  "id": "2",
+                  "text": "This are my shoes."
+                },
+                {
+                  "id": "3",
+                  "text": "These is my shoes."
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "These goes with are. This goes with is.",
+              "position": 5,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-practice-6",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "one watch, two ___",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "watchs"
+                },
+                {
+                  "id": "2",
+                  "text": "watches"
+                },
+                {
+                  "id": "3",
+                  "text": "watch"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "After ch we add -es: watches.",
+              "position": 6,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-check-1",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the Ukrainian meaning of \"towel\".",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "тарілка"
+                },
+                {
+                  "id": "2",
+                  "text": "куртка"
+                },
+                {
+                  "id": "3",
+                  "text": "рушник"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "In this lesson \"towel\" means рушник.",
+              "position": 7,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-check-2",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the English word for «тарілка».",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "plate"
+                },
+                {
+                  "id": "2",
+                  "text": "lamp"
+                },
+                {
+                  "id": "3",
+                  "text": "towel"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "The English word for «тарілка» is plate.",
+              "position": 8,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-check-3",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Which word do you use for ONE thing that is FAR from you?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "this"
+                },
+                {
+                  "id": "2",
+                  "text": "that"
+                },
+                {
+                  "id": "3",
+                  "text": "these"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "That is for one far thing. Those is for more than one far thing.",
+              "position": 9,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-this-that-check-4",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "A: Is that your phone? B: ___",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "Yes, they are."
+                },
+                {
+                  "id": "2",
+                  "text": "Yes, I am."
+                },
+                {
+                  "id": "3",
+                  "text": "Yes, it is."
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "The question is about one thing, so the short answer uses it is.",
+              "position": 10,
+              "points": 1
+            }
+          ],
+          "practice": [
+            {
+              "kind": "fill_gap",
+              "prompt": "___ are my glasses. (They are near me.)",
+              "accepted_answers": [
+                "these"
+              ],
+              "explanation": "Glasses is plural and near: These are my glasses."
+            },
+            {
+              "kind": "word_order",
+              "prompt": "Put the words in order to make a sentence: is / my / That / jacket",
+              "accepted_answers": [
+                "That is my jacket"
+              ],
+              "explanation": "Start with That, then is, then my jacket."
+            },
+            {
+              "kind": "translate",
+              "prompt": "Translate into English: «Це мій телефон»",
+              "accepted_answers": [
+                "This is my phone",
+                "That is my phone"
+              ],
+              "explanation": "«Це» for a thing is this (near) or that (far): This is my phone."
+            },
+            {
+              "kind": "write",
+              "prompt": "Write two sentences about things near you. Use this and these.",
+              "model_answer": "This is my phone. These are my shoes.",
+              "explanation": "Compare your answer with the example. Different correct answers are fine."
+            }
+          ]
+        },
+        {
+          "slug": "fleng-a0-days-months",
+          "title": "Days and months",
+          "summary": "Say the day, the month and when something happens.",
+          "goals": [
+            "Ask and tell the day of the week.",
+            "Use on with days and in with months.",
+            "Write days and months with a capital letter."
+          ],
+          "grammar": "On + day, in + month; What day is it today?",
+          "prerequisites": [
+            "fleng-a0-this-that"
+          ],
+          "estimated_minutes": 15,
+          "position": 13,
+          "theory": "Ask about the day with What day is it today? and answer It is Monday. A week has seven days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday and Sunday. Saturday and Sunday are the weekend. Always write days and months with a capital letter: Monday, May. Use on with a day: on Friday. Use in with a month: in May, in December. Give the month of your birthday: My birthday is in January.",
+          "reading": "Today is Monday. My English lesson is on Monday and on Wednesday. On Friday I am with my friends. Saturday and Sunday are the weekend. I am free on Sunday. My birthday is in May. My sister is eight. Her birthday is in January. My brother is ten. His birthday is in December. Now I am ready for the week.",
+          "examples": [
+            "What day is it today? It is Friday.",
+            "My lesson is on Wednesday.",
+            "My birthday is in May.",
+            "Saturday and Sunday are the weekend."
+          ],
+          "vocabulary": [
+            {
+              "word": "day",
+              "translation": "день",
+              "example": "Today is a good day."
+            },
+            {
+              "word": "week",
+              "translation": "тиждень",
+              "example": "This week is busy."
+            },
+            {
+              "word": "weekend",
+              "translation": "вихідні",
+              "example": "Saturday and Sunday are the weekend."
+            },
+            {
+              "word": "month",
+              "translation": "місяць",
+              "example": "May is a month."
+            },
+            {
+              "word": "birthday",
+              "translation": "день народження",
+              "example": "My birthday is in May."
+            },
+            {
+              "word": "Monday",
+              "translation": "понеділок",
+              "example": "My lesson is on Monday."
+            },
+            {
+              "word": "Wednesday",
+              "translation": "середа",
+              "example": "The English class is on Wednesday."
+            },
+            {
+              "word": "Friday",
+              "translation": "п’ятниця",
+              "example": "On Friday I am with my friends."
+            },
+            {
+              "word": "Sunday",
+              "translation": "неділя",
+              "example": "I am free on Sunday."
+            },
+            {
+              "word": "January",
+              "translation": "січень",
+              "example": "January is cold."
+            },
+            {
+              "word": "May",
+              "translation": "травень",
+              "example": "My birthday is in May."
+            },
+            {
+              "word": "December",
+              "translation": "грудень",
+              "example": "His birthday is in December."
+            }
+          ],
+          "exercises": [
+            {
+              "slug": "fleng-a0-days-months-practice-1",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "My lesson is ___ Friday.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "in"
+                },
+                {
+                  "id": "2",
+                  "text": "at"
+                },
+                {
+                  "id": "3",
+                  "text": "on"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "Use on with a day: on Friday.",
+              "position": 1,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-practice-2",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "My birthday is ___ May.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "in"
+                },
+                {
+                  "id": "2",
+                  "text": "on"
+                },
+                {
+                  "id": "3",
+                  "text": "at"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "Use in with a month: in May.",
+              "position": 2,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-practice-3",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Choose the correct sentence.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "I am free in Sunday."
+                },
+                {
+                  "id": "2",
+                  "text": "I am free on Sunday."
+                },
+                {
+                  "id": "3",
+                  "text": "I am on free Sunday."
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "Use on with a day, and keep the order: be, then free, then on Sunday.",
+              "position": 3,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-practice-4",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Saturday and Sunday are the ___.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "month"
+                },
+                {
+                  "id": "2",
+                  "text": "birthday"
+                },
+                {
+                  "id": "3",
+                  "text": "weekend"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "The two days after Friday are the weekend.",
+              "position": 4,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-practice-5",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "A: What day is it today? B: ___",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "It is Friday."
+                },
+                {
+                  "id": "2",
+                  "text": "It is May."
+                },
+                {
+                  "id": "3",
+                  "text": "It is on Friday."
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "Answer the question with It is and the day. Do not add on here.",
+              "position": 5,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-practice-6",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Monday and Friday are ___ of the week.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "months"
+                },
+                {
+                  "id": "2",
+                  "text": "days"
+                },
+                {
+                  "id": "3",
+                  "text": "weekends"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "Monday and Friday are two days of the week.",
+              "position": 6,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-check-1",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the Ukrainian meaning of \"month\".",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "тиждень"
+                },
+                {
+                  "id": "2",
+                  "text": "день"
+                },
+                {
+                  "id": "3",
+                  "text": "місяць"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "In this lesson \"month\" means місяць.",
+              "position": 7,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-check-2",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the English word for «день народження».",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "birthday"
+                },
+                {
+                  "id": "2",
+                  "text": "weekend"
+                },
+                {
+                  "id": "3",
+                  "text": "Monday"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "The English word for «день народження» is birthday.",
+              "position": 8,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-check-3",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Which month is the first month of the year?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "May"
+                },
+                {
+                  "id": "2",
+                  "text": "January"
+                },
+                {
+                  "id": "3",
+                  "text": "December"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "The year starts with January and ends with December.",
+              "position": 9,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-days-months-check-4",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "A: Is your birthday in May? B: No, ___ in December.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "it are"
+                },
+                {
+                  "id": "2",
+                  "text": "they are"
+                },
+                {
+                  "id": "3",
+                  "text": "it is"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "Birthday is one thing, so we use it is.",
+              "position": 10,
+              "points": 1
+            }
+          ],
+          "practice": [
+            {
+              "kind": "fill_gap",
+              "prompt": "My English lesson is ___ Wednesday. (on or in)",
+              "accepted_answers": [
+                "on"
+              ],
+              "explanation": "Use on with a day: on Wednesday."
+            },
+            {
+              "kind": "word_order",
+              "prompt": "Put the words in order to make a sentence: is / May / in / birthday / My",
+              "accepted_answers": [
+                "My birthday is in May"
+              ],
+              "explanation": "Start with My birthday, then is, then in and the month."
+            },
+            {
+              "kind": "translate",
+              "prompt": "Translate into English: «Сьогодні п’ятниця»",
+              "accepted_answers": [
+                "Today is Friday",
+                "It is Friday today",
+                "It's Friday today",
+                "It is Friday",
+                "It's Friday"
+              ],
+              "explanation": "«Сьогодні п’ятниця» is Today is Friday or It is Friday."
+            },
+            {
+              "kind": "write",
+              "prompt": "Write two sentences: one with on and a day, one with in and a month.",
+              "model_answer": "My lesson is on Friday. My birthday is in May.",
+              "explanation": "Compare your answer with the example. Different correct answers are fine."
+            }
+          ]
+        },
+        {
+          "slug": "fleng-a0-prices",
+          "title": "Numbers and prices",
+          "summary": "Count in tens up to a hundred and ask how much things are.",
+          "goals": [
+            "Count in tens from thirty to one hundred.",
+            "Ask How much is it? and How much are they?",
+            "Say a price with a number and a money word."
+          ],
+          "grammar": "Numbers 30-100; How much is/are ...?",
+          "prerequisites": [
+            "fleng-a0-days-months"
+          ],
+          "estimated_minutes": 15,
+          "position": 14,
+          "theory": "After twenty we count in tens: thirty, forty, fifty, sixty, seventy, eighty, ninety, one hundred. Do not mix them up with the -teen numbers: fifteen is 15, but fifty is 50. Ask the price with How much is it? for one thing and How much are they? for more than one thing. Answer with It is or They are and the money word: It is thirty euros. They are fifty dollars. Say one euro but two euros, one dollar but two dollars.",
+          "reading": "Welcome to my small shop. The prices are on the wall. The cup is ten euros. The lamp is thirty euros. The shoes are fifty euros. They are not cheap, but they are good. The bag is sixty euros. The phone is one hundred euros. Is it expensive? Not for a good phone! A woman asks: How much is the lamp? I say: It is thirty euros. She says: That is a good price.",
+          "examples": [
+            "How much is it? It is thirty euros.",
+            "How much are they? They are fifty dollars.",
+            "A cup is cheap. A phone is expensive.",
+            "Thirty, forty, fifty, sixty."
+          ],
+          "vocabulary": [
+            {
+              "word": "thirty",
+              "translation": "тридцять",
+              "example": "The lamp is thirty euros."
+            },
+            {
+              "word": "forty",
+              "translation": "сорок",
+              "example": "The bag is forty dollars."
+            },
+            {
+              "word": "fifty",
+              "translation": "п’ятдесят",
+              "example": "The shoes are fifty euros."
+            },
+            {
+              "word": "sixty",
+              "translation": "шістдесят",
+              "example": "The big bag is sixty euros."
+            },
+            {
+              "word": "hundred",
+              "translation": "сто",
+              "example": "The phone is one hundred euros."
+            },
+            {
+              "word": "price",
+              "translation": "ціна",
+              "example": "The price is on the wall."
+            },
+            {
+              "word": "cheap",
+              "translation": "дешевий",
+              "example": "The cup is cheap."
+            },
+            {
+              "word": "expensive",
+              "translation": "дорогий",
+              "example": "The laptop is expensive."
+            },
+            {
+              "word": "dollar",
+              "translation": "долар",
+              "example": "The cup is five dollars."
+            },
+            {
+              "word": "euro",
+              "translation": "євро",
+              "example": "The lamp is thirty euros."
+            },
+            {
+              "word": "money",
+              "translation": "гроші",
+              "example": "This is my money."
+            },
+            {
+              "word": "shop",
+              "translation": "магазин",
+              "example": "The shop is small."
+            }
+          ],
+          "exercises": [
+            {
+              "slug": "fleng-a0-prices-practice-1",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "How much ___ the lamp?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "are"
+                },
+                {
+                  "id": "2",
+                  "text": "am"
+                },
+                {
+                  "id": "3",
+                  "text": "is"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "The lamp is one thing, so we use is: How much is the lamp?",
+              "position": 1,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-practice-2",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "How much ___ the shoes?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "are"
+                },
+                {
+                  "id": "2",
+                  "text": "is"
+                },
+                {
+                  "id": "3",
+                  "text": "am"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "Shoes are more than one thing, so we use are.",
+              "position": 2,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-practice-3",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Thirty, forty, ___, sixty.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "fifteen"
+                },
+                {
+                  "id": "2",
+                  "text": "fifty"
+                },
+                {
+                  "id": "3",
+                  "text": "sixteen"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "We count in tens: thirty, forty, fifty, sixty. Fifteen is 15.",
+              "position": 3,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-practice-4",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "The cup is two euros. It is ___.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "expensive"
+                },
+                {
+                  "id": "2",
+                  "text": "hundred"
+                },
+                {
+                  "id": "3",
+                  "text": "cheap"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "A small price means cheap.",
+              "position": 4,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-practice-5",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Choose the correct answer to \"How much is it?\"",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "It is sixty euros."
+                },
+                {
+                  "id": "2",
+                  "text": "They is sixty euros."
+                },
+                {
+                  "id": "3",
+                  "text": "It are sixty euros."
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "It goes with is. They goes with are.",
+              "position": 5,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-practice-6",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Choose the number word for 100.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "one ten"
+                },
+                {
+                  "id": "2",
+                  "text": "one hundred"
+                },
+                {
+                  "id": "3",
+                  "text": "sixty"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "The number 100 is said one hundred. Ten tens make a hundred.",
+              "position": 6,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-check-1",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the Ukrainian meaning of \"price\".",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "гроші"
+                },
+                {
+                  "id": "2",
+                  "text": "магазин"
+                },
+                {
+                  "id": "3",
+                  "text": "ціна"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "In this lesson \"price\" means ціна.",
+              "position": 7,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-check-2",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the English word for «дешевий».",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "cheap"
+                },
+                {
+                  "id": "2",
+                  "text": "expensive"
+                },
+                {
+                  "id": "3",
+                  "text": "price"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "The English word for «дешевий» is cheap.",
+              "position": 8,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-check-3",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Which number is the biggest?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "thirty"
+                },
+                {
+                  "id": "2",
+                  "text": "sixty"
+                },
+                {
+                  "id": "3",
+                  "text": "fifty"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "Sixty is 60, fifty is 50 and thirty is 30.",
+              "position": 9,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-prices-check-4",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "A: How much are the shoes? B: ___",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "It is fifty euros."
+                },
+                {
+                  "id": "2",
+                  "text": "They is fifty euros."
+                },
+                {
+                  "id": "3",
+                  "text": "They are fifty euros."
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "The shoes are more than one thing: They are fifty euros.",
+              "position": 10,
+              "points": 1
+            }
+          ],
+          "practice": [
+            {
+              "kind": "fill_gap",
+              "prompt": "How much ___ the cup? It is ten euros. (is or are)",
+              "accepted_answers": [
+                "is"
+              ],
+              "explanation": "The cup is one thing: How much is the cup?"
+            },
+            {
+              "kind": "word_order",
+              "prompt": "Put the words in order to make a sentence: is / much / How / it",
+              "accepted_answers": [
+                "How much is it"
+              ],
+              "explanation": "The question starts with How much, then is, then it."
+            },
+            {
+              "kind": "translate",
+              "prompt": "Translate into English: «Це дорого»",
+              "accepted_answers": [
+                "It is expensive",
+                "It's expensive",
+                "That is expensive",
+                "This is expensive"
+              ],
+              "explanation": "«Дорого» is expensive: It is expensive."
+            },
+            {
+              "kind": "write",
+              "prompt": "Write a price for a cup and a price for a phone.",
+              "model_answer": "The cup is ten euros. The phone is one hundred euros.",
+              "explanation": "Compare your answer with the example. Different correct answers are fine."
+            }
+          ]
+        },
+        {
+          "slug": "fleng-a0-cafe",
+          "title": "At the café",
+          "summary": "Order a drink and a snack politely and ask for the bill.",
+          "goals": [
+            "Order food and drink with Can I have ..., please?",
+            "Use Here you are and Thank you in the right moment.",
+            "Ask for the menu and the bill."
+          ],
+          "grammar": "Can I have ...? and polite phrases",
+          "prerequisites": [
+            "fleng-a0-prices"
+          ],
+          "estimated_minutes": 15,
+          "position": 15,
+          "theory": "Use Can I have ..., please? to ask politely for food and drink. Use a with one thing: a coffee, a cake, a sandwich. For drinks such as water, juice and milk you can also say only the word: Can I have water, please? When someone gives you something, they say Here you are, and you answer Thank you. At the end of the meal ask for the bill: Can I have the bill, please? Ask for the price with How much is it?",
+          "reading": "Anna is in a small café. The waiter says: Hello. Here is the menu. Anna says: Thank you. Can I have a coffee and a sandwich, please? The waiter says: Yes. Anything else? Anna says: Can I have a cake, please? The waiter says: Here you are. Anna says: Thank you. Later she asks: Can I have the bill, please? How much is it? The waiter says: It is twelve euros. Anna is happy.",
+          "examples": [
+            "Can I have a coffee, please?",
+            "Can I have the menu, please?",
+            "Here you are. - Thank you.",
+            "Can I have the bill, please?"
+          ],
+          "vocabulary": [
+            {
+              "word": "café",
+              "translation": "кав’ярня",
+              "example": "Anna is in a small café."
+            },
+            {
+              "word": "coffee",
+              "translation": "кава",
+              "example": "Can I have a coffee, please?"
+            },
+            {
+              "word": "tea",
+              "translation": "чай",
+              "example": "The tea is good."
+            },
+            {
+              "word": "water",
+              "translation": "вода",
+              "example": "Can I have water, please?"
+            },
+            {
+              "word": "juice",
+              "translation": "сік",
+              "example": "The juice is cold."
+            },
+            {
+              "word": "milk",
+              "translation": "молоко",
+              "example": "Can I have milk, please?"
+            },
+            {
+              "word": "sandwich",
+              "translation": "бутерброд",
+              "example": "A sandwich is ten euros."
+            },
+            {
+              "word": "cake",
+              "translation": "торт, тістечко",
+              "example": "The cake is good."
+            },
+            {
+              "word": "soup",
+              "translation": "суп",
+              "example": "The soup is warm."
+            },
+            {
+              "word": "menu",
+              "translation": "меню",
+              "example": "Here is the menu."
+            },
+            {
+              "word": "bill",
+              "translation": "рахунок",
+              "example": "Can I have the bill, please?"
+            },
+            {
+              "word": "waiter",
+              "translation": "офіціант",
+              "example": "The waiter is happy."
+            }
+          ],
+          "exercises": [
+            {
+              "slug": "fleng-a0-cafe-practice-1",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Can I ___ a coffee, please?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "am"
+                },
+                {
+                  "id": "2",
+                  "text": "is"
+                },
+                {
+                  "id": "3",
+                  "text": "have"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "We say Can I have ... to ask politely for something.",
+              "position": 1,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-practice-2",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Someone gives you your tea. You say: ___",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "Thank you."
+                },
+                {
+                  "id": "2",
+                  "text": "Goodbye."
+                },
+                {
+                  "id": "3",
+                  "text": "Please."
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "When you get something, say Thank you.",
+              "position": 2,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-practice-3",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Choose the polite question.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "I have menu."
+                },
+                {
+                  "id": "2",
+                  "text": "Can I have the menu, please?"
+                },
+                {
+                  "id": "3",
+                  "text": "Give menu."
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "Can I have ..., please? is polite. The other two are not complete or polite.",
+              "position": 3,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-practice-4",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "At the end you ask for the ___. (It shows the price.)",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "menu"
+                },
+                {
+                  "id": "2",
+                  "text": "cake"
+                },
+                {
+                  "id": "3",
+                  "text": "bill"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "The bill shows how much you must pay. The menu shows what you can order.",
+              "position": 4,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-practice-5",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "A: Hello. Here is the menu. B: ___",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "Thank you."
+                },
+                {
+                  "id": "2",
+                  "text": "I am a waiter."
+                },
+                {
+                  "id": "3",
+                  "text": "Goodbye, please."
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "Thank you is the natural answer when someone gives you something.",
+              "position": 5,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-practice-6",
+              "phase": "practice",
+              "type": "single_choice",
+              "prompt": "Choose the correct sentence.",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "Can I has a sandwich, please?"
+                },
+                {
+                  "id": "2",
+                  "text": "Can I have a sandwich, please?"
+                },
+                {
+                  "id": "3",
+                  "text": "Can I am a sandwich, please?"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "After Can I we use the base verb: have.",
+              "position": 6,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-check-1",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the Ukrainian meaning of \"waiter\".",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "кав’ярня"
+                },
+                {
+                  "id": "2",
+                  "text": "рахунок"
+                },
+                {
+                  "id": "3",
+                  "text": "офіціант"
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "In this lesson \"waiter\" means офіціант.",
+              "position": 7,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-check-2",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Choose the English word for «сік».",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "juice"
+                },
+                {
+                  "id": "2",
+                  "text": "milk"
+                },
+                {
+                  "id": "3",
+                  "text": "soup"
+                }
+              ],
+              "correct_option_id": "1",
+              "explanation": "The English word for «сік» is juice.",
+              "position": 8,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-check-3",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "Which one is a drink?",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "cake"
+                },
+                {
+                  "id": "2",
+                  "text": "juice"
+                },
+                {
+                  "id": "3",
+                  "text": "soup"
+                }
+              ],
+              "correct_option_id": "2",
+              "explanation": "You drink juice. You eat cake and soup.",
+              "position": 9,
+              "points": 1
+            },
+            {
+              "slug": "fleng-a0-cafe-check-4",
+              "phase": "check",
+              "type": "single_choice",
+              "prompt": "A: Can I have a tea, please? B: ___",
+              "options": [
+                {
+                  "id": "1",
+                  "text": "Yes, I am."
+                },
+                {
+                  "id": "2",
+                  "text": "I am a tea."
+                },
+                {
+                  "id": "3",
+                  "text": "Here you are."
+                }
+              ],
+              "correct_option_id": "3",
+              "explanation": "The waiter gives you the tea and says Here you are.",
+              "position": 10,
+              "points": 1
+            }
+          ],
+          "practice": [
+            {
+              "kind": "fill_gap",
+              "prompt": "Can I have ___ coffee, please? (a or an)",
+              "accepted_answers": [
+                "a"
+              ],
+              "explanation": "Coffee starts with a consonant sound, so we use a: a coffee."
+            },
+            {
+              "kind": "word_order",
+              "prompt": "Put the words in order to make a sentence: have / I / Can / the / menu",
+              "accepted_answers": [
+                "Can I have the menu"
+              ],
+              "explanation": "A polite question starts with Can I have, then the thing."
+            },
+            {
+              "kind": "translate",
+              "prompt": "Translate into English: «Можна каву, будь ласка?»",
+              "accepted_answers": [
+                "Can I have a coffee, please",
+                "Can I have coffee, please",
+                "Can I have a coffee please",
+                "Can I have coffee please"
+              ],
+              "explanation": "«Можна ..., будь ласка?» is Can I have ..., please?"
+            },
+            {
+              "kind": "write",
+              "prompt": "Write a short order for a drink and a cake.",
+              "model_answer": "Can I have a coffee, please? And can I have a cake, please?",
+              "explanation": "Compare your answer with the example. Different correct answers are fine."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
