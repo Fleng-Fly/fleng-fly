@@ -30,13 +30,13 @@ test('a linked worktree resolves its main checkout; a normal checkout does not',
 
 test('a checkout uses its own virtualenv; a worktree may borrow only the interpreter of main', () => {
   const { main, tree } = fakeWorktree();
-  assert.equal(resolveVenv(tree), null);
+  assert.equal(resolveVenv(tree, 'linux'), null);
   addVenv(main);
-  const borrowed = resolveVenv(tree);
+  const borrowed = resolveVenv(tree, 'linux');
   assert.match(borrowed.source, /main checkout/);
   assert.ok(borrowed.uvicorn.startsWith(main));
   addVenv(tree);
-  const own = resolveVenv(tree);
+  const own = resolveVenv(tree, 'linux');
   assert.equal(own.source, 'checkout');
   assert.ok(own.uvicorn.startsWith(tree));
 });
