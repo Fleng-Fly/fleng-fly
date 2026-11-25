@@ -2,6 +2,7 @@ import { el } from './layout.js';
 import { getPlacement, listPlacements } from './placement-api.js';
 import { describeApiError } from './errors.js';
 import { t } from './i18n.js';
+import { placementLabel, placementRecommendation } from './placement-copy.js';
 
 function link(label, href, primary = false) {
   const node = el('a', `btn ${primary ? 'btn-primary' : 'btn-secondary'}`, label);
@@ -23,9 +24,9 @@ export async function mountPlacementGuidance(target, user) {
     target.replaceChildren();
     if (completed) {
       const attempt = await getPlacement(completed.id);
-      target.append(el('h2', undefined, t('guide.suggestedTitle')), el('p', undefined, attempt.result.label));
+      target.append(el('h2', undefined, t('guide.suggestedTitle')), el('p', undefined, placementLabel(attempt.result)));
       const course = attempt.recommendedCourses[0];
-      target.append(el('p', 'muted', attempt.recommendationNote));
+      target.append(el('p', 'muted', placementRecommendation(attempt)));
       target.append(course
         ? link(t('guide.explore', { title: course.title }), `/course.html?slug=${encodeURIComponent(course.slug)}`, true)
         : link(t('guide.exploreAll'), '/courses.html', true));

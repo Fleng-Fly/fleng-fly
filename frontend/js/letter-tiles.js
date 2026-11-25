@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 import { el } from './layout.js';
 
 export function letterTiles(config, savedAnswer, draft, onChange) {
@@ -20,13 +21,13 @@ export function letterTiles(config, savedAnswer, draft, onChange) {
 
   const field = el('fieldset', 'lesson-letter-tiles');
   field.append(
-    el('legend', 'lesson-answer-label', 'Complete the word'),
-    el('p', 'lesson-muted', 'Drag a letter into a blank, or select a letter and then select a blank. Select a filled blank to return its letter.'),
+    el('legend', 'lesson-answer-label', t('tiles.title')),
+    el('p', 'lesson-muted', t('tiles.instructions')),
   );
   const word = el('div', 'lesson-tile-row');
   const bank = el('div', 'lesson-tile-row lesson-tile-bank');
   bank.setAttribute('role', 'group');
-  bank.setAttribute('aria-label', 'Available letters');
+  bank.setAttribute('aria-label', t('tiles.bank'));
   field.append(word, bank);
 
   const slots = new Map();
@@ -68,10 +69,9 @@ export function letterTiles(config, savedAnswer, draft, onChange) {
     });
     for (const [index, slot] of slots) {
       const id = assigned[index];
-      const label = `Blank ${index + 1}`;
       slot.textContent = id === null ? '' : letters[id];
       slot.draggable = id !== null;
-      slot.setAttribute('aria-label', id === null ? `${label}, empty` : `${label}, ${letters[id]}`);
+      slot.setAttribute('aria-label', id === null ? t('tiles.empty', { n: index + 1 }) : t('tiles.filled', { n: index + 1, letter: letters[id] }));
     }
   }
 

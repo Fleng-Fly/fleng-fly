@@ -173,10 +173,10 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           </section>`;
 
 export function setWorkspaceUser(user) {
-  const name = (user.displayName || t('ws.learner')).trim();
-  $('profile-short-name').textContent = name;
   signedIn = true;
   applyUserLanguage(user);
+  const name = (user.displayName || t('ws.learner')).trim();
+  $('profile-short-name').textContent = name;
   $('profile-avatar').textContent = name.charAt(0).toLocaleUpperCase() || 'F';
   mountAIAssistant(user, () => aiContext());
 }

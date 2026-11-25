@@ -1,4 +1,4 @@
-import { getMyProgress } from './api.js';
+import { getMyAchievements, getMyProgress } from './api.js';
 import { describeApiError } from './errors.js';
 import { el } from './layout.js';
 import { getLang, t, tn } from './i18n.js';
@@ -47,6 +47,21 @@ function courseRow(course) {
   return item;
 }
 
+function renderAchievements(section, achievements) {
+  const earned = achievements.filter((achievement) => achievement.awardedAt);
+  if (!earned.length) {
+    section.append(el('p', 'dashboard-muted', t('achievement.empty')));
+    return;
+  }
+  const list = el('ul', 'progress-course-list');
+  for (const achievement of earned) {
+    const key = `achievement.${achievement.code}`;
+    const title = t(key);
+    list.append(el('li', 'progress-course', title === key ? achievement.title : title));
+  }
+  section.append(list);
+}
+
 function render(data) {
   validate(data);
   const metrics = el('section', 'progress-metrics');
@@ -79,6 +94,18 @@ function render(data) {
     courses.append(list);
   } else courses.append(el('p', 'dashboard-muted', t('progress.noCourses')));
   target.append(courses);
+  const achievements = el('section', 'dashboard-card progress-courses');
+  achievements.append(el('h2', undefined, t('achievement.title')));
+  const status = el('div');
+  status.append(el('p', 'dashboard-muted', t('common.loading')));
+  achievements.append(status);
+  target.append(achievements);
+  void getMyAchievements().then((items) => {
+    status.replaceChildren();
+    renderAchievements(status, items);
+  }).catch(() => {
+    status.replaceChildren(el('p', 'dashboard-muted', t('achievement.unavailable')));
+  });
 }
 
 function message(title, detail, retry = false) {

@@ -4,7 +4,7 @@ import { t } from './i18n.js';
 /**
  * Turn any thrown value into a user-facing message in the current language.
  * Known backend error codes (`errors.<CODE>`) and statuses are translated; an
- * unknown code falls back to the status text, and finally to the server message.
+ * unknown code falls back to localized status or generic text.
  */
 export function describeApiError(error) {
   if (error instanceof ApiError) {
@@ -25,7 +25,7 @@ export function describeApiError(error) {
       case 503:
         return t('errors.503');
       default:
-        return error.status >= 500 ? t('errors.500') : error.message || t('errors.unknown');
+        return t(error.status >= 500 ? 'errors.500' : 'errors.unknown');
     }
   }
   if (error instanceof Error) {

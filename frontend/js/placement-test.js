@@ -4,6 +4,7 @@ import { getLang, t } from './i18n.js';
 import { requireSession } from './session.js';
 import { mountWorkspace, setWorkspaceUser } from './workspace.js';
 import { describeApiError } from './errors.js';
+import { placementLabel, placementLimitation, placementRecommendation } from './placement-copy.js';
 import { completePlacement, getPlacement, listPlacements, retryPlacementMistakes, savePlacementAnswer, startPlacement } from './placement-api.js';
 
 const $ = (id) => document.getElementById(id);
@@ -56,13 +57,18 @@ function renderQuestion(focus = false) {
   $('placement-progress').value = attempt.answered;
   const field = el('fieldset');
   const heading = el('legend', undefined, question.prompt);
-  heading.tabIndex = -1; field.append(heading);
+  heading.lang = 'en';
+  heading.tabIndex = -1;
+  const skill = ['grammar', 'vocabulary', 'reading'].includes(question.skill) ? t(`pt.skill.${question.skill}`) : '';
+  field.append(heading, el('p', 'muted', [skill, t('pt.instruction')].filter(Boolean).join(' · ')));
   for (const option of question.options) {
     const label = el('label', 'placement-option');
     const radio = el('input'); radio.type = 'radio'; radio.name = 'placement-answer';
     radio.value = option.id; radio.checked = attempt.answers[question.id] === option.id;
     radio.addEventListener('change', () => saveOutcome(question, option.id));
-    label.append(radio, el('span', undefined, option.text)); field.append(label);
+    const text = el('span', undefined, option.text);
+    text.lang = 'en';
+    label.append(radio, text); field.append(label);
   }
   $('placement-question').replaceChildren(field);
   controls(); if (focus) heading.focus();
@@ -70,13 +76,14 @@ function renderQuestion(focus = false) {
 function renderResult() {
   const { result } = attempt;
   const extra = el('div', 'completion-extra');
-  extra.append(el('p', undefined, t('pt.score', { correct: result.correct, total: result.total, range: result.assessmentRange })));
+  const range = result.insufficientEvidence ? t('pt.rangeUnknown') : result.assessmentRange;
+  extra.append(el('p', undefined, t('pt.score', { correct: result.correct, total: result.total, range })));
   const limitations = el('ul');
-  for (const text of result.limitations) limitations.append(el('li', undefined, text));
+  for (const text of result.limitations) limitations.append(el('li', undefined, placementLimitation(text)));
   extra.append(limitations, el('p', 'muted', t('pt.disclaimer')), el('p', 'muted', t('pt.note')));
   const bands = el('ul', 'placement-band-list');
   for (const band of result.bands) bands.append(el('li', undefined, `${band.level}: ${band.correct}/${band.total}${['C1', 'C2'].includes(band.level) ? t('pt.exploratory') : ''}`));
-  extra.append(bands, el('h3', undefined, t('pt.suggested')), el('p', 'muted', attempt.recommendationNote));
+  extra.append(bands, el('h3', undefined, t('pt.suggested')), el('p', 'muted', placementRecommendation(attempt)));
   const courses = el('ul');
   for (const course of attempt.recommendedCourses) {
     const link = el('a', 'btn btn-primary', t('pt.startCourse', { title: course.title, level: course.level }));
@@ -112,13 +119,13 @@ function renderResult() {
       title: question.prompt, skipped, mistake: !review.isCorrect && !skipped,
       answer: question.options.find((option) => option.id === review.selectedOptionId)?.text,
       expected,
-      note: review.explanation,
+      note: getLang() === 'uk' && review.explanationUk ? review.explanationUk : review.explanation,
     };
   });
   TestCompletionScreen($('placement-result'), {
     headingId: 'placement-completion-title',
     title: t(attempt.practice ? 'vocab.complete' : 'completion.placement'),
-    subtitle: attempt.practice ? t('completion.placementPractice') : result.label,
+    subtitle: attempt.practice ? t('completion.placementPractice') : placementLabel(result),
     level: result.estimatedLevel,
     correct: result.correct,
     total: result.total,

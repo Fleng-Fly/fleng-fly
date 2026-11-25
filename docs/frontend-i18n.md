@@ -1,7 +1,6 @@
 # Frontend i18n (EN / UK)
 
-> Status: implemented in the UX overhaul. Plain vanilla JavaScript, no build step,
-> one HTML file per page.
+Fleng supports English and Ukrainian in its static HTML and vanilla JavaScript.
 
 ## Principles
 
@@ -11,8 +10,9 @@
 - **Dynamic text uses `t(key, params)` / `tn(key, count, params)`** from
   `frontend/js/i18n.js`. Results are assigned with `textContent` / `setAttribute`
   only (never `innerHTML`), so dictionary text and parameters cannot inject markup.
-- **Interface and explanations are translated; English lesson content is not.**
-  Lesson prompts, options, theory and vocabulary stay English.
+- **Interface language and learning content.** Menus, instructions, feedback and
+  result screens use the selected language. Authored English prompts, choices,
+  reading passages and study words keep their original text.
 - **English fallback:** a missing Ukrainian key falls back to English, an unknown key
   returns the key itself so gaps are visible.
 
@@ -28,12 +28,13 @@
 
 ## Language choice
 
-Priority: explicit choice (`localStorage['fleng.lang']`) → account `preferredLanguage`
-→ browser language (`uk*` → Ukrainian) → English.
+The initial page uses its saved browser language, then the browser preference
+(`uk*` selects Ukrainian), then English. After session restore, the account
+preference wins unless an explicit browser choice is awaiting synchronization.
 
 - Signed in: the EN/УК switch (header, workspace top bar) and **Settings → Language**
-  apply immediately and save `preferredLanguage` (`"English"` / `"Ukrainian"`, the
-  existing backend values – no migration).
+  save `preferredLanguage` (`"English"` / `"Ukrainian"`). Workspace pages reload
+  to render their dynamic content in the chosen language.
 - Signed out: the choice is stored locally and flagged `fleng.lang.pending`; after the
   next sign-in it is saved to the account. Otherwise the account preference wins.
 - `document.documentElement.lang` always matches the active language.
@@ -46,21 +47,25 @@ selects the form.
 
 ## API errors
 
-`describeApiError` maps `error.code` to `errors.<CODE>` keys, then to status keys
-(`errors.401`, `errors.422`, …). The backend message is only a last resort.
+`describeApiError` maps `error.code` to `errors.<CODE>` keys, then falls back
+to localized status or generic copy.
 
-## Not translated yet / dependencies
+## Learning screens and Fleng AI
 
-- Text produced by the backend (placement result label, limitations, recommendation
-  note, per-question explanations; exercise `explanation` text) stays English until
-  the API returns translatable codes or a `lang` parameter.
-- The AI assistant widget (`ai-assistant.js`) is disabled by default and not yet
-  localized.
-- Exercise **hints** and Ukrainian explanations need backend support (the exercise API
-  exposes no `hint` field), so no "Підказка" button is shown.
+- Placement instructions, skills, result labels, limitations and recommendations
+  use the dictionaries. Completed reviews include `explanationUk` for all 36
+  current bank questions, including older attempts with matching saved content.
+- Course exercises use the authored instruction for the active language or the
+  instruction for that exercise type. Feedback uses available Ukrainian
+  explanations and falls back to English for legacy content. Reading is available
+  inside lessons and Placement; the standalone Reading feature was retired.
+- Fleng AI controls, status messages and dates use the active locale. Conversation
+  content comes from the learner and the configured provider.
+- Progress displays earned achievements from `GET /api/v1/achievements/me`, with
+  dictionary titles by achievement code.
 
 ## Adding a string
 
 1. Add the key to **both** dictionaries (same key, same `{placeholders}`).
 2. Use `data-i18n` in HTML or `t()` in JS.
-3. Run `pnpm frontend:test` – `test-i18n.mjs` fails on a missing or mismatched key.
+3. Run `npm run frontend:test`. `test-i18n.mjs` checks keys and placeholders.

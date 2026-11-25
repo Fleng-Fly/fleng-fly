@@ -85,8 +85,9 @@ function bindPage() {
     select.disabled = true;
     feedback('language-feedback', t('settings.saving'));
     try {
-      renderUser(await updateCurrentUser({ preferredLanguage: select.value }), false);
-      await setLang(languageFromAccount(select.value) || 'en');
+      const updated = await updateCurrentUser({ preferredLanguage: select.value });
+      await setLang(languageFromAccount(updated.preferredLanguage) || 'en', { accountSaved: true });
+      renderUser(updated, false);
       feedback('language-feedback', t('settings.langSaved'));
       window.location.reload();
     } catch (error) {

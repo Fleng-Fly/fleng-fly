@@ -62,7 +62,9 @@ function interpolate(template, params) {
 }
 
 export function t(key, params) {
-  const value = DICTIONARIES[current][key] ?? DICTIONARIES.en[key];
+  const dictionary = DICTIONARIES[current];
+  const value = Object.hasOwn(dictionary, key) ? dictionary[key]
+    : Object.hasOwn(en, key) ? en[key] : undefined;
   return value === undefined ? key : interpolate(value, params);
 }
 
@@ -97,21 +99,20 @@ function render() {
 }
 
 /**
- * Switch language. `user` (optional) is the signed-in user: the choice is then
- * stored in the account; failures to save never block the switch.
+ * Apply an explicit choice. A failed account save stays pending for retry.
  */
-export async function setLang(lang, { persistToAccount = false } = {}) {
-  if (!LANGUAGES.includes(lang) || lang === current) return;
+export async function setLang(lang, { persistToAccount = false, accountSaved = false } = {}) {
+  if (!LANGUAGES.includes(lang)) return;
+  const changed = current !== lang;
   current = lang;
   write(STORAGE_KEY, lang);
-  render();
+  write(PENDING_KEY, accountSaved ? null : '1');
+  if (changed) render();
   if (persistToAccount) {
     try {
       await updateCurrentUser({ preferredLanguage: ACCOUNT_VALUES[lang] });
-      write(PENDING_KEY, null);
+      if (current === lang) write(PENDING_KEY, null);
     } catch { /* Keep the choice locally; it is retried on next sign-in. */ }
-  } else {
-    write(PENDING_KEY, '1');
   }
 }
 
@@ -120,19 +121,20 @@ export async function applyUserLanguage(user) {
   const account = languageFromAccount(user?.preferredLanguage);
   if (read(PENDING_KEY) === '1' && LANGUAGES.includes(read(STORAGE_KEY))) {
     // The learner picked a language while signed out: keep it and save it.
+    const pendingLang = current;
     try {
-      if (account !== current) {
-        await updateCurrentUser({ preferredLanguage: ACCOUNT_VALUES[current] });
+      if (account !== pendingLang) {
+        await updateCurrentUser({ preferredLanguage: ACCOUNT_VALUES[pendingLang] });
       }
-      write(PENDING_KEY, null);
+      if (current === pendingLang) write(PENDING_KEY, null);
     } catch { /* Retried on the next page load. */ }
     return;
   }
   if (account && account !== current) {
     current = account;
-    write(STORAGE_KEY, account);
     render();
   }
+  if (account) write(STORAGE_KEY, account);
 }
 
 /** Compact EN/УК toggle. `getUser` tells whether the choice should be saved to the account. */
@@ -142,6 +144,7 @@ export function createLanguageSwitch(isSignedIn = () => false) {
   group.setAttribute('role', 'group');
   group.dataset.i18nAttr = 'aria-label:lang.switch';
   group.setAttribute('aria-label', t('lang.switch'));
+  let switching = false;
   for (const [code, label] of [['en', 'EN'], ['uk', 'УК']]) {
     const button = document.createElement('button');
     button.type = 'button';
@@ -149,8 +152,13 @@ export function createLanguageSwitch(isSignedIn = () => false) {
     button.lang = code;
     button.dataset.lang = code;
     button.addEventListener('click', async () => {
-      if (code === current) return;
-      await setLang(code, { persistToAccount: isSignedIn() });
+      if (switching || code === current) return;
+      switching = true;
+      try {
+        await setLang(code, { persistToAccount: isSignedIn() });
+      } finally {
+        switching = false;
+      }
       // Pages that build content with JavaScript re-render in the new language on reload.
       if (document.getElementById('dashboard-sidebar') || document.body.dataset.reloadOnLanguage !== undefined) {
         window.location.reload();

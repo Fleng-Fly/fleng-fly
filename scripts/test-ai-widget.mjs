@@ -96,7 +96,7 @@ async function environment() {
       let source = await readFile(new URL(`../frontend/js/${file}`, import.meta.url), 'utf8');
       if (file === 'layout.js') source = source.slice(source.indexOf('/** Small DOM'), source.indexOf('/**\n * Render a card'));
       // Navigation-only API imports are unused by setWorkspaceUser in this DOM test.
-      if (file === 'workspace.js') source = source.replace(/^import .* from '.\/api.js';\n/, '');
+      if (file === 'workspace.js') source = source.replace(/^import .* from '.\/api.js';\r?\n/m, '');
       result = new vm.SourceTextModule(source, { context });
     }
     modules.set(file, result);

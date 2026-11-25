@@ -94,6 +94,19 @@ test('EN/UK switch persists to the account and keeps shared pages usable', async
   await page.goto('/vocabulary.html');
   await expect(page.locator('html')).toHaveAttribute('lang', 'uk');
   await expect(page.locator('#profile-short-name')).toContainText('Responsive');
+  await page.goto('/dashboard.html');
+  await page.getByRole('button', { name: 'Fleng AI', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Чат Fleng AI' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Новий чат' })).toBeVisible();
+  await page.getByRole('button', { name: 'Закрити чат' }).click();
+  await page.goto('/placement-test.html');
+  const start = page.waitForResponse((res) =>
+    res.url().endsWith('/api/v1/placement-test/attempts') && res.request().method() === 'POST');
+  await page.locator('#placement-start').click();
+  const attempt = await (await start).json();
+  await expect(page.locator('#placement-question')).toContainText('Вибери найкращий варіант відповіді.');
+  await expect(page.locator('#placement-question legend')).toHaveText(attempt.questions[0].prompt);
+  await page.goto('/vocabulary.html');
   await Promise.all([
     page.waitForEvent('domcontentloaded'),
     page.locator('button[data-lang="en"]').click(),

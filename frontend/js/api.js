@@ -349,6 +349,10 @@ export function getLeaderboard() {
   return apiFetch('/leaderboard');
 }
 
+export function getMyAchievements() {
+  return apiFetch('/achievements/me');
+}
+
 export function requestEmailChange(input) {
   return apiFetch('/users/me/email-change/request', { method: 'POST', body: JSON.stringify(input) });
 }

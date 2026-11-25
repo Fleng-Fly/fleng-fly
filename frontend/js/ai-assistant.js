@@ -1,5 +1,6 @@
 import { getAIHistory, getAIStatus, listAIConversations, streamAIChat } from './api.js';
 import { readAIEvents } from './ai-stream.js';
+import { getLang, t } from './i18n.js';
 import { el } from './layout.js';
 import { renderMarkdown } from './markdown.js';
 
@@ -32,7 +33,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   css.href = '/css/ai-assistant.css';
   document.head.append(css);
   const root = el('aside', 'fleng-ai');
-  root.setAttribute('aria-label', 'Fleng AI learning assistant');
+  root.setAttribute('aria-label', t('ai.assistant'));
   const launcher = button('Fleng AI', () => open());
   launcher.className = 'ai-launcher';
   launcher.setAttribute('aria-controls', 'ai-panel');
@@ -41,24 +42,24 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   panel.id = 'ai-panel';
   panel.hidden = true;
   panel.setAttribute('role', 'region');
-  panel.setAttribute('aria-label', 'Fleng AI chat');
+  panel.setAttribute('aria-label', t('ai.chat'));
   const header = el('header', 'ai-header');
   const title = el('div');
   title.append(el('strong', '', 'Fleng AI'));
-  const availability = el('small', '', 'Checking availability');
+  const availability = el('small', '', t('ai.checking'));
   title.append(availability);
-  const expand = button('', () => togglePreset(), 'Enlarge chat');
+  const expand = button('', () => togglePreset(), t('ai.enlarge'));
   expand.className = 'ai-expand';
   header.append(
     title,
     expand,
-    button('−', () => hide('MINIMIZED'), 'Minimize chat'),
-    button('×', () => hide('CLOSED'), 'Close chat'),
+    button('−', () => hide('MINIMIZED'), t('ai.minimize')),
+    button('×', () => hide('CLOSED'), t('ai.close')),
   );
   const tools = el('div', 'ai-tools');
   const select = el('select');
-  select.setAttribute('aria-label', 'Conversation history');
-  const fresh = button('New chat', () => {
+  select.setAttribute('aria-label', t('ai.history'));
+  const fresh = button(t('ai.newChat'), () => {
     conversationId = null;
     initialized = true;
     needsReload = false;
@@ -67,15 +68,15 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     followBottom = true;
     messages.replaceChildren();
     select.value = '';
-    notice.textContent = available ? '' : 'Fleng AI is currently unavailable.';
+    notice.textContent = available ? '' : t('ai.unavailable');
     welcome();
     controls();
     phase(available ? visibility : 'UNAVAILABLE');
   });
   const menu = el('details', 'ai-options');
   const menuToggle = el('summary', '', '⋯');
-  menuToggle.setAttribute('aria-label', 'Chat options');
-  const reload = button('Refresh history', () => { menu.open = false; load(); });
+  menuToggle.setAttribute('aria-label', t('ai.options'));
+  const reload = button(t('ai.refresh'), () => { menu.open = false; load(); });
   reload.className = 'ai-refresh';
   menu.append(menuToggle, reload);
   tools.append(select, fresh, menu);
@@ -89,43 +90,43 @@ export function mountAIAssistant(user, getContext = () => ({})) {
   let focus = null;
   const messages = el('div', 'ai-messages');
   messages.tabIndex = 0;
-  messages.setAttribute('aria-label', 'Messages');
+  messages.setAttribute('aria-label', t('ai.messages'));
   messages.setAttribute('role', 'log');
   messages.setAttribute('aria-live', 'polite');
   const notice = el('p', 'ai-notice');
   notice.setAttribute('role', 'status');
-  const retry = button('Refresh history', () => load());
+  const retry = button(t('ai.refresh'), () => load());
   retry.className = 'ai-retry';
   retry.hidden = true;
   const recovery = el('div', 'ai-recovery');
   recovery.append(notice, retry);
-  const jump = button('↓ Latest', () => scrollBottom(true));
+  const jump = button(t('ai.latest'), () => scrollBottom(true));
   jump.className = 'ai-jump';
   jump.hidden = true;
-  const typing = el('div', 'ai-typing', 'Thinking');
+  const typing = el('div', 'ai-typing', t('ai.thinking'));
   typing.setAttribute('role', 'status');
-  typing.setAttribute('aria-label', 'Fleng AI is generating a response');
+  typing.setAttribute('aria-label', t('ai.generating'));
   typing.hidden = true;
   for (let i = 0; i < 3; i++) typing.append(el('span'));
   const form = el('form', 'ai-composer');
   const input = el('textarea');
   input.rows = 1;
   input.maxLength = 500;
-  input.placeholder = 'Ask about English…';
-  input.setAttribute('aria-label', 'Message to Fleng AI');
+  input.placeholder = t('ai.placeholder');
+  input.setAttribute('aria-label', t('ai.message'));
   const send = el('button', 'ai-send', '↑');
-  send.setAttribute('aria-label', 'Send message');
+  send.setAttribute('aria-label', t('ai.send'));
   send.type = 'submit';
   const counter = el('small', 'ai-counter', '0 / 500');
   counter.id = 'ai-character-count';
   input.setAttribute('aria-describedby', counter.id);
   const composerHint = el('div', 'ai-composer-hint');
-  composerHint.append(el('small', '', 'AI can make mistakes'), counter);
+  composerHint.append(el('small', '', t('ai.caution')), counter);
   form.append(input, send, composerHint);
   const resizer = el('div', 'ai-resize');
   resizer.tabIndex = 0;
   resizer.setAttribute('role', 'separator');
-  resizer.setAttribute('aria-label', 'Resize chat. Drag, or use the arrow keys.');
+  resizer.setAttribute('aria-label', t('ai.resize'));
   panel.append(resizer, header, tools, contextLabel, messages, jump, typing, recovery, form);
   root.append(panel, launcher);
   document.body.append(root);
@@ -171,13 +172,13 @@ export function mountAIAssistant(user, getContext = () => ({})) {
       el(
         'p',
         'ai-welcome',
-        'A little help, whenever you need it. Ask about a word, grammar or your lesson.',
+        t('ai.welcome'),
       ),
     );
   }
   function bubble(role, text) {
     const article = el('article', `ai-message ai-${role}`);
-    article.append(el('small', '', role === 'user' ? 'You' : 'Fleng AI'));
+    article.append(el('small', '', role === 'user' ? t('ai.you') : 'Fleng AI'));
     const content = el('div', 'ai-message-content');
     if (role === 'assistant') renderMarkdown(content, text);
     else content.textContent = text;
@@ -220,8 +221,8 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     contextText.textContent = exerciseFocus
       ? focus.label
       : value.lessonId
-        ? 'Helping with your current lesson · hints first'
-        : 'General English learning';
+        ? t('ai.lesson')
+        : t('ai.general');
     backToTask.hidden = !exerciseFocus || !focus.backLabel;
     backToTask.textContent = exerciseFocus ? focus.backLabel || '' : '';
     backToTask.setAttribute('aria-label', backToTask.textContent);
@@ -277,7 +278,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     if (busy || destroyed) return;
     busy = true;
     phase('LOADING');
-    notice.textContent = 'Loading conversation history…';
+    notice.textContent = t('ai.loading');
     controls();
     try {
       const [status, conversations] = await Promise.all([getAIStatus(), listAIConversations()]);
@@ -297,19 +298,19 @@ export function mountAIAssistant(user, getContext = () => ({})) {
           ? saved
           : conversations[0]?.id || null;
       }
-      select.replaceChildren(new Option('New conversation', ''));
+      select.replaceChildren(new Option(t('ai.newConversation'), ''));
       for (const item of conversations)
-        select.append(new Option(`Chat · ${new Date(item.createdAt).toLocaleString()}`, item.id));
+        select.append(new Option(t('ai.datedChat', { date: new Date(item.createdAt).toLocaleString(getLang()) }), item.id));
       select.value = conversationId || '';
       await history();
       if (destroyed) return;
       initialized = true;
       needsReload = false;
       remember();
-      availability.textContent = available ? 'Ready to help' : 'Unavailable';
+      availability.textContent = available ? t('ai.ready') : t('ai.offline');
       notice.textContent = available
         ? ''
-        : 'Fleng AI is currently unavailable. Your saved conversations are still accessible.';
+        : t('ai.savedAvailable');
       phase(available ? visibility : 'UNAVAILABLE');
     } catch (error) {
       if (destroyed) return;
@@ -318,7 +319,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
         return;
       }
       needsReload = true;
-      notice.textContent = 'Unable to load the assistant. Check your connection and refresh history.';
+      notice.textContent = t('ai.loadFailed');
       phase('ERROR');
     } finally {
       busy = false;
@@ -336,7 +337,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
       await history();
       if (destroyed) return;
       needsReload = false;
-      notice.textContent = available ? '' : 'Fleng AI is currently unavailable.';
+      notice.textContent = available ? '' : t('ai.unavailable');
       phase(available ? visibility : 'UNAVAILABLE');
     } catch (error) {
       if (destroyed) return;
@@ -345,7 +346,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
         return;
       }
       needsReload = true;
-      notice.textContent = 'Unable to load history. Refresh history to try again.';
+      notice.textContent = t('ai.historyFailed');
       phase('ERROR');
     } finally {
       busy = false;
@@ -363,7 +364,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     controls();
     phase('STREAMING');
     input.focus();
-    availability.textContent = 'Writing…';
+    availability.textContent = t('ai.writing');
     notice.textContent = '';
     bubble('user', message);
     const answer = bubble('assistant', '');
@@ -398,7 +399,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
           updateAnswer(answer, event.data.message.content, true);
           complete = true;
           if (![...select.options].some((item) => item.value === conversationId))
-            select.append(new Option('Current conversation', conversationId));
+            select.append(new Option(t('ai.currentConversation'), conversationId));
           select.value = conversationId;
           input.value = '';
           input.style.height = 'auto';
@@ -422,20 +423,20 @@ export function mountAIAssistant(user, getContext = () => ({})) {
       if (renderFrame) window.cancelAnimationFrame?.(renderFrame);
       renderFrame = null;
       answer.textContent =
-        'Response interrupted. This provisional exchange may not have been saved.';
+        t('ai.interrupted');
       const unavailable = error.code === 'AI_UNAVAILABLE';
       if (unavailable) available = false;
       notice.textContent = unavailable
-        ? 'Fleng AI is currently unavailable. Refresh history to check again.'
+        ? t('ai.checkAgain')
         : ['AI_RATE_LIMITED', 'RATE_LIMITED', 'AI_BUSY', 'AI_BUDGET_LIMIT', 'AI_DAILY_LIMIT'].includes(error.code)
-          ? 'AI limit reached. Please try later.'
-          : 'The request did not complete. Refresh history before sending again; no automatic retry was made.';
+          ? t('ai.limit')
+          : t('ai.incomplete');
       phase(unavailable ? 'UNAVAILABLE' : 'ERROR');
     } finally {
       controller = null;
       busy = false;
       generating = false;
-      availability.textContent = available ? 'Ready to help' : 'Unavailable';
+      availability.textContent = available ? t('ai.ready') : t('ai.offline');
       controls();
       if (!panel.hidden && available && panel.contains(document.activeElement)) input.focus();
     }
@@ -474,7 +475,7 @@ export function mountAIAssistant(user, getContext = () => ({})) {
     root.style.setProperty('--ai-h', `${size.h}px`);
     const large = size.w > (COMPACT.w + LARGE.w) / 2 || size.h > (COMPACT.h + LARGE.h) / 2;
     expand.classList.toggle('is-large', large);
-    expand.setAttribute('aria-label', large ? 'Restore chat size' : 'Enlarge chat');
+    expand.setAttribute('aria-label', large ? t('ai.restore') : t('ai.enlarge'));
     if (persist) {
       try {
         localStorage.setItem(sizeKey, JSON.stringify(size));

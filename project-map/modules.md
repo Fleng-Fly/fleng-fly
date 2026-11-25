@@ -81,6 +81,10 @@ challenges ──► progress/gamification
 
 ## Frontend (static HTML / CSS / vanilla JavaScript)
 
+Shared EN/UK dictionaries cover interface text, test copy, Fleng AI controls and
+Progress achievements. `placement-copy.js` maps diagnostic results and course
+recommendations into the active locale. See [frontend localization](../docs/frontend-i18n.md).
+
 Served by FastAPI from `frontend/`; no framework and no build step. HTTP goes
 through `frontend/js/api.js`; protected pages use `requireSession()`.
 

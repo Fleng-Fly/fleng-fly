@@ -181,9 +181,10 @@ existing practice/stream lifecycle and scoped styles. Details:
       "Recommended" badge, next-course banner on completed courses.
 - [x] Translated: header, workspace, auth, dashboard, catalog, lesson, settings,
       leaderboard, progress, vocabulary, course words, placement test UI.
-- [ ] Translate the AI assistant widget.
+- [x] Translate Fleng AI controls, status messages, and history dates.
 - [x] Hints, EN/UK explanations, wrong-answer notes and lesson Explanation block for A0–A1
       (draft content, served outside production until reviewed; `docs/exercise-guidance.md`).
 - [ ] Guidance content for A2–B2 and teacher/translator review of A0–A1.
-- [ ] Translatable placement text.
+- [x] Localize Placement instructions, results, recommendations, and completed
+      answer explanations. Display localized achievements on Progress.
 - [ ] Real-browser checks at 1440/768/390/360 px (no browser was available).

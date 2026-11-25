@@ -55,6 +55,7 @@ export async function mountHeader(active = '', user) {
   brand.append(el('span', 'brand-mark', '✦'), el('span', 'brand-name', 'Fleng'));
 
   const nav = el('nav', 'nav');
+  nav.dataset.i18nAttr = 'aria-label:nav.main';
   nav.setAttribute('aria-label', t('nav.main'));
   const authArea = el('div', 'auth-area');
   let signedIn = false;

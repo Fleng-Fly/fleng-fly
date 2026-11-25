@@ -39,7 +39,10 @@ async function page(options = {}) {
     createElement: tag => new Node(tag),
   }, window });
   const exports = {
-    './api.js': { getMyProgress: async () => { calls++; if (options.pending) return options.pending; if (failure) throw failure; return value; } },
+    './api.js': {
+      getMyProgress: async () => { calls++; if (options.pending) return options.pending; if (failure) throw failure; return value; },
+      getMyAchievements: async () => [{ code: 'first_lesson', title: 'First Lesson', awardedAt: '2026-11-25' }],
+    },
     './session.js': { requireSession: async () => { sessions++; return options.noSession ? null : { displayName: 'Learner' }; } },
     './workspace.js': { mountWorkspace() {}, setWorkspaceUser() {} },
     './errors.js': { describeApiError: error => error.message },
@@ -75,6 +78,7 @@ test('renders backend metrics, course percentages and unavailable history withou
   assert.equal(app.target.all('progress')[0].max, 100);
   assert.equal(app.target.all('canvas').length, 0);
   assert.equal(app.target.all('svg').length, 0);
+  assert.match(text, /Achievements.*First Lesson/);
   assert.equal(app.calls(), 1);
   assert.equal(app.target.attributes['aria-busy'], 'false');
   // Sidebar highlighting is owned by the shared workspace (mountWorkspace('progress')).

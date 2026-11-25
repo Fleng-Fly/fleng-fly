@@ -578,7 +578,8 @@ function questionCard(exercise, index) {
   setProgressBar(track, state.progress.exercises.filter((item) => item.attempts > 0).length, state.progress.exercisesTotal);
   // The task comes first, so the learner knows what to do before reading the prompt.
   const instructionKey = `lesson.instruction.${exerciseType(exercise)}`;
-  const task = pick(exercise.instruction) || (t(instructionKey) !== instructionKey ? t(instructionKey) : '');
+  const task = exercise.instruction?.[getLang()]
+    || (t(instructionKey) !== instructionKey ? t(instructionKey) : pick(exercise.instruction));
   if (task) {
     const instruction = el('p', 'lesson-instruction');
     instruction.id = `task-${exercise.id}`;

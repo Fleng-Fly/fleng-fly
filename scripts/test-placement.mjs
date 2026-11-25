@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import vm from 'node:vm';
 import { i18nStub } from './i18n-stub.mjs';
+import en from '../frontend/js/i18n/en.js';
+import uk from '../frontend/js/i18n/uk.js';
 
 class Element {
   constructor(tag = 'div', text = '') { this.tag = tag; this.text = text; this.children = []; this.events = {}; this.dataset = {}; this.disabled = false; this.hidden = false; this.value = ''; this.style = { setProperty() {} }; }
@@ -22,7 +24,7 @@ const copy = (value) => JSON.parse(JSON.stringify(value));
 const questions = [1, 2].map((n) => ({ id: `q${n}`, prompt: `Question ${n} <img onerror=bad>`, level: 'A1', options: [{ id: 'a', text: 'First' }, { id: 'b', text: 'Second' }] }));
 const fresh = (id) => ({ id, questions, status: 'in_progress', total: 2, answered: 0, answers: {}, result: null, recommendedCourses: [], startedAt: '2026-11-16T12:00:00Z' });
 
-async function page({ resume = false, unavailable = false, history: rows = null } = {}) {
+async function page({ resume = false, unavailable = false, history: rows = null, lang = 'en' } = {}) {
   const nodes = new Map(), calls = [], urls = [], workspace = [];
   const node = (id) => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
   const levels = ['A1', 'A2', 'B1', 'B2'].map((level) => { const card = new Element('li'); card.dataset = { level }; card.names = new Set(); card.classList = { toggle: (name, on) => (on ? card.names.add(name) : card.names.delete(name)) }; card.querySelector = () => null; card.prepend = (...nodes) => card.children.unshift(...nodes); return card; });
@@ -42,7 +44,7 @@ async function page({ resume = false, unavailable = false, history: rows = null 
     completePlacement: async () => {
       calls.push('complete'); assert.equal(stored.answered, 2);
       stored.status = 'completed';
-      stored.result = { label: 'Approximate A1', correct: 1, total: 2, assessmentRange: 'A1–B2', limitations: ['Not certified'], bands: [{ level: 'A1', correct: 1, total: 2 }], review: questions.map((q) => ({ questionId: q.id, selectedOptionId: stored.answers[q.id], correctOptionId: 'a', isCorrect: stored.answers[q.id] === 'a', explanation: 'Explanation after completion' })) };
+      stored.result = { label: 'Approximate A1', estimatedLevel: 'A1', correct: 1, total: 2, assessmentRange: 'A1–B2', limitations: ['Not certified', en['pt.limit.1']], bands: [{ level: 'A1', correct: 1, total: 2 }], review: questions.map((q) => ({ questionId: q.id, selectedOptionId: stored.answers[q.id], correctOptionId: 'a', isCorrect: stored.answers[q.id] === 'a', explanation: 'Explanation after completion', explanationUk: 'Пояснення після завершення' })) };
       stored.recommendationNote = 'Published A1 courses'; stored.recommendedCourses = [{ level: 'A1', title: 'Real course', slug: 'real-course' }];
       return copy(stored);
     },
@@ -53,12 +55,17 @@ async function page({ resume = false, unavailable = false, history: rows = null 
   });
   const module = new vm.SourceTextModule(await readFile('frontend/js/placement-test.js', 'utf8'), { context });
   const imports = new Map();
+  const i18n = lang === 'uk' ? {
+    ...i18nStub, getLang: () => lang,
+    t: (key, params) => (uk[key] ?? key).replace(/\{(\w+)\}/g, (match, name) => params?.[name] ?? match),
+  } : i18nStub;
   const link = (name) => {
     if (imports.has(name)) return imports.get(name);
     const values = name === './placement-api.js' ? api
       : name === './layout.js' ? { el: (tag, cls, text) => { const n = new Element(tag, text || ''); n.className = cls; return n; } }
       : name === './workspace.js' ? { mountWorkspace: (active) => { workspace.push(active); }, setWorkspaceUser() {} }
-      : name === './i18n.js' ? i18nStub
+      : name === './i18n.js' ? i18n
+      : name === './i18n/en.js' ? { default: en }
       : name === './session.js' ? { requireSession: async () => { if (unavailable) throw new Error('Backend unavailable'); return { id: 'user' }; } }
       : { describeApiError: (error) => error.message };
     const dependency = new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context });
@@ -68,6 +75,9 @@ async function page({ resume = false, unavailable = false, history: rows = null 
   const completion = new vm.SourceTextModule(await readFile('frontend/js/test-completion.js', 'utf8'), { context });
   imports.set('./test-completion.js', completion);
   await completion.link(link);
+  const copyModule = new vm.SourceTextModule(await readFile('frontend/js/placement-copy.js', 'utf8'), { context });
+  await copyModule.link(link);
+  imports.set('./placement-copy.js', copyModule);
   await module.link(link);
   await module.evaluate();
   const flush = async () => { for (let i = 0; i < 30; i++) await Promise.resolve(); };
@@ -104,6 +114,21 @@ test('URL resume loads saved choices without starting a new attempt', async () =
   assert.equal(app.calls.includes('start'), false);
   assert.equal(app.node('placement-question').querySelectorAll('input')[1].checked, false);
   assert.match(app.node('placement-count').textContent, /Question 2/);
+});
+
+test('Ukrainian instructions and results preserve English tasks and keep explanations out of the question', async () => {
+  const app = await page({ lang: 'uk' });
+  await app.click('placement-start');
+  const question = app.node('placement-question').textContent;
+  assert.ok(question.includes(uk['pt.instruction']));
+  assert.match(question, /Question 1.*First.*Second/);
+  assert.doesNotMatch(question, /Пояснення|Explanation/);
+  await app.choose();
+  await app.choose(1);
+  const result = app.node('placement-result').textContent;
+  assert.ok(result.includes(uk['pt.limit.1']));
+  assert.ok(result.includes(uk['pt.result.estimated'].replace('{level}', 'A1')));
+  assert.match(result, /Пояснення після завершення/);
 });
 
 test('failed save offers recovery without grading or advancing; session errors stay visible', async () => {
