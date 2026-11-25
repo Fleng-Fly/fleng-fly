@@ -78,12 +78,24 @@ async def detail(db: AsyncSession, attempt: PlacementAttempt) -> PlacementDetail
             )
     if attempt.result and attempt.result["insufficient_evidence"]:
         note = "Insufficient evidence for course placement; browse the catalog or ask a teacher."
+    result = PlacementResult.model_validate(attempt.result) if attempt.result else None
+    if result and any(not review.explanation_uk for review in result.review):
+        bank = load_bank()
+        if attempt.bank_version == bank.get("version"):
+            # Match saved English text as well as ID before translating historical reviews.
+            translations = {
+                (q["id"], q["explanation"]): q.get("explanation_uk") for q in bank["questions"]
+            }
+            for review in result.review:
+                if not review.explanation_uk:
+                    key = (review.question_id, review.explanation)
+                    review.explanation_uk = translations.get(key)
     return PlacementDetail(
         **summary(attempt).model_dump(),
         # Explicit response projection keeps keys/explanations private before completion.
         questions=[PlacementQuestion.model_validate(q) for q in attempt.questions],
         answers=attempt.answers,
-        result=PlacementResult.model_validate(attempt.result) if attempt.result else None,
+        result=result,
         recommended_courses=courses,
         recommendation_note=note,
     )

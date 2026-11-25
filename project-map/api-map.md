@@ -245,7 +245,9 @@ Bearer JWT required, /api/v1 prefix:
 | PUT | /placement-test/attempts/{attempt_id}/answers | Validated partial saves, no correctness |
 | POST | /placement-test/attempts/{attempt_id}/complete | Deterministic immutable result and course suggestions |
 
-No keys before completion, no XP/profile update. Details: docs/03-backend/placement-api.md.
+Completed review entries may include `explanationUk`. Public questions and
+in-progress attempts omit answer keys and explanations. Placement awards no XP.
+See [Placement API](../docs/03-backend/placement-api.md).
 
 ## Learning Experience 2.0 — 2026-11-18
 

@@ -63,6 +63,7 @@ def score(questions: list[dict], answers: dict[str, str | None]) -> dict:
                 correct_option_id=q["correct_option_id"],
                 is_correct=answers[q["id"]] == q["correct_option_id"],
                 explanation=q["explanation"],
+                explanation_uk=q.get("explanation_uk"),
             )
             for q in questions
         ],

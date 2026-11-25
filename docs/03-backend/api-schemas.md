@@ -2330,6 +2330,18 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
     "explanation": {
       "type": "string",
       "title": "Explanation"
+    },
+    "explanationUk": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Explanationuk"
     }
   },
   "type": "object",

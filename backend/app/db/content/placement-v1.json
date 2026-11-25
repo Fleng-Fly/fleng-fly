@@ -27,7 +27,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "A singular third-person subject takes is."
+      "explanation": "A singular third-person subject takes is.",
+      "explanation_uk": "З підметом у третій особі однини вживаємо is."
     },
     {
       "id": "q02",
@@ -53,7 +54,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "The present simple takes -s with he or she."
+      "explanation": "The present simple takes -s with he or she.",
+      "explanation_uk": "У Present Simple з he або she дієслово має закінчення -s."
     },
     {
       "id": "q03",
@@ -79,7 +81,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "Two requires the plural noun books."
+      "explanation": "Two requires the plural noun books.",
+      "explanation_uk": "Число two вимагає множини, тому потрібне books."
     },
     {
       "id": "q04",
@@ -105,7 +108,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "Use on with a named day of the week."
+      "explanation": "Use on with a named day of the week.",
+      "explanation_uk": "З назвою дня тижня вживаємо прийменник on."
     },
     {
       "id": "q05",
@@ -131,7 +135,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "The library is still open for thirty minutes."
+      "explanation": "The library is still open for thirty minutes.",
+      "explanation_uk": "Бібліотека працюватиме ще тридцять хвилин."
     },
     {
       "id": "q06",
@@ -157,7 +162,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "The second sentence identifies Anna’s bike as blue."
+      "explanation": "The second sentence identifies Anna’s bike as blue.",
+      "explanation_uk": "З другого речення дізнаємося, що велосипед Анни синій."
     },
     {
       "id": "q07",
@@ -183,7 +189,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "A finished event yesterday takes the past simple."
+      "explanation": "A finished event yesterday takes the past simple.",
+      "explanation_uk": "Завершену подію, що відбулася вчора, описуємо в Past Simple."
     },
     {
       "id": "q08",
@@ -209,7 +216,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "A comparison with than takes the comparative faster."
+      "explanation": "A comparison with than takes the comparative faster.",
+      "explanation_uk": "У порівнянні з than вживаємо вищий ступінь faster."
     },
     {
       "id": "q09",
@@ -235,7 +243,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "Since introduces the starting point of an unfinished period."
+      "explanation": "Since introduces the starting point of an unfinished period.",
+      "explanation_uk": "Since позначає початок періоду, що триває досі."
     },
     {
       "id": "q10",
@@ -261,7 +270,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "Turn off means stop a light or device operating."
+      "explanation": "Turn off means stop a light or device operating.",
+      "explanation_uk": "Turn off означає вимкнути світло або пристрій."
     },
     {
       "id": "q11",
@@ -287,7 +297,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "The notice makes bringing the receipt a condition of a return."
+      "explanation": "The notice makes bringing the receipt a condition of a return.",
+      "explanation_uk": "В оголошенні сказано, що для повернення товару потрібен чек."
     },
     {
       "id": "q12",
@@ -313,7 +324,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "Used to describes a former habit; cycle means travel by bicycle."
+      "explanation": "Used to describes a former habit; cycle means travel by bicycle.",
+      "explanation_uk": "Used to описує колишню звичку, а cycle означає їздити велосипедом."
     },
     {
       "id": "q13",
@@ -339,7 +351,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "A real future condition uses present simple in the if-clause and will in the result."
+      "explanation": "A real future condition uses present simple in the if-clause and will in the result.",
+      "explanation_uk": "У реальній майбутній умові після if вживаємо Present Simple, а в головній частині — will."
     },
     {
       "id": "q14",
@@ -365,7 +378,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "The past continuous describes an action in progress interrupted by a past event."
+      "explanation": "The past continuous describes an action in progress interrupted by a past event.",
+      "explanation_uk": "Past Continuous описує дію, що тривала, коли сталася інша подія в минулому."
     },
     {
       "id": "q15",
@@ -391,7 +405,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "Must expresses the stated obligation."
+      "explanation": "Must expresses the stated obligation.",
+      "explanation_uk": "Must виражає зазначений обов’язок."
     },
     {
       "id": "q16",
@@ -417,7 +432,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "Despite introduces a contrast with an obstacle, not a cause."
+      "explanation": "Despite introduces a contrast with an obstacle, not a cause.",
+      "explanation_uk": "Despite вказує на перешкоду, всупереч якій щось відбувається."
     },
     {
       "id": "q17",
@@ -443,7 +459,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "The stated reason is the ability to work; the extra cost is a disadvantage."
+      "explanation": "The stated reason is the ability to work; the extra cost is a disadvantage.",
+      "explanation_uk": "Названа причина — можливість працювати. Додаткова вартість є недоліком."
     },
     {
       "id": "q18",
@@ -469,7 +486,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "Only Wednesday at 3 p.m. meets the stated availability."
+      "explanation": "Only Wednesday at 3 p.m. meets the stated availability.",
+      "explanation_uk": "З усіх варіантів підходить лише середа о 15:00."
     },
     {
       "id": "q19",
@@ -495,7 +513,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "The past perfect places the resolution before another past event."
+      "explanation": "The past perfect places the resolution before another past event.",
+      "explanation_uk": "Past Perfect показує, що проблему вирішили до іншої події в минулому."
     },
     {
       "id": "q20",
@@ -521,7 +540,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "Which introduces a non-defining relative clause referring to the proposal."
+      "explanation": "Which introduces a non-defining relative clause referring to the proposal.",
+      "explanation_uk": "Which вводить підрядне означальне речення з додатковою інформацією про пропозицію."
     },
     {
       "id": "q21",
@@ -547,7 +567,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "Wish plus past simple expresses an unreal present situation."
+      "explanation": "Wish plus past simple expresses an unreal present situation.",
+      "explanation_uk": "Wish із Past Simple виражає бажання змінити ситуацію в теперішньому."
     },
     {
       "id": "q22",
@@ -573,7 +594,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "The remaining condition makes the approval provisional."
+      "explanation": "The remaining condition makes the approval provisional.",
+      "explanation_uk": "Схвалення попереднє, бо ще потрібно виконати одну умову."
     },
     {
       "id": "q23",
@@ -599,7 +621,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "A specialised group may not represent the opinions of the wider population."
+      "explanation": "A specialised group may not represent the opinions of the wider population.",
+      "explanation_uk": "Думки спеціалізованої групи можуть відрізнятися від поглядів ширшої спільноти."
     },
     {
       "id": "q24",
@@ -625,7 +648,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "The manager supports exploring the idea while withholding a permanent commitment."
+      "explanation": "The manager supports exploring the idea while withholding a permanent commitment.",
+      "explanation_uk": "Керівник підтримує подальше вивчення ідеї та відкладає остаточне рішення."
     },
     {
       "id": "q25",
@@ -651,7 +675,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "A fronted restrictive only phrase triggers subject-auxiliary inversion: did they realise."
+      "explanation": "A fronted restrictive only phrase triggers subject-auxiliary inversion: did they realise.",
+      "explanation_uk": "Коли обмежувальний зворот з only стоїть на початку, допоміжне дієслово передує підмету: did they realise."
     },
     {
       "id": "q26",
@@ -677,7 +702,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "Had introduces an inverted past counterfactual conditional: if the funding had been withdrawn."
+      "explanation": "Had introduces an inverted past counterfactual conditional: if the funding had been withdrawn.",
+      "explanation_uk": "Had на початку вводить нереальну умову в минулому з інверсією. Звичайний порядок слів — if the funding had been withdrawn."
     },
     {
       "id": "q27",
@@ -703,7 +729,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "Warrant means justify; the other verbs do not fit this meaning and construction."
+      "explanation": "Warrant means justify; the other verbs do not fit this meaning and construction.",
+      "explanation_uk": "Warrant означає justify («виправдовувати»). Інші дієслова не підходять за значенням або конструкцією."
     },
     {
       "id": "q28",
@@ -729,7 +756,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "Far from rejects endorsement; the assumptions remain unconfirmed."
+      "explanation": "Far from rejects endorsement; the assumptions remain unconfirmed.",
+      "explanation_uk": "Far from виражає відмову підтримати висновок. Припущення залишаються непідтвердженими."
     },
     {
       "id": "q29",
@@ -755,7 +783,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "Faster internal processing can conceal an increased external burden."
+      "explanation": "Faster internal processing can conceal an increased external burden.",
+      "explanation_uk": "Швидші внутрішні процедури можуть приховувати збільшення навантаження на інших."
     },
     {
       "id": "q30",
@@ -781,7 +810,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "The concession acknowledges elegance but separates it from demonstrated practical value."
+      "explanation": "The concession acknowledges elegance but separates it from demonstrated practical value.",
+      "explanation_uk": "Автор визнає елегантність рішення, але для підтвердження його практичної цінності потрібні докази."
     },
     {
       "id": "q31",
@@ -807,7 +837,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "Perfunctory describes something done as a formality with little care or engagement."
+      "explanation": "Perfunctory describes something done as a formality with little care or engagement.",
+      "explanation_uk": "Perfunctory описує те, що роблять формально, без особливої уваги чи зацікавленості."
     },
     {
       "id": "q32",
@@ -833,7 +864,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "Ostensible distinguishes an apparent or professed aim from a possibly different underlying motive."
+      "explanation": "Ostensible distinguishes an apparent or professed aim from a possibly different underlying motive.",
+      "explanation_uk": "Ostensible позначає видиму або заявлену мету, за якою може стояти інший мотив."
     },
     {
       "id": "q33",
@@ -859,7 +891,8 @@
         }
       ],
       "correct_option_id": "d",
-      "explanation": "The praise is undermined by the exaggerated delay described immediately afterwards."
+      "explanation": "The praise is undermined by the exaggerated delay described immediately afterwards.",
+      "explanation_uk": "Перебільшений опис затримки одразу після похвали робить її іронічною."
     },
     {
       "id": "q34",
@@ -885,7 +918,8 @@
         }
       ],
       "correct_option_id": "c",
-      "explanation": "Non-detection by an insensitive method does not establish absence; it also does not prove presence."
+      "explanation": "Non-detection by an insensitive method does not establish absence; it also does not prove presence.",
+      "explanation_uk": "Якщо метод недостатньо чутливий, відсутність сигналу не дає змоги встановити ані відсутність, ані наявність явища."
     },
     {
       "id": "q35",
@@ -911,7 +945,8 @@
         }
       ],
       "correct_option_id": "b",
-      "explanation": "The stated problem is that more than one account fits; filling one gap need not resolve it."
+      "explanation": "The stated problem is that more than one account fits; filling one gap need not resolve it.",
+      "explanation_uk": "З фактами узгоджується кілька пояснень. Заповнення однієї прогалини не обов’язково дасть змогу вибрати між ними."
     },
     {
       "id": "q36",
@@ -937,7 +972,8 @@
         }
       ],
       "correct_option_id": "a",
-      "explanation": "A fronted so plus adjective construction uses inversion: so intricate was the mechanism that ..."
+      "explanation": "A fronted so plus adjective construction uses inversion: so intricate was the mechanism that ...",
+      "explanation_uk": "Коли so з прикметником стоїть на початку речення, дієслово передує підмету: so intricate was the mechanism that ..."
     }
   ]
 }

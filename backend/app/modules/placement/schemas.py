@@ -46,6 +46,7 @@ class PlacementReview(CamelModel):
     correct_option_id: str
     is_correct: bool
     explanation: str
+    explanation_uk: str | None = None
 
 
 class PlacementResult(CamelModel):

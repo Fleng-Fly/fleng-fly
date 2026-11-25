@@ -55,7 +55,10 @@ async def fill(client, auth, attempt, answers):
 def assert_private(value):
     if isinstance(value, dict):
         assert (
-            not {"correctOptionId", "correct_option_id", "explanation", "isCorrect"} & value.keys()
+            not {
+                "correctOptionId", "correct_option_id", "explanation",
+                "explanationUk", "explanation_uk", "isCorrect",
+            } & value.keys()
         )
         for child in value.values():
             assert_private(child)
@@ -261,6 +264,7 @@ async def test_complete_retake_recommendations_and_zero_learning_writes(client, 
     assert result["result"]["correct"] == 36
     assert result["result"]["estimatedLevel"] == "B2"
     assert len(result["result"]["review"]) == 36
+    assert all(row["explanationUk"] for row in result["result"]["review"])
     listed = {a["id"]: a for a in (await client.get(BASE, headers=auth)).json()}[first["id"]]
     assert (listed["correct"], listed["total"], listed["estimatedLevel"]) == (36, 36, "B2")
     assert [c["slug"] for c in result["recommendedCourses"]] == ["placement-b2"]

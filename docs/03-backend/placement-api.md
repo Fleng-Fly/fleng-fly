@@ -22,6 +22,9 @@ attempts and completed labels, but no keys or private snapshots.
 Returns 200 PlacementDetail for the owner's UUID. In-progress output includes
 selected answers and no correctness. Completed output includes the saved result,
 review and current published-course recommendations.
+Review entries expose optional `explanationUk` alongside `explanation` when
+the saved question and explanation match the Ukrainian translation in the bank.
+The same review fields are returned by the completion endpoint.
 
 ## `PUT /api/v1/placement-test/attempts/{attempt_id}/answers`
 
