@@ -480,8 +480,10 @@ the SHA). Next: A1 lessons 11–15, then A2, B1, B2 per `docs/curriculum-expansi
   published records and five levels (A0 through B2).
 - Completed: Course Words server pagination, scoped mixed practice, and a
   test-database importer for a sourced JSONL release.
+- Release quotas are 1,000 A0, 2,000 A1, 3,000 A2, 4,000 B1, 4,500 B2,
+  5,000 C1 and 5,500 C2. The SQLite release audit checks all seven quotas.
 - Pending: assemble the evidenced bilingual dataset, distribute the entries
-  among published levels and the requested C1 extension, and verify content
+  among published levels and the requested C1/C2 extension, and verify content
   and practice eligibility at the full release size.
 
 - Completed: 200 curated words per curriculum course and 500 new graded translation

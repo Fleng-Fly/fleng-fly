@@ -24,3 +24,6 @@ from the backend directory for a dry run, then include `--apply` to insert.
 Each JSONL shard is transactional, and rerunning the same shard is idempotent.
 The database must already contain published courses and lessons matching the
 level on each source entry.
+Run `python -m app.db.import_vocabulary --test-database <prepared-test.db> --audit-release`
+to print global and per-level counts and return a failing status if the exact quotas
+are unmet. A repeated legacy headword is counted at its earliest published level.

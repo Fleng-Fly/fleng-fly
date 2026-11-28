@@ -2,12 +2,14 @@
 
 import argparse
 import asyncio
+import json
 import unicodedata
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Annotated, cast
 
 from pydantic import Field, HttpUrl
-from sqlalchemy import RowMapping, Table, select, text
+from sqlalchemy import RowMapping, Table, or_, select, text
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine
 
@@ -15,10 +17,58 @@ from app.core.levels import LearningLevel
 from app.db.curriculum import WordSpec, stable_id
 from app.db.models import Course, CourseVocabularyItem, Lesson
 
+LEVEL_TARGETS: dict[LearningLevel, int] = {
+    "A0": 1000,
+    "A1": 2000,
+    "A2": 3000,
+    "B1": 4000,
+    "B2": 4500,
+    "C1": 5000,
+    "C2": 5500,
+}
+
 
 def normalize_headword(word: str) -> str:
     apostrophes = {0x2018: 39, 0x2019: 39, 0x02BC: 39}
     return " ".join(unicodedata.normalize("NFKC", word).casefold().translate(apostrophes).split())
+
+
+def count_release(rows: Iterable[tuple[str, str]]) -> dict[LearningLevel, int]:
+    """Credit repeated legacy headwords once, at the earliest published level."""
+    groups: dict[str, set[str]] = {}
+    for level, word in rows:
+        key = normalize_headword(word)
+        if key:
+            groups.setdefault(level, set()).add(key)
+    seen: set[str] = set()
+    counts = {}
+    for level in LEVEL_TARGETS:
+        group = groups.get(level, set())
+        counts[level] = len(group - seen)
+        seen.update(group)
+    return counts
+
+
+async def audit_release(database: Path) -> dict[LearningLevel, int]:
+    if not database.is_file():
+        raise ValueError("Prepare a dedicated test database before auditing")
+    url = URL.create("sqlite+aiosqlite", database=str(database.resolve()))
+    engine = create_async_engine(url)
+    try:
+        async with engine.connect() as connection:
+            await connection.execute(text("PRAGMA query_only=ON"))
+            rows = await connection.execute(
+                select(Course.level, CourseVocabularyItem.word)
+                .join(CourseVocabularyItem, CourseVocabularyItem.course_id == Course.id)
+                .outerjoin(Lesson, Lesson.id == CourseVocabularyItem.lesson_id)
+                .where(
+                    Course.is_published.is_(True),
+                    or_(CourseVocabularyItem.lesson_id.is_(None), Lesson.is_published.is_(True)),
+                )
+            )
+            return count_release((level, word) for level, word in rows)
+    finally:
+        await engine.dispose()
 
 
 class SourcedWord(WordSpec):
@@ -123,10 +173,23 @@ async def import_words(database: Path, dataset: Path, *, apply: bool = False) ->
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("dataset", type=Path)
+    parser.add_argument("dataset", type=Path, nargs="?")
     parser.add_argument("--test-database", type=Path, required=True)
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--audit-release", action="store_true")
     args = parser.parse_args()
+    if args.audit_release:
+        if args.dataset or args.apply:
+            parser.error("--audit-release checks the existing catalog without importing")
+        counts = asyncio.run(audit_release(args.test_database))
+        print(
+            json.dumps({"total": sum(counts.values()), "levels": counts, "targets": LEVEL_TARGETS})
+        )
+        if counts != LEVEL_TARGETS:
+            raise SystemExit(1)
+        return
+    if not args.dataset:
+        parser.error("provide a JSONL dataset or --audit-release")
     count = asyncio.run(import_words(args.test_database, args.dataset, apply=args.apply))
     print(f"{count} words {'inserted' if args.apply else 'validated for insertion'}")
 

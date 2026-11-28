@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.db.base import Base
-from app.db.import_vocabulary import import_words
+from app.db.import_vocabulary import LEVEL_TARGETS, audit_release, count_release, import_words
 from app.db.models import Course, CourseVocabularyItem, Lesson
 
 
@@ -63,7 +63,17 @@ async def test_sourced_vocabulary_import_is_atomic_and_repeatable(tmp_path):
         assert (await connection.execute(select(CourseVocabularyItem.id))).all() == []
     assert await import_words(database, dataset, apply=True) == 1
     assert await import_words(database, dataset, apply=True) == 0
+    counts = await audit_release(database)
+    assert counts["A0"] == sum(counts.values()) == 1
     async with engine.connect() as connection:
         headword = await connection.scalar(select(CourseVocabularyItem.word))
         assert headword == "example's term"
     await engine.dispose()
+
+
+def test_release_quotas_and_cross_level_deduplication():
+    assert sum(LEVEL_TARGETS.values()) == 25_000
+    assert LEVEL_TARGETS["C2"] == 5500
+    counts = count_release([("C2", "Test’s Word"), ("A1", "test's  word"), ("C2", "Another")])
+    assert counts["A1"] == counts["C2"] == 1
+    assert sum(counts.values()) == 2
