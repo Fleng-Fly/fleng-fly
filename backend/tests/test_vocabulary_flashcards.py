@@ -73,6 +73,12 @@ async def test_course_words_filters_and_sessions(client, db_session):
     route = "/api/v1/vocabulary/course-words"
     assert (await client.get(route)).status_code == 401
     assert len((await client.get(route, headers=auth)).json()) == 2
+    page = await client.get(route, headers=auth, params={"q": "amp", "limit": 1})
+    assert page.headers["X-Total-Count"] == "2"
+    assert len(page.json()) == 1
+    page = await client.get(route, headers=auth, params={"q": "b2", "level": "B2"})
+    assert page.headers["X-Total-Count"] == "1"
+    assert page.json()[0]["translation"] == "B2"
     for level in ["A0", "A1", "A2", "B1", "B2", "C1", "C2"]:
         rows = (await client.get(route, headers=auth, params={"level": level})).json()
         assert len(rows) == (1 if level in ["A1", "B2"] else 0)

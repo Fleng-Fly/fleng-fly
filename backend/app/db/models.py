@@ -597,6 +597,7 @@ class CourseVocabularyItem(Base):
     translation: Mapped[str] = mapped_column(String(300))
     example: Mapped[str] = mapped_column(String(1000), default="", server_default="")
     pronunciation: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    lexical_details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
 
 class FlashcardSession(Base):

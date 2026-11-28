@@ -1,5 +1,5 @@
 import { elapsedSeconds, TestCompletionScreen } from './test-completion.js';
-import { addVocabulary, deleteVocabulary, getVocabularyGroups, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
+import { addVocabulary, createCourseFlashcards, deleteVocabulary, getCourseFlashcards, getVocabularyGroups, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
 import { el } from './layout.js';
 import { t, tn } from './i18n.js';
 import { describeApiError } from './errors.js';
@@ -10,7 +10,12 @@ import { autoCheckText } from './auto-check.js';
 
 const $ = (id) => document.getElementById(id);
 const taskTypes = ['flashcards', 'choice', 'write', 'letters'];
-const initialMode = new URLSearchParams(location.search).get('mode');
+const initialParams = new URLSearchParams(location.search);
+const initialMode = initialParams.get('mode');
+const courseScope = Object.fromEntries(['courseId', 'lessonId', 'level']
+  .filter((key) => initialParams.get(key)).map((key) => [key, initialParams.get(key)]));
+const coursePractice = Object.keys(courseScope).length > 0 && initialMode === 'mixed';
+if (coursePractice) taskTypes.push('translation');
 const state = {
   words: [], groups: [], course: '', lesson: '', expanded: new Set(), filter: 'all',
   mode: initialMode === 'mixed' || taskTypes.includes(initialMode) ? 'mixed' : 'list',
@@ -229,9 +234,18 @@ function translations() {
   return [...new Map(state.words.map((word) => [normalize(word.translation), word.translation])).values()];
 }
 
-function availableTypes(word, canChoose) {
+function choiceAlternatives(word) {
+  const accepted = [word.translation, ...(word.alternativeTranslations ?? [])].map(normalize);
+  return translations().filter((translation) => !accepted.includes(normalize(translation)));
+}
+
+function availableTypes(word, pool) {
+  const canUseLetters = coursePractice
+    ? /^[a-zA-Z '\u2019-]{2,24}$/.test(word.word) && /[a-z].*[a-z]/i.test(word.word)
+    : /^[a-zA-Z]{2,24}$/.test(word.word);
+  const canChoose = coursePractice ? choiceAlternatives(word).length > 0 : pool.length > 1;
   return taskTypes.filter((type) => (type !== 'choice' || canChoose)
-    && (type !== 'letters' || /^[a-zA-Z]{2,24}$/.test(word.word)));
+    && (type !== 'letters' || canUseLetters));
 }
 
 function practiceSelection() {
@@ -248,9 +262,9 @@ function reconcilePractice(session) {
   if (!Array.isArray(session?.tasks) || !Array.isArray(session.queue)
       || !Array.isArray(session.mistakes)) return null;
   const words = new Map(state.words.map((word) => [word.id, word]));
-  const canChoose = translations().length > 1;
+  const pool = translations();
   const tasks = new Map(session.tasks.filter(({ wordId }) => words.has(wordId)).map((task) => {
-    const types = availableTypes(words.get(task.wordId), canChoose);
+    const types = availableTypes(words.get(task.wordId), pool);
     return [task.wordId, { ...task, type: types.includes(task.type) ? task.type : 'flashcards' }];
   }));
   if (!tasks.size) return null;
@@ -270,10 +284,10 @@ function restorePractice() {
 function startPractice(firstId, selectedIds, retryTasks = []) {
   // Replay the same words even after review changes the due filter.
   const selected = selectedIds ? state.words.filter((word) => selectedIds.includes(word.id)) : filteredWords();
-  const canChoose = translations().length > 1;
   const counts = new Map(taskTypes.map((type) => [type, 0]));
   const priorTypes = new Map(retryTasks.map(({ wordId, type }) => [wordId, type]));
-  const candidates = shuffle(selected).map((word) => ({ wordId: word.id, types: shuffle(availableTypes(word, canChoose)) }));
+  const pool = translations();
+  const candidates = shuffle(selected).map((word) => ({ wordId: word.id, types: shuffle(availableTypes(word, pool)) }));
   // Allocate constrained words first so their limited types do not crowd out the others.
   candidates.sort((a, b) => a.types.length - b.types.length);
   const tasks = shuffle(candidates.map(({ wordId, types }) => {
@@ -336,8 +350,8 @@ function renderSummary(target) {
       title: words.get(id).word, mistake: true, errors: reviewErrors(history),
     })),
     retryMistakes: wrong.length ? () => startPractice(undefined, wrong, tasks) : undefined,
-    tryAgain: () => startPractice(undefined, ids),
-    finish: () => setMode('list'),
+    tryAgain: coursePractice ? () => load(true) : () => startPractice(undefined, ids),
+    finish: () => coursePractice ? location.assign('/course-words.html') : setMode('list'),
     backToCourses: true,
   });
   heading.focus();
@@ -345,6 +359,10 @@ function renderSummary(target) {
 
 function setMode(mode, firstId, startAgain = false) {
   if (state.busy) return;
+  if (coursePractice && mode === 'list') {
+    location.assign('/vocabulary.html');
+    return;
+  }
   state.mode = mode;
   const url = new URL(location.href);
   url.searchParams.delete('word');
@@ -380,9 +398,9 @@ async function saveReview() {
   renderPractice();
   try {
     const { wordId, remembered, attemptId } = pending;
-    const updated = await reviewVocabulary(wordId, remembered, attemptId);
+    const updated = coursePractice ? null : await reviewVocabulary(wordId, remembered, attemptId);
     if (state.session !== session) return;
-    updateWord(updated);
+    if (updated) updateWord(updated);
     session.lastMistake = remembered ? null : wordId;
     if (!remembered) {
       session.errors ??= {};
@@ -431,7 +449,7 @@ function renderPractice(focus = false) {
   const visited = total - session.queue.length;
   const incorrect = session.mistakes.length;
   const correct = visited - incorrect - session.skipped.length;
-  const modeLabels = { flashcards: t('vocab.modeFlash'), choice: t('vocab.modeChoice'), write: t('vocab.modeWrite'), letters: t('vocab.modeLetters') };
+  const modeLabels = { flashcards: t('vocab.modeFlash'), choice: t('vocab.modeChoice'), write: t('vocab.modeWrite'), letters: t('vocab.modeLetters'), translation: t('vocab.translation2') };
   const title = el('h2', undefined, t('vocab.mixedTitle'));
   title.tabIndex = -1;
   const meta = el('div', 'word-practice-meta');
@@ -517,30 +535,33 @@ function renderPractice(focus = false) {
     actions.append(control(t('vocab.reveal'), () => turnCard(true), 'lesson-button lesson-button-primary'));
   } else if (type === 'choice') {
     card.append(speakButton(word.word), el('p', 'dashboard-muted', t('vocab.chooseTranslation')));
-    const alternatives = translations().filter((translation) => normalize(translation) !== normalize(word.translation));
+    const alternatives = choiceAlternatives(word);
     const choices = el('div', 'word-choice-list');
     for (const choice of shuffle([word.translation, ...shuffle(alternatives).slice(0, 3)])) choices.append(control(choice, () => grade(choice === word.translation, choice, word.translation), 'word-choice'));
     card.append(choices);
   } else {
     const form = el('form');
-    const check = (answer) => grade(normalize(answer) === normalize(word.word), answer, word.word);
+    const expected = type === 'translation' ? word.translation : word.word;
+    const accepted = type === 'translation' ? [expected, ...(word.alternativeTranslations ?? [])] : [expected];
+    const check = (answer) => grade(accepted.some((entry) => normalize(answer) === normalize(entry)), answer, expected);
     const letters = [...word.word];
-    if (type === 'write') {
-      const label = el('label', 'lesson-answer-label', t('vocab.typeEnglish'));
+    if (type === 'write' || type === 'translation') {
+      const label = el('label', 'lesson-answer-label', t(type === 'translation' ? 'vocab.translation2' : 'vocab.typeEnglish'));
       const input = el('input', 'lesson-answer');
       input.required = true;
       input.autocomplete = 'off';
       input.spellcheck = false;
-      input.maxLength = 120;
+      input.maxLength = type === 'translation' ? 300 : 120;
       input.setAttribute('autocapitalize', 'none');
       label.append(input);
       form.append(label);
       form.append(el('p', 'dashboard-muted', t('lesson.autoCheckText')));
       autoCheckText(form, input, check);
     } else {
-      const pattern = letters.map((letter, index) => index % 3 === 0 ? letter : '_').join('');
-      const bank = shuffle(letters.filter((_, index) => index % 3 !== 0));
-      const tiles = letterTiles({ pattern, letters: bank }, '', null, () => {
+      let letterIndex = 0;
+      const pattern = letters.map((letter) => /[a-z]/i.test(letter) && letterIndex++ % 3 !== 0 ? '_' : letter);
+      const bank = shuffle(letters.filter((_, index) => pattern[index] === '_'));
+      const tiles = letterTiles({ pattern: pattern.join(''), letters: bank }, '', null, () => {
         const answer = tiles.readAnswer();
         if (answer) check(answer);
       });
@@ -564,7 +585,7 @@ function openAddDialog() {
   $('word-dialog').showModal();
 }
 
-async function load() {
+async function load(newCourseSession = false) {
   if (state.loading) return;
   state.loading = true;
   const request = ++state.request;
@@ -574,6 +595,21 @@ async function load() {
     const user = await requireSession({ throwOnUnavailable: true });
     if (!user || request !== state.request) return;
     setWorkspaceUser(user);
+    if (coursePractice) {
+      const url = new URL(location.href);
+      const sessionId = url.searchParams.get('courseSession');
+      const snapshot = sessionId && newCourseSession !== true
+        ? await getCourseFlashcards(sessionId) : await createCourseFlashcards(courseScope);
+      url.searchParams.set('courseSession', snapshot.sessionId);
+      history.replaceState(null, '', url);
+      state.words = snapshot.cards.map((card) => ({ ...card, id: card.wordId }));
+      state.storageKey = `fleng.course-practice.v1:${user.id}:${snapshot.sessionId}`;
+      state.session = restorePractice();
+      $('words-content').hidden = false;
+      if (!state.session) startPractice(undefined, state.words.map((word) => word.id));
+      setMode('mixed');
+      return;
+    }
     const words = [];
     // Filters only need course/lesson order; the dictionary still works without it.
     const groups = getVocabularyGroups().then((body) => body?.courses ?? [], () => []);

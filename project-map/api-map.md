@@ -221,6 +221,10 @@ shapes remain; no public AI API. `AI_MAX_INPUT_TOKENS` bounds assembled server p
 
 Vocabulary: GET /vocabulary/course-words; POST /vocabulary/flashcards/sessions; GET /vocabulary/flashcards/sessions/{sessionId}; POST .../{sessionId}/complete; GET .../{sessionId}/test-words. All Bearer-protected. Contract: ../docs/vocabulary-flashcards-api.md.
 
+Course Words requests pages of 50 from the API. GET /vocabulary/course-words
+accepts q, level, courseId, lessonId, limit and offset, and returns X-Total-Count.
+POST /vocabulary/flashcards/sessions accepts lessonId for course-word sessions.
+
 
 ## A0–B2 curriculum — 2026-11-10
 

@@ -44,7 +44,7 @@ def test_letter_tiles_upgrade_preserves_existing_content(tmp_path, legacy_deskto
                 connection.scalar(text("SELECT title FROM courses WHERE slug = 'kept'")) == "Kept"
             )
             assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-                "20261124_1200"
+                "20261128_1200"
             )
             assert compare_metadata(MigrationContext.configure(connection), Base.metadata) == []
             assert connection.execute(text("PRAGMA foreign_key_check")).all() == []

@@ -476,6 +476,14 @@ the SHA). Next: A1 lessons 11–15, then A2, B1, B2 per `docs/curriculum-expansi
 
 ## A0–B2 vocabulary expansion
 
+- 25K expansion baseline is 1,012 unique English entries across 1,060
+  published records and five levels (A0 through B2).
+- Completed: Course Words server pagination, scoped mixed practice, and a
+  test-database importer for a sourced JSONL release.
+- Pending: assemble the evidenced bilingual dataset, distribute the entries
+  among published levels and the requested C1 extension, and verify content
+  and practice eligibility at the full release size.
+
 - Completed: 200 curated words per curriculum course and 500 new graded translation
   questions across the five courses.
 - Next: human linguistic review of the new vocabulary and answer choices.

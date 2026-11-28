@@ -30,12 +30,13 @@ class Element {
 
 const makeWord = (id = 'one', word = 'resilience', translation = 'стійкість') => ({ id, word, translation, example: 'Keep going.', learned: false, dueAt: '2020-01-01T00:00:00Z' });
 
-async function page({ words = [makeWord()], mode = '', reviewError = false, groups = [], storage = new Map() } = {}) {
+async function page({ words = [makeWord()], mode = '', scope = '', reviewError = false, groups = [], storage = new Map() } = {}) {
   const nodes = new Map(); const events = {}; const writes = [], attempts = [];
   const modeButtons = ['list', 'mixed'].map((mode) => { const n = new Element('button'); n.dataset.mode = mode; return n; });
   const filters = ['all', 'learning', 'learned', 'due'].map((filter) => { const n = new Element('button'); n.dataset.filter = filter; return n; });
   const node = (id) => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
-  const location = { href: `http://localhost/vocabulary.html${mode ? '?mode=' + mode : ''}`, search: mode ? '?mode=' + mode : '' };
+  const search = mode ? '?mode=' + mode + scope : '';
+  const location = { href: `http://localhost/vocabulary.html${search}`, search };
   const document = {
     getElementById: node, createElement: (tag) => new Element(tag),
     createElementNS: (ns, tag) => { const n = new Element(tag); n.namespaceURI = ns; return n; },
@@ -43,7 +44,10 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
   };
   let failReview = reviewError;
   let confirmRemoval = true;
+  const snapshot = { sessionId: 'scope', cards: words.map((word) => ({ ...word, wordId: word.id })) };
   const helpers = {
+    createCourseFlashcards: async () => snapshot,
+    getCourseFlashcards: async () => snapshot,
     getVocabularyGroups: async () => { if (groups === null) throw new Error('down'); return { courses: groups }; },
     listVocabulary: async (offset) => words.slice(offset, offset + 100),
     addVocabulary: async (input) => { writes.push({ add: input }); const word = { ...makeWord('added'), ...input }; words.push(word); return word; },
@@ -83,9 +87,18 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
   await flush();
   const click = async (element) => { assert.ok(element, 'control exists'); if (!element.disabled) await element.events.click?.({ preventDefault() {} }); await flush(); };
   const byText = (id, text) => node(id).querySelectorAll('button').find((n) => n.textContent.includes(text));
-  const session = () => JSON.parse(storage.get('fleng.mixed-practice.v1:user'));
+  const session = () => JSON.parse(storage.get(scope ? 'fleng.course-practice.v1:user:scope' : 'fleng.mixed-practice.v1:user'));
   return { node, mode: async (value) => click(modeButtons.find((n) => n.dataset.mode === value)), filter: async (value) => click(filters.find((n) => n.dataset.filter === value)), click, byText, writes, words, attempts, session, flush, fail: (value) => { failReview = value; }, confirmRemoval: (value) => { confirmRemoval = value; } };
 }
+
+test('course practice selects scoped cards and can skip without a personal review write', async () => {
+  const app = await page({ mode: 'mixed', scope: '&level=A1' });
+  assert.equal(app.session().queue.length, 1);
+  await app.click(app.byText('word-practice', 'Skip'));
+  assert.deepEqual(app.session().queue, []);
+  assert.deepEqual(app.session().skipped, ['one']);
+  assert.deepEqual(app.writes, []);
+});
 
 test('loads every vocabulary page, searches translation and filters learned words', async () => {
   const words = Array.from({ length: 101 }, (_, i) => makeWord(String(i), 'word' + i, 'переклад' + i));

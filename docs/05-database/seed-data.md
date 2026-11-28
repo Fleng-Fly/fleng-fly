@@ -17,3 +17,10 @@ promoted, and conflicting content
 causes startup to fail rather than overwrite existing lessons. See [publication](../06-learning/content-publication.md).
 
 [Section index](README.md) · [Documentation home](../README.md)
+
+The sourced vocabulary importer is separate from startup seeding. Run
+`python -m app.db.import_vocabulary <release.jsonl> --test-database <prepared-test.db>`
+from the backend directory for a dry run, then include `--apply` to insert.
+Each JSONL shard is transactional, and rerunning the same shard is idempotent.
+The database must already contain published courses and lessons matching the
+level on each source entry.
