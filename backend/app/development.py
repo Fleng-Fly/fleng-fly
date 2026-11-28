@@ -74,14 +74,14 @@ def checkout_problems(
     if (
         database is not None
         and not database.exists()
-        and primary_checkout(root) is not None
+        and (checkout := primary_checkout(root)) is not None
         and env.get(ALLOW_NEW_DATABASE) != "1"
     ):
         problems.append(
             f"This is a linked git worktree and its database {database} does not exist, so a "
             "new EMPTY database (no accounts, no progress) would be created. To use your "
             f"existing data, set DATABASE_URL to the main checkout's file, for example "
-            f"sqlite+aiosqlite:///{primary_checkout(root)}/backend/data/fleng.db . "
+            f"sqlite+aiosqlite:///{checkout / 'backend/data/fleng.db'} . "
             f"For an intentionally fresh database set {ALLOW_NEW_DATABASE}=1."
         )
     return problems

@@ -330,11 +330,11 @@ Empty/loading/error/retry and unavailable-history states passed. Screenshots:
 
 `/reading.html` is a signed-in workspace page linked from the sidebar. It uses
 existing catalog and lesson styles. The published course levels A0, A1, A2, B1
-and B2 each have six original passages, with five questions per passage (three
-multiple-choice and two True/False). A0 is the introductory Fleng level.
+and B2 each have six original passages, with ten questions per passage (six
+multiple-choice and four True/False). A0 is the introductory Fleng level.
 The catalog supports search in English and Ukrainian titles, level filters and
-best-score badges. Learners can read the passage while answering; all five
-answers are required before submission. A score of 4/5 or higher is a pass.
+best-score badges. Learners can read the passage while answering. All ten
+answers are required before submission. A score of 8/10 or higher is a pass.
 The result explains the correct answers with evidence from the passage.
 
 `frontend/js/reading-content.js` contains stable content IDs;

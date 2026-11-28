@@ -109,6 +109,7 @@ Table: `course_vocabulary_items`.
 | example | VARCHAR(1000) | False | — |
 | lesson_id | CHAR(32) | True | FK lessons.id |
 | pronunciation | VARCHAR(120) | True | — |
+| lexical_details | JSON | True | — |
 
 Constraints/indexes beyond primary/foreign keys:
 

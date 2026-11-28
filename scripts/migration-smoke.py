@@ -7,6 +7,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+from contextlib import closing
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,7 +63,7 @@ def main() -> None:
                 check=True,
                 timeout=120,
             )
-        with sqlite3.connect(database) as connection:
+        with closing(sqlite3.connect(database)) as connection:
             revisions = [
                 row[0]
                 for row in connection.execute("SELECT version_num FROM alembic_version")

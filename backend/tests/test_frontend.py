@@ -78,18 +78,25 @@ async def test_removed_team_page_is_not_served(client: AsyncClient) -> None:
         assert (await client.get(path)).status_code == 404, path
 
 
-async def test_retired_reading_has_no_pages_api_or_navigation(client: AsyncClient) -> None:
+async def test_reading_practice_serves_static_files_and_keeps_old_api_retired(
+    client: AsyncClient,
+) -> None:
     for path in (
         "/reading.html",
-        "/reading-article.html",
         "/js/reading.js",
+        "/js/reading-content.js",
+        "/js/reading-state.js",
+    ):
+        assert (await client.get(path)).status_code == 200, path
+    for path in (
+        "/reading-article.html",
         "/css/reading.css",
         "/api/v1/reading/articles",
         "/api/v1/reading/study-time",
     ):
         assert (await client.get(path)).status_code == 404, path
     workspace = await client.get("/js/workspace.js")
-    assert "/reading.html" not in workspace.text
+    assert "/reading.html" in workspace.text
 
 
 async def test_unknown_api_path_keeps_the_error_envelope(client: AsyncClient) -> None:

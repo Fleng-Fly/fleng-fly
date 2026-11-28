@@ -2340,7 +2340,6 @@ Generated from runtime FastAPI OpenAPI. Required fields, aliases, nullability, d
           "type": "null"
         }
       ],
-      "default": null,
       "title": "Explanationuk"
     }
   },

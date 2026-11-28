@@ -299,7 +299,8 @@ async def test_asyncpg_transfer_and_learner_restore(tmp_path):
 
 async def test_transfer_reads_private_snapshot_before_connecting(snapshot, tmp_path, monkeypatch):
     source, _ = snapshot
-    backup = tmp_path / "snapshot with spaces?#.sqlite3"
+    suffix = "#" if os.name == "nt" else "?#"
+    backup = tmp_path / f"snapshot with spaces{suffix}.sqlite3"
 
     def no_network(*args, **kwargs):
         raise RuntimeError("snapshot validated; network deliberately unavailable")
@@ -307,4 +308,6 @@ async def test_transfer_reads_private_snapshot_before_connecting(snapshot, tmp_p
     monkeypatch.setattr("app.db.transfer.create_async_engine", no_network)
     with pytest.raises(RuntimeError, match="snapshot validated"):
         await transfer(source, backup, "postgresql+asyncpg://test:test@localhost/staging", "public")
-    assert backup.is_file() and backup.stat().st_mode & 0o077 == 0
+    assert backup.is_file()
+    if os.name == "posix":
+        assert backup.stat().st_mode & 0o077 == 0

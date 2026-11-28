@@ -26,13 +26,13 @@ def stripped(text: str) -> str:
 def anchors(path: Path) -> set[str]:
     result: set[str] = set()
     counts: dict[str, int] = {}
-    for heading in re.findall(r"^#{1,6}\s+(.+?)\s*#*\s*$", stripped(path.read_text()), re.M):
+    for heading in re.findall(r"^#{1,6}\s+(.+?)\s*#*\s*$", stripped(path.read_text(encoding="utf-8")), re.M):
         heading = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", heading)
         slug = re.sub(r"[^\w\- ]", "", heading.lower()).replace(" ", "-")
         count = counts.get(slug, 0)
         counts[slug] = count + 1
         result.add(slug + (f"-{count}" if count else ""))
-    result.update(re.findall(r'(?:id|name)=["\']([^"\']+)["\']', path.read_text()))
+    result.update(re.findall(r'(?:id|name)=["\']([^"\']+)["\']', path.read_text(encoding="utf-8")))
     return result
 
 
@@ -41,7 +41,7 @@ def links() -> list[str]:
     checked = 0
     paths = sorted((ROOT / "docs").rglob("*.md"))
     for path in paths:
-        text = stripped(path.read_text())
+        text = stripped(path.read_text(encoding="utf-8"))
         targets = re.findall(r"!?\[[^\]]*\]\((<[^>]+>|[^\s)]+)(?:\s+[^)]*)?\)", text)
         targets += re.findall(r"^\s*\[[^\]]+\]:\s*(\S+)", text, re.M)
         for raw in targets:
@@ -58,7 +58,7 @@ def links() -> list[str]:
                     failures.append(f"{path.relative_to(ROOT)}: missing anchor {target}")
         if not text.strip():
             failures.append(f"{path.relative_to(ROOT)}: empty document")
-        if path.read_text().count("```") % 2:
+        if path.read_text(encoding="utf-8").count("```") % 2:
             failures.append(f"{path.relative_to(ROOT)}: unbalanced code fences")
     print(f"Markdown: {len(paths)} files, {checked} local links checked")
     return failures
@@ -83,7 +83,7 @@ def contracts() -> list[str]:
     expected = {(m.upper(), p) for p, ops in spec["paths"].items() for m in ops}
     documented: list[tuple[str, str]] = []
     for path in (ROOT / "docs/03-backend").glob("*-api.md"):
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         documented.extend(re.findall(r"^## `(\w+) (/api/v1[^`]*)`", text, re.M))
     if set(documented) != expected or len(documented) != len(expected):
         failures.append(
@@ -91,12 +91,12 @@ def contracts() -> list[str]:
             f"extra={set(documented) - expected}, "
             f"duplicates={len(documented) - len(set(documented))}"
         )
-    schema_text = (ROOT / "docs/03-backend/api-schemas.md").read_text()
+    schema_text = (ROOT / "docs/03-backend/api-schemas.md").read_text(encoding="utf-8")
     found = dict(re.findall(r"^## (\w+)\n\n```json\n(.*?)\n```", schema_text, re.M | re.S))
     for name, value in spec["components"]["schemas"].items():
         if name not in found or json.loads(found[name]) != value:
             failures.append(f"API schema drift: {name}")
-    model_text = (ROOT / "docs/05-database/schema.md").read_text()
+    model_text = (ROOT / "docs/05-database/schema.md").read_text(encoding="utf-8")
     for mapper in Base.registry.mappers:
         name = mapper.class_.__name__
         match = re.search(rf"^## {name}\n(.*?)(?=^## |\Z)", model_text, re.M | re.S)
@@ -106,7 +106,7 @@ def contracts() -> list[str]:
         for col in mapper.local_table.columns:
             if f"| {col.name} | {col.type} | {col.nullable} |" not in match[1]:
                 failures.append(f"Column drift: {name}.{col.name}")
-    config_text = (ROOT / "docs/12-reference/configuration-reference.md").read_text()
+    config_text = (ROOT / "docs/12-reference/configuration-reference.md").read_text(encoding="utf-8")
     documented_settings = set(re.findall(r"^\| `([A-Z_]+)` \|", config_text, re.M))
     if documented_settings != {name.upper() for name in Settings.model_fields}:
         failures.append("Settings environment inventory drift")
@@ -134,7 +134,7 @@ def contracts() -> list[str]:
         for method, operation in operations.items():
             heading = f"## `{method.upper()} {route_path}`"
             for path in (ROOT / "docs/03-backend").glob("*-api.md"):
-                text = path.read_text()
+                text = path.read_text(encoding="utf-8")
                 if heading not in text:
                     continue
                 block = text.split(heading, 1)[1].split("\n## ", 1)[0]

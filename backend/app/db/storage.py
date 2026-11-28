@@ -21,7 +21,7 @@ def validate_render_storage(settings: Settings) -> None:
     if (
         url.database
         and url.database != ":memory:"
-        and Path(url.database).resolve().is_relative_to(mount)
+        and Path(url.database).resolve().is_relative_to(mount.resolve())
         and mount.is_mount()
     ):
         return

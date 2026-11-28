@@ -2,6 +2,10 @@
 
 > Strategy: `docs/testing.md`. Legend: ✅ done · ⬜ next · 🔴 planned.
 
+- [x] Cover the return of browser-only Reading in the backend static-serving test and preserve
+      checks that the legacy article routes and API are unavailable.
+- [ ] Verify all seven checks on the GitHub Actions Ubuntu runner after the local CI fix is pushed.
+
 ## Stage 0 — Foundation ✅
 
 - [x] Define the testing strategy and critical flows.

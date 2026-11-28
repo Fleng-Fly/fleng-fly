@@ -482,7 +482,7 @@ up and prepared in place; no migration or API/business-policy change is introduc
 ## Reading practice (frontend)
 
 - `frontend/reading.html`: protected workspace catalog and reading player.
-- `frontend/js/reading-content.js`: 30 original passages, A0–B2, 150 questions.
+- `frontend/js/reading-content.js`: 30 original passages, A0–B2, 300 questions.
 - `frontend/js/reading-state.js`: practice grading, validation and draft restore.
 - `frontend/js/reading.js`: catalog, filters, test, results and per-account browser storage.
 - `scripts/test-reading.mjs`: content/grade/restore tests.
