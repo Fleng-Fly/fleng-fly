@@ -54,7 +54,7 @@ async def test_postgres_startup_account_progress_and_cards_survive_new_app_proce
     login = {"email": "durable@example.com", "password": "durable-test-password-123"}
     with server(env, tmp_path) as client:
         courses = client.get("/api/v1/courses").json()
-        assert len(courses) == 7
+        assert len(courses) == 12
         registered = client.post(
             "/api/v1/auth/register",
             headers=origin,

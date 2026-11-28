@@ -23,6 +23,7 @@ from app.db.practice import import_practice, import_vocabulary_practice
 from app.db.seed import seed_catalog
 from app.db.session import SessionLocal, engine
 from app.db.storage import DatabaseConfigurationError, validate_render_storage
+from app.db.vocabulary_courses import import_vocabulary_courses
 
 # Owner explicitly authorized publication on 2026-11-14. Linguistic review remains incomplete.
 # A different content SHA needs a new release decision; never derive this approval dynamically.
@@ -70,6 +71,7 @@ async def populate_catalog(db: AsyncSession) -> None:
 
     extra_words = await import_course_words(db, apply=True)
     print(f"Course Words: {extra_words}")
+    await import_vocabulary_courses(db)
 
 
 async def ensure_catalog() -> None:

@@ -476,6 +476,9 @@ the SHA). Next: A1 lessons 11–15, then A2, B1, B2 per `docs/curriculum-expansi
 
 ## A0–B2 vocabulary expansion
 
+- Completed: five Vocabulary Workshops with two themed lessons and a link to
+  the matching level test in each course.
+
 - Completed: 200 curated words per curriculum course and 500 new graded translation
   questions across the five courses.
 - Next: human linguistic review of the new vocabulary and answer choices.

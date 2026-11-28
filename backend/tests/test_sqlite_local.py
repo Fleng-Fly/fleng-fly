@@ -67,10 +67,10 @@ def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path, app_env):
             for table in ("courses", "lessons", "exercises")
         ]
         assert all(count > 0 for count in counts)
-        assert counts[0] == 7
+        assert counts[:2] == [12, 67]
         assert db.execute("SELECT count(*) FROM lessons WHERE is_published=0").fetchone() == (0,)
-        assert db.execute("SELECT count(*) FROM courses WHERE is_published=1").fetchone() == (7,)
-        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1641,)
+        assert db.execute("SELECT count(*) FROM courses WHERE is_published=1").fetchone() == (12,)
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1701,)
         db.execute(
             "INSERT INTO users (id, email, password_hash, created_at, updated_at) "
             "VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
@@ -81,7 +81,7 @@ def test_sqlite_prepare_migrates_seeds_and_preserves_data(tmp_path, app_env):
         run("-m", "app.db.seed")
     with sqlite3.connect(path) as db:
         assert db.execute("SELECT id FROM users").fetchone()[0] == user_id
-        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1641,)
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1701,)
         assert [
             db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
             for table in ("courses", "lessons", "exercises")

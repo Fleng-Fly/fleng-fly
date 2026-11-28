@@ -633,6 +633,7 @@ if (levelTest) {
   $('personal-words-heading').hidden = true;
   $('level-test-heading').hidden = false;
   $('level-test-title').textContent = t('vocab.levelTest', { level: levelTest });
+  $('level-test-course').href = `/course.html?slug=fleng-vocabulary-${levelTest.toLowerCase()}`;
   $('words-loading').textContent = t('cw.loading');
   $('words-loading').setAttribute('data-i18n', 'cw.loading');
   $('words-stats').hidden = true;

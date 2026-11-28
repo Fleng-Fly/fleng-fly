@@ -23,7 +23,10 @@
     </div>
     <div id="level-test-heading" class="dashboard-page-heading" hidden>
       <h1 id="level-test-title"></h1>
-      <a class="lesson-button lesson-button-secondary" href="/course-words.html" data-i18n="ws.courseWords">Course Words</a>
+      <div class="word-filters">
+        <a id="level-test-course" class="lesson-button lesson-button-secondary" data-i18n="cw.openLevelCourse">Open vocabulary course</a>
+        <a class="lesson-button lesson-button-secondary" href="/course-words.html" data-i18n="ws.courseWords">Course Words</a>
+      </div>
     </div>
     <section id="words-error" class="dashboard-alert" role="alert" hidden><span id="words-error-text"></span> <button id="words-retry" class="dashboard-text-button" type="button" data-i18n="common.tryAgain">Try again</button></section>
     <p id="words-loading" class="dashboard-muted" role="status" data-i18n="vocab.loading">Loading your vocabulary…</p>

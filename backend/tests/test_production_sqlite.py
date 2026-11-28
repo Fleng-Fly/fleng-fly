@@ -77,15 +77,15 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
     with server(env, tmp_path) as client:
         with sqlite3.connect(path) as db:
             assert db.execute("SELECT count(*) FROM users").fetchone() == (0,)
-            assert db.execute("SELECT count(*) FROM courses").fetchone() == (7,)
+            assert db.execute("SELECT count(*) FROM courses").fetchone() == (12,)
             assert db.execute("SELECT count(*) FROM lessons WHERE is_published=1").fetchone() == (
-                57,
+                67,
             )
-            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1641,)
+            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1701,)
             published_ids = db.execute(
                 "SELECT id FROM courses WHERE is_published=1 ORDER BY id"
             ).fetchall()
-        assert len(client.get("/api/v1/courses").json()) == 7
+        assert len(client.get("/api/v1/courses").json()) == 12
         curriculum_courses = []
         for level in ("a0", "a1", "a2", "b1", "b2"):
             course = client.get("/api/v1/courses/fleng-" + level)
@@ -119,6 +119,23 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
         assert saved_refresh != refresh
         auth = {"Authorization": f"Bearer {response.json()['accessToken']}"}
         assert client.get("/dashboard.html").status_code == 200
+        for level in ("a0", "a1", "a2", "b1", "b2"):
+            workshop = client.get(f"/api/v1/courses/fleng-vocabulary-{level}").json()
+            assert workshop["level"] == level.upper()
+            assert len(workshop["lessons"]) == 2
+            for item in workshop["lessons"]:
+                slug = item["slug"]
+                lesson = client.get(f"/api/v1/lessons/{slug}").json()
+                assert len(lesson["exercises"]) == 6
+                exercise = lesson["exercises"][0]
+                answer = exercise["options"][0]["id"]
+                graded = client.post(
+                    f"/api/v1/lessons/{slug}/submit",
+                    json={"exerciseId": exercise["id"], "answer": answer},
+                    headers=auth,
+                )
+                assert graded.status_code == 200
+                assert graded.json()["isCorrect"] is True
         for course in curriculum_courses:
             extra_count = sum(e.level == course["level"] for e in read_entries(CONTENT))
             response = client.get(
@@ -195,7 +212,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
             db.execute("SELECT id FROM courses WHERE is_published=1 ORDER BY id").fetchall()
             == published_ids
         )
-        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1641,)
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1701,)
         tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert {"request_limits", "users", "profiles", "refresh_tokens"} <= tables
     logs = (tmp_path / "production.log").read_text()

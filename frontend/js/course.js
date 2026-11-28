@@ -75,6 +75,11 @@ function renderCourse(course, current, lessonsProgress, recommendation) {
     el('p', 'catalog-description', course.description),
     courseProgress(current),
   );
+  if (/^fleng-vocabulary-(a[012]|b[12])$/.test(course.slug)) {
+    const test = el('a', 'catalog-button', t('vocab.levelTest', { level: course.level }));
+    test.href = `/vocabulary.html?${new URLSearchParams({ mode: 'mixed', level: course.level })}`;
+    hero.append(test);
+  }
   const section = el('section', 'catalog-lessons');
   section.append(el('h2', undefined, t('catalog.lessons')));
   if (!course.lessons.length) {

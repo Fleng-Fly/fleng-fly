@@ -100,6 +100,7 @@ test('level tests use course words, resume locally and leave personal reviews un
   const app = await page(options);
   assert.deepEqual(app.levelRequests, ['A1']);
   assert.equal(app.node('personal-words-heading').hidden, true);
+  assert.equal(app.node('level-test-course').href, '/course.html?slug=fleng-vocabulary-a1');
   assert.deepEqual(app.session().queue, ['course']);
   await app.click(app.byText('word-practice', 'Reveal'));
   await app.click(app.byText('word-practice', 'I need practice'));

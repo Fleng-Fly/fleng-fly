@@ -331,6 +331,13 @@ test('missing/unpublished courses and courses without lessons have honest states
   assert.match(empty.get('course-body').textContent, /No lessons yet/);
 });
 
+test('a vocabulary workshop links to the test for its level', async () => {
+  const workshop = { ...catalog[0], slug: 'fleng-vocabulary-a1' };
+  const p = await page('course', { catalog: [workshop], search: '?slug=fleng-vocabulary-a1' });
+  const links = p.get('course-body').querySelectorAll('a');
+  assert.ok(links.some((link) => link.href === '/vocabulary.html?mode=mixed&level=A1'));
+});
+
 test('both pages guard unauthenticated sessions and redirect expired sessions', async () => {
   for (const name of ['courses', 'course']) {
     const p = await page(name, { unauthorized: true });

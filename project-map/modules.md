@@ -480,6 +480,8 @@ up and prepared in place; no migration or API/business-policy change is introduc
 - `GET /vocabulary/course-words` additionally returns `lessonId/lessonSlug/lessonTitle`.
 - Course Words links to A0–B2 tests. `vocabulary.js` samples the existing
   level-filtered catalog and reuses Mixed Practice with tab-local results.
+- `db/vocabulary_courses.py` publishes five supplementary workshops during
+  catalog preparation using existing course, lesson and exercise models.
 
 ## Reading practice (frontend)
 
