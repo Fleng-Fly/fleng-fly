@@ -720,6 +720,8 @@ export default {
   "cw.eyebrow": "ВЧІТЬ У КОНТЕКСТІ",
   "cw.subtitle": "Слова з курсів. Зберігайте корисні й тренуйте їх у розділі «Мої слова».",
   "cw.tests": "Тести",
+  "cw.levelTests": "Словникові тести за рівнями",
+  "vocab.levelTest": "Словниковий тест {level}",
   "cw.courseLabel": "Курс",
   "cw.allCourses": "Усі курси",
   "cw.searchLabel": "Пошук слів курсів",

@@ -1,5 +1,5 @@
 import { elapsedSeconds, TestCompletionScreen } from './test-completion.js';
-import { addVocabulary, deleteVocabulary, getVocabularyGroups, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
+import { addVocabulary, deleteVocabulary, getVocabularyGroups, listCourseWords, listVocabulary, reviewVocabulary, updateVocabulary } from './api.js';
 import { el } from './layout.js';
 import { t, tn } from './i18n.js';
 import { describeApiError } from './errors.js';
@@ -10,7 +10,11 @@ import { autoCheckText } from './auto-check.js';
 
 const $ = (id) => document.getElementById(id);
 const taskTypes = ['flashcards', 'choice', 'write', 'letters'];
-const initialMode = new URLSearchParams(location.search).get('mode');
+const params = new URLSearchParams(location.search);
+const initialMode = params.get('mode');
+const requestedLevel = params.get('level');
+const levelTest = initialMode === 'mixed' && /^(A[012]|B[12])$/.test(requestedLevel) ? requestedLevel : '';
+const levelTestSize = 20;
 const state = {
   words: [], groups: [], course: '', lesson: '', expanded: new Set(), filter: 'all',
   mode: initialMode === 'mixed' || taskTypes.includes(initialMode) ? 'mixed' : 'list',
@@ -269,7 +273,8 @@ function restorePractice() {
 
 function startPractice(firstId, selectedIds, retryTasks = []) {
   // Replay the same words even after review changes the due filter.
-  const selected = selectedIds ? state.words.filter((word) => selectedIds.includes(word.id)) : filteredWords();
+  const selected = selectedIds ? state.words.filter((word) => selectedIds.includes(word.id))
+    : levelTest ? shuffle(state.words).slice(0, levelTestSize) : filteredWords();
   const canChoose = translations().length > 1;
   const counts = new Map(taskTypes.map((type) => [type, 0]));
   const priorTypes = new Map(retryTasks.map(({ wordId, type }) => [wordId, type]));
@@ -285,7 +290,7 @@ function startPractice(firstId, selectedIds, retryTasks = []) {
   }));
   const queue = tasks.map(({ wordId }) => wordId);
   if (firstId && queue.includes(firstId)) queue.unshift(...queue.splice(queue.indexOf(firstId), 1));
-  const previous = state.session;
+  const previous = levelTest && !selectedIds ? null : state.session;
   const previousErrors = { ...previous?.previousErrors };
   if (previous?.queue.length === 0) {
     for (const id of previous.mistakes) {
@@ -318,7 +323,7 @@ function renderSummary(target) {
   const heading = TestCompletionScreen(target, {
     headingId: 'practice-summary-title',
     title: t('vocab.complete'),
-    subtitle: t('vocab.mixedTitle'),
+    subtitle: levelTest ? t('vocab.levelTest', { level: levelTest }) : t('vocab.mixedTitle'),
     correct,
     total: ids.length,
     firstTry: correct,
@@ -336,9 +341,9 @@ function renderSummary(target) {
       title: words.get(id).word, mistake: true, errors: reviewErrors(history),
     })),
     retryMistakes: wrong.length ? () => startPractice(undefined, wrong, tasks) : undefined,
-    tryAgain: () => startPractice(undefined, ids),
-    finish: () => setMode('list'),
-    backToCourses: true,
+    tryAgain: () => startPractice(undefined, levelTest ? undefined : ids),
+    finish: () => levelTest ? location.assign('/course-words.html') : setMode('list'),
+    backToCourses: !levelTest,
   });
   heading.focus();
 }
@@ -353,7 +358,7 @@ function setMode(mode, firstId, startAgain = false) {
   history.replaceState(null, '', url);
   for (const node of document.querySelectorAll('[data-mode]')) node.setAttribute('aria-pressed', String(node.dataset.mode === mode));
   for (const node of document.querySelectorAll('.sidebar-link[data-section]')) {
-    const selected = node.dataset.section === 'words';
+    const selected = node.dataset.section === (levelTest ? 'course-words' : 'words');
     node.classList.toggle('active', selected);
     if (selected) node.setAttribute('aria-current', 'page');
     else node.removeAttribute('aria-current');
@@ -380,9 +385,9 @@ async function saveReview() {
   renderPractice();
   try {
     const { wordId, remembered, attemptId } = pending;
-    const updated = await reviewVocabulary(wordId, remembered, attemptId);
+    const updated = levelTest ? null : await reviewVocabulary(wordId, remembered, attemptId);
     if (state.session !== session) return;
-    updateWord(updated);
+    if (updated) updateWord(updated);
     session.lastMistake = remembered ? null : wordId;
     if (!remembered) {
       session.errors ??= {};
@@ -417,7 +422,7 @@ function renderPractice(focus = false) {
   target.replaceChildren();
   const session = state.session;
   if (!session?.tasks.length) {
-    empty(target, t('vocab.noActivityWords'), t('vocab.beginHint'));
+    empty(target, t('vocab.noActivityWords'), levelTest ? '' : t('vocab.beginHint'));
     return;
   }
   if (!session.queue.length) {
@@ -574,6 +579,25 @@ async function load() {
     const user = await requireSession({ throwOnUnavailable: true });
     if (!user || request !== state.request) return;
     setWorkspaceUser(user);
+    if (levelTest) {
+      const unique = new Map();
+      const limit = 1000;
+      for (let offset = 0; ; offset += limit) {
+        const page = await listCourseWords('', offset, limit, levelTest);
+        if (request !== state.request) return;
+        for (const word of page) {
+          const key = normalize(word.word);
+          if (!unique.has(key)) unique.set(key, word);
+        }
+        if (page.length < limit) break;
+      }
+      state.words = [...unique.values()];
+      state.storageKey = `fleng.level-test.v1:${user.id}:${levelTest}`;
+      state.session = restorePractice();
+      $('words-content').hidden = false;
+      setMode('mixed');
+      return;
+    }
     const words = [];
     // Filters only need course/lesson order; the dictionary still works without it.
     const groups = getVocabularyGroups().then((body) => body?.courses ?? [], () => []);
@@ -604,7 +628,16 @@ async function load() {
   }
 }
 
-mountWorkspace(state.mode === 'list' ? 'words' : 'practice');
+mountWorkspace(levelTest ? 'course-words' : state.mode === 'list' ? 'words' : 'practice');
+if (levelTest) {
+  $('personal-words-heading').hidden = true;
+  $('level-test-heading').hidden = false;
+  $('level-test-title').textContent = t('vocab.levelTest', { level: levelTest });
+  $('words-loading').textContent = t('cw.loading');
+  $('words-loading').setAttribute('data-i18n', 'cw.loading');
+  $('words-stats').hidden = true;
+  $('word-modes').hidden = true;
+}
 $('add-word').addEventListener('click', openAddDialog);
 $('word-dialog-close').addEventListener('click', () => $('word-dialog').close());
 $('words-retry').addEventListener('click', load);

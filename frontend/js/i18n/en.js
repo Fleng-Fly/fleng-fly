@@ -720,6 +720,8 @@ export default {
   "cw.eyebrow": "LEARN IN CONTEXT",
   "cw.subtitle": "Words from the courses. Save useful ones and practise them in My Words.",
   "cw.tests": "Tests",
+  "cw.levelTests": "Vocabulary tests by level",
+  "vocab.levelTest": "{level} vocabulary test",
   "cw.courseLabel": "Course",
   "cw.allCourses": "All courses",
   "cw.searchLabel": "Search course words",

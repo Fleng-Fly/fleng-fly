@@ -30,12 +30,13 @@ class Element {
 
 const makeWord = (id = 'one', word = 'resilience', translation = 'стійкість') => ({ id, word, translation, example: 'Keep going.', learned: false, dueAt: '2020-01-01T00:00:00Z' });
 
-async function page({ words = [makeWord()], mode = '', reviewError = false, groups = [], storage = new Map() } = {}) {
+async function page({ words = [makeWord()], mode = '', level = '', courseWords = [], reviewError = false, groups = [], storage = new Map() } = {}) {
   const nodes = new Map(); const events = {}; const writes = [], attempts = [];
   const modeButtons = ['list', 'mixed'].map((mode) => { const n = new Element('button'); n.dataset.mode = mode; return n; });
   const filters = ['all', 'learning', 'learned', 'due'].map((filter) => { const n = new Element('button'); n.dataset.filter = filter; return n; });
   const node = (id) => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
-  const location = { href: `http://localhost/vocabulary.html${mode ? '?mode=' + mode : ''}`, search: mode ? '?mode=' + mode : '' };
+  const query = mode ? '?' + new URLSearchParams({ mode, ...(level ? { level } : {}) }) : '';
+  const location = { href: `http://localhost/vocabulary.html${query}`, search: query };
   const document = {
     getElementById: node, createElement: (tag) => new Element(tag),
     createElementNS: (ns, tag) => { const n = new Element(tag); n.namespaceURI = ns; return n; },
@@ -43,7 +44,12 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
   };
   let failReview = reviewError;
   let confirmRemoval = true;
+  const levelRequests = [];
   const helpers = {
+    listCourseWords: async (_course, offset, limit, level) => {
+      levelRequests.push(level);
+      return courseWords.slice(offset, offset + limit);
+    },
     getVocabularyGroups: async () => { if (groups === null) throw new Error('down'); return { courses: groups }; },
     listVocabulary: async (offset) => words.slice(offset, offset + 100),
     addVocabulary: async (input) => { writes.push({ add: input }); const word = { ...makeWord('added'), ...input }; words.push(word); return word; },
@@ -83,9 +89,27 @@ async function page({ words = [makeWord()], mode = '', reviewError = false, grou
   await flush();
   const click = async (element) => { assert.ok(element, 'control exists'); if (!element.disabled) await element.events.click?.({ preventDefault() {} }); await flush(); };
   const byText = (id, text) => node(id).querySelectorAll('button').find((n) => n.textContent.includes(text));
-  const session = () => JSON.parse(storage.get('fleng.mixed-practice.v1:user'));
-  return { node, mode: async (value) => click(modeButtons.find((n) => n.dataset.mode === value)), filter: async (value) => click(filters.find((n) => n.dataset.filter === value)), click, byText, writes, words, attempts, session, flush, fail: (value) => { failReview = value; }, confirmRemoval: (value) => { confirmRemoval = value; } };
+  const session = () => JSON.parse(storage.get(level ? `fleng.level-test.v1:user:${level}` : 'fleng.mixed-practice.v1:user'));
+  return { node, mode: async (value) => click(modeButtons.find((n) => n.dataset.mode === value)), filter: async (value) => click(filters.find((n) => n.dataset.filter === value)), click, byText, writes, words, attempts, levelRequests, session, flush, fail: (value) => { failReview = value; }, confirmRemoval: (value) => { confirmRemoval = value; } };
 }
+
+test('level tests use course words, resume locally and leave personal reviews untouched', async () => {
+  const storage = new Map();
+  const courseWords = [makeWord('course'), makeWord('duplicate')];
+  const options = { mode: 'mixed', level: 'A1', courseWords, storage };
+  const app = await page(options);
+  assert.deepEqual(app.levelRequests, ['A1']);
+  assert.equal(app.node('personal-words-heading').hidden, true);
+  assert.deepEqual(app.session().queue, ['course']);
+  await app.click(app.byText('word-practice', 'Reveal'));
+  await app.click(app.byText('word-practice', 'I need practice'));
+  assert.deepEqual(app.session().queue, []);
+  assert.deepEqual(app.session().mistakes, ['course']);
+  assert.deepEqual(app.writes, []);
+  const reloaded = await page(options);
+  assert.deepEqual(reloaded.session().mistakes, ['course']);
+  assert.deepEqual(reloaded.writes, []);
+});
 
 test('loads every vocabulary page, searches translation and filters learned words', async () => {
   const words = Array.from({ length: 101 }, (_, i) => makeWord(String(i), 'word' + i, 'переклад' + i));

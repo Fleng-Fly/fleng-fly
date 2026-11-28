@@ -360,8 +360,9 @@ export function confirmEmailChange(token) {
   return apiFetch('/users/me/email-change/confirm', { method: 'POST', body: JSON.stringify({ token }) }, { retryOnUnauthorized: false });
 }
 
-export function listCourseWords(courseId = '', offset = 0, limit = 100) {
+export function listCourseWords(courseId = '', offset = 0, limit = 100, level = '') {
   const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
   if (courseId) query.set('courseId', courseId);
+  if (level) query.set('level', level);
   return apiFetch(`/vocabulary/course-words?${query}`);
 }

@@ -478,6 +478,8 @@ up and prepared in place; no migration or API/business-policy change is introduc
   `model_supported()` allows concrete models, or `openrouter/auto` only with `AI_ALLOW_AUTO_ROUTER`.
 - `modules/ai/billing.py`: for `openrouter/auto` only `usage.cost` settles; otherwise the hold.
 - `GET /vocabulary/course-words` additionally returns `lessonId/lessonSlug/lessonTitle`.
+- Course Words links to A0–B2 tests. `vocabulary.js` samples the existing
+  level-filtered catalog and reuses Mixed Practice with tab-local results.
 
 ## Reading practice (frontend)
 

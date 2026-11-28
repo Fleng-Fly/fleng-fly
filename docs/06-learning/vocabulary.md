@@ -5,6 +5,12 @@ My Words are user-owned VocabularyItem rows: word, translation, example, optiona
 Course Words are shared CourseVocabularyItem rows linked to a published course,
 inheriting its level. Learners can browse them by course or level.
 
+Course Words offers one vocabulary test for each level from A0 to B2. Each
+attempt selects up to 20 distinct published words from that level and uses the
+same formats and results screen as Mixed Practice. The attempt resumes in the
+same browser tab. Answers and results stay in the browser and do not update
+the learner's saved words or review schedule.
+
 Each of the five A0–B2 curriculum courses has 200 words and expressions, with 20
 per lesson. The vocabulary tab lists the lesson's words. Practice includes ten
 additional multiple-choice questions per lesson, alternating between English

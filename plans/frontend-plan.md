@@ -39,6 +39,7 @@
       (`course.html`) consuming `/courses` and `/courses/{slug}`.
 - [x] Lesson page (`lesson.html`) rendering theory from `/lessons/{slug}`.
 - [x] Automatic answer checking in lessons and vocabulary practice.
+- [x] A0–B2 vocabulary tests from Course Words using the published level catalog.
 - [x] Exercises + submission and results view: radios / short answer /
       self-check, inline correctness, `+XP`, revealed answer and explanation, and
       a live progress summary.
