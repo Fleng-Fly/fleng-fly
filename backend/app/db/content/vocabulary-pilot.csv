@@ -1,0 +1,14 @@
+word,sense,level,category,course_slug,lesson_slug,en_id,uk_id
+nephew,1,A0,family,fleng-a0,fleng-a0-people,2273312,6772828
+niece,1,A0,family,fleng-a0,fleng-a0-people,2280386,6550732
+stapler,1,A0,education,fleng-a0,fleng-a0-classroom,2376261,5649059
+pear,1,A1,food,fleng-a1,fleng-a1-food,3084103,7682360
+plum,1,A1,food,fleng-a1,fleng-a1-food,7152072,7272614
+apricot,1,A1,food,fleng-a1,fleng-a1-food,872941,916127
+ankle,1,A2,health,fleng-a2,fleng-a2-health,6733257,8110933
+wrist,1,A2,health,fleng-a2,fleng-a2-health,2829796,10834175
+bandage,1,A2,health,fleng-a2,fleng-a2-health,1578305,6856409
+escalator,1,A2,transport,fleng-a2,fleng-a2-directions,4060435,6589201
+tram,1,A2,transport,fleng-a2,fleng-a2-directions,7434402,6292449
+pedestrian,1,A2,transport,fleng-a2,fleng-a2-directions,412794,4919961
+postcard,1,A2,travel,fleng-a2,fleng-a2-experiences,324886,6583298

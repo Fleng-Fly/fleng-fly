@@ -52,6 +52,12 @@ function render() {
       source.href = details.source_url;
       copy.append(source);
     }
+    for (const credit of details?.example_sources ?? []) {
+      if (!/^https?:\/\//i.test(credit.url)) continue;
+      const source = el('a', 'dashboard-text-button', `${credit.author} · ${credit.license_id}`);
+      source.href = credit.url;
+      copy.append(source);
+    }
     if (word.lessonSlug) {
       const link = el('a', 'dashboard-text-button', t('cw.openLesson', { lesson: word.lessonTitle || word.lessonSlug }));
       link.href = `/lesson.html?slug=${encodeURIComponent(word.lessonSlug)}`;

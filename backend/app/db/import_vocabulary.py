@@ -14,7 +14,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.core.levels import LearningLevel
-from app.db.curriculum import WordSpec, stable_id
+from app.db.curriculum import ContentModel, WordSpec, stable_id
 from app.db.models import Course, CourseVocabularyItem, Lesson
 
 LEVEL_TARGETS: dict[LearningLevel, int] = {
@@ -71,6 +71,12 @@ async def audit_release(database: Path) -> dict[LearningLevel, int]:
         await engine.dispose()
 
 
+class ExampleCredit(ContentModel):
+    url: HttpUrl
+    author: str = Field(min_length=1)
+    license_id: str = Field(min_length=1)
+
+
 class SourcedWord(WordSpec):
     alternative_translations: list[Annotated[str, Field(min_length=1, max_length=300)]]
     pronunciation: str = Field(min_length=1, max_length=120)
@@ -83,6 +89,7 @@ class SourcedWord(WordSpec):
     lesson_slug: str
     source_url: HttpUrl
     license_id: str = Field(min_length=1, max_length=100)
+    example_sources: list[ExampleCredit] = Field(default_factory=list, max_length=2)
 
 
 async def import_words(database: Path, dataset: Path, *, apply: bool = False) -> int:
@@ -137,6 +144,8 @@ async def import_words(database: Path, dataset: Path, *, apply: bool = False) ->
                                 "level",
                             },
                         )
+                        if not entry.example_sources:
+                            details.pop("example_sources")
                         values = {
                             "id": stable_id("sourced-word", word),
                             "course_id": scope[0],
