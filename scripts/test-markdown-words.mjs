@@ -93,12 +93,12 @@ test('Course Words pages real API data, filters by course, saves and opens exist
   }
   class Option extends Element { constructor(text, value) { super('option', text); this.value = value; } }
   const node = (id) => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
-  const words = Array.from({ length: 101 }, (_, i) => ({ id: String(i), courseId: 'course', word: `word${i}`, translation: `translation${i}`, example: '' }));
-  Object.assign(words[100], { example: 'М’ЯЧ, мова', lessonId: 'lesson', lessonTitle: 'Lesson title' });
+  const words = Array.from({ length: 25001 }, (_, i) => ({ id: String(i), courseId: 'course', word: `word${i}`, translation: `translation${i}`, example: '' }));
+  Object.assign(words[25000], { example: 'М’ЯЧ, мова', lessonId: 'lesson', lessonTitle: 'Lesson title' });
   let fail = false;
   const api = {
     listCourses: async () => [{ id: 'course', title: 'Course title', level: 'A1' }],
-    listCourseWords: async (course, offset) => { calls.push([course, offset]); if (fail) throw new Error('Offline'); return words.slice(offset, offset + 100); },
+    listCourseWords: async (course, offset, limit) => { calls.push([course, offset]); if (fail) throw new Error('Offline'); return words.slice(offset, offset + limit); },
     addVocabulary: async (payload) => { saves.push(payload); },
   };
   const courseContext = vm.createContext({
@@ -116,10 +116,15 @@ test('Course Words pages real API data, filters by course, saves and opens exist
     return new vm.SyntheticModule(Object.keys(values), function () { for (const [key, value] of Object.entries(values)) this.setExport(key, value); }, { context: courseContext });
   });
   await source.evaluate();
-  for (let i = 0; i < 30; i++) await Promise.resolve();
-  assert.equal(node('course-word-count').textContent, '101 words');
-  assert.deepEqual(calls, [['', 0], ['', 100]]);
-  for (const mistyped of ['цщкв100', 'vjdf']) {
+  for (let i = 0; i < 100; i++) await Promise.resolve();
+  assert.equal(node('course-word-count').textContent, '25001 words');
+  assert.deepEqual(calls, Array.from({ length: 26 }, (_, i) => ['', i * 1000]));
+  assert.equal(all(node('course-word-list'), 'article').length, 100);
+  assert.equal(node('course-word-pager').hidden, false);
+  node('course-word-next').events.click();
+  assert.equal(all(node('course-word-list'), 'article').length, 100);
+  assert.equal(node('course-word-prev').disabled, false);
+  for (const mistyped of ['цщкв25000', 'vjdf']) {
     node('course-word-search').value = mistyped;
     node('course-word-search').events.input();
     assert.equal(node('course-word-count').textContent, '1 word');
@@ -131,14 +136,14 @@ test('Course Words pages real API data, filters by course, saves and opens exist
   assert.equal(node('course-word-count').textContent, '1 word');
   node('course-word-search').value = 'translation99'; node('course-word-search').events.input();
   assert.equal(node('course-word-count').textContent, '0 words');
-  node('course-word-search').value = 'translation100'; node('course-word-search').events.input();
+  node('course-word-search').value = 'translation25000'; node('course-word-search').events.input();
   const buttons = all(node('course-word-list'), 'button');
   await buttons[0].events.click();
   assert.equal(saves.length, 1);
-  assert.equal(saves[0].word, 'word100');
+  assert.equal(saves[0].word, 'word25000');
   await buttons[1].events.click();
   assert.equal(saves.length, 1);
-  assert.equal(navigations[0], '/vocabulary.html?mode=flashcards&word=word100');
+  assert.equal(navigations[0], '/vocabulary.html?mode=flashcards&word=word25000');
   node('word-course').value = 'course';
   fail = true;
   await node('word-course').events.change();
@@ -147,5 +152,5 @@ test('Course Words pages real API data, filters by course, saves and opens exist
   fail = false;
   await node('course-words-retry').events.click();
   assert.equal(node('course-words-error').hidden, true);
-  assert.deepEqual(calls.at(-1), ['course', 100]);
+  assert.deepEqual(calls.at(-1), ['course', 25000]);
 });

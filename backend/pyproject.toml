@@ -62,4 +62,4 @@ ignore_missing_imports = true
 warn_unused_ignores = true
 
 [tool.setuptools.package-data]
-"app.db" = ["content/*.json"]
+"app.db" = ["content/*.json", "content/*.csv"]

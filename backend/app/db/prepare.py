@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from alembic import command
 from app.core.config import BACKEND_ROOT, get_settings
 from app.db.base import Base
+from app.db.course_words_import import import_course_words
 from app.db.curriculum import import_curriculum, load_curriculum
 from app.db.demo_lessons import import_demo_lessons
 from app.db.diagnostics import log_sqlite_snapshot
@@ -66,6 +67,9 @@ async def populate_catalog(db: AsyncSession) -> None:
         f"Demo lessons: {demo['words_added']} words and {demo['practice_added']} exercises added, "
         f"{demo['words_existing'] + demo['practice_existing']} already present."
     )
+
+    extra_words = await import_course_words(db, apply=True)
+    print(f"Course Words: {extra_words}")
 
 
 async def ensure_catalog() -> None:

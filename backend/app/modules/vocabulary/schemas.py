@@ -102,7 +102,6 @@ class FlashcardCreate(CamelModel):
     model_config = ConfigDict(extra="forbid")
     source: Literal["my_words", "course_words"]
     course_id: UUID | None = None
-    lesson_id: UUID | None = None
     level: CefrLevel | None = None
 
 
@@ -111,7 +110,6 @@ class Flashcard(CamelModel):
     word: str
     translation: str
     example: str
-    alternative_translations: list[str] = Field(default_factory=list)
 
 
 class FlashcardResponse(CamelModel):
@@ -129,8 +127,6 @@ class CourseWordResponse(CamelModel):
     word: str
     translation: str
     example: str
-    pronunciation: str | None = None
-    lexical_details: dict | None = None
     lesson_id: UUID | None = None
     lesson_slug: str | None = None
     lesson_title: str | None = None

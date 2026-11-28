@@ -3,11 +3,11 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import func, or_, select, true, update
+from sqlalchemy import select, true, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ApiError
-from app.db.models import Course, CourseVocabularyItem, FlashcardSession, Lesson, VocabularyItem
+from app.db.models import Course, CourseVocabularyItem, FlashcardSession, VocabularyItem
 from app.modules.vocabulary.schemas import FlashcardCreate, FlashcardResponse
 
 
@@ -30,10 +30,6 @@ async def course_query(
         .join(Course)
         .where(true() if include_drafts else Course.is_published.is_(True))
     )
-    if not include_drafts:
-        query = query.outerjoin(Lesson, Lesson.id == CourseVocabularyItem.lesson_id).where(
-            or_(CourseVocabularyItem.lesson_id.is_(None), Lesson.is_published.is_(True))
-        )
     if course_id is not None:
         query = query.where(Course.id == course_id)
     if level is not None:
@@ -43,11 +39,7 @@ async def course_query(
 
 async def create(db: AsyncSession, user_id: UUID, payload: FlashcardCreate) -> FlashcardSession:
     if payload.source == "my_words":
-        if (
-            payload.course_id is not None
-            or payload.level is not None
-            or payload.lesson_id is not None
-        ):
+        if payload.course_id is not None or payload.level is not None:
             raise ApiError(
                 400, "INVALID_SOURCE_FILTER", "Personal words do not accept course filters"
             )
@@ -57,12 +49,9 @@ async def create(db: AsyncSession, user_id: UUID, payload: FlashcardCreate) -> F
             .order_by(VocabularyItem.created_at, VocabularyItem.id)
         )
     else:
-        if payload.course_id is None and payload.level is None and payload.lesson_id is None:
-            raise ApiError(400, "MISSING_COURSE_FILTER", "Provide courseId, level or lessonId")
+        if payload.course_id is None and payload.level is None:
+            raise ApiError(400, "MISSING_COURSE_FILTER", "Provide courseId or level")
         query = await course_query(db, payload.course_id, payload.level)
-        if payload.lesson_id is not None:
-            query = query.where(CourseVocabularyItem.lesson_id == payload.lesson_id)
-        query = query.order_by(None).order_by(func.random())
     words = (await db.scalars(query.limit(10))).all()
     session = FlashcardSession(
         user_id=user_id,
@@ -74,11 +63,6 @@ async def create(db: AsyncSession, user_id: UUID, payload: FlashcardCreate) -> F
                 "word": w.word,
                 "translation": w.translation,
                 "example": w.example,
-                "alternativeTranslations": (w.lexical_details or {}).get(
-                    "alternative_translations", []
-                )
-                if isinstance(w, CourseVocabularyItem)
-                else [],
             }
             for w in words
         ],

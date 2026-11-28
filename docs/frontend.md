@@ -325,3 +325,26 @@ checked 1440/768/390/360 px without horizontal overflow, with a disposable accou
 and lesson graded through the real API on an isolated SQLite DB (AI/SMTP off).
 Empty/loading/error/retry and unavailable-history states passed. Screenshots:
 /tmp/fleng-progress-ui-review. No backend changes, commit, push or merge.
+
+## Reading practice
+
+`/reading.html` is a signed-in workspace page linked from the sidebar. It uses
+existing catalog and lesson styles. The published course levels A0, A1, A2, B1
+and B2 each have six original passages, with five questions per passage (three
+multiple-choice and two True/False). A0 is the introductory Fleng level.
+The catalog supports search in English and Ukrainian titles, level filters and
+best-score badges. Learners can read the passage while answering; all five
+answers are required before submission. A score of 4/5 or higher is a pass.
+The result explains the correct answers with evidence from the passage.
+
+`frontend/js/reading-content.js` contains stable content IDs;
+`reading-state.js` validates draft answers and calculates results;
+`reading.js` renders the page and saves drafts, results and best scores to
+`fleng.reading.v1:<user.id>` in localStorage. This is browser-local practice,
+not server-verified assessment: it does not award XP, update course progress,
+sync across devices, or invoke an AI provider. Existing AI modules, API,
+database and CSS are unchanged. The user interface follows existing EN/UK i18n.
+
+Run `node --test scripts/test-reading.mjs` for content structure, grading and
+restoration checks or `npm run frontend:test` for the existing frontend suite
+plus Reading tests.

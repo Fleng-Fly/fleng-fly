@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="reading.title">Reading — Fleng</title>
+    <script src="/js/i18n-boot.js"></script>
+    <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/star4life.css" />
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    <link rel="stylesheet" href="/css/courses.css" />
+    <link rel="stylesheet" href="/css/lesson.css" />
+    <meta name="theme-color" content="#0b0917" />
+    <script defer src="/js/pwa.js"></script>
+    <link rel="stylesheet" href="/css/fleng-theme.css" />
+    <link rel="stylesheet" href="/css/motion.css" />
+  </head>
+  <body class="dashboard-page courses-page lesson-page">
+    <main class="dashboard-main catalog-main">
+      <header class="dashboard-page-heading">
+        <div>
+          <h1 data-i18n="reading.heading">Reading</h1>
+          <p class="dashboard-subtitle" data-i18n="reading.subtitle">Read English texts and test your understanding.</p>
+        </div>
+      </header>
+      <section id="reading-catalog" hidden>
+        <div class="catalog-controls">
+          <div class="catalog-search">
+            <label class="sr-only" for="reading-search" data-i18n="reading.search">Search texts</label>
+            <svg aria-hidden="true"><use href="#icon-search" /></svg>
+            <input id="reading-search" type="search" placeholder="Search texts" data-i18n-attr="placeholder:reading.search" autocomplete="off" />
+          </div>
+          <div id="reading-filters" class="catalog-filters" role="group" data-i18n-attr="aria-label:courses.levelLabel" aria-label="Learning level"></div>
+        </div>
+        <p id="reading-count" class="dashboard-muted" role="status"></p>
+        <p class="lesson-fine-print" data-i18n="reading.local">Reading progress is saved in this browser for your account.</p>
+        <p id="reading-storage-warning" class="lesson-fine-print" role="status" hidden data-i18n="reading.storageWarning">Browser storage is unavailable. Progress will not survive a reload.</p>
+        <div id="reading-grid" class="catalog-grid"></div>
+      </section>
+      <div id="reading-player" aria-busy="true"></div>
+    </main>
+    <script type="module" src="/js/reading.js"></script>
+  </body>
+</html>

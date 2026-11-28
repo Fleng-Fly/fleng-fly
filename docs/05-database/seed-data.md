@@ -17,20 +17,3 @@ promoted, and conflicting content
 causes startup to fail rather than overwrite existing lessons. See [publication](../06-learning/content-publication.md).
 
 [Section index](README.md) · [Documentation home](../README.md)
-
-The sourced vocabulary importer is separate from startup seeding. Run
-`python -m app.db.import_vocabulary <release.jsonl> --test-database <prepared-test.db>`
-from the backend directory for a dry run, then include `--apply` to insert.
-Each JSONL shard is transactional, and rerunning the same shard is idempotent.
-The database must already contain published courses and lessons matching the
-level on each source entry.
-Run `python -m app.db.import_vocabulary --test-database <prepared-test.db> --audit-release`
-to print global and per-level counts and return a failing status if the exact quotas
-are unmet. A repeated legacy headword is counted at its earliest published level.
-
-The packaged 13-entry pilot is `app/db/content/vocabulary-pilot.jsonl`.
-The `app.db.build_vocabulary_pilot` command can reconstruct it from its CSV
-manifest, the KOReader English–Ukrainian StarDict release, and Tatoeba's
-detailed English and Ukrainian exports plus their links. The manifest records the
-chosen sense, level, lesson and both sentence IDs. See the root vocabulary report
-for source links, attribution and validation results.

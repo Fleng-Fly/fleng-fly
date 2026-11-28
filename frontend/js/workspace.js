@@ -87,6 +87,9 @@ const templateHtml = `    <svg class="dashboard-icons" xmlns="http://www.w3.org/
           <a class="sidebar-link" href="/courses.html"
             ><svg><use href="#icon-book" /></svg><span data-i18n="nav.courses">Courses</span></a
           >
+          <a class="sidebar-link" href="/reading.html"
+            ><svg><use href="#icon-book" /></svg><span data-i18n="reading.heading">Reading</span></a
+          >
           <details id="words-navigation" class="sidebar-words">
             <summary class="sidebar-link"><svg><use href="#icon-layers" /></svg><span data-i18n="ws.words">Words</span><span class="words-chevron" aria-hidden="true">⌄</span></summary>
             <nav class="words-submenu" data-i18n-attr="aria-label:ws.wordsSections" aria-label="Words sections">
@@ -186,7 +189,7 @@ export function markWorkspaceNavigation(content, active) {
     const destination = {
       dashboard: '/dashboard.html', leaderboard: '/leaderboard.html',
       settings: '/settings.html', lessons: '/courses.html', courses: '/courses.html', progress: '/progress.html', placement: '/courses.html',
-      words: '/vocabulary.html', practice: '/vocabulary.html', 'course-words': '/course-words.html',
+      reading: '/reading.html', words: '/vocabulary.html', practice: '/vocabulary.html', 'course-words': '/course-words.html',
     }[active];
     const selected = link.getAttribute('href') === destination;
     link.classList.toggle('active', selected);

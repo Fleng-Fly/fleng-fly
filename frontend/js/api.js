@@ -360,22 +360,8 @@ export function confirmEmailChange(token) {
   return apiFetch('/users/me/email-change/confirm', { method: 'POST', body: JSON.stringify({ token }) }, { retryOnUnauthorized: false });
 }
 
-export async function listCourseWords({ courseId, lessonId, level, search, offset, limit, signal }) {
+export function listCourseWords(courseId = '', offset = 0, limit = 100) {
   const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
   if (courseId) query.set('courseId', courseId);
-  if (lessonId) query.set('lessonId', lessonId);
-  if (level) query.set('level', level);
-  if (search) query.set('q', search);
-  const response = await apiFetch(`/vocabulary/course-words?${query}`, { signal }, { rawResponse: true });
-  return { total: Number(response.headers.get('X-Total-Count')), words: await response.json() };
-}
-
-export function createCourseFlashcards(scope) {
-  return apiFetch('/vocabulary/flashcards/sessions', {
-    method: 'POST', body: JSON.stringify({ source: 'course_words', ...scope }),
-  });
-}
-
-export function getCourseFlashcards(id) {
-  return apiFetch(`/vocabulary/flashcards/sessions/${encodeURIComponent(id)}`);
+  return apiFetch(`/vocabulary/course-words?${query}`);
 }

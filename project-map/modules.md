@@ -478,3 +478,13 @@ up and prepared in place; no migration or API/business-policy change is introduc
   `model_supported()` allows concrete models, or `openrouter/auto` only with `AI_ALLOW_AUTO_ROUTER`.
 - `modules/ai/billing.py`: for `openrouter/auto` only `usage.cost` settles; otherwise the hold.
 - `GET /vocabulary/course-words` additionally returns `lessonId/lessonSlug/lessonTitle`.
+
+## Reading practice (frontend)
+
+- `frontend/reading.html`: protected workspace catalog and reading player.
+- `frontend/js/reading-content.js`: 30 original passages, A0–B2, 150 questions.
+- `frontend/js/reading-state.js`: practice grading, validation and draft restore.
+- `frontend/js/reading.js`: catalog, filters, test, results and per-account browser storage.
+- `scripts/test-reading.mjs`: content/grade/restore tests.
+- Uses existing workspace, session, i18n, catalog and lesson styles; no backend or AI changes.
+- Browser-local progress is separate from server-verified XP and course completion.

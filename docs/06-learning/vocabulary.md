@@ -4,13 +4,6 @@ My Words are user-owned VocabularyItem rows: word, translation, example, optiona
 
 Course Words are shared CourseVocabularyItem rows linked to a published course,
 inheriting its level. Learners can browse them by course or level.
-The Course Words page requests 50 matching entries at a time. Search, level,
-course and lesson filtering run on the server, which returns the result count.
-Course flashcard sessions sample up to ten words from the selected scope.
-From Course Words, select a level, course or lesson and open Tests to practise
-that sample. Mixed Practice uses the same completion screen as My Words and
-stores the active run in the browser session. Course runs do not change
-personal reviews or XP.
 
 Each of the five A0–B2 curriculum courses has 200 words and expressions, with 20
 per lesson. The vocabulary tab lists the lesson's words. Practice includes ten

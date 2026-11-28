@@ -50,7 +50,7 @@ camelCase convention; POST input also accepts snake_case field names.
 - `GET /api/v1/vocabulary/course-words?courseId=<UUID>&level=A1&limit=50&offset=0`:
   curated words of published courses. Both filters optional and intersect when
   combined. Returns `[{id, courseId, word, translation, example, lessonId, lessonSlug, lessonTitle}]`
-  (the lesson fields are `null` for course-level words). Limit 1–100.
+  (the lesson fields are `null` for course-level words). Limit 1–1000.
 - `POST /api/v1/vocabulary/flashcards/sessions`: body
   `{ "source": "my_words", "courseId": null, "level": null }`, or
   `{ "source": "course_words", "courseId": "<UUID>", "level": "A1" }`.

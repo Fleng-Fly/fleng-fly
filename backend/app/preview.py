@@ -169,7 +169,7 @@ def preview_router(reviewer_id: UUID | None) -> APIRouter:
     async def words(
         course_id: UUID | None = Query(None, alias="courseId"),
         level: LearningLevel | None = None,
-        limit: int = Query(50, ge=1, le=100),
+        limit: int = Query(50, ge=1, le=1000),
         offset: int = Query(0, ge=0),
         db: AsyncSession = Depends(get_db),
     ):

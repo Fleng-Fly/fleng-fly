@@ -40,6 +40,7 @@ LATER = {
     ),
     ("course_vocabulary_items", "lesson_id"),
     ("course_vocabulary_items", "pronunciation"),
+    ("course_vocabulary_items", "lexical_details"),
     ("profiles", "daily_lessons_goal"),
     ("profiles", "daily_words_goal"),
     ("profiles", "timezone"),

@@ -14,6 +14,7 @@ import httpx
 import pytest
 
 from app.core.config import BACKEND_ROOT
+from app.db.course_words_import import CONTENT, read_entries
 
 
 def production_env(path: Path) -> dict[str, str]:
@@ -80,7 +81,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
             assert db.execute("SELECT count(*) FROM lessons WHERE is_published=1").fetchone() == (
                 57,
             )
-            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1060,)
+            assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1641,)
             published_ids = db.execute(
                 "SELECT id FROM courses WHERE is_published=1 ORDER BY id"
             ).fetchall()
@@ -119,16 +120,16 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
         auth = {"Authorization": f"Bearer {response.json()['accessToken']}"}
         assert client.get("/dashboard.html").status_code == 200
         for course in curriculum_courses:
-            vocabulary = []
-            for offset, expected in ((0, 100), (100, 100), (200, 0)):
-                words = client.get(
-                    "/api/v1/vocabulary/course-words",
-                    params={"courseId": course["id"], "limit": 100, "offset": offset},
-                    headers=auth,
-                )
-                assert words.status_code == 200 and len(words.json()) == expected
-                vocabulary.extend(words.json())
-            assert len({word["word"] for word in vocabulary}) == 200
+            extra_count = sum(e.level == course["level"] for e in read_entries(CONTENT))
+            response = client.get(
+                "/api/v1/vocabulary/course-words",
+                params={"courseId": course["id"], "limit": 1000},
+                headers=auth,
+            )
+            assert response.status_code == 200
+            vocabulary = response.json()
+            assert len({word["word"] for word in vocabulary}) == 200 + extra_count
+            assert sum(w["lessonId"] is None for w in vocabulary) == extra_count
             for lesson in course["lessons"]:
                 assert sum(w["lessonId"] == lesson["id"] for w in vocabulary) == 20
         exercises = client.get("/api/v1/lessons/fleng-a0-classroom").json()["exercises"]
@@ -194,7 +195,7 @@ def test_fresh_production_sqlite_auth_dashboard_and_restart(tmp_path):
             db.execute("SELECT id FROM courses WHERE is_published=1 ORDER BY id").fetchall()
             == published_ids
         )
-        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1060,)
+        assert db.execute("SELECT count(*) FROM course_vocabulary_items").fetchone() == (1641,)
         tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert {"request_limits", "users", "profiles", "refresh_tokens"} <= tables
     logs = (tmp_path / "production.log").read_text()

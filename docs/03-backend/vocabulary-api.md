@@ -14,7 +14,7 @@ Authentication/permissions: Bearer JWT, owner scoped where applicable.
 | --- | --- | --- | --- |
 | courseId | query | False | `{"anyOf": [{"type": "string", "format": "uuid"}, {"type": "null"}], "title": "Courseid"}` |
 | level | query | False | `{"anyOf": [{"enum": ["A0", "A1", "A2", "B1", "B2", "C1", "C2"], "type": "string"}, {"type": "null"}], "title": "Level"}` |
-| limit | query | False | `{"type": "integer", "maximum": 100, "minimum": 1, "default": 50, "title": "Limit"}` |
+| limit | query | False | `{"type": "integer", "maximum": 1000, "minimum": 1, "default": 50, "title": "Limit"}` |
 | offset | query | False | `{"type": "integer", "minimum": 0, "default": 0, "title": "Offset"}` |
 
 Request body: none.

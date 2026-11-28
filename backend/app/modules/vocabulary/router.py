@@ -2,18 +2,11 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
-from app.db.models import (
-    Course,
-    CourseVocabularyItem,
-    Lesson,
-    User,
-    VocabularyItem,
-    VocabularyReview,
-)
+from app.db.models import Course, Lesson, User, VocabularyItem, VocabularyReview
 from app.db.session import get_db
 from app.modules.gamification.service import lock_learner
 from app.modules.vocabulary import flashcards, service
@@ -36,32 +29,14 @@ router = APIRouter(prefix="/vocabulary", tags=["vocabulary"])
 
 @router.get("/course-words", response_model=list[CourseWordResponse])
 async def course_words(
-    response: Response,
     course_id: UUID | None = Query(None, alias="courseId"),
-    lesson_id: UUID | None = Query(None, alias="lessonId"),
     level: CefrLevel | None = None,
-    q: str = Query("", max_length=120),
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(50, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     query = await flashcards.course_query(db, course_id, level)
-    if lesson_id is not None:
-        query = query.where(CourseVocabularyItem.lesson_id == lesson_id)
-    for term in q.split():
-        variants = {term, term.casefold(), term.upper(), term.capitalize()}
-        query = query.where(
-            or_(
-                CourseVocabularyItem.word.contains(term.casefold(), autoescape=True),
-                CourseVocabularyItem.example.icontains(term, autoescape=True),
-                Course.title.icontains(term, autoescape=True),
-                Lesson.title.icontains(term, autoescape=True),
-                *(CourseVocabularyItem.translation.contains(v, autoescape=True) for v in variants),
-            )
-        )
-    total = await db.scalar(select(func.count()).select_from(query.order_by(None).subquery()))
-    response.headers["X-Total-Count"] = str(total)
     items = (await db.scalars(query.limit(limit).offset(offset))).all()
     lessons = {
         row.id: row
